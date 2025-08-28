@@ -43,10 +43,15 @@ private:
     void image_callback(const sensor_msgs::msg::Image::ConstSharedPtr msg);
     void camera_info_callback(
         const sensor_msgs::msg::CameraInfo::ConstSharedPtr msg);
-        
+
     SetParametersResult on_set_parameters_cb(
         const std::vector<rclcpp::Parameter>& parameters);
-    
+
+    void fill_corners(clover2_aruco_msgs::msg::Marker& marker,
+                      const std::vector<cv::Point2f>& corners) const;
+    void fill_pose(clover2_aruco_msgs::msg::Marker& marker,
+                   const cv::Vec3d& rvec, const cv::Vec3d& tvec) const;
+
     std::mutex m_camera_info_mtx;
     cv::Mat m_camera_matrix;
     cv::Mat m_marker_obj_points;
@@ -69,6 +74,6 @@ private:
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr m_image_sub;
     rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr
         m_camera_info_sub;
-    };
+};
 
 }  // namespace clover2_aruco

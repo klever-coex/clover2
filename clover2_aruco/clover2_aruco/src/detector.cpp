@@ -1,6 +1,8 @@
 #include <clover2_aruco/detector.hpp>
 #include <cv_bridge/cv_bridge.hpp>
 
+#include <lifecycle_msgs/msg/state.hpp>
+
 #include <string>
 #include <unordered_map>
 
@@ -44,8 +46,9 @@ detector::detector(const rclcpp::NodeOptions& options)
         &detector::on_set_parameters_cb, this, std::placeholders::_1));
 
     // Declare parameters
-    this->declare_parameter("marker_dict", "4X4_50");
-    this->declare_parameter("marker_size", 0.15);
+    declare_parameter("marker_dict", "4X4_50");
+    declare_parameter("marker_size", 0.15);
+    declare_parameter("autostart", true);
 
     register_on_configure(
         std::bind(&detector::on_configure, this, std::placeholders::_1));
@@ -57,6 +60,16 @@ detector::detector(const rclcpp::NodeOptions& options)
         std::bind(&detector::on_cleanup, this, std::placeholders::_1));
     register_on_shutdown(
         std::bind(&detector::on_shutdown, this, std::placeholders::_1));
+
+    if (get_parameter("autostart").as_bool())
+    {
+        configure();
+
+        if (get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE)
+        {
+            activate();
+        }
+    }
 }
 
 detector::CallbackReturn detector::on_configure(
@@ -137,25 +150,36 @@ void detector::image_callback(
 
     cv::Mat image = cv_bridge::toCvShare(msg)->image;
 
-    vector<int> ids;
-    vector<vector<cv::Point2f>> corners, rejected;
-    vector<cv::Vec3d> rvecs, tvecs;
-    vector<cv::Point3f> obj_points;
+    std::vector<int> ids;
+    std::vector<std::vector<cv::Point2f>> corners, rejected;
+    std::vector<cv::Vec3d> rvecs, tvecs;
+    std::vector<cv::Point3f> obj_points;
 
-    geometry_msgs::TransformStamped vertical;
-    clover2_aruco_msgs::msg::MarkerArray marker_array;
+    std::unique_ptr<clover2_aruco_msgs::msg::MarkerArray> marker_array =
+        std::make_unique<clover2_aruco_msgs::msg::MarkerArray>();
+
+    marker_array->header.stamp = msg->header.stamp;
+    marker_array->header.frame_id = msg->header.frame_id;
 
     cv::aruco::detectMarkers(image, m_dictionary, corners, ids,
                              m_detector_parameters, rejected);
-
-    marker_array.header.stamp = msg->header.stamp;
-    marker_array.header.frame_id = msg->header.frame_id;
 
     if (ids.size() != 0) {
         cv::aruco::estimatePoseSingleMarkers(corners, m_marker_size,
                                              m_camera_matrix,
                                              m_distortion_coeffs, rvecs, tvecs);
+
+        for (size_t i = 0; i < ids.size(); i++) {
+            clover2_aruco_msgs::msg::Marker marker;
+
+            fill_corners(marker, corners[i]);
+            fill_pose(marker, rvecs[i], tvecs[i]);
+
+            marker_array->markers.push_back(marker);
+        }
     }
+
+    m_markers_pub->publish(std::move(marker_array));
 }
 
 void detector::camera_info_callback(
@@ -197,6 +221,37 @@ detector::SetParametersResult detector::on_set_parameters_cb(
     }
 
     return result;
+}
+
+void detector::fill_corners(clover2_aruco_msgs::msg::Marker& marker,
+                            const std::vector<cv::Point2f>& corners) const {
+    marker.c1.x = corners[0].x;
+    marker.c1.y = corners[0].y;
+
+    marker.c2.x = corners[1].x;
+    marker.c2.y = corners[1].y;
+
+    marker.c3.x = corners[2].x;
+    marker.c3.y = corners[2].y;
+
+    marker.c4.x = corners[3].x;
+    marker.c4.y = corners[3].y;
+}
+
+void detector::fill_pose(clover2_aruco_msgs::msg::Marker& marker,
+                         const cv::Vec3d& rvec, const cv::Vec3d& tvec) const {
+    marker.pose.position.x = tvec[0];
+    marker.pose.position.y = tvec[1];
+    marker.pose.position.z = tvec[2];
+
+    double angle = cv::norm(rvec);
+    auto axis = rvec / angle;
+
+    tf2::Quaternion q(tf2::Vector3(axis[0], axis[1], axis[2]), angle);
+    marker.pose.orientation.x = q.x();
+    marker.pose.orientation.y = q.y();
+    marker.pose.orientation.z = q.z();
+    marker.pose.orientation.w = q.w();
 }
 
 }  // namespace clover2_aruco
