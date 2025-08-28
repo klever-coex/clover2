@@ -1,6 +1,5 @@
 #include <clover2_aruco/detector.hpp>
 #include <cv_bridge/cv_bridge.hpp>
-
 #include <lifecycle_msgs/msg/state.hpp>
 
 #include <string>
@@ -47,6 +46,7 @@ detector::detector(const rclcpp::NodeOptions& options)
 
     // Declare parameters
     declare_parameter("marker_dict", "4X4_50");
+    declare_parameter("marker_frame_id", "aruco");
     declare_parameter("marker_size", 0.15);
     declare_parameter("autostart", true);
 
@@ -61,12 +61,11 @@ detector::detector(const rclcpp::NodeOptions& options)
     register_on_shutdown(
         std::bind(&detector::on_shutdown, this, std::placeholders::_1));
 
-    if (get_parameter("autostart").as_bool())
-    {
+    if (get_parameter("autostart").as_bool()) {
         configure();
 
-        if (get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE)
-        {
+        if (get_current_state().id() ==
+            lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE) {
             activate();
         }
     }
@@ -85,8 +84,6 @@ detector::CallbackReturn detector::on_configure(
 
 detector::CallbackReturn detector::on_activate(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
-    m_tf_buffer = std::make_shared<tf2_ros::Buffer>(get_clock());
-    m_tf_listener = std::make_shared<tf2_ros::TransformListener>(*m_tf_buffer);
     m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
 
     m_markers_pub =
@@ -109,8 +106,6 @@ detector::CallbackReturn detector::on_activate(
 
 detector::CallbackReturn detector::on_deactivate(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
-    m_tf_buffer.reset();
-    m_tf_listener.reset();
     m_tf_broadcaster.reset();
 
     m_image_sub.reset();
@@ -130,8 +125,6 @@ detector::CallbackReturn detector::on_cleanup(
 
 detector::CallbackReturn detector::on_shutdown(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
-    m_tf_buffer.reset();
-    m_tf_listener.reset();
     m_tf_broadcaster.reset();
 
     m_image_sub.reset();
@@ -151,15 +144,14 @@ void detector::image_callback(
     cv::Mat image = cv_bridge::toCvShare(msg)->image;
 
     std::vector<int> ids;
-    std::vector<std::vector<cv::Point2f>> corners, rejected;
     std::vector<cv::Vec3d> rvecs, tvecs;
     std::vector<cv::Point3f> obj_points;
-
+    std::vector<std::vector<cv::Point2f>> corners, rejected;
+    std::vector<geometry_msgs::msg::TransformStamped> transforms;
     std::unique_ptr<clover2_aruco_msgs::msg::MarkerArray> marker_array =
         std::make_unique<clover2_aruco_msgs::msg::MarkerArray>();
 
-    marker_array->header.stamp = msg->header.stamp;
-    marker_array->header.frame_id = msg->header.frame_id;
+    marker_array->header = msg->header;
 
     cv::aruco::detectMarkers(image, m_dictionary, corners, ids,
                              m_detector_parameters, rejected);
@@ -171,12 +163,24 @@ void detector::image_callback(
 
         for (size_t i = 0; i < ids.size(); i++) {
             clover2_aruco_msgs::msg::Marker marker;
+            geometry_msgs::msg::TransformStamped transform;
 
+            // add marker
             fill_corners(marker, corners[i]);
             fill_pose(marker, rvecs[i], tvecs[i]);
-
             marker_array->markers.push_back(marker);
+
+            // add transform
+            transform.header = msg->header;
+            transform.child_frame_id = get_marker_frame_id(ids[i]);
+            transform.transform.rotation = marker.pose.orientation;
+            fill_translation(transform.transform.translation, tvecs[i]);
+            transforms.push_back(transform);
         }
+    }
+
+    if (!transforms.empty()) {
+        m_tf_broadcaster->sendTransform(transforms);
     }
 
     m_markers_pub->publish(std::move(marker_array));
@@ -208,6 +212,8 @@ detector::SetParametersResult detector::on_set_parameters_cb(
                 m_dictionary_id = dictionary_id->second;
             } else if (p.get_name() == "marker_dict") {
                 m_marker_size = p.as_double();
+            } else if (p.get_name() == "marker_frame_id") {
+                m_aruco_frame_id = p.as_string();
             } else {
                 std::runtime_error("unknown parameter name " + p.get_name());
             }
@@ -252,6 +258,17 @@ void detector::fill_pose(clover2_aruco_msgs::msg::Marker& marker,
     marker.pose.orientation.y = q.y();
     marker.pose.orientation.z = q.z();
     marker.pose.orientation.w = q.w();
+}
+
+void detector::fill_translation(geometry_msgs::msg::Vector3& translation,
+                                const cv::Vec3d& tvec) const {
+    translation.x = tvec[0];
+    translation.y = tvec[1];
+    translation.z = tvec[2];
+}
+
+std::string detector::get_marker_frame_id(const int id) const {
+    return m_aruco_frame_id + std::to_string(id);
 }
 
 }  // namespace clover2_aruco

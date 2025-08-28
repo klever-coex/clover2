@@ -51,19 +51,21 @@ private:
                       const std::vector<cv::Point2f>& corners) const;
     void fill_pose(clover2_aruco_msgs::msg::Marker& marker,
                    const cv::Vec3d& rvec, const cv::Vec3d& tvec) const;
+    void fill_translation(geometry_msgs::msg::Vector3& translation,
+                          const cv::Vec3d& tvec) const;
+    std::string get_marker_frame_id(const int id) const;
 
-    std::mutex m_camera_info_mtx;
     cv::Mat m_camera_matrix;
     cv::Mat m_marker_obj_points;
     cv::Mat m_distortion_coeffs;
+    std::string m_aruco_frame_id;
+    std::mutex m_camera_info_mtx;
 
     int m_dictionary_id;
     double m_marker_size;
     cv::Ptr<cv::aruco::Dictionary> m_dictionary;
     cv::Ptr<cv::aruco::DetectorParameters> m_detector_parameters;
 
-    std::shared_ptr<tf2_ros::Buffer> m_tf_buffer;
-    std::shared_ptr<tf2_ros::TransformListener> m_tf_listener;
     std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
 
     rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr

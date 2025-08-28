@@ -1,0 +1,21 @@
+[0.006s] Invoking command in '/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_msgs': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_msgs -- -j16 -l16
+[0.025s] Invoked command in '/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_msgs' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_msgs -- -j16 -l16
+[0.025s] Invoking command in '/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_msgs': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_msgs
+[0.029s] -- Install configuration: ""
+[0.029s] -- Execute custom install script
+[0.029s] -- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_msgs/share/ament_index/resource_index/package_run_dependencies/clover2_msgs
+[0.029s] -- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_msgs/share/ament_index/resource_index/parent_prefix_path/clover2_msgs
+[0.029s] -- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_msgs/share/clover2_msgs/environment/ament_prefix_path.sh
+[0.029s] -- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_msgs/share/clover2_msgs/environment/ament_prefix_path.dsv
+[0.029s] -- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_msgs/share/clover2_msgs/environment/path.sh
+[0.029s] -- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_msgs/share/clover2_msgs/environment/path.dsv
+[0.029s] -- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_msgs/share/clover2_msgs/local_setup.bash
+[0.029s] -- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_msgs/share/clover2_msgs/local_setup.sh
+[0.029s] -- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_msgs/share/clover2_msgs/local_setup.zsh
+[0.029s] -- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_msgs/share/clover2_msgs/local_setup.dsv
+[0.029s] -- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_msgs/share/clover2_msgs/package.dsv
+[0.033s] -- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_msgs/share/ament_index/resource_index/packages/clover2_msgs
+[0.033s] -- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_msgs/share/clover2_msgs/cmake/clover2_msgsConfig.cmake
+[0.033s] -- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_msgs/share/clover2_msgs/cmake/clover2_msgsConfig-version.cmake
+[0.033s] -- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_msgs/share/clover2_msgs/package.xml
+[0.042s] Invoked command in '/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_msgs' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_msgs

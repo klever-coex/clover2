@@ -1,0 +1,73 @@
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ament_cmake: 2.5.4 (/opt/ros/jazzy/share/ament_cmake/cmake)
+-- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter 
+-- Override CMake install command with custom implementation using symlinks instead of copying resources
+-- Found ament_cmake_ros: 0.12.0 (/opt/ros/jazzy/share/ament_cmake_ros/cmake)
+-- Found clover2_aruco_msgs: 0.0.0 (/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake)
+-- Found rosidl_generator_c: 4.6.5 (/opt/ros/jazzy/share/rosidl_generator_c/cmake)
+-- Found rosidl_generator_cpp: 4.6.5 (/opt/ros/jazzy/share/rosidl_generator_cpp/cmake)
+-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+-- Found cv_bridge: 4.1.0 (/opt/ros/jazzy/share/cv_bridge/cmake)
+-- Found rmw_implementation_cmake: 7.3.2 (/opt/ros/jazzy/share/rmw_implementation_cmake/cmake)
+-- Found rmw_fastrtps_cpp: 8.4.2 (/opt/ros/jazzy/share/rmw_fastrtps_cpp/cmake)
+-- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.13")  
+-- Found FastRTPS: /opt/ros/jazzy/include (Required is at least version "2.13") 
+-- Using RMW implementation 'rmw_fastrtps_cpp' as default
+-- Found rclcpp_components: 28.1.10 (/opt/ros/jazzy/share/rclcpp_components/cmake)
+-- Found rclcpp_lifecycle: 28.1.10 (/opt/ros/jazzy/share/rclcpp_lifecycle/cmake)
+-- Found tf2_geometry_msgs: 0.36.14 (/opt/ros/jazzy/share/tf2_geometry_msgs/cmake)
+-- Found eigen3_cmake_module: 0.3.0 (/opt/ros/jazzy/share/eigen3_cmake_module/cmake)
+-- Found Eigen3: TRUE (found version "3.4.0") 
+-- Ensuring Eigen3 include directory is part of orocos-kdl CMake target
+-- Found OpenCV: /usr (found suitable version "4.6.0", minimum required is "4.6.0") found components: aruco 
+-- Configuring done (0.7s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_aruco
+[ 25%] [32mBuilding CXX object CMakeFiles/clover2_aruco_detector.dir/src/detector.cpp.o[0m
+[ 50%] [32m[1mLinking CXX shared library libclover2_aruco_detector.so[0m
+[ 50%] Built target clover2_aruco_detector
+[ 75%] [32mBuilding CXX object CMakeFiles/detector.dir/src/detector_node.cpp.o[0m
+[100%] [32m[1mLinking CXX executable detector[0m
+[100%] Built target detector
+-- Install configuration: ""
+-- Execute custom install script
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/include/clover2_aruco/clover2_aruco/detector.hpp
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/lib/clover2_aruco/detector
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/environment/library_path.sh
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/environment/library_path.dsv
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/ament_index/resource_index/package_run_dependencies/clover2_aruco
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/ament_index/resource_index/parent_prefix_path/clover2_aruco
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/environment/ament_prefix_path.sh
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/environment/ament_prefix_path.dsv
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/environment/path.sh
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/environment/path.dsv
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/local_setup.bash
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/local_setup.sh
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/local_setup.zsh
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/local_setup.dsv
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/package.dsv
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/ament_index/resource_index/packages/clover2_aruco
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/ament_index/resource_index/rclcpp_components/clover2_aruco
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/cmake/ament_cmake_export_dependencies-extras.cmake
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/cmake/ament_cmake_export_include_directories-extras.cmake
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/cmake/ament_cmake_export_libraries-extras.cmake
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/cmake/ament_cmake_export_targets-extras.cmake
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/cmake/clover2_arucoConfig.cmake
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/cmake/clover2_arucoConfig-version.cmake
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/package.xml
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/lib/libclover2_aruco_detector.so
+-- Set non-toolchain portion of runtime path of "/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/lib/libclover2_aruco_detector.so" to ""
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/cmake/export_clover2_arucoExport.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/cmake/export_clover2_arucoExport-noconfig.cmake

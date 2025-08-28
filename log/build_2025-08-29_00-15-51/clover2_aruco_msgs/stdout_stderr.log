@@ -1,0 +1,225 @@
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ament_cmake: 2.5.4 (/opt/ros/jazzy/share/ament_cmake/cmake)
+-- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter 
+-- Override CMake install command with custom implementation using symlinks instead of copying resources
+-- Found std_msgs: 5.3.6 (/opt/ros/jazzy/share/std_msgs/cmake)
+-- Found rosidl_generator_c: 4.6.5 (/opt/ros/jazzy/share/rosidl_generator_c/cmake)
+-- Found rosidl_generator_cpp: 4.6.5 (/opt/ros/jazzy/share/rosidl_generator_cpp/cmake)
+-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+-- Found geometry_msgs: 5.3.6 (/opt/ros/jazzy/share/geometry_msgs/cmake)
+-- Found rosidl_default_generators: 1.6.0 (/opt/ros/jazzy/share/rosidl_default_generators/cmake)
+-- Found rosidl_adapter: 4.6.5 (/opt/ros/jazzy/share/rosidl_adapter/cmake)
+-- Found ament_cmake_ros: 0.12.0 (/opt/ros/jazzy/share/ament_cmake_ros/cmake)
+-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+-- Found python_cmake_module: 0.11.1 (/opt/ros/jazzy/share/python_cmake_module/cmake)
+-- Found PythonExtra: /usr/bin/python3  
+-- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter Development NumPy Development.Module Development.Embed 
+-- Configuring done (1.5s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_aruco_msgs
+[  2%] [34m[1mGenerating type hashes for ROS interfaces[0m
+[  2%] Built target ament_cmake_python_symlink_clover2_aruco_msgs
+running egg_info
+creating clover2_aruco_msgs.egg-info
+writing clover2_aruco_msgs.egg-info/PKG-INFO
+writing dependency_links to clover2_aruco_msgs.egg-info/dependency_links.txt
+writing top-level names to clover2_aruco_msgs.egg-info/top_level.txt
+writing manifest file 'clover2_aruco_msgs.egg-info/SOURCES.txt'
+[  2%] Built target clover2_aruco_msgs__rosidl_generator_type_description
+[  4%] [34m[1mGenerating C code for ROS interfaces[0m
+[  6%] [34m[1mGenerating C++ code for ROS interfaces[0m
+reading manifest file 'clover2_aruco_msgs.egg-info/SOURCES.txt'
+writing manifest file 'clover2_aruco_msgs.egg-info/SOURCES.txt'
+[  6%] Built target ament_cmake_python_build_clover2_aruco_msgs_egg
+[  6%] Built target clover2_aruco_msgs__cpp
+[ 15%] [32mBuilding C object CMakeFiles/clover2_aruco_msgs__rosidl_generator_c.dir/rosidl_generator_c/clover2_aruco_msgs/msg/detail/marker_array__type_support.c.o[0m
+[ 15%] [32mBuilding C object CMakeFiles/clover2_aruco_msgs__rosidl_generator_c.dir/rosidl_generator_c/clover2_aruco_msgs/msg/detail/marker__functions.c.o[0m
+[ 15%] [32mBuilding C object CMakeFiles/clover2_aruco_msgs__rosidl_generator_c.dir/rosidl_generator_c/clover2_aruco_msgs/msg/detail/marker__description.c.o[0m
+[ 15%] [32mBuilding C object CMakeFiles/clover2_aruco_msgs__rosidl_generator_c.dir/rosidl_generator_c/clover2_aruco_msgs/msg/detail/marker__type_support.c.o[0m
+[ 20%] [32mBuilding C object CMakeFiles/clover2_aruco_msgs__rosidl_generator_c.dir/rosidl_generator_c/clover2_aruco_msgs/msg/detail/marker_array__functions.c.o[0m
+[ 20%] [32mBuilding C object CMakeFiles/clover2_aruco_msgs__rosidl_generator_c.dir/rosidl_generator_c/clover2_aruco_msgs/msg/detail/marker_array__description.c.o[0m
+[ 22%] [32m[1mLinking C shared library libclover2_aruco_msgs__rosidl_generator_c.so[0m
+[ 22%] Built target clover2_aruco_msgs__rosidl_generator_c
+[ 36%] [34m[1mGenerating C++ introspection for ROS interfaces[0m
+[ 36%] [34m[1mGenerating C type support for eProsima Fast-RTPS[0m
+[ 36%] [34m[1mGenerating C type support dispatch for ROS interfaces[0m
+[ 36%] [34m[1mGenerating C++ type support dispatch for ROS interfaces[0m
+[ 36%] [34m[1mGenerating C introspection for ROS interfaces[0m
+[ 36%] [34m[1mGenerating C++ type support for eProsima Fast-RTPS[0m
+[ 43%] [32mBuilding CXX object CMakeFiles/clover2_aruco_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/clover2_aruco_msgs/msg/marker_array__type_support.cpp.o[0m
+[ 43%] [32mBuilding CXX object CMakeFiles/clover2_aruco_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/clover2_aruco_msgs/msg/marker__type_support.cpp.o[0m
+[ 43%] [32mBuilding CXX object CMakeFiles/clover2_aruco_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/clover2_aruco_msgs/msg/marker_array__type_support.cpp.o[0m
+[ 45%] [32mBuilding CXX object CMakeFiles/clover2_aruco_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/clover2_aruco_msgs/msg/marker__type_support.cpp.o[0m
+[ 47%] [32mBuilding CXX object CMakeFiles/clover2_aruco_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/clover2_aruco_msgs/msg/detail/marker_array__type_support.cpp.o[0m
+[ 50%] [32mBuilding CXX object CMakeFiles/clover2_aruco_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/clover2_aruco_msgs/msg/detail/marker__type_support.cpp.o[0m
+[ 52%] [32mBuilding C object CMakeFiles/clover2_aruco_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/clover2_aruco_msgs/msg/detail/marker__type_support.c.o[0m
+[ 54%] [32mBuilding C object CMakeFiles/clover2_aruco_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/clover2_aruco_msgs/msg/detail/marker_array__type_support.c.o[0m
+[ 56%] [32m[1mLinking CXX shared library libclover2_aruco_msgs__rosidl_typesupport_c.so[0m
+[ 59%] [32mBuilding CXX object CMakeFiles/clover2_aruco_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/clover2_aruco_msgs/msg/detail/dds_fastrtps/marker__type_support.cpp.o[0m
+[ 61%] [32mBuilding CXX object CMakeFiles/clover2_aruco_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/clover2_aruco_msgs/msg/detail/dds_fastrtps/marker_array__type_support.cpp.o[0m
+[ 65%] [32mBuilding CXX object CMakeFiles/clover2_aruco_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/clover2_aruco_msgs/msg/detail/marker_array__type_support_c.cpp.o[0m
+[ 65%] [32mBuilding CXX object CMakeFiles/clover2_aruco_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/clover2_aruco_msgs/msg/detail/marker__type_support_c.cpp.o[0m
+[ 68%] [32m[1mLinking C shared library libclover2_aruco_msgs__rosidl_typesupport_introspection_c.so[0m
+[ 68%] Built target clover2_aruco_msgs__rosidl_typesupport_c
+[ 68%] Built target clover2_aruco_msgs__rosidl_typesupport_introspection_c
+[ 70%] [32m[1mLinking CXX shared library libclover2_aruco_msgs__rosidl_typesupport_cpp.so[0m
+[ 70%] Built target clover2_aruco_msgs__rosidl_typesupport_cpp
+[ 72%] [32m[1mLinking CXX shared library libclover2_aruco_msgs__rosidl_typesupport_introspection_cpp.so[0m
+[ 72%] Built target clover2_aruco_msgs__rosidl_typesupport_introspection_cpp
+[ 75%] [32m[1mLinking CXX shared library libclover2_aruco_msgs__rosidl_typesupport_fastrtps_c.so[0m
+[ 77%] [32m[1mLinking CXX shared library libclover2_aruco_msgs__rosidl_typesupport_fastrtps_cpp.so[0m
+[ 77%] Built target clover2_aruco_msgs__rosidl_typesupport_fastrtps_c
+[ 77%] Built target clover2_aruco_msgs__rosidl_typesupport_fastrtps_cpp
+[ 77%] Built target clover2_aruco_msgs
+[ 79%] [34m[1mGenerating Python code for ROS interfaces[0m
+[ 79%] Built target clover2_aruco_msgs__py
+[ 84%] [32mBuilding C object CMakeFiles/clover2_aruco_msgs__rosidl_generator_py.dir/rosidl_generator_py/clover2_aruco_msgs/msg/_marker_s.c.o[0m
+[ 84%] [32mBuilding C object CMakeFiles/clover2_aruco_msgs__rosidl_generator_py.dir/rosidl_generator_py/clover2_aruco_msgs/msg/_marker_array_s.c.o[0m
+[ 86%] [32m[1mLinking C shared library libclover2_aruco_msgs__rosidl_generator_py.so[0m
+[ 86%] Built target clover2_aruco_msgs__rosidl_generator_py
+[ 90%] [32mBuilding C object CMakeFiles/clover2_aruco_msgs_s__rosidl_typesupport_introspection_c.dir/rosidl_generator_py/clover2_aruco_msgs/_clover2_aruco_msgs_s.ep.rosidl_typesupport_introspection_c.c.o[0m
+[ 90%] [32mBuilding C object CMakeFiles/clover2_aruco_msgs_s__rosidl_typesupport_c.dir/rosidl_generator_py/clover2_aruco_msgs/_clover2_aruco_msgs_s.ep.rosidl_typesupport_c.c.o[0m
+[ 93%] [32mBuilding C object CMakeFiles/clover2_aruco_msgs_s__rosidl_typesupport_fastrtps_c.dir/rosidl_generator_py/clover2_aruco_msgs/_clover2_aruco_msgs_s.ep.rosidl_typesupport_fastrtps_c.c.o[0m
+[100%] [32m[1mLinking C shared module rosidl_generator_py/clover2_aruco_msgs/clover2_aruco_msgs_s__rosidl_typesupport_c.so[0m
+[100%] [32m[1mLinking C shared module rosidl_generator_py/clover2_aruco_msgs/clover2_aruco_msgs_s__rosidl_typesupport_fastrtps_c.so[0m
+[100%] [32m[1mLinking C shared module rosidl_generator_py/clover2_aruco_msgs/clover2_aruco_msgs_s__rosidl_typesupport_introspection_c.so[0m
+[100%] Built target clover2_aruco_msgs_s__rosidl_typesupport_introspection_c
+[100%] Built target clover2_aruco_msgs_s__rosidl_typesupport_c
+[100%] Built target clover2_aruco_msgs_s__rosidl_typesupport_fastrtps_c
+-- Install configuration: ""
+-- Execute custom install script
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/ament_index/resource_index/rosidl_interfaces/clover2_aruco_msgs
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/msg/Marker.json
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/msg/MarkerArray.json
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker__functions.h
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker__struct.h
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker__type_support.h
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker_array__functions.h
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker_array__struct.h
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker_array__type_support.h
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/marker.h
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/marker_array.h
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/rosidl_generator_c__visibility_control.h
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/environment/library_path.sh
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/environment/library_path.dsv
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker__rosidl_typesupport_fastrtps_c.h
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker_array__rosidl_typesupport_fastrtps_c.h
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/rosidl_typesupport_fastrtps_c__visibility_control.h
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker__builder.hpp
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker__struct.hpp
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker__traits.hpp
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker__type_support.hpp
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker_array__builder.hpp
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker_array__struct.hpp
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker_array__traits.hpp
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker_array__type_support.hpp
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/marker.hpp
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/marker_array.hpp
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/rosidl_generator_cpp__visibility_control.hpp
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker__rosidl_typesupport_fastrtps_cpp.hpp
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker_array__rosidl_typesupport_fastrtps_cpp.hpp
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker__rosidl_typesupport_introspection_c.h
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker_array__rosidl_typesupport_introspection_c.h
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/rosidl_typesupport_introspection_c__visibility_control.h
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker__rosidl_typesupport_introspection_cpp.hpp
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/include/clover2_aruco_msgs/clover2_aruco_msgs/msg/detail/marker_array__rosidl_typesupport_introspection_cpp.hpp
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/environment/pythonpath.sh
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/environment/pythonpath.dsv
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs-0.0.0-py3.12.egg-info/PKG-INFO
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs-0.0.0-py3.12.egg-info/SOURCES.txt
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs-0.0.0-py3.12.egg-info/dependency_links.txt
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs-0.0.0-py3.12.egg-info/top_level.txt
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/__init__.py
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/_clover2_aruco_msgs_s.ep.rosidl_typesupport_c.c
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/_clover2_aruco_msgs_s.ep.rosidl_typesupport_fastrtps_c.c
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/_clover2_aruco_msgs_s.ep.rosidl_typesupport_introspection_c.c
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/clover2_aruco_msgs_s__rosidl_typesupport_c.so
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/clover2_aruco_msgs_s__rosidl_typesupport_fastrtps_c.so
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/clover2_aruco_msgs_s__rosidl_typesupport_introspection_c.so
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/msg/__init__.py
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/msg/_marker.py
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/msg/_marker_array.py
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/msg/_marker_array_s.c
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/msg/_marker_s.c
+-- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/clover2_aruco_msgs_s__rosidl_typesupport_fastrtps_c.so
+-- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/clover2_aruco_msgs_s__rosidl_typesupport_introspection_c.so
+-- Up-to-date symlink: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/clover2_aruco_msgs_s__rosidl_typesupport_c.so
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/msg/Marker.idl
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/msg/MarkerArray.idl
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/msg/Marker.msg
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/msg/MarkerArray.msg
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/ament_index/resource_index/package_run_dependencies/clover2_aruco_msgs
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/ament_index/resource_index/parent_prefix_path/clover2_aruco_msgs
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/environment/ament_prefix_path.sh
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/environment/ament_prefix_path.dsv
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/environment/path.sh
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/environment/path.dsv
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/local_setup.bash
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/local_setup.sh
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/local_setup.zsh
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/local_setup.dsv
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/package.dsv
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/ament_index/resource_index/packages/clover2_aruco_msgs
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/rosidl_cmake-extras.cmake
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/ament_cmake_export_dependencies-extras.cmake
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/ament_cmake_export_include_directories-extras.cmake
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/ament_cmake_export_libraries-extras.cmake
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/ament_cmake_export_targets-extras.cmake
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/clover2_aruco_msgsConfig.cmake
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/clover2_aruco_msgsConfig-version.cmake
+-- Symlinking: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/package.xml
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/libclover2_aruco_msgs__rosidl_generator_c.so
+-- Set non-toolchain portion of runtime path of "/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/libclover2_aruco_msgs__rosidl_generator_c.so" to ""
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/libclover2_aruco_msgs__rosidl_typesupport_fastrtps_c.so
+-- Set non-toolchain portion of runtime path of "/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/libclover2_aruco_msgs__rosidl_typesupport_fastrtps_c.so" to ""
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/libclover2_aruco_msgs__rosidl_typesupport_fastrtps_cpp.so
+-- Set non-toolchain portion of runtime path of "/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/libclover2_aruco_msgs__rosidl_typesupport_fastrtps_cpp.so" to ""
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/libclover2_aruco_msgs__rosidl_typesupport_introspection_c.so
+-- Set non-toolchain portion of runtime path of "/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/libclover2_aruco_msgs__rosidl_typesupport_introspection_c.so" to ""
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/libclover2_aruco_msgs__rosidl_typesupport_c.so
+-- Set non-toolchain portion of runtime path of "/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/libclover2_aruco_msgs__rosidl_typesupport_c.so" to ""
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/libclover2_aruco_msgs__rosidl_typesupport_introspection_cpp.so
+-- Set non-toolchain portion of runtime path of "/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/libclover2_aruco_msgs__rosidl_typesupport_introspection_cpp.so" to ""
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/libclover2_aruco_msgs__rosidl_typesupport_cpp.so
+-- Set non-toolchain portion of runtime path of "/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/libclover2_aruco_msgs__rosidl_typesupport_cpp.so" to ""
+Listing '/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs'...
+Compiling '/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/__init__.py'...
+Listing '/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/msg'...
+Compiling '/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/msg/__init__.py'...
+Compiling '/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/msg/_marker.py'...
+Compiling '/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/python3.12/site-packages/clover2_aruco_msgs/msg/_marker_array.py'...
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/libclover2_aruco_msgs__rosidl_generator_py.so
+-- Set non-toolchain portion of runtime path of "/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/lib/libclover2_aruco_msgs__rosidl_generator_py.so" to ""
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/export_clover2_aruco_msgs__rosidl_generator_cExport.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/export_clover2_aruco_msgs__rosidl_generator_cExport-noconfig.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/export_clover2_aruco_msgs__rosidl_typesupport_fastrtps_cExport.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/export_clover2_aruco_msgs__rosidl_typesupport_fastrtps_cExport-noconfig.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/export_clover2_aruco_msgs__rosidl_generator_cppExport.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/export_clover2_aruco_msgs__rosidl_typesupport_fastrtps_cppExport.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/export_clover2_aruco_msgs__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/clover2_aruco_msgs__rosidl_typesupport_introspection_cExport.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/clover2_aruco_msgs__rosidl_typesupport_introspection_cExport-noconfig.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/clover2_aruco_msgs__rosidl_typesupport_cExport.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/clover2_aruco_msgs__rosidl_typesupport_cExport-noconfig.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/clover2_aruco_msgs__rosidl_typesupport_introspection_cppExport.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/clover2_aruco_msgs__rosidl_typesupport_introspection_cppExport-noconfig.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/clover2_aruco_msgs__rosidl_typesupport_cppExport.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/clover2_aruco_msgs__rosidl_typesupport_cppExport-noconfig.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/export_clover2_aruco_msgs__rosidl_generator_pyExport.cmake
+-- Installing: /home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco_msgs/share/clover2_aruco_msgs/cmake/export_clover2_aruco_msgs__rosidl_generator_pyExport-noconfig.cmake

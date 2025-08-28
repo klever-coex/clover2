@@ -1,0 +1,13 @@
+{
+  "package_name": "clover2_aruco_msgs",
+  "output_dir": "/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_aruco_msgs/rosidl_generator_type_description/clover2_aruco_msgs",
+  "idl_tuples": [
+    "/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_aruco_msgs/rosidl_adapter/clover2_aruco_msgs:msg/Marker.idl",
+    "/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_aruco_msgs/rosidl_adapter/clover2_aruco_msgs:msg/MarkerArray.idl"
+  ],
+  "include_paths": [
+    "std_msgs:/opt/ros/jazzy/share/std_msgs",
+    "builtin_interfaces:/opt/ros/jazzy/share/builtin_interfaces",
+    "geometry_msgs:/opt/ros/jazzy/share/geometry_msgs"
+  ]
+}

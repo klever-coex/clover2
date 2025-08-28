@@ -1,0 +1,1 @@
+/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_aruco_msgs/ament_cmake_environment_hooks/local_setup.sh

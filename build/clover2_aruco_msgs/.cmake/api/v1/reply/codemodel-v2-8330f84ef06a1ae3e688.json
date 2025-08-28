@@ -1,0 +1,242 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-5bfd7ae99c42b9c89088.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.20"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18
+					]
+				},
+				{
+					"build" : "clover2_aruco_msgs__py",
+					"jsonFile" : "directory-clover2_aruco_msgs__py-3cd2ee8890f31950b053.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.20"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_aruco_msgs/clover2_aruco_msgs__py",
+					"targetIndexes" : 
+					[
+						4
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1
+					],
+					"name" : "clover2_aruco_msgs",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_build_clover2_aruco_msgs_egg::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_build_clover2_aruco_msgs_egg-ce20736f529a6790de7d.json",
+					"name" : "ament_cmake_python_build_clover2_aruco_msgs_egg",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_symlink_clover2_aruco_msgs::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_symlink_clover2_aruco_msgs-e434cf4db7ae2f3d29d9.json",
+					"name" : "ament_cmake_python_symlink_clover2_aruco_msgs",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clover2_aruco_msgs::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clover2_aruco_msgs-3586b52946d73281e0c5.json",
+					"name" : "clover2_aruco_msgs",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clover2_aruco_msgs__cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clover2_aruco_msgs__cpp-7e9b1c6dcde8df5160f1.json",
+					"name" : "clover2_aruco_msgs__cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "clover2_aruco_msgs__py::@b010d41c64e3cd374a23",
+					"jsonFile" : "target-clover2_aruco_msgs__py-01c4ffe6b46dba925469.json",
+					"name" : "clover2_aruco_msgs__py",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clover2_aruco_msgs__rosidl_generator_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clover2_aruco_msgs__rosidl_generator_c-2aaa0f48a25bffc415c5.json",
+					"name" : "clover2_aruco_msgs__rosidl_generator_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clover2_aruco_msgs__rosidl_generator_py::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clover2_aruco_msgs__rosidl_generator_py-16ab78a7b31b8333a25b.json",
+					"name" : "clover2_aruco_msgs__rosidl_generator_py",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clover2_aruco_msgs__rosidl_generator_type_description::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clover2_aruco_msgs__rosidl_generator_type_description-11b40a003e6c92af8478.json",
+					"name" : "clover2_aruco_msgs__rosidl_generator_type_description",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clover2_aruco_msgs__rosidl_typesupport_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clover2_aruco_msgs__rosidl_typesupport_c-45404c7adf17f807b015.json",
+					"name" : "clover2_aruco_msgs__rosidl_typesupport_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clover2_aruco_msgs__rosidl_typesupport_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clover2_aruco_msgs__rosidl_typesupport_cpp-93a3c1601d7d10c17aad.json",
+					"name" : "clover2_aruco_msgs__rosidl_typesupport_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clover2_aruco_msgs__rosidl_typesupport_fastrtps_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clover2_aruco_msgs__rosidl_typesupport_fastrtps_c-4e98fd20a5341980b01d.json",
+					"name" : "clover2_aruco_msgs__rosidl_typesupport_fastrtps_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clover2_aruco_msgs__rosidl_typesupport_fastrtps_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clover2_aruco_msgs__rosidl_typesupport_fastrtps_cpp-c1688a78bf1b6425b33b.json",
+					"name" : "clover2_aruco_msgs__rosidl_typesupport_fastrtps_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clover2_aruco_msgs__rosidl_typesupport_introspection_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clover2_aruco_msgs__rosidl_typesupport_introspection_c-82b365dd76bd5ccdf26a.json",
+					"name" : "clover2_aruco_msgs__rosidl_typesupport_introspection_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clover2_aruco_msgs__rosidl_typesupport_introspection_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clover2_aruco_msgs__rosidl_typesupport_introspection_cpp-6e5a299f642f2e971c1f.json",
+					"name" : "clover2_aruco_msgs__rosidl_typesupport_introspection_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clover2_aruco_msgs_s__rosidl_typesupport_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clover2_aruco_msgs_s__rosidl_typesupport_c-7d9f10dae4d2db563288.json",
+					"name" : "clover2_aruco_msgs_s__rosidl_typesupport_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clover2_aruco_msgs_s__rosidl_typesupport_fastrtps_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clover2_aruco_msgs_s__rosidl_typesupport_fastrtps_c-b91ded8ed35f8a17b9a8.json",
+					"name" : "clover2_aruco_msgs_s__rosidl_typesupport_fastrtps_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clover2_aruco_msgs_s__rosidl_typesupport_introspection_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clover2_aruco_msgs_s__rosidl_typesupport_introspection_c-96e80b63054f508d835f.json",
+					"name" : "clover2_aruco_msgs_s__rosidl_typesupport_introspection_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "clover2_aruco_msgs_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-clover2_aruco_msgs_uninstall-a71f5382df7771c3547b.json",
+					"name" : "clover2_aruco_msgs_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-d85e8b34498fd399e098.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_aruco_msgs",
+		"source" : "/home/motya/projects/coex/clover2_ws/src/clover2/clover2_aruco/clover2_aruco_msgs"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 6
+	}
+}

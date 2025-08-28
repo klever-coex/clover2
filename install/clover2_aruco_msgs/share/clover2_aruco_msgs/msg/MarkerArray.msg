@@ -1,0 +1,1 @@
+/home/motya/projects/coex/clover2_ws/src/clover2/clover2_aruco/clover2_aruco_msgs/msg/MarkerArray.msg

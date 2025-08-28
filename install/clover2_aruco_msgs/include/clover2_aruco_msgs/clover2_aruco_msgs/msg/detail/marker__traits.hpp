@@ -1,0 +1,1 @@
+/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_aruco_msgs/rosidl_generator_cpp/clover2_aruco_msgs/msg/detail/marker__traits.hpp
