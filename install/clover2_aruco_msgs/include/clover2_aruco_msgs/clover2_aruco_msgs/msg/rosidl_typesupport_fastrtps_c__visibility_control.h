@@ -1,1 +1,0 @@
-/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_aruco_msgs/rosidl_typesupport_fastrtps_c/clover2_aruco_msgs/msg/rosidl_typesupport_fastrtps_c__visibility_control.h

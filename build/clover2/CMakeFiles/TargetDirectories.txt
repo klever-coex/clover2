@@ -1,9 +1,0 @@
-/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2/CMakeFiles/uninstall.dir
-/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2/CMakeFiles/clover2_uninstall.dir
-/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2/CMakeFiles/test.dir
-/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2/CMakeFiles/edit_cache.dir
-/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2/CMakeFiles/rebuild_cache.dir
-/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2/CMakeFiles/list_install_components.dir
-/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2/CMakeFiles/install.dir
-/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2/CMakeFiles/install/local.dir
-/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2/CMakeFiles/install/strip.dir

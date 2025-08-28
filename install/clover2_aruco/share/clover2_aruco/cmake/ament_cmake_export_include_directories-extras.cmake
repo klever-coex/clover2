@@ -1,1 +1,0 @@
-/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2_aruco/ament_cmake_export_include_directories/ament_cmake_export_include_directories-extras.cmake

@@ -1,3 +1,0 @@
-/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/lib/libclover2_aruco_detector.so
-/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/cmake/export_clover2_arucoExport.cmake
-/home/motya/projects/coex/clover2_ws/src/clover2/install/clover2_aruco/share/clover2_aruco/cmake/export_clover2_arucoExport-noconfig.cmake

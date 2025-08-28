@@ -1,1 +1,0 @@
-/home/motya/projects/coex/clover2_ws/src/clover2/build/clover2/ament_cmake_core/clover2Config-version.cmake
