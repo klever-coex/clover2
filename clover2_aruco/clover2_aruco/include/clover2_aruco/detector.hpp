@@ -78,6 +78,8 @@ private:
     rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr
         m_set_parameters_handle_ptr;
 
+    rclcpp::TimerBase::SharedPtr m_init_timer;
+
     rclcpp::Publisher<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr
         m_markers_pub;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr m_debug_pub;
