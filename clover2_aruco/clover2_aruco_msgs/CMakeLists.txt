@@ -13,10 +13,17 @@ find_package(rosidl_default_generators REQUIRED)
 set(msg_files
   msg/Marker.msg
   msg/MarkerArray.msg
+  msg/MarkerMap.msg
+  msg/Point2D.msg
+)
+
+set(srv_files
+  srv/GetMap.srv
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${msg_files}
+  ${srv_files}
   DEPENDENCIES std_msgs geometry_msgs)
 
 ament_package()

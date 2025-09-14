@@ -72,7 +72,7 @@ detector::detector(const rclcpp::NodeOptions& options)
 }
 
 detector::CallbackReturn detector::on_configure(
-    [[maybe_unused]] const rclcpp_lifecycle::State& state) {
+    [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     RCLCPP_INFO(this->get_logger(), "Configure...");
 
     m_detector_parameters = cv::aruco::DetectorParameters::create();
@@ -83,29 +83,32 @@ detector::CallbackReturn detector::on_configure(
 }
 
 detector::CallbackReturn detector::on_activate(
-    [[maybe_unused]] const rclcpp_lifecycle::State& state) {
+    [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
 
     m_markers_pub =
         this->create_publisher<clover2_aruco_msgs::msg::MarkerArray>(
-            "~/detected", 10);
-    m_image_sub = this->create_subscription<sensor_msgs::msg::Image>(
-        "~/image_raw",
-        rclcpp::QoS(
-            rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data)),
-        std::bind(&detector::image_callback, this, std::placeholders::_1));
+            "~/detected", rclcpp::SensorDataQoS());
+
+    m_debug_pub = this->create_publisher<sensor_msgs::msg::Image>(
+        "~/debug", rclcpp::SensorDataQoS());
+
     m_camera_info_sub = this->create_subscription<sensor_msgs::msg::CameraInfo>(
-        "~/camera_info",
-        rclcpp::QoS(
-            rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data)),
+        "~/camera_info", rclcpp::SensorDataQoS(),
         std::bind(&detector::camera_info_callback, this,
                   std::placeholders::_1));
+
+    m_image_sub = this->create_subscription<sensor_msgs::msg::Image>(
+        "~/image_raw", rclcpp::SensorDataQoS(),
+        std::bind(&detector::image_callback, this, std::placeholders::_1));
+
+    m_map_client = std::make_shared<map_client>(shared_from_this());
 
     return detector::CallbackReturn::SUCCESS;
 }
 
 detector::CallbackReturn detector::on_deactivate(
-    [[maybe_unused]] const rclcpp_lifecycle::State& state) {
+    [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     m_tf_broadcaster.reset();
 
     m_image_sub.reset();
@@ -116,7 +119,7 @@ detector::CallbackReturn detector::on_deactivate(
 }
 
 detector::CallbackReturn detector::on_cleanup(
-    [[maybe_unused]] const rclcpp_lifecycle::State& state) {
+    [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     m_dictionary.reset();
     m_detector_parameters.reset();
 
@@ -124,7 +127,7 @@ detector::CallbackReturn detector::on_cleanup(
 }
 
 detector::CallbackReturn detector::on_shutdown(
-    [[maybe_unused]] const rclcpp_lifecycle::State& state) {
+    [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     m_tf_broadcaster.reset();
 
     m_image_sub.reset();
@@ -137,9 +140,39 @@ detector::CallbackReturn detector::on_shutdown(
     return detector::CallbackReturn::SUCCESS;
 }
 
+cv::Mat detector::marker_object_points(
+    double length,
+    const cv::Ptr<cv::aruco::EstimateParameters>& estimate_parameters) {
+    cv::Mat objPoints(4, 1, CV_32FC3);
+
+    if (estimate_parameters->pattern == cv::aruco::CW_top_left_corner) {
+        objPoints.ptr<cv::Vec3f>(0)[0] = cv::Vec3f(0.f, 0.f, 0);
+        objPoints.ptr<cv::Vec3f>(0)[1] = cv::Vec3f(length, 0.f, 0);
+        objPoints.ptr<cv::Vec3f>(0)[2] = cv::Vec3f(length, length, 0);
+        objPoints.ptr<cv::Vec3f>(0)[3] = cv::Vec3f(0.f, length, 0);
+    } else if (estimate_parameters->pattern == cv::aruco::CCW_center) {
+        objPoints.ptr<cv::Vec3f>(0)[0] =
+            cv::Vec3f(-length / 2.f, length / 2.f, 0);
+        objPoints.ptr<cv::Vec3f>(0)[1] =
+            cv::Vec3f(length / 2.f, length / 2.f, 0);
+        objPoints.ptr<cv::Vec3f>(0)[2] =
+            cv::Vec3f(length / 2.f, -length / 2.f, 0);
+        objPoints.ptr<cv::Vec3f>(0)[3] =
+            cv::Vec3f(-length / 2.f, -length / 2.f, 0);
+    }
+
+    return objPoints;
+}
+
 void detector::image_callback(
     const sensor_msgs::msg::Image::ConstSharedPtr msg) {
     std::lock_guard<std::mutex> guard(m_camera_info_mtx);
+
+    if (!m_map_client->valid())
+    {
+        RCLCPP_ERROR(get_logger(), "Map invalid");
+        return;
+    }
 
     cv::Mat image = cv_bridge::toCvShare(msg)->image;
 
@@ -148,18 +181,30 @@ void detector::image_callback(
     std::vector<cv::Point3f> obj_points;
     std::vector<std::vector<cv::Point2f>> corners, rejected;
     std::vector<geometry_msgs::msg::TransformStamped> transforms;
+
     std::unique_ptr<clover2_aruco_msgs::msg::MarkerArray> marker_array =
         std::make_unique<clover2_aruco_msgs::msg::MarkerArray>();
-
     marker_array->header = msg->header;
 
     cv::aruco::detectMarkers(image, m_dictionary, corners, ids,
                              m_detector_parameters, rejected);
 
     if (ids.size() != 0) {
-        cv::aruco::estimatePoseSingleMarkers(corners, m_marker_size,
-                                             m_camera_matrix,
-                                             m_distortion_coeffs, rvecs, tvecs);
+        auto estimate_parameters = cv::makePtr<cv::aruco::EstimateParameters>();
+        parallel_for_(cv::Range(0, ids.size()), [&](const cv::Range& range) {
+            const int begin = range.start;
+            const int end = range.end;
+
+            for (int i = begin; i < end; i++) {
+                cv::Mat markerObjPoints = marker_object_points(
+                    m_map_client->get_marker_size(ids[i]), estimate_parameters);
+
+                solvePnP(markerObjPoints, cv::Mat(corners[i]), m_camera_matrix,
+                         m_distortion_coeffs, rvecs[i], tvecs[i],
+                         estimate_parameters->useExtrinsicGuess,
+                         estimate_parameters->solvePnPMethod);
+            }
+        });
 
         for (size_t i = 0; i < ids.size(); i++) {
             clover2_aruco_msgs::msg::Marker marker;
@@ -184,6 +229,19 @@ void detector::image_callback(
     }
 
     m_markers_pub->publish(std::move(marker_array));
+
+    if (m_debug_pub->get_subscription_count() != 0) {
+        cv::Mat debug = image.clone();
+        cv::aruco::drawDetectedMarkers(debug, corners, ids);
+
+        cv_bridge::CvImage cv_out;
+        cv_out.header.frame_id = msg->header.frame_id;
+        cv_out.header.stamp = msg->header.stamp;
+        cv_out.encoding = sensor_msgs::image_encodings::BGR8;
+        cv_out.image = debug;
+        sensor_msgs::msg::Image::SharedPtr out_msg = cv_out.toImageMsg();
+        m_debug_pub->publish(*out_msg);
+    }
 }
 
 void detector::camera_info_callback(

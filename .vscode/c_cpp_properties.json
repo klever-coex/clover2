@@ -1,0 +1,13 @@
+    {
+        "configurations": [
+            {
+                "name": "Linux",
+                "includePath": [
+                    "${workspaceFolder}/**",
+                    "/usr/include/opencv4",
+                    "/opt/ros/jazzy/include/**"
+                ],
+            }
+        ],
+        "version": 4
+    }

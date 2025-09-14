@@ -4,6 +4,9 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
+// Clover2 includes
+#include <clover2_aruco/map_client.hpp>
+
 // TF2 includes
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/buffer.h>
@@ -33,13 +36,16 @@ public:
     explicit detector(
         const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
 
-    CallbackReturn on_configure(const rclcpp_lifecycle::State& state);
-    CallbackReturn on_activate(const rclcpp_lifecycle::State& state);
-    CallbackReturn on_deactivate(const rclcpp_lifecycle::State& state);
-    CallbackReturn on_cleanup(const rclcpp_lifecycle::State& state);
-    CallbackReturn on_shutdown(const rclcpp_lifecycle::State& state);
+    CallbackReturn on_configure(const rclcpp_lifecycle::State& /* state */);
+    CallbackReturn on_activate(const rclcpp_lifecycle::State& /* state */);
+    CallbackReturn on_deactivate(const rclcpp_lifecycle::State& /* state */);
+    CallbackReturn on_cleanup(const rclcpp_lifecycle::State& /* state */);
+    CallbackReturn on_shutdown(const rclcpp_lifecycle::State& /* state */);
 
 private:
+    cv::Mat marker_object_points(
+        double markerLength,
+        const cv::Ptr<cv::aruco::EstimateParameters>& estimate_parameters);
     void image_callback(const sensor_msgs::msg::Image::ConstSharedPtr msg);
     void camera_info_callback(
         const sensor_msgs::msg::CameraInfo::ConstSharedPtr msg);
@@ -63,6 +69,7 @@ private:
 
     int m_dictionary_id;
     double m_marker_size;
+    std::shared_ptr<map_client> m_map_client;
     cv::Ptr<cv::aruco::Dictionary> m_dictionary;
     cv::Ptr<cv::aruco::DetectorParameters> m_detector_parameters;
 
@@ -73,9 +80,10 @@ private:
 
     rclcpp::Publisher<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr
         m_markers_pub;
-    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr m_image_sub;
+    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr m_debug_pub;
     rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr
         m_camera_info_sub;
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr m_image_sub;
 };
 
 }  // namespace clover2_aruco

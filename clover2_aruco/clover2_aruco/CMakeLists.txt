@@ -34,7 +34,7 @@ set(dependencies
   tf2_ros
 )
 
-add_library(clover2_aruco_detector src/detector.cpp)
+add_library(clover2_aruco_detector src/detector/detector.cpp)
 add_library(clover2_aruco::detector ALIAS clover2_aruco_detector)
 target_compile_features(clover2_aruco_detector PUBLIC c_std_99 cxx_std_17)
 target_include_directories(clover2_aruco_detector PUBLIC
@@ -64,7 +64,7 @@ install(
   RUNTIME DESTINATION bin
 )
 
-add_executable(detector src/detector_node.cpp)
+add_executable(detector src/detector/main.cpp)
 target_include_directories(detector PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
