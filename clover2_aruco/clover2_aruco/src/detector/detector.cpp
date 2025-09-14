@@ -62,12 +62,17 @@ detector::detector(const rclcpp::NodeOptions& options)
         std::bind(&detector::on_shutdown, this, std::placeholders::_1));
 
     if (get_parameter("autostart").as_bool()) {
-        configure();
+        m_init_timer =
+            this->create_wall_timer(std::chrono::seconds(0), [this]() {
+                configure();
 
-        if (get_current_state().id() ==
-            lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE) {
-            activate();
-        }
+                if (get_current_state().id() ==
+                    lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE) {
+                    activate();
+                }
+
+                m_init_timer.reset();
+            });
     }
 }
 
@@ -168,8 +173,7 @@ void detector::image_callback(
     const sensor_msgs::msg::Image::ConstSharedPtr msg) {
     std::lock_guard<std::mutex> guard(m_camera_info_mtx);
 
-    if (!m_map_client->valid())
-    {
+    if (!m_map_client->valid()) {
         RCLCPP_ERROR(get_logger(), "Map invalid");
         return;
     }
