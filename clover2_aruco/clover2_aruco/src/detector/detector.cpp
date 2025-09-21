@@ -334,3 +334,8 @@ std::string detector::get_marker_frame_id(const int id) const {
 }
 
 }  // namespace clover2_aruco
+
+#include "rclcpp_components/register_node_macro.hpp"
+
+RCLCPP_COMPONENTS_REGISTER_NODE(clover2_aruco::detector)
+

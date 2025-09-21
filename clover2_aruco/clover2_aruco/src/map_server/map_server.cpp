@@ -17,3 +17,8 @@ void map_server::map_callback(
 }
 
 }  // namespace clover2_aruco
+
+
+#include "rclcpp_components/register_node_macro.hpp"
+
+RCLCPP_COMPONENTS_REGISTER_NODE(clover2_aruco::map_server)
