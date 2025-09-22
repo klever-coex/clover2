@@ -3,7 +3,7 @@
 import os
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, TextSubstitution
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 
@@ -53,7 +53,7 @@ def generate_launch_description():
             'use_sim_time': use_sim_time,
             'log_level': log_level,
             'params_file': params_file,
-            'camera_name': 'main_camera',
+            'camera_name': TextSubstitution(text='main_camera'),
         }.items()
     )
 
@@ -94,5 +94,5 @@ def generate_launch_description():
         params_file_declare,
         main_camera_cmd,
         web_video_server_cmd,
-        # mavros_cmd,
+        mavros_cmd,
     ])
