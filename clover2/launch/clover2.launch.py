@@ -34,7 +34,7 @@ def generate_launch_description():
         'params_file',
         default_value=PathJoinSubstitution([
             pkg_clover2,
-            'param',
+            'params',
             'default.yaml'
         ]),
         description='Log level for all nodes'
@@ -93,6 +93,6 @@ def generate_launch_description():
         log_level_declare,
         params_file_declare,
         main_camera_cmd,
-        web_video_server_cmd,
         mavros_cmd,
+        web_video_server_cmd,
     ])
