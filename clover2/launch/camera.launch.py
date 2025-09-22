@@ -64,7 +64,7 @@ def generate_launch_description():
     )
 
     camera_container_cmd = ComposableNodeContainer(
-        name=camera_name + TextSubstitution(text='_container'),
+        name=TextSubstitution(text='main_camera_container'),
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=[
