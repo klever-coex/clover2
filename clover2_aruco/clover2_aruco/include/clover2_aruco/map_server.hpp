@@ -12,29 +12,28 @@
 
 namespace clover2_aruco {
 
-class map_server : public rclcpp_lifecycle::LifecycleNode {
+class map_server : public rclcpp::Node {
 public:
     using SharedPtr = std::shared_ptr<map_server>;
-    using CallbackReturn = rclcpp_lifecycle::node_interfaces::
-        LifecycleNodeInterface::CallbackReturn;
     using SetParametersResult = rcl_interfaces::msg::SetParametersResult;
 
     explicit map_server(
         const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
-
-    CallbackReturn on_configure(const rclcpp_lifecycle::State& state);
-    CallbackReturn on_activate(const rclcpp_lifecycle::State& state);
-    CallbackReturn on_deactivate(const rclcpp_lifecycle::State& state);
-    CallbackReturn on_cleanup(const rclcpp_lifecycle::State& state);
-    CallbackReturn on_shutdown(const rclcpp_lifecycle::State& state);
 
 private:
     void map_callback(
         const clover2_aruco_msgs::srv::GetMap::Request::SharedPtr request,
         clover2_aruco_msgs::srv::GetMap::Response::SharedPtr response);
 
+    clover2_aruco_msgs::msg::MarkerMap::SharedPtr parse_legacy(const std::string& filename) const;
+    clover2_aruco_msgs::msg::MarkerMap::SharedPtr parse_yaml(const std::string& filename) const;
+
+    void update_map(clover2_aruco_msgs::msg::MarkerMap::SharedPtr map);
+
+    void map_append_marker(clover2_aruco_msgs::msg::MarkerMap::SharedPtr& map, int id, double length, double x, double y, double z, double roll, double pitch, double yaw);
+
     std::string m_map_path;
-    clover2_aruco_msgs::msg::MarkerMap m_map_msg;
+    clover2_aruco_msgs::msg::MarkerMap::SharedPtr m_map_msg;
 
     rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr
         m_set_parameters_handle_ptr;
