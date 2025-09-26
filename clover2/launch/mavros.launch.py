@@ -56,7 +56,7 @@ def generate_launch_description():
     fcu_conn_declare = DeclareLaunchArgument(
         'fcu_conn',
         default_value='usb',
-        choices=['serial', 'serial'],
+        choices=['serial', 'udp'],
         description='Flight controller unit connection type',
     )
     
