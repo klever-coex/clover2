@@ -55,8 +55,8 @@ def generate_launch_description():
 
     fcu_conn_declare = DeclareLaunchArgument(
         'fcu_conn',
-        default_value='usb',
-        choices=['serial', 'udp'],
+        default_value='serial',
+        choices=['serial', 'tcp'],
         description='Flight controller unit connection type',
     )
     
@@ -76,7 +76,7 @@ def generate_launch_description():
     mavros_cmd = Node(
         package='mavros',
         executable='mavros_node',
-        name='mavros',
+        namespace='mavros',
         parameters=[
             params_file,
             mavros_params_file,
@@ -85,8 +85,6 @@ def generate_launch_description():
                 'fcu_url': '',
             }
         ],
-        respawn=True,
-        respawn_delay=1.0,
         output='screen',
         arguments=['--ros-args', '--log-level', log_level]
     )

@@ -89,6 +89,8 @@ detector::CallbackReturn detector::on_configure(
 
 detector::CallbackReturn detector::on_activate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
+    RCLCPP_INFO(this->get_logger(), "Activate...");
+
     m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
 
     m_markers_pub =
@@ -116,17 +118,20 @@ detector::CallbackReturn detector::on_deactivate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     m_tf_broadcaster.reset();
 
-    m_image_sub.reset();
-    m_camera_info_sub.reset();
     m_markers_pub.reset();
+    m_debug_pub.reset();
+    m_camera_info_sub.reset();
+    m_image_sub.reset();
+
+    m_map_client.reset();
 
     return detector::CallbackReturn::SUCCESS;
 }
 
 detector::CallbackReturn detector::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
-    m_dictionary.reset();
     m_detector_parameters.reset();
+    m_dictionary.reset();
 
     return detector::CallbackReturn::SUCCESS;
 }
@@ -136,11 +141,14 @@ detector::CallbackReturn detector::on_shutdown(
     m_tf_broadcaster.reset();
 
     m_image_sub.reset();
+    m_debug_pub.reset();
     m_camera_info_sub.reset();
     m_markers_pub.reset();
 
     m_dictionary.reset();
     m_detector_parameters.reset();
+
+    m_map_client.reset();
 
     return detector::CallbackReturn::SUCCESS;
 }
@@ -174,7 +182,7 @@ void detector::image_callback(
     std::lock_guard<std::mutex> guard(m_camera_info_mtx);
 
     if (!m_map_client->valid()) {
-        RCLCPP_ERROR(get_logger(), "Map invalid");
+        RCLCPP_ERROR(get_logger(), "Invalid map");
         return;
     }
 
