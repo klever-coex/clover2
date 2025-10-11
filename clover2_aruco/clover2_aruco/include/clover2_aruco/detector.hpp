@@ -29,16 +29,20 @@ namespace clover2_aruco {
 /**
  * @class detector
  * @brief Lifecycle node for detecting ArUco markers using OpenCV.
- * 
+ *
  * This node subscribes to camera images and camera info, detects ArUco markers
  * based on a dictionary, publishes marker arrays, and broadcasts transforms.
  */
 class detector : public rclcpp_lifecycle::LifecycleNode {
 public:
-    using SharedPtr = std::shared_ptr<detector>; ///< Shared pointer type for detector
-    using CallbackReturn = rclcpp_lifecycle::node_interfaces::
-        LifecycleNodeInterface::CallbackReturn; ///< Lifecycle callback return type
-    using SetParametersResult = rcl_interfaces::msg::SetParametersResult; ///< Parameter callback result type
+    using SharedPtr =
+        std::shared_ptr<detector>;  ///< Shared pointer type for detector
+    using CallbackReturn =
+        rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::
+            CallbackReturn;  ///< Lifecycle callback return type
+    using SetParametersResult =
+        rcl_interfaces::msg::SetParametersResult;  ///< Parameter callback
+                                                   ///< result type
 
     /**
      * @brief Construct a new detector node.
@@ -137,21 +141,24 @@ public:
 
 private:
     // Camera parameters
-    cv::Mat m_camera_matrix; ///< Camera intrinsic matrix
-    cv::Mat m_marker_obj_points; ///< 3D object points of marker corners
-    cv::Mat m_distortion_coeffs; ///< Camera distortion coefficients
-    std::string m_aruco_frame_id; ///< Base frame for ArUco markers
-    std::mutex m_camera_info_mtx; ///< Mutex for thread-safe camera info access
+    cv::Mat m_camera_matrix;       ///< Camera intrinsic matrix
+    cv::Mat m_marker_obj_points;   ///< 3D object points of marker corners
+    cv::Mat m_distortion_coeffs;   ///< Camera distortion coefficients
+    std::string m_aruco_frame_id;  ///< Base frame for ArUco markers
+    std::mutex m_camera_info_mtx;  ///< Mutex for thread-safe camera info access
 
     // Detection parameters
-    int m_dictionary_id; ///< OpenCV ArUco dictionary ID
-    double m_marker_size; ///< Marker size in meters
-    std::shared_ptr<map_client> m_map_client; ///< Map client for marker metadata
-    cv::Ptr<cv::aruco::Dictionary> m_dictionary; ///< ArUco dictionary object
-    cv::Ptr<cv::aruco::DetectorParameters> m_detector_parameters; ///< OpenCV detector parameters
+    int m_dictionary_id;   ///< OpenCV ArUco dictionary ID
+    double m_marker_size;  ///< Marker size in meters
+    std::shared_ptr<map_client>
+        m_map_client;  ///< Map client for marker metadata
+    cv::Ptr<cv::aruco::Dictionary> m_dictionary;  ///< ArUco dictionary object
+    cv::Ptr<cv::aruco::DetectorParameters>
+        m_detector_parameters;  ///< OpenCV detector parameters
 
     // TF
-    std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster; ///< TF broadcaster
+    std::shared_ptr<tf2_ros::TransformBroadcaster>
+        m_tf_broadcaster;  ///< TF broadcaster
 
     // Parameter callback handle
     rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr
@@ -162,11 +169,13 @@ private:
 
     // Publishers and subscribers
     rclcpp::Publisher<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr
-        m_markers_pub; ///< Marker array publisher
-    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr m_debug_pub; ///< Debug image publisher
+        m_markers_pub;  ///< Marker array publisher
+    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr
+        m_debug_pub;  ///< Debug image publisher
     rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr
-        m_camera_info_sub; ///< Camera info subscriber
-    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr m_image_sub; ///< Camera image subscriber
+        m_camera_info_sub;  ///< Camera info subscriber
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr
+        m_image_sub;  ///< Camera image subscriber
 };
 
 }  // namespace clover2_aruco

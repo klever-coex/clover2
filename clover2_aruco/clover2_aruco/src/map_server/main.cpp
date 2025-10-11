@@ -1,6 +1,5 @@
-#include <rclcpp/rclcpp.hpp>
-
 #include <clover2_aruco/map_server.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 #include <memory>
 

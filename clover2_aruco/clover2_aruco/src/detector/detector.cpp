@@ -277,7 +277,7 @@ detector::SetParametersResult detector::on_set_parameters_cb(
             if (p.get_name() == "marker_dict") {
                 auto dictionary_id = marker_dictionary_map.find(p.as_string());
                 if (dictionary_id == marker_dictionary_map.end()) {
-                    std::runtime_error("invalid marker type " + p.as_string());
+                    //std::runtime_error("invalid marker type " + p.as_string());
                 }
                 m_dictionary_id = dictionary_id->second;
             } else if (p.get_name() == "marker_dict") {
@@ -346,4 +346,3 @@ std::string detector::get_marker_frame_id(const int id) const {
 #include "rclcpp_components/register_node_macro.hpp"
 
 RCLCPP_COMPONENTS_REGISTER_NODE(clover2_aruco::detector)
-
