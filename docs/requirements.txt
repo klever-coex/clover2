@@ -1,3 +1,7 @@
-mkdocs>=1.5.0
-mkdocs-material>=9.0.0
-mkdocs-i18n>=0.1.0
+sphinx>=5.0
+sphinx-rtd-theme
+sphinx-intl
+myst-parser
+sphinx-markdown-tables
+sphinx-copybutton
+sphinx-design
