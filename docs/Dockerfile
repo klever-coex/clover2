@@ -10,8 +10,7 @@ COPY . /app
 
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-RUN make html 
-# sphinx-build -M html . /tmp/site
+RUN make html
 
 FROM nginx:1.25-alpine
 

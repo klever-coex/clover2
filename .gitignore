@@ -6,5 +6,6 @@
 *.pyc
 
 /docs/build
+/docs/**/*.mo
 
 .vscode-ctags

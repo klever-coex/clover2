@@ -1,0 +1,96 @@
+{% extends "!layout.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+<style>
+  #lang-switcher {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #404040;
+    color: #fff;
+    font-size: 0.85rem;
+    font-family: inherit;
+    padding: 8px 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 0;
+    z-index: 9999;
+    user-select: none;
+    transition: background 0.2s ease-in-out;
+  }
+
+  #lang-switcher:hover {
+    background-color: #505050;
+  }
+
+  #lang-menu {
+    display: none;
+    position: fixed;
+    bottom: 55px;
+    right: 20px;
+    background-color: #404040;
+    border: none;
+    width: 140px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+    z-index: 10000;
+    font-size: 0.85rem;
+    font-family: inherit;
+  }
+
+  #lang-menu a {
+    display: block;
+    color: #fff;
+    text-decoration: none;
+    padding: 8px 12px;
+    transition: background 0.2s;
+  }
+
+  #lang-menu a:hover {
+    background-color: #505050;
+  }
+
+  #lang-switcher.open + #lang-menu {
+    display: block;
+  }
+
+  #lang-switcher::after {
+    content: " ▼";
+    font-size: 0.85rem;
+  }
+</style>
+
+{% endblock %}
+
+{% block footer %}
+  {{ super() }}
+  <div id="lang-switcher" onclick="toggleLangMenu()">🌐 Language</div>
+  <div id="lang-menu">
+    <a href="#" onclick="changeLang('en'); return false;">English</a>
+    <a href="#" onclick="changeLang('ru'); return false;">Русский</a>
+  </div>
+
+  <script>
+    function toggleLangMenu() {
+      const switcher = document.getElementById("lang-switcher");
+      switcher.classList.toggle("open");
+      const menu = document.getElementById("lang-menu");
+      menu.style.display = switcher.classList.contains("open") ? "block" : "none";
+    }
+
+    function changeLang(lang) {
+      const current = window.location.pathname;
+      const newPath = current.replace('/en/', '/'+lang+'/').replace('/ru/', '/'+lang+'/');
+      window.location.pathname = newPath;
+    }
+
+    document.addEventListener('click', function(e) {
+      const switcher = document.getElementById("lang-switcher");
+      const menu = document.getElementById("lang-menu");
+      if (!switcher.contains(e.target) && !menu.contains(e.target)) {
+        menu.style.display = "none";
+        switcher.classList.remove("open");
+      }
+    });
+  </script>
+{% endblock %}
