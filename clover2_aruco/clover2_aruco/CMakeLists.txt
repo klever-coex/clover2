@@ -101,7 +101,7 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
 
   ament_add_gtest(${PROJECT_NAME}_tutorial_test
-    test/test_detector.cpp
+    test/unittest_detector.cpp
   )
   target_link_libraries(${PROJECT_NAME}_tutorial_test
     clover2_aruco_detector

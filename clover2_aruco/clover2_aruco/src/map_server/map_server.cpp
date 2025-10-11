@@ -10,8 +10,6 @@ map_server::map_server(const rclcpp::NodeOptions& options)
     , m_map(std::make_shared<clover2_aruco_msgs::msg::MarkerMap>()) {
     m_map_server = this->create_server<clover2_aruco_msgs::srv::GetMap>(
         "~/get_map", &map_server::map_callback);
-
-
 }
 
 void map_server::map_callback(
@@ -20,17 +18,20 @@ void map_server::map_callback(
     response->map = m_map_msg;
 }
 
-clover2_aruco_msgs::msg::MarkerMap::SharedPtr parse_legacy(const std::string& filename) const {
+clover2_aruco_msgs::msg::MarkerMap::SharedPtr parse_legacy(
+    const std::string& filename) const {
     std::filesystem::path filepath(filename);
 
-    clover2_aruco_msgs::msg::MarkerMap::SharedPtr map = std::make_shared<clover2_aruco_msgs::msg::MarkerMap>();
+    clover2_aruco_msgs::msg::MarkerMap::SharedPtr map =
+        std::make_shared<clover2_aruco_msgs::msg::MarkerMap>();
     map->name = filepath.stem();
 
     std::ifstream f(filepath);
     if (!f.good()) {
-        RCLCPP_ERROR(get_logger(), "%s - %s", strerror(errno), filename.c_str());
+        RCLCPP_ERROR(get_logger(), "%s - %s", strerror(errno),
+                     filename.c_str());
         return std::nullptr;
-	}
+    }
 
     std::string line;
     while (std::getline(f, line)) {
@@ -52,28 +53,36 @@ clover2_aruco_msgs::msg::MarkerMap::SharedPtr parse_legacy(const std::string& fi
         }
 
         if (!(s >> id >> length >> x >> y)) {
-            RCLCPP_ERROR(get_logger(), "Not enough data in line: %s; "
-                        "Each marker must have at least id, length, x, y fields", line.c_str());
+            RCLCPP_ERROR(
+                get_logger(),
+                "Not enough data in line: %s; "
+                "Each marker must have at least id, length, x, y fields",
+                line.c_str());
             continue;
         }
 
         if (!(s >> z)) {
-            RCLCPP_DEBUG(get_logger(), "No z coordinate provided for marker %d, assuming 0", id);
+            RCLCPP_DEBUG(get_logger(),
+                         "No z coordinate provided for marker %d, assuming 0",
+                         id);
             z = 0;
         }
 
         if (!(s >> yaw)) {
-            RCLCPP_DEBUG(get_logger(), "No yaw provided for marker %d, assuming 0", id);
+            RCLCPP_DEBUG(get_logger(),
+                         "No yaw provided for marker %d, assuming 0", id);
             yaw = 0;
         }
 
         if (!(s >> pitch)) {
-            RCLCPP_DEBUG(get_logger(), "No pitch provided for marker %d, assuming 0", id);
+            RCLCPP_DEBUG(get_logger(),
+                         "No pitch provided for marker %d, assuming 0", id);
             pitch = 0;
         }
 
         if (!(s >> roll)) {
-            RCLCPP_DEBUG(get_logger(), "No roll provided for marker %d, assuming 0", id);
+            RCLCPP_DEBUG(get_logger(),
+                         "No roll provided for marker %d, assuming 0", id);
             roll = 0;
         }
 
@@ -85,11 +94,12 @@ clover2_aruco_msgs::msg::MarkerMap::SharedPtr parse_legacy(const std::string& fi
     return map;
 }
 
-clover2_aruco_msgs::msg::MarkerMap::SharedPtr parse_yaml(const std::string& filename) const {
+clover2_aruco_msgs::msg::MarkerMap::SharedPtr parse_yaml(
+    const std::string& filename) const {}
 
-}
-
-void map_append_marker(clover2_aruco_msgs::msg::MarkerMap::SharedPtr& map, int id, double length, double x, double y, double z, double roll, double pitch, double yaw) {
+void map_append_marker(clover2_aruco_msgs::msg::MarkerMap::SharedPtr& map,
+                       int id, double length, double x, double y, double z,
+                       double roll, double pitch, double yaw) {
     clover2_aruco_msgs::msg::Marker marker;
 
     marker.id = id;
@@ -100,13 +110,12 @@ void map_append_marker(clover2_aruco_msgs::msg::MarkerMap::SharedPtr& map, int i
     marker.pose.position.y = y;
     marker.pose.position.z = z;
 
-    marker.pose.orientation.x = 
+    marker.pose.orientation.x =
 
-    map->markers.assign();
+        map->markers.assign();
 }
 
 }  // namespace clover2_aruco
-
 
 #include "rclcpp_components/register_node_macro.hpp"
 

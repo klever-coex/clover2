@@ -1,6 +1,5 @@
-#include <rclcpp/rclcpp.hpp>
-
 #include <clover2_aruco/detector.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 #include <memory>
 

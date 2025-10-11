@@ -15,14 +15,18 @@ namespace clover2_aruco {
 /**
  * @class map_server
  * @brief ROS2 node that provides a service to retrieve ArUco marker maps.
- * 
+ *
  * This node loads a marker map from a file and exposes it via the
- * clover2_aruco_msgs::srv::GetMap service. Supports both legacy and YAML map formats.
+ * clover2_aruco_msgs::srv::GetMap service. Supports both legacy and YAML map
+ * formats.
  */
 class map_server : public rclcpp::Node {
 public:
-    using SharedPtr = std::shared_ptr<map_server>; ///< Shared pointer type for map_server
-    using SetParametersResult = rcl_interfaces::msg::SetParametersResult; ///< Type alias for parameter callbacks
+    using SharedPtr =
+        std::shared_ptr<map_server>;  ///< Shared pointer type for map_server
+    using SetParametersResult =
+        rcl_interfaces::msg::SetParametersResult;  ///< Type alias for parameter
+                                                   ///< callbacks
 
     /**
      * @brief Construct a new map_server node.
@@ -79,13 +83,15 @@ private:
                            int id, double length, double x, double y, double z,
                            double roll, double pitch, double yaw);
 
-    std::string m_map_path; ///< Path to the map file
-    clover2_aruco_msgs::msg::MarkerMap::SharedPtr m_map_msg; ///< Current MarkerMap message
+    std::string m_map_path;  ///< Path to the map file
+    clover2_aruco_msgs::msg::MarkerMap::SharedPtr
+        m_map_msg;  ///< Current MarkerMap message
 
     rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr
-        m_set_parameters_handle_ptr; ///< Handle for ROS2 parameter callbacks
+        m_set_parameters_handle_ptr;  ///< Handle for ROS2 parameter callbacks
 
-    rclcpp::Server<clover2_aruco_msgs::srv::GetMap>::SharedPtr m_map_server; ///< ROS2 service server
+    rclcpp::Server<clover2_aruco_msgs::srv::GetMap>::SharedPtr
+        m_map_server;  ///< ROS2 service server
 };
 
 }  // namespace clover2_aruco
