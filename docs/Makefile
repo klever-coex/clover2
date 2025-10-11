@@ -1,20 +1,20 @@
-# Minimal makefile for Sphinx documentation
-#
+REPO_DIR = $(shell pwd)
 
-# You can set these variables from the command line, and also
-# from the environment for the first two.
-SPHINXOPTS    ?=
-SPHINXBUILD   ?= sphinx-build
-SOURCEDIR     = source
-BUILDDIR      = build
+SHELL := /bin/bash
 
-# Put it first so that "make" without argument is like "make help".
-help:
-	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+SOURCE     	= source
+OUT       	= build
+PYTHON		:= python3
+BUILD      	= $(PYTHON) -m sphinx
+OPTS       	=-c . -W --verbose
 
-.PHONY: help Makefile
+html_ru:
+	@$(BUILD) -b html -D language='ru' $(OPTS) ./ru ./build/html/ru
 
-# Catch-all target: route all unknown targets to Sphinx using the new
-# "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
-%: Makefile
-	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+html_en:
+	@$(BUILD) -b html -D language='en' $(OPTS) ./en ./build/html/en
+
+html: html_ru html_en
+
+clean:
+	rm -rf build
