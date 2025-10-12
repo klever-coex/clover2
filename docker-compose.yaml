@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  clover2-docs:
+    build: docs
+    ports:
+      - "81:81"
+
+  clover2-gui:
+    build: frontend
+    ports:
+      - "80:80"
