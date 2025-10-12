@@ -3,6 +3,7 @@
 // ROS2 includes
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
+#include <image_geometry/pinhole_camera_model.hpp>
 
 // Clover2 includes
 #include <clover2_aruco/map_client.hpp>
@@ -141,6 +142,7 @@ public:
 
 private:
     // Camera parameters
+    image_geometry::PinholeCameraModel m_camera_model;
     cv::Mat m_camera_matrix;       ///< Camera intrinsic matrix
     cv::Mat m_marker_obj_points;   ///< 3D object points of marker corners
     cv::Mat m_distortion_coeffs;   ///< Camera distortion coefficients

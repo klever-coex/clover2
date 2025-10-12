@@ -47,7 +47,6 @@ detector::detector(const rclcpp::NodeOptions& options)
     // Declare parameters
     declare_parameter("marker_dict", "4X4_50");
     declare_parameter("marker_frame_id", "aruco");
-    declare_parameter("marker_size", 0.15);
     declare_parameter("autostart", true);
 
     register_on_configure(
@@ -172,6 +171,8 @@ cv::Mat detector::marker_object_points(
             cv::Vec3f(length / 2.f, -length / 2.f, 0);
         objPoints.ptr<cv::Vec3f>(0)[3] =
             cv::Vec3f(-length / 2.f, -length / 2.f, 0);
+    } else {
+        throw std::runtime_error("Invalid estimate pattern");
     }
 
     return objPoints;
@@ -186,10 +187,10 @@ void detector::image_callback(
         return;
     }
 
-    cv::Mat image = cv_bridge::toCvShare(msg)->image;
+    cv::Mat image = cv_bridge::toCvShare(msg, "bgr8")->image;
 
     std::vector<int> ids;
-    std::vector<cv::Vec3d> rvecs, tvecs;
+    std::vector<cv::Vec3d> marker_rot, marker_pose;
     std::vector<cv::Point3f> obj_points;
     std::vector<std::vector<cv::Point2f>> corners, rejected;
     std::vector<geometry_msgs::msg::TransformStamped> transforms;
@@ -201,6 +202,9 @@ void detector::image_callback(
     cv::aruco::detectMarkers(image, m_dictionary, corners, ids,
                              m_detector_parameters, rejected);
 
+    marker_rot.reserve(corners.size());
+    marker_pose.reserve(corners.size());
+
     if (ids.size() != 0) {
         auto estimate_parameters = cv::makePtr<cv::aruco::EstimateParameters>();
         parallel_for_(cv::Range(0, ids.size()), [&](const cv::Range& range) {
@@ -208,32 +212,36 @@ void detector::image_callback(
             const int end = range.end;
 
             for (int i = begin; i < end; i++) {
-                cv::Mat markerObjPoints = marker_object_points(
+                if (!m_map_client->has_marker(ids[i])) {
+                    RCLCPP_WARN(get_logger(), "Marker %d not in map", ids[i]);
+                    continue;
+                }
+
+                cv::Mat marker_obj_points = marker_object_points(
                     m_map_client->get_marker_size(ids[i]), estimate_parameters);
 
-                solvePnP(markerObjPoints, cv::Mat(corners[i]), m_camera_matrix,
-                         m_distortion_coeffs, rvecs[i], tvecs[i],
-                         estimate_parameters->useExtrinsicGuess,
-                         estimate_parameters->solvePnPMethod);
+                cv::solvePnP(marker_obj_points, cv::Mat(corners[i]),
+                             m_camera_model.fullIntrinsicMatrix(),
+                             m_camera_model.distortionCoeffs(), marker_rot[i],
+                             marker_pose[i], estimate_parameters->useExtrinsicGuess,
+                             estimate_parameters->solvePnPMethod);
+
+                clover2_aruco_msgs::msg::Marker marker;
+                geometry_msgs::msg::TransformStamped transform;
+
+                // add marker
+                fill_corners(marker, corners[i]);
+                fill_pose(marker, marker_rot[i], marker_pose[i]);
+                marker_array->markers.push_back(marker);
+
+                // add transform
+                transform.header = msg->header;
+                transform.child_frame_id = get_marker_frame_id(ids[i]);
+                transform.transform.rotation = marker.pose.orientation;
+                fill_translation(transform.transform.translation, marker_pose[i]);
+                transforms.push_back(transform);
             }
         });
-
-        for (size_t i = 0; i < ids.size(); i++) {
-            clover2_aruco_msgs::msg::Marker marker;
-            geometry_msgs::msg::TransformStamped transform;
-
-            // add marker
-            fill_corners(marker, corners[i]);
-            fill_pose(marker, rvecs[i], tvecs[i]);
-            marker_array->markers.push_back(marker);
-
-            // add transform
-            transform.header = msg->header;
-            transform.child_frame_id = get_marker_frame_id(ids[i]);
-            transform.transform.rotation = marker.pose.orientation;
-            fill_translation(transform.transform.translation, tvecs[i]);
-            transforms.push_back(transform);
-        }
     }
 
     if (!transforms.empty()) {
@@ -265,6 +273,8 @@ void detector::camera_info_callback(
     }
 
     m_distortion_coeffs = cv::Mat(msg->d, true);
+
+    m_camera_model.fromCameraInfo(msg);
 }
 
 detector::SetParametersResult detector::on_set_parameters_cb(
@@ -277,15 +287,14 @@ detector::SetParametersResult detector::on_set_parameters_cb(
             if (p.get_name() == "marker_dict") {
                 auto dictionary_id = marker_dictionary_map.find(p.as_string());
                 if (dictionary_id == marker_dictionary_map.end()) {
-                    //std::runtime_error("invalid marker type " + p.as_string());
+                    throw std::runtime_error("invalid marker type " +
+                                             p.as_string());
                 }
                 m_dictionary_id = dictionary_id->second;
             } else if (p.get_name() == "marker_dict") {
                 m_marker_size = p.as_double();
             } else if (p.get_name() == "marker_frame_id") {
                 m_aruco_frame_id = p.as_string();
-            } else {
-                std::runtime_error("unknown parameter name " + p.get_name());
             }
         } catch (std::exception& ex) {
             result.successful = false;

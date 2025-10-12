@@ -10,10 +10,10 @@ int main(int argc, char* argv[]) {
         rclcpp::executors::SingleThreadedExecutor executor;
 
         auto options = rclcpp::NodeOptions();
-        clover2_aruco::detector::SharedPtr detector =
-            std::make_shared<clover2_aruco::detector>(options);
+        clover2_aruco::map_server::SharedPtr map_server =
+            std::make_shared<clover2_aruco::map_server>(options);
 
-        executor.add_node(detector->get_node_base_interface());
+        executor.add_node(map_server->get_node_base_interface());
         executor.spin();
 
     } catch (const std::runtime_error& e) {
