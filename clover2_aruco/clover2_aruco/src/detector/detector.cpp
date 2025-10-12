@@ -37,17 +37,27 @@ const static std::unordered_map<std::string, int> marker_dictionary_map = {
 namespace clover2_aruco {
 
 detector::detector(const rclcpp::NodeOptions& options)
-    : rclcpp_lifecycle::LifecycleNode("aruco_detector", options)
-    , m_camera_matrix(3, 3, CV_64FC1)
-    , m_marker_obj_points(4, 1, CV_32FC3)
-    , m_distortion_coeffs(4, 1, CV_64FC1, cv::Scalar(0)) {
-    m_set_parameters_handle_ptr = add_on_set_parameters_callback(std::bind(
-        &detector::on_set_parameters_cb, this, std::placeholders::_1));
+    : clover2_common::lifecycle_node("aruco_detector", options) {
+    enable_watch_parameters();
 
-    // Declare parameters
-    declare_parameter("marker_dict", "4X4_50");
-    declare_parameter("marker_frame_id", "aruco");
-    declare_parameter("autostart", true);
+    declare_and_watch_parameter<std::string>(
+        "marker_dict", "4X4_50",
+        [this](const rclcpp::Parameter& p) {
+            auto dictionary_id = marker_dictionary_map.find(p.as_string());
+            if (dictionary_id == marker_dictionary_map.end()) {
+                throw std::runtime_error("invalid marker type " +
+                                         p.as_string());
+            }
+            m_dictionary_id = dictionary_id->second;
+        },
+        "Used marker dictionary");
+
+    declare_and_watch_parameter<std::string>(
+        "marker_frame_id", "aruco",
+        [this](const rclcpp::Parameter& p) {
+            m_aruco_frame_id = p.as_string();
+        },
+        "Single marker frame_id prefix");
 
     register_on_configure(
         std::bind(&detector::on_configure, this, std::placeholders::_1));
@@ -59,25 +69,10 @@ detector::detector(const rclcpp::NodeOptions& options)
         std::bind(&detector::on_cleanup, this, std::placeholders::_1));
     register_on_shutdown(
         std::bind(&detector::on_shutdown, this, std::placeholders::_1));
-
-    if (get_parameter("autostart").as_bool()) {
-        m_init_timer =
-            this->create_wall_timer(std::chrono::seconds(0), [this]() {
-                configure();
-
-                if (get_current_state().id() ==
-                    lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE) {
-                    activate();
-                }
-
-                m_init_timer.reset();
-            });
-    }
 }
 
 detector::CallbackReturn detector::on_configure(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
-    RCLCPP_INFO(this->get_logger(), "Configure...");
 
     m_detector_parameters = cv::aruco::DetectorParameters::create();
     m_dictionary = cv::makePtr<cv::aruco::Dictionary>(
@@ -88,7 +83,6 @@ detector::CallbackReturn detector::on_configure(
 
 detector::CallbackReturn detector::on_activate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
-    RCLCPP_INFO(this->get_logger(), "Activate...");
 
     m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
 
@@ -109,6 +103,8 @@ detector::CallbackReturn detector::on_activate(
         std::bind(&detector::image_callback, this, std::placeholders::_1));
 
     m_map_client = std::make_shared<map_client>(shared_from_this());
+
+    RCLCPP_INFO(this->get_logger(), "Activated.");
 
     return detector::CallbackReturn::SUCCESS;
 }
@@ -223,7 +219,8 @@ void detector::image_callback(
                 cv::solvePnP(marker_obj_points, cv::Mat(corners[i]),
                              m_camera_model.fullIntrinsicMatrix(),
                              m_camera_model.distortionCoeffs(), marker_rot[i],
-                             marker_pose[i], estimate_parameters->useExtrinsicGuess,
+                             marker_pose[i],
+                             estimate_parameters->useExtrinsicGuess,
                              estimate_parameters->solvePnPMethod);
 
                 clover2_aruco_msgs::msg::Marker marker;
@@ -238,7 +235,8 @@ void detector::image_callback(
                 transform.header = msg->header;
                 transform.child_frame_id = get_marker_frame_id(ids[i]);
                 transform.transform.rotation = marker.pose.orientation;
-                fill_translation(transform.transform.translation, marker_pose[i]);
+                fill_translation(transform.transform.translation,
+                                 marker_pose[i]);
                 transforms.push_back(transform);
             }
         });
@@ -268,44 +266,7 @@ void detector::camera_info_callback(
     const sensor_msgs::msg::CameraInfo::ConstSharedPtr msg) {
     std::lock_guard<std::mutex> guard(m_camera_info_mtx);
 
-    for (int i = 0; i < 9; ++i) {
-        m_camera_matrix.at<double>(i / 3, i % 3) = msg->k[i];
-    }
-
-    m_distortion_coeffs = cv::Mat(msg->d, true);
-
     m_camera_model.fromCameraInfo(msg);
-}
-
-detector::SetParametersResult detector::on_set_parameters_cb(
-    const std::vector<rclcpp::Parameter>& parameters) {
-    detector::SetParametersResult result;
-    result.successful = true;
-
-    for (auto& p : parameters) {
-        try {
-            if (p.get_name() == "marker_dict") {
-                auto dictionary_id = marker_dictionary_map.find(p.as_string());
-                if (dictionary_id == marker_dictionary_map.end()) {
-                    throw std::runtime_error("invalid marker type " +
-                                             p.as_string());
-                }
-                m_dictionary_id = dictionary_id->second;
-            } else if (p.get_name() == "marker_dict") {
-                m_marker_size = p.as_double();
-            } else if (p.get_name() == "marker_frame_id") {
-                m_aruco_frame_id = p.as_string();
-            }
-        } catch (std::exception& ex) {
-            result.successful = false;
-            result.reason = ex.what();
-            RCLCPP_ERROR(get_logger(), "Fail set parameter `%s` with: %s",
-                         p.get_name().c_str(), ex.what());
-            break;
-        }
-    }
-
-    return result;
 }
 
 void detector::fill_corners(clover2_aruco_msgs::msg::Marker& marker,
