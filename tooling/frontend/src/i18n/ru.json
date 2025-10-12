@@ -1,0 +1,11 @@
+{
+  "sidebar": {
+    "dashboard": "Главная",
+    "ros2": "ROS2",
+    "settings": "Настройки",
+    "documentation": "Документация"
+  },
+  "header": {
+    "title": "Clover2"
+  }
+}
