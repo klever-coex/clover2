@@ -42,8 +42,7 @@ public:
                         rclcpp::CallbackGroup::SharedPtr cb_group = nullptr)
         : m_logger(node->get_logger().get_child("map_client"))
         , m_map_valid(false)
-        , m_name("")
-        , m_idx(0) {
+        , m_name("") {
         m_map_update_sub =
             node->template create_subscription<std_msgs::msg::Empty>(
                 "~/map_update", 1,
@@ -81,13 +80,15 @@ public:
      * @param id Marker ID
      * @return int Size of the marker
      */
-    int get_marker_size(int id) const { return m_sizes.at(id); }
+    double get_marker_size(int id) const { return m_sizes.at(id); }
 
     /**
      * @brief Get the number of markers in the current map.
      * @return int Number of markers
      */
-    int get_count() const { return m_idx.size(); }
+    int get_count() const { return m_sizes.size(); }
+
+    bool has_marker(int id) const { return m_sizes.find(id) != m_sizes.end(); };
 
     /**
      * @brief Get the time when the map was last loaded.
@@ -114,15 +115,15 @@ private:
         m_name = msg.name;
         m_map_load_time = rclcpp::Time(msg.map_load_time);
 
-        m_idx.clear();
+        //m_idx.clear();
         m_sizes.clear();
 
-        m_idx.reserve(msg.markers.size());
+        //m_idx.reserve(msg.markers.size());
         m_sizes.reserve(msg.markers.size());
 
         for (size_t i = 0; i < msg.markers.size(); i++) {
-            m_idx[i] = msg.markers[i].id;
-            m_sizes[i] = msg.markers[i].length;
+            //m_idx[i] = msg.markers[i].id;
+            m_sizes[msg.markers[i].id] = msg.markers[i].size;
         }
 
         m_map_valid = true;
@@ -148,7 +149,7 @@ private:
                 auto resp = future.get();
                 RCLCPP_INFO(m_logger,
                             "Update map from %s to %s with %ld markers",
-                            resp->map.name.c_str(), get_name(),
+                            get_name(), resp->map.name.c_str(),
                             resp->map.markers.size());
 
                 update_map(resp->map);
@@ -163,9 +164,9 @@ private:
 
     bool m_map_valid;        ///< True if the map has been successfully loaded
     std::string m_name;      ///< Name of the current map
-    std::vector<int> m_idx;  ///< Indices of markers
+    // std::vector<int> m_idx;  ///< Indices of markers
     rclcpp::Time m_map_load_time;  ///< Timestamp of last map load
-    std::unordered_map<int, int>
+    std::unordered_map<int, double>
         m_sizes;  ///< Map from marker ID to marker size
 };
 

@@ -11,6 +11,7 @@ find_package(ament_cmake_ros REQUIRED)
 find_package(clover2_aruco_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(image_geometry REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
@@ -18,6 +19,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 find_package(OpenCV ${OpenCV_VERSION} REQUIRED COMPONENTS aruco)
 
@@ -25,6 +27,7 @@ set(dependencies
   clover2_aruco_msgs
   cv_bridge
   geometry_msgs
+  image_geometry
   rclcpp
   rclcpp_components
   rclcpp_lifecycle
@@ -80,6 +83,53 @@ ament_target_dependencies(detector
   ${dependencies}
 )
 
+add_library(clover2_aruco_map_server src/map_server/map_server.cpp)
+add_library(clover2_aruco::map_server ALIAS clover2_aruco_map_server)
+target_compile_features(clover2_aruco_map_server PUBLIC c_std_99 cxx_std_17)
+target_include_directories(clover2_aruco_map_server PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+target_link_libraries(clover2_aruco_map_server
+  opencv_aruco
+  yaml-cpp
+)
+
+target_compile_definitions(clover2_aruco_map_server PRIVATE "CLOVER2_ARUCO_MAP_SERVER_BUILDING_LIBRARY")
+ament_target_dependencies(clover2_aruco_map_server
+  ${dependencies}
+)
+
+rclcpp_components_register_nodes(clover2_aruco_map_server "clover2_aruco::map_server")
+
+install(
+  DIRECTORY include/
+  DESTINATION include/${PROJECT_NAME}
+)
+
+install(
+  TARGETS clover2_aruco_map_server
+  EXPORT export_${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+add_executable(map_server src/map_server/main.cpp)
+target_include_directories(map_server PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+target_link_libraries(map_server
+  clover2_aruco_map_server
+  opencv_aruco
+)
+
+install(TARGETS map_server
+  DESTINATION lib/${PROJECT_NAME})
+
+ament_target_dependencies(map_server 
+  ${dependencies}
+)
+
 ament_export_dependencies(${dependencies})
 
 ament_export_include_directories(
@@ -92,6 +142,11 @@ ament_export_libraries(
 
 ament_export_targets(
   export_${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY map
+  DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)

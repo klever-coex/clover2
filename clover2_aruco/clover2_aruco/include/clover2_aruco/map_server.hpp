@@ -3,12 +3,17 @@
 // ROS2 includes
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
+#include <tf2_ros/transform_broadcaster.h>
 
 // Msgs includes
 #include <clover2_aruco_msgs/msg/marker_map.hpp>
+#include <std_msgs/msg/empty.hpp>
 
 // Srvs includes
 #include <clover2_aruco_msgs/srv/get_map.hpp>
+
+// STL
+#include <filesystem>
 
 namespace clover2_aruco {
 
@@ -20,7 +25,7 @@ namespace clover2_aruco {
  * clover2_aruco_msgs::srv::GetMap service. Supports both legacy and YAML map
  * formats.
  */
-class map_server : public rclcpp::Node {
+class map_server : public rclcpp_lifecycle::LifecycleNode {
 public:
     using SharedPtr =
         std::shared_ptr<map_server>;  ///< Shared pointer type for map_server
@@ -34,6 +39,31 @@ public:
      */
     explicit map_server(
         const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
+
+    /**
+     * @brief Lifecycle callback: configure the node.
+     */
+    CallbackReturn on_configure(const rclcpp_lifecycle::State& /* state */);
+
+    /**
+     * @brief Lifecycle callback: activate the node.
+     */
+    CallbackReturn on_activate(const rclcpp_lifecycle::State& /* state */);
+
+    /**
+     * @brief Lifecycle callback: deactivate the node.
+     */
+    CallbackReturn on_deactivate(const rclcpp_lifecycle::State& /* state */);
+
+    /**
+     * @brief Lifecycle callback: cleanup resources.
+     */
+    CallbackReturn on_cleanup(const rclcpp_lifecycle::State& /* state */);
+
+    /**
+     * @brief Lifecycle callback: shutdown the node.
+     */
+    CallbackReturn on_shutdown(const rclcpp_lifecycle::State& /* state */);
 
 private:
     /**
@@ -51,7 +81,7 @@ private:
      * @return Shared pointer to the parsed MarkerMap message.
      */
     clover2_aruco_msgs::msg::MarkerMap::SharedPtr parse_legacy(
-        const std::string& filename) const;
+        const std::filesystem::path& filename) const;
 
     /**
      * @brief Parse a YAML map file into a MarkerMap message.
@@ -59,13 +89,20 @@ private:
      * @return Shared pointer to the parsed MarkerMap message.
      */
     clover2_aruco_msgs::msg::MarkerMap::SharedPtr parse_yaml(
-        const std::string& filename) const;
+        const std::filesystem::path& filename) const;
 
     /**
-     * @brief Update the internal map stored in the node.
-     * @param map Shared pointer to the new MarkerMap message.
+     * @brief Parse a map file into a MarkerMap message.
+     * @param filename Path to map file.
+     * @return Shared pointer to the parsed MarkerMap message.
      */
-    void update_map(clover2_aruco_msgs::msg::MarkerMap::SharedPtr map);
+    clover2_aruco_msgs::msg::MarkerMap::SharedPtr parse_map(
+        const std::filesystem::path& filename) const;
+
+    /**
+     * @brief Send update trigger
+     */
+    void update_trigger();
 
     /**
      * @brief Append a marker to an existing MarkerMap.
@@ -81,17 +118,34 @@ private:
      */
     void map_append_marker(clover2_aruco_msgs::msg::MarkerMap::SharedPtr& map,
                            int id, double length, double x, double y, double z,
-                           double roll, double pitch, double yaw);
+                           double roll, double pitch, double yaw) const;
 
-    std::string m_map_path;  ///< Path to the map file
+    /**
+     * @brief Callback for dynamic parameter updates.
+     * @param parameters Vector of updated parameters
+     * @return SetParametersResult Result of parameter update
+     */
+    SetParametersResult on_set_parameters_cb(
+        const std::vector<rclcpp::Parameter>& parameters);
+
+    std::filesystem::path m_map_path;  ///< Path to the map file
     clover2_aruco_msgs::msg::MarkerMap::SharedPtr
         m_map_msg;  ///< Current MarkerMap message
+
+    // TF
+    std::shared_ptr<tf2_ros::TransformBroadcaster>
+        m_tf_broadcaster;  ///< TF broadcaster
+
+    // Timer for initialization
+    rclcpp::TimerBase::SharedPtr m_init_timer;
 
     rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr
         m_set_parameters_handle_ptr;  ///< Handle for ROS2 parameter callbacks
 
-    rclcpp::Server<clover2_aruco_msgs::srv::GetMap>::SharedPtr
+    rclcpp::Service<clover2_aruco_msgs::srv::GetMap>::SharedPtr
         m_map_server;  ///< ROS2 service server
+    rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr
+        m_map_update_pub;  ///< ROS2 trigger publisher
 };
 
 }  // namespace clover2_aruco

@@ -2,7 +2,7 @@
 uint32 id
 
 # Side size in meters
-float32 length
+float32 size
 
 # Marker position
 geometry_msgs/Pose pose

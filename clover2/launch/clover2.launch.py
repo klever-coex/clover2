@@ -87,12 +87,30 @@ def generate_launch_description():
         output='screen',
         arguments=['--ros-args', '--log-level', log_level]
     )
+    
+    aruco_map_server_cmd = Node(
+        package='clover2_aruco',
+        executable='map_server',
+        name='map_server',
+        parameters=[
+            params_file,
+            {
+                'use_sim_time': use_sim_time,
+                'map': get_package_share_directory('clover2_aruco') + '/map/example.yaml'
+            }
+        ],
+        respawn=True,
+        respawn_delay=1.0,
+        output='screen',
+        arguments=['--ros-args', '--log-level', log_level]
+    )
 
     return LaunchDescription([
         use_sim_time_declare,
         log_level_declare,
         params_file_declare,
         main_camera_cmd,
-        mavros_cmd,
+        # mavros_cmd,
+        aruco_map_server_cmd,
         web_video_server_cmd,
     ])
