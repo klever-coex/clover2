@@ -2,11 +2,11 @@
 
 // ROS2 includes
 #include <rclcpp/rclcpp.hpp>
-#include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <image_geometry/pinhole_camera_model.hpp>
 
 // Clover2 includes
 #include <clover2_aruco/map_client.hpp>
+#include <clover2_common/lifecycle_node.hpp>
 
 // TF2 includes
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -34,7 +34,7 @@ namespace clover2_aruco {
  * This node subscribes to camera images and camera info, detects ArUco markers
  * based on a dictionary, publishes marker arrays, and broadcasts transforms.
  */
-class detector : public rclcpp_lifecycle::LifecycleNode {
+class detector : public clover2_common::lifecycle_node {
 public:
     using SharedPtr =
         std::shared_ptr<detector>;  ///< Shared pointer type for detector
@@ -101,14 +101,6 @@ public:
         const sensor_msgs::msg::CameraInfo::ConstSharedPtr msg);
 
     /**
-     * @brief Callback for dynamic parameter updates.
-     * @param parameters Vector of updated parameters
-     * @return SetParametersResult Result of parameter update
-     */
-    SetParametersResult on_set_parameters_cb(
-        const std::vector<rclcpp::Parameter>& parameters);
-
-    /**
      * @brief Fill marker corners from detected 2D points.
      * @param marker Marker message to fill
      * @param corners 2D corner points
@@ -142,12 +134,9 @@ public:
 
 private:
     // Camera parameters
-    image_geometry::PinholeCameraModel m_camera_model;
-    cv::Mat m_camera_matrix;       ///< Camera intrinsic matrix
-    cv::Mat m_marker_obj_points;   ///< 3D object points of marker corners
-    cv::Mat m_distortion_coeffs;   ///< Camera distortion coefficients
     std::string m_aruco_frame_id;  ///< Base frame for ArUco markers
     std::mutex m_camera_info_mtx;  ///< Mutex for thread-safe camera info access
+    image_geometry::PinholeCameraModel m_camera_model; ///< Camera model
 
     // Detection parameters
     int m_dictionary_id;   ///< OpenCV ArUco dictionary ID
@@ -161,13 +150,6 @@ private:
     // TF
     std::shared_ptr<tf2_ros::TransformBroadcaster>
         m_tf_broadcaster;  ///< TF broadcaster
-
-    // Parameter callback handle
-    rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr
-        m_set_parameters_handle_ptr;
-
-    // Timer for initialization
-    rclcpp::TimerBase::SharedPtr m_init_timer;
 
     // Publishers and subscribers
     rclcpp::Publisher<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr

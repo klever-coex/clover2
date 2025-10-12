@@ -5,6 +5,9 @@
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 
+// Clover2 include
+#include <clover2_common/lifecycle_node.hpp>
+
 // Msgs includes
 #include <clover2_aruco_msgs/msg/marker_map.hpp>
 #include <std_msgs/msg/empty.hpp>
@@ -25,7 +28,7 @@ namespace clover2_aruco {
  * clover2_aruco_msgs::srv::GetMap service. Supports both legacy and YAML map
  * formats.
  */
-class map_server : public rclcpp_lifecycle::LifecycleNode {
+class map_server : public clover2_common::lifecycle_node {
 public:
     using SharedPtr =
         std::shared_ptr<map_server>;  ///< Shared pointer type for map_server
@@ -120,14 +123,6 @@ private:
                            int id, double length, double x, double y, double z,
                            double roll, double pitch, double yaw) const;
 
-    /**
-     * @brief Callback for dynamic parameter updates.
-     * @param parameters Vector of updated parameters
-     * @return SetParametersResult Result of parameter update
-     */
-    SetParametersResult on_set_parameters_cb(
-        const std::vector<rclcpp::Parameter>& parameters);
-
     std::filesystem::path m_map_path;  ///< Path to the map file
     clover2_aruco_msgs::msg::MarkerMap::SharedPtr
         m_map_msg;  ///< Current MarkerMap message
@@ -135,9 +130,6 @@ private:
     // TF
     std::shared_ptr<tf2_ros::TransformBroadcaster>
         m_tf_broadcaster;  ///< TF broadcaster
-
-    // Timer for initialization
-    rclcpp::TimerBase::SharedPtr m_init_timer;
 
     rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr
         m_set_parameters_handle_ptr;  ///< Handle for ROS2 parameter callbacks

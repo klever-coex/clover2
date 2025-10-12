@@ -24,14 +24,6 @@ protected:
     clover2_aruco::detector::SharedPtr detector_node;
 };
 
-// Test parameter setting
-TEST_F(DetectorTest, SetParametersValidDict) {
-    rclcpp::Parameter param("marker_dict", "5X5_100");
-    std::vector<rclcpp::Parameter> params = {param};
-    auto res = detector_node->on_set_parameters_cb(params);
-    EXPECT_TRUE(res.successful);
-}
-
 // Test pose filling
 TEST_F(DetectorTest, FillPose) {
     clover2_aruco_msgs::msg::Marker marker;
@@ -50,16 +42,6 @@ TEST_F(DetectorTest, FillPose) {
                   marker.pose.orientation.z * marker.pose.orientation.z +
                   marker.pose.orientation.w * marker.pose.orientation.w);
     EXPECT_NEAR(norm, 1.0, 1e-6);
-}
-
-// Test frame ID generation
-TEST_F(DetectorTest, MarkerFrameID) {
-    rclcpp::Parameter frame_param("marker_frame_id", "aruco_test_");
-    auto result = detector_node->on_set_parameters_cb({frame_param});
-    EXPECT_TRUE(result.successful);
-
-    std::string frame_id = detector_node->get_marker_frame_id(42);
-    EXPECT_EQ(frame_id, "aruco_test_42");
 }
 
 int main(int argc, char** argv) {

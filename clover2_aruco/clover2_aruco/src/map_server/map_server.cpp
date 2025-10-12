@@ -86,14 +86,17 @@ struct convert<clover2_aruco_msgs::msg::Marker> {
 namespace clover2_aruco {
 
 map_server::map_server(const rclcpp::NodeOptions& options)
-    : rclcpp_lifecycle::LifecycleNode("map_server", options)
+    : clover2_common::lifecycle_node("map_server", options)
     , m_map_path("")
     , m_map_msg(std::make_shared<clover2_aruco_msgs::msg::MarkerMap>()) {
-    m_set_parameters_handle_ptr = add_on_set_parameters_callback(std::bind(
-        &map_server::on_set_parameters_cb, this, std::placeholders::_1));
+    enable_watch_parameters();
 
-    declare_parameter("autostart", true);
-    declare_parameter("map", "");
+    declare_and_watch_parameter<std::string>(
+        "map", "",
+        [this](const rclcpp::Parameter& p) {
+            m_map_path = p.as_string();
+        },
+        "Path to map file whit .txt/.yaml/.yml extension.");
 
     register_on_configure(
         std::bind(&map_server::on_configure, this, std::placeholders::_1));
@@ -105,20 +108,6 @@ map_server::map_server(const rclcpp::NodeOptions& options)
         std::bind(&map_server::on_cleanup, this, std::placeholders::_1));
     register_on_shutdown(
         std::bind(&map_server::on_shutdown, this, std::placeholders::_1));
-
-    if (get_parameter("autostart").as_bool()) {
-        m_init_timer =
-            this->create_wall_timer(std::chrono::seconds(0), [this]() {
-                configure();
-
-                if (get_current_state().id() ==
-                    lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE) {
-                    activate();
-                }
-
-                m_init_timer.reset();
-            });
-    }
 }
 
 map_server::CallbackReturn map_server::on_configure(
@@ -338,28 +327,6 @@ void map_server::map_append_marker(
     marker.pose.orientation.y = q.y();
     marker.pose.orientation.z = q.z();
     marker.pose.orientation.w = q.w();
-}
-
-map_server::SetParametersResult map_server::on_set_parameters_cb(
-    const std::vector<rclcpp::Parameter>& parameters) {
-    map_server::SetParametersResult result;
-    result.successful = true;
-
-    for (auto& p : parameters) {
-        try {
-            if (p.get_name() == "map") {
-                m_map_path = p.as_string();
-            }
-        } catch (std::exception& ex) {
-            result.successful = false;
-            result.reason = ex.what();
-            RCLCPP_ERROR(get_logger(), "Fail set parameter `%s` with: %s",
-                         p.get_name().c_str(), ex.what());
-            break;
-        }
-    }
-
-    return result;
 }
 
 }  // namespace clover2_aruco
