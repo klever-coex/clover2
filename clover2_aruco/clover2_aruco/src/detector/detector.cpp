@@ -186,7 +186,6 @@ void detector::image_callback(
     cv::Mat image = cv_bridge::toCvShare(msg, "bgr8")->image;
 
     std::vector<int> ids;
-    std::vector<cv::Vec3d> marker_rot, marker_pose;
     std::vector<cv::Point3f> obj_points;
     std::vector<std::vector<cv::Point2f>> corners, rejected;
     std::vector<geometry_msgs::msg::TransformStamped> transforms;
@@ -198,11 +197,12 @@ void detector::image_callback(
     cv::aruco::detectMarkers(image, m_dictionary, corners, ids,
                              m_detector_parameters, rejected);
 
-    marker_rot.reserve(corners.size());
-    marker_pose.reserve(corners.size());
+    std::vector<bool> pose_estimated(ids.size(), false);
+    std::vector<cv::Vec3d> marker_rot(ids.size()), marker_pose(ids.size());
 
     if (ids.size() != 0) {
         auto estimate_parameters = cv::makePtr<cv::aruco::EstimateParameters>();
+
         parallel_for_(cv::Range(0, ids.size()), [&](const cv::Range& range) {
             const int begin = range.start;
             const int end = range.end;
@@ -222,24 +222,30 @@ void detector::image_callback(
                              marker_pose[i],
                              estimate_parameters->useExtrinsicGuess,
                              estimate_parameters->solvePnPMethod);
-
-                clover2_aruco_msgs::msg::Marker marker;
-                geometry_msgs::msg::TransformStamped transform;
-
-                // add marker
-                fill_corners(marker, corners[i]);
-                fill_pose(marker, marker_rot[i], marker_pose[i]);
-                marker_array->markers.push_back(marker);
-
-                // add transform
-                transform.header = msg->header;
-                transform.child_frame_id = get_marker_frame_id(ids[i]);
-                transform.transform.rotation = marker.pose.orientation;
-                fill_translation(transform.transform.translation,
-                                 marker_pose[i]);
-                transforms.push_back(transform);
+                
+                pose_estimated[i] = true;
             }
         });
+
+        for (size_t i = 0; i < ids.size(); i++) {
+            if (!pose_estimated[i]) continue;
+
+            clover2_aruco_msgs::msg::Marker marker;
+            geometry_msgs::msg::TransformStamped transform;
+
+            // add marker
+            fill_corners(marker, corners[i]);
+            fill_pose(marker, marker_rot[i], marker_pose[i]);
+            marker_array->markers.push_back(marker);
+
+            // add transform
+            transform.header = msg->header;
+            transform.child_frame_id = get_marker_frame_id(ids[i]);
+            transform.transform.rotation = marker.pose.orientation;
+            fill_translation(transform.transform.translation,
+                                marker_pose[i]);
+            transforms.push_back(transform);
+        }
     }
 
     if (!transforms.empty()) {

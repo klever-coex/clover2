@@ -13,8 +13,8 @@ markers:
       roll: 0
       pitch: 0
       yaw: 0
-  - id: 2
-    size: 0.15
+  - id: 27
+    size: 0.33
     pose:
       x: 10
       y: 5

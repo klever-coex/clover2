@@ -327,6 +327,8 @@ void map_server::map_append_marker(
     marker.pose.orientation.y = q.y();
     marker.pose.orientation.z = q.z();
     marker.pose.orientation.w = q.w();
+
+    map->markers.push_back(marker);
 }
 
 }  // namespace clover2_aruco
