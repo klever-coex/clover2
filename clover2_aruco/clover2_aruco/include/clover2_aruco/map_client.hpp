@@ -90,12 +90,6 @@ public:
 
     bool has_marker(int id) const { return m_sizes.find(id) != m_sizes.end(); };
 
-    /**
-     * @brief Get the time when the map was last loaded.
-     * @return rclcpp::Time Map load timestamp
-     */
-    rclcpp::Time get_last_loaded() const { return m_map_load_time; }
-
 private:
     /**
      * @brief Callback for map update notifications.
@@ -113,7 +107,6 @@ private:
      */
     void update_map(const clover2_aruco_msgs::msg::MarkerMap& msg) {
         m_name = msg.name;
-        m_map_load_time = rclcpp::Time(msg.map_load_time);
 
         //m_idx.clear();
         m_sizes.clear();
@@ -165,7 +158,6 @@ private:
     bool m_map_valid;        ///< True if the map has been successfully loaded
     std::string m_name;      ///< Name of the current map
     // std::vector<int> m_idx;  ///< Indices of markers
-    rclcpp::Time m_map_load_time;  ///< Timestamp of last map load
     std::unordered_map<int, double>
         m_sizes;  ///< Map from marker ID to marker size
 };

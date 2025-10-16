@@ -3,6 +3,7 @@
 // ROS2 includes
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
+#include <tf2_ros/static_transform_broadcaster.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 
 // Clover2 include
@@ -17,6 +18,7 @@
 
 // STL
 #include <filesystem>
+#include <mutex>
 
 namespace clover2_aruco {
 
@@ -79,22 +81,6 @@ private:
         clover2_aruco_msgs::srv::GetMap::Response::SharedPtr response);
 
     /**
-     * @brief Parse a legacy map file format into a MarkerMap message.
-     * @param filename Path to the legacy map file.
-     * @return Shared pointer to the parsed MarkerMap message.
-     */
-    clover2_aruco_msgs::msg::MarkerMap::SharedPtr parse_legacy(
-        const std::filesystem::path& filename) const;
-
-    /**
-     * @brief Parse a YAML map file into a MarkerMap message.
-     * @param filename Path to the YAML map file.
-     * @return Shared pointer to the parsed MarkerMap message.
-     */
-    clover2_aruco_msgs::msg::MarkerMap::SharedPtr parse_yaml(
-        const std::filesystem::path& filename) const;
-
-    /**
      * @brief Parse a map file into a MarkerMap message.
      * @param filename Path to map file.
      * @return Shared pointer to the parsed MarkerMap message.
@@ -104,35 +90,25 @@ private:
 
     /**
      * @brief Send update trigger
+     * @param filename Path to map file.
      */
-    void update_trigger();
+    void update_map(const std::filesystem::path& filename);
 
     /**
-     * @brief Append a marker to an existing MarkerMap.
-     * @param map MarkerMap to append the marker to.
-     * @param id Marker ID.
-     * @param length Length of the marker (meters).
-     * @param x X position of the marker.
-     * @param y Y position of the marker.
-     * @param z Z position of the marker.
-     * @param roll Roll rotation of the marker (radians).
-     * @param pitch Pitch rotation of the marker (radians).
-     * @param yaw Yaw rotation of the marker (radians).
+     * @brief Send update trigger
+     * @param filename Path to map file.
      */
-    void map_append_marker(clover2_aruco_msgs::msg::MarkerMap::SharedPtr& map,
-                           int id, double length, double x, double y, double z,
-                           double roll, double pitch, double yaw) const;
+    void update_map(clover2_aruco_msgs::msg::MarkerMap::SharedPtr new_map);
 
+    bool m_tf_publish;
+    std::recursive_mutex m_map_mutex;  ///< Map update mutex
     std::filesystem::path m_map_path;  ///< Path to the map file
     clover2_aruco_msgs::msg::MarkerMap::SharedPtr
         m_map_msg;  ///< Current MarkerMap message
 
     // TF
-    std::shared_ptr<tf2_ros::TransformBroadcaster>
-        m_tf_broadcaster;  ///< TF broadcaster
-
-    rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr
-        m_set_parameters_handle_ptr;  ///< Handle for ROS2 parameter callbacks
+    std::shared_ptr<tf2_ros::StaticTransformBroadcaster>
+        m_tf_static_broadcaster;  ///< TF static broadcaster
 
     rclcpp::Service<clover2_aruco_msgs::srv::GetMap>::SharedPtr
         m_map_server;  ///< ROS2 service server
