@@ -45,6 +45,29 @@ set(dependencies
 )
 
 # ============================================================================
+# Build ArUco utils library
+# ============================================================================
+file(GLOB_RECURSE utils_library_files "src/utils/*.cpp")
+add_library(clover2_aruco_utils ${utils_library_files})
+
+# Set C/C++ language standards
+target_compile_features(clover2_aruco_utils PUBLIC c_std_99 cxx_std_17)
+
+# Set include directories for both build and install interfaces
+target_include_directories(clover2_aruco_utils PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+
+target_link_libraries(clover2_aruco_utils
+  yaml-cpp
+)
+
+# Add ROS 2 dependencies
+ament_target_dependencies(clover2_aruco_utils
+  ${dependencies}
+)
+
+# ============================================================================
 # Build ArUco detector component as a shared library
 # ============================================================================
 add_library(clover2_aruco_detector src/detector/detector.cpp)
@@ -92,8 +115,8 @@ target_include_directories(clover2_aruco_map_server PUBLIC
 
 # Link against OpenCV ArUco and YAML libraries
 target_link_libraries(clover2_aruco_map_server
+  clover2_aruco_utils
   opencv_aruco
-  yaml-cpp
 )
 
 # Define compilation flag for the map server library
@@ -171,7 +194,7 @@ install(
 
 # Install libraries and create export set for other packages to use
 install(
-  TARGETS clover2_aruco_map_server clover2_aruco_detector
+  TARGETS clover2_aruco_utils clover2_aruco_map_server clover2_aruco_detector
   EXPORT export_${PROJECT_NAME}
   ARCHIVE DESTINATION lib      # Static libraries
   LIBRARY DESTINATION lib      # Shared libraries
