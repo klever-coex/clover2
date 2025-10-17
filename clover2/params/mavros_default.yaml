@@ -210,13 +210,6 @@
     gps_rate: 5.0           # GPS data publishing rate
 
 # mount_control
-/**/mount:
-  ros__parameters:
-    debounce_s: 4.0
-    err_threshold_deg: 10.0
-    negate_measured_roll: false
-    negate_measured_pitch: false
-    negate_measured_yaw: false
 
 # odom
 /**/odometry:
@@ -249,26 +242,5 @@
 
 # vibration
 /**/vibration:
-  ros__parameters:
-    frame_id: "base_link"
-
-# wheel_odometry
-/**/wheel_odometry:
-  ros__parameters:
-    count: 2                      # number of wheels to compute odometry
-    use_rpm: false                # use wheel's RPM instead of cumulative distance to compute odometry
-    wheel0: {x: 0.0, y: -0.15, radius: 0.05}  # x-, y-offset (m,NED) and radius (m)
-    wheel1: {x: 0.0, y:  0.15, radius: 0.05}  # x-, y-offset (m,NED) and radius (m)
-    send_raw: true                # send wheel's RPM and cumulative distance (~/wheel_odometry/rpm, ~/wheel_odometry/distance)
-    send_twist: false             # send geometry_msgs/TwistWithCovarianceStamped instead of nav_msgs/Odometry
-    frame_id: "odom"              # origin frame
-    child_frame_id: "base_link"   # body-fixed frame
-    vel_error: 0.1                # wheel velocity measurement error 1-std (m/s)
-    tf.send: false
-    tf.frame_id: "odom"
-    tf.child_frame_id: "base_link"
-
-# camera
-/**/camera:
   ros__parameters:
     frame_id: "base_link"

@@ -53,7 +53,7 @@ detector::detector(const rclcpp::NodeOptions& options)
         "Used marker dictionary");
 
     declare_and_watch_parameter<std::string>(
-        "marker_frame_id", "aruco",
+        "marker_frame_id", "aruco_",
         [this](const rclcpp::Parameter& p) {
             m_aruco_frame_id = p.as_string();
         },
