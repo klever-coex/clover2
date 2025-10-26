@@ -82,7 +82,7 @@ def generate_launch_description():
             mavros_params_file,
             {
                 'use_sim_time': use_sim_time,
-                'fcu_url': '',
+                'fcu_url': '/dev/ttyACM0:115200',
             }
         ],
         output='screen',
