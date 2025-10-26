@@ -88,7 +88,7 @@ detector::CallbackReturn detector::on_activate(
 
     m_markers_pub =
         this->create_publisher<clover2_aruco_msgs::msg::MarkerArray>(
-            "~/detected", rclcpp::SensorDataQoS());
+            "~/markers", rclcpp::SensorDataQoS());
 
     m_debug_pub = this->create_publisher<sensor_msgs::msg::Image>(
         "~/debug", rclcpp::SensorDataQoS());

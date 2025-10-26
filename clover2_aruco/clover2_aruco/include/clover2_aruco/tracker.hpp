@@ -6,7 +6,6 @@
 
 // Clover2 includes
 #include <clover2_aruco/map_client.hpp>
-#include <clover2_aruco/utils/ekf.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 
 // TF2 includes
@@ -15,32 +14,22 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 
-// OpenCV includes
-#include <opencv2/aruco.hpp>
-#include <opencv2/aruco/dictionary.hpp>
-#include <opencv2/core.hpp>
-
 // Msgs includes
 #include <clover2_aruco_msgs/msg/marker.hpp>
 #include <clover2_aruco_msgs/msg/marker_array.hpp>
-#include <sensor_msgs/msg/camera_info.hpp>
-#include <sensor_msgs/msg/image.hpp>
-
 
 namespace clover2_aruco {
 
 class tracker : public clover2_common::lifecycle_node {
 public:
-    using SharedPtr =
-        std::shared_ptr<tracker>;
-    using CallbackReturn =
-        rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::
-            CallbackReturn;
-    using SetParametersResult =
-        rcl_interfaces::msg::SetParametersResult;
+    using SharedPtr = std::shared_ptr<tracker>;
+    using CallbackReturn = rclcpp_lifecycle::node_interfaces::
+        LifecycleNodeInterface::CallbackReturn;
+    using SetParametersResult = rcl_interfaces::msg::SetParametersResult;
 
     explicit tracker(
         const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
+    virtual ~tracker();
 
     CallbackReturn on_configure(const rclcpp_lifecycle::State& /* state */);
 
@@ -53,29 +42,27 @@ public:
     CallbackReturn on_shutdown(const rclcpp_lifecycle::State& /* state */);
 
 private:
-    // Camera parameters
+    void markers_callback(
+        const clover2_aruco_msgs::msg::MarkerArray::SharedPtr msg);
 
-    std::string m_aruco_frame_id;  ///< Base frame for ArUco markers
-    std::mutex m_camera_info_mtx;  ///< Mutex for thread-safe camera info access
+    // Camera parameters
+    std::string m_odom_id;      ///< Odometry frame_id
+    std::string m_tracking_id;  ///< Tracking result frame_id
 
     // Detection parameters
-    
     std::shared_ptr<map_client>
         m_map_client;  ///< Map client for marker metadata
 
     // TF
     std::shared_ptr<tf2_ros::TransformBroadcaster>
-        m_tf_broadcaster;  ///< TF broadcaster
+        m_tf_broadcaster;                          ///< TF broadcaster
+    std::shared_ptr<tf2_ros::Buffer> m_tf_buffer;  ///< TF buffer
+    std::shared_ptr<tf2_ros::TransformListener>
+        m_tf_listener;  ///< TF transform listener
 
     // Publishers and subscribers
-    rclcpp::Publisher<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr
-        m_markers_pub;  ///< Marker array publisher
-    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr
-        m_debug_pub;  ///< Debug image publisher
-    rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr
-        m_camera_info_sub;  ///< Camera info subscriber
-    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr
-        m_image_sub;  ///< Camera image subscriber
+    rclcpp::Subscription<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr
+        m_markers_sub;  ///< Detected markers sub
 };
 
 }  // namespace clover2_aruco
