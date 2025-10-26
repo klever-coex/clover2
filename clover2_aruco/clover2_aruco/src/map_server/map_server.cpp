@@ -57,8 +57,8 @@ map_server::CallbackReturn map_server::on_activate(
         return map_server::CallbackReturn::ERROR;
     }
 
-    m_map_update_pub =
-        this->create_publisher<std_msgs::msg::Empty>("~/map_update", 1);
+    m_map_update_pub = this->create_publisher<std_msgs::msg::Empty>(
+        "~/map_update", rclcpp::SensorDataQoS());
     m_tf_static_broadcaster =
         std::make_shared<tf2_ros::StaticTransformBroadcaster>(*this);
 

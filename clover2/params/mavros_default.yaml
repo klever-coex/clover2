@@ -5,7 +5,6 @@
 
       # extras
       - image_pub
-      - vibration
       - distance_sensor
       - rangefinder
       - wheel_odometry
@@ -138,11 +137,7 @@
     mav_frame: LOCAL_NED
 
 # waypoint
-/**/mission:
-  ros__parameters:
-    pull_after_gcs: true        # update mission if gcs updates
-    use_mission_item_int: true  # use the MISSION_ITEM_INT message instead of MISSION_ITEM
-                                # for uploading waypoints to FCU
+# None
 
 # --- mavros extras plugins (same order) ---
 

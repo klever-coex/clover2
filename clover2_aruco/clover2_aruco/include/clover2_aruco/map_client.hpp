@@ -45,7 +45,7 @@ public:
         , m_name("") {
         m_map_update_sub =
             node->template create_subscription<std_msgs::msg::Empty>(
-                "~/map_update", 1,
+                "~/map_update", rclcpp::SensorDataQoS(),
                 std::bind(&map_client::map_update_callback, this,
                           std::placeholders::_1));
 
@@ -56,7 +56,7 @@ public:
         } else {
             m_map_client =
                 node->template create_client<clover2_aruco_msgs::srv::GetMap>(
-                    "~/get_map");
+                    "~/get_map", rclcpp::SensorDataQoS());
         }
 
         trigger_map_update();
