@@ -102,7 +102,7 @@ def generate_launch_description():
         respawn=True,
         respawn_delay=1.0,
         output='screen',
-        arguments=['--ros-args', '--log-level', log_level]
+        arguments=['--ros-args', '--log-level', 'rcl:=INFO', '--log-level', 'rmw_fastrtps_cpp:=INFO', '--log-level', 'debug']
     )
 
     return LaunchDescription([
