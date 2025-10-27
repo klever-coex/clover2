@@ -62,17 +62,21 @@ map_server::CallbackReturn map_server::on_activate(
     m_tf_static_broadcaster =
         std::make_shared<tf2_ros::StaticTransformBroadcaster>(*this);
 
-    try {
-        RCLCPP_DEBUG(get_logger(), "Using map '%s'", m_map_msg->name.c_str());
-        update_map(m_map_path);
-    } catch (const std::exception& e) {
-        RCLCPP_ERROR(get_logger(), "Configure error: %s", e.what());
-        return map_server::CallbackReturn::ERROR;
-    }
-
     m_map_server = this->create_service<clover2_aruco_msgs::srv::GetMap>(
         "~/get_map", std::bind(&map_server::map_callback, this,
                                std::placeholders::_1, std::placeholders::_2));
+
+    m_map_notify_timer =
+            this->create_wall_timer(std::chrono::seconds(0), [this]() {
+                try {
+                    RCLCPP_DEBUG(get_logger(), "Using map '%s'", m_map_msg->name.c_str());
+                    update_map(m_map_path);
+                } catch (const std::exception& e) {
+                    RCLCPP_ERROR(get_logger(), "Configure error: %s", e.what());
+                }
+
+                m_map_notify_timer.reset();
+            });
 
     return map_server::CallbackReturn::SUCCESS;
 }
@@ -143,22 +147,28 @@ void map_server::update_map(
     m_map_msg = new_map;
 
     if (m_tf_publish) {
-        tf2_msgs::msg::TFMessage transforms;
+        std::vector<geometry_msgs::msg::TransformStamped> transforms;
+        transforms.reserve(m_map_msg->markers.size());
+
         for (const auto& it : m_map_msg->markers) {
             geometry_msgs::msg::TransformStamped transform;
 
-            transform.header.frame_id = "map_aruco_" + std::to_string(it.id);
+            transform.header.frame_id = m_map_msg->header.frame_id;
             transform.header.stamp = get_clock()->now();
 
-            transform.child_frame_id = m_map_msg->header.frame_id;
+            transform.child_frame_id = "map_aruco_" + std::to_string(it.id);
 
             tf2::Transform t;
             tf2::fromMsg(it.pose, t);
             tf2::toMsg(t, transform.transform);
 
-            transforms.transforms.push_back(transform);
+            transforms.push_back(transform);
         }
+
+        m_tf_static_broadcaster->sendTransform(transforms);
     }
+
+    m_map_update_pub->publish(std_msgs::msg::Empty());
 }
 
 }  // namespace clover2_aruco

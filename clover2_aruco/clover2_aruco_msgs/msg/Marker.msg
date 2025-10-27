@@ -6,6 +6,7 @@ float32 size
 
 # Marker position
 geometry_msgs/Pose pose
+geometry_msgs/Transform transform
 
 clover2_aruco_msgs/Point2D c1
 clover2_aruco_msgs/Point2D c2

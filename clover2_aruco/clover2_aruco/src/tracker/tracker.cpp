@@ -9,17 +9,17 @@
 
 namespace clover2_aruco {
 
-tracker::tracker(const rclcpp::NodeOptions& options = rclcpp::NodeOptions())
+tracker::tracker(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("tracker", options) {
     enable_watch_parameters();
 
     declare_and_watch_parameter<std::string>(
-        "odom", "odom",
+        "odom", "aruco_odom",
         [this](const rclcpp::Parameter& p) { m_odom_id = p.as_string(); },
         "Odometry frame_id");
 
     declare_and_watch_parameter<std::string>(
-        "tracking", "track",
+        "tracking", "traking",
         [this](const rclcpp::Parameter& p) { m_tracking_id = p.as_string(); },
         "Tracking result");
 
@@ -88,18 +88,43 @@ tracker::CallbackReturn tracker::on_shutdown(
 
 void tracker::markers_callback(
     const clover2_aruco_msgs::msg::MarkerArray::SharedPtr msg) {
-    geometry_msgs::msg::TransformStamped t;
+    if (msg->markers.size() == 0) {
+        continue;
+    }
 
+    geometry_msgs::msg::PoseStamped estimated_pose;
+    geometry_msgs::msg::TransformStamped camera_transform;
+    
     try {
         t = m_tf_buffer->lookupTransform(m_tracking_id, msg->header.frame_id,
                                          tf2::TimePointZero);
     } catch (const tf2::TransformException& ex) {
         RCLCPP_ERROR(get_logger(), "Unable got transform %s to %s: %s",
-                     toFrameRel.c_str(), fromFrameRel.c_str(), ex.what());
+                     m_tracking_id.c_str(), msg->header.frame_id.c_str(), ex.what());
         return;
     }
 
-    tf2::doTransform(msg->markers[0].pose, msg->markers[0].pose, t);
+    
+}
+
+void tracker::mean_fusion_policy(const std::vector<clover2_aruco_msgs::msg::Marker>& makers, const geometry_msgs::msg::TransformStamped& t, geometry_msgs::msg::Pose& pose) {
+    pose.position.x = 0.0;
+    pose.position.y = 0.0;
+    pose.position.z = 0.0;
+
+    for (const auto& marker : markers) {
+        pose.position.x += marker.pose.position.x;
+        pose.position.y += marker.pose.position.y;
+        pose.position.z += marker.pose.position.z;
+    }
+
+    pose.position.x /= (double)markers.size();
+    pose.position.y /= (double)markers.size();
+    pose.position.z /= (double)markers.size();
 }
 
 }  // namespace clover2_aruco
+
+#include "rclcpp_components/register_node_macro.hpp"
+
+RCLCPP_COMPONENTS_REGISTER_NODE(clover2_aruco::tracker)

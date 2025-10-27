@@ -45,6 +45,8 @@ private:
     void markers_callback(
         const clover2_aruco_msgs::msg::MarkerArray::SharedPtr msg);
 
+    void mean_fusion_policy(const std::vector<clover2_aruco_msgs::msg::Marker>& makers, const geometry_msgs::msg::TransformStamped& t, geometry_msgs::msg::PoseStamped& pose);
+
     // Camera parameters
     std::string m_odom_id;      ///< Odometry frame_id
     std::string m_tracking_id;  ///< Tracking result frame_id

@@ -86,6 +86,8 @@ detector::CallbackReturn detector::on_activate(
 
     m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
 
+    m_map_client = std::make_shared<map_client>(shared_from_this());
+
     m_markers_pub =
         this->create_publisher<clover2_aruco_msgs::msg::MarkerArray>(
             "~/markers", rclcpp::SensorDataQoS());
@@ -101,8 +103,6 @@ detector::CallbackReturn detector::on_activate(
     m_image_sub = this->create_subscription<sensor_msgs::msg::Image>(
         "~/image_raw", rclcpp::SensorDataQoS(),
         std::bind(&detector::image_callback, this, std::placeholders::_1));
-
-    m_map_client = std::make_shared<map_client>(shared_from_this());
 
     RCLCPP_INFO(this->get_logger(), "Activated.");
 

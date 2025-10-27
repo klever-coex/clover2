@@ -47,7 +47,7 @@ def generate_launch_description():
         'mavros_params_file',
         default_value=PathJoinSubstitution([
             pkg_clover2,
-            'param',
+            'params',
             'mavros_default.yaml'
         ]),
         description='Mavros params file',
@@ -81,6 +81,7 @@ def generate_launch_description():
             params_file,
             mavros_params_file,
             {
+                'gcs_url': 'tcp-l://0.0.0.0:5760',
                 'use_sim_time': use_sim_time,
                 'fcu_url': '/dev/ttyACM0:115200',
             }

@@ -21,7 +21,7 @@ def generate_launch_description():
     use_sim_time_declare = DeclareLaunchArgument(
         'use_sim_time',
         default_value='false',
-        description='Use simulation (Gazebo) clock if true'
+        description='Use simulation clock if true'
     )
 
     log_level_declare = DeclareLaunchArgument(
@@ -102,7 +102,7 @@ def generate_launch_description():
         respawn=True,
         respawn_delay=1.0,
         output='screen',
-        arguments=['--ros-args', '--log-level', 'rcl:=INFO', '--log-level', 'rmw_fastrtps_cpp:=INFO', '--log-level', 'debug']
+        arguments=['--ros-args', '--log-level', log_level]
     )
 
     return LaunchDescription([
@@ -110,7 +110,7 @@ def generate_launch_description():
         log_level_declare,
         params_file_declare,
         main_camera_cmd,
-        # mavros_cmd,
+        mavros_cmd,
         aruco_map_server_cmd,
         web_video_server_cmd,
     ])
