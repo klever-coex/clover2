@@ -109,6 +109,8 @@ private:
     // TF
     std::shared_ptr<tf2_ros::StaticTransformBroadcaster>
         m_tf_static_broadcaster;  ///< TF static broadcaster
+    
+    rclcpp::TimerBase::SharedPtr m_map_notify_timer;
 
     rclcpp::Service<clover2_aruco_msgs::srv::GetMap>::SharedPtr
         m_map_server;  ///< ROS2 service server

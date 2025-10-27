@@ -2,6 +2,8 @@
 
 // ROS2 includes
 #include <rclcpp/rclcpp.hpp>
+#include <tf2/LinearMath/Transform.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 // Msgs includes
 #include <clover2_aruco_msgs/msg/marker_map.hpp>
@@ -27,6 +29,22 @@ namespace clover2_aruco {
  */
 class map_client {
 public:
+
+    struct marker {
+        explicit marker(int id, double size)
+        : id(id)
+        , size(size) {
+        }
+
+        void set_transform(const geometry_msgs::msg::Pose& pose) {
+            tf2::fromMsg(pose, transform);
+        }
+
+        int id;
+        double size;
+        tf2::Transform transform;
+    };
+    
     /**
      * @brief Construct a new map_client object.
      *
@@ -56,10 +74,10 @@ public:
         } else {
             m_map_client =
                 node->template create_client<clover2_aruco_msgs::srv::GetMap>(
-                    "~/get_map", rclcpp::SensorDataQoS());
+                    "~/get_map", rclcpp::ServicesQoS());
         }
 
-        trigger_map_update();
+        update_map();
     }
 
     /**
@@ -98,14 +116,14 @@ private:
      * @param msg Empty message (unused)
      */
     void map_update_callback(const std_msgs::msg::Empty::SharedPtr /* msg */) {
-        trigger_map_update();
+        update_map();
     }
 
     /**
      * @brief Update internal map data from a MarkerMap message.
      * @param msg MarkerMap message received from the server
      */
-    void update_map(const clover2_aruco_msgs::msg::MarkerMap& msg) {
+    void update_cached_map(const clover2_aruco_msgs::msg::MarkerMap& msg) {
         m_name = msg.name;
 
         //m_idx.clear();
@@ -127,7 +145,7 @@ private:
      *
      * Sends a GetMap service request and updates internal data upon response.
      */
-    void trigger_map_update() {
+    void update_map() {
         auto map_request =
             std::make_shared<clover2_aruco_msgs::srv::GetMap::Request>();
         m_map_client->async_send_request(
@@ -145,7 +163,7 @@ private:
                             get_name(), resp->map.name.c_str(),
                             resp->map.markers.size());
 
-                update_map(resp->map);
+                update_cached_map(resp->map);
             });
     }
 
@@ -155,9 +173,10 @@ private:
     rclcpp::Client<clover2_aruco_msgs::srv::GetMap>::SharedPtr
         m_map_client;  ///< Client for GetMap service
 
+    rclcpp::TimerBase::SharedPtr m_map_init_timer;
+
     bool m_map_valid;        ///< True if the map has been successfully loaded
     std::string m_name;      ///< Name of the current map
-    // std::vector<int> m_idx;  ///< Indices of markers
     std::unordered_map<int, double>
         m_sizes;  ///< Map from marker ID to marker size
 };

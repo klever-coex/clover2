@@ -131,6 +131,32 @@ ament_target_dependencies(clover2_aruco_map_server
 rclcpp_components_register_nodes(clover2_aruco_map_server "clover2_aruco::map_server")
 
 # ============================================================================
+# Build ArUco tracker component as a shared library
+# ============================================================================
+add_library(clover2_aruco_tracker src/tracker/tracker.cpp)
+# Create alias for cleaner usage
+add_library(clover2_aruco::tracker ALIAS clover2_aruco_tracker)
+
+# Set C/C++ language standards
+target_compile_features(clover2_aruco_tracker PUBLIC c_std_99 cxx_std_17)
+
+# Set include directories for both build and install interfaces
+target_include_directories(clover2_aruco_tracker PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+
+# Define compilation flag for the map server library
+target_compile_definitions(clover2_aruco_tracker PRIVATE "CLOVER2_ARUCO_TRACKER_BUILDING_LIBRARY")
+
+# Add ROS 2 dependencies
+ament_target_dependencies(clover2_aruco_tracker
+  ${dependencies}
+)
+
+# Register as a ROS 2 component node
+rclcpp_components_register_nodes(clover2_aruco_tracker "clover2_aruco::tracker")
+
+# ============================================================================
 # Build detector executable (main application)
 # ============================================================================
 add_executable(detector src/detector/main.cpp)
@@ -171,6 +197,26 @@ ament_target_dependencies(map_server
 )
 
 # ============================================================================
+# Build tracker executable (main application)
+# ============================================================================
+add_executable(tracker src/tracker/main.cpp)
+
+# Set include directories
+target_include_directories(tracker PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+
+# Link against map server library and OpenCV
+target_link_libraries(tracker
+  clover2_aruco_tracker
+  opencv_aruco
+)
+
+ament_target_dependencies(tracker 
+  ${dependencies}
+)
+
+# ============================================================================
 # Installation configuration
 # ============================================================================
 
@@ -188,13 +234,13 @@ install(
 
 # Install executables
 install(
-  TARGETS map_server detector
+  TARGETS map_server detector tracker
   DESTINATION lib/${PROJECT_NAME}
 )
 
 # Install libraries and create export set for other packages to use
 install(
-  TARGETS clover2_aruco_utils clover2_aruco_map_server clover2_aruco_detector
+  TARGETS clover2_aruco_utils clover2_aruco_map_server clover2_aruco_detector clover2_aruco_tracker
   EXPORT export_${PROJECT_NAME}
   ARCHIVE DESTINATION lib      # Static libraries
   LIBRARY DESTINATION lib      # Shared libraries
@@ -215,7 +261,9 @@ ament_export_include_directories(
 
 # Export libraries for other packages to link against
 ament_export_libraries(
+  clover2_aruco_map_server
   clover2_aruco_detector
+  clover2_aruco_tracker
 )
 
 # Export CMake targets

@@ -4,10 +4,23 @@
       # common
 
       # extras
-      - image_pub
+      - debug_value
       - distance_sensor
+      - fake_gps
+      - geofence
+      - gimbal_control
+      - gimbal_control
+      - global_position
+      - gps_input
+      - gps_rtk
+      - gps_status
+      - hil
+      - image_pub
       - rangefinder
       - wheel_odometry
+      - open_drone_id
+      - terrain
+      - wind_estimation
 
 # Common configuration for PX4 autopilot
 #
@@ -227,7 +240,7 @@
     tf.listen: false           # enable tf listener (disable topic subscribers)
     tf.frame_id: "odom"
     tf.child_frame_id: "vision_estimate"
-    tf.rate_limit: 10.0
+    tf.rate_limit: 20.0
 
 # vision_speed_estimate
 /**/vision_speed:

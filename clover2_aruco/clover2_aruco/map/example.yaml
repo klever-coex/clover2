@@ -7,8 +7,8 @@ markers:
   - id: 25
     size: 0.33
     pose:
-      x: 0
-      y: 0
+      x: 1
+      y: 1
     rot:
       roll: 0
       pitch: 0
@@ -16,10 +16,4 @@ markers:
   - id: 27
     size: 0.33
     pose:
-      x: 10
-      y: 5
-    quat:
-      x: 0.1
-      y: 0.2
-      z: 0.7
-      w: 0.1
+      x: 1
