@@ -93,7 +93,6 @@ void tracker::markers_callback(
     std::lock_guard<map_client> map_guard(*m_map_client);
 
     geometry_msgs::msg::TransformStamped camera_transform;
-
     try {
         camera_transform = m_tf_buffer->lookupTransform(
             m_tracking_id, msg->header.frame_id, tf2::TimePointZero);
@@ -114,15 +113,8 @@ void tracker::markers_callback(
             continue;
         }
 
-        // if (!m_tf_buffer->canTransform(
-        //         m_map_client->get_marker_frame_id(marker.id),
-        //         m_map_client->get_map_id(), rclcpp::Time(0),
-        //         rclcpp::Duration::from_nanoseconds(1000))) {
-        //     throw std::runtime_error();
-        // }
-
         marker_map_transform = m_tf_buffer->lookupTransform(
-            "map_"+m_map_client->get_marker_frame_id(marker.id),
+            m_map_client->get_marker_frame_id(marker.id),
             m_map_client->get_map_id(), tf2::TimePointZero);
 
         transform_marker(marker, marker_map_transform);
@@ -151,7 +143,7 @@ void tracker::transform_marker(
 void tracker::transform_marker(clover2_aruco_msgs::msg::Marker& marker,
                                const geometry_msgs::msg::TransformStamped& t) {
     tf2::doTransform(marker.pose, marker.pose, t);
-    tf2::doTransform(marker.transform, marker.transform, t);
+    // tf2::doTransform(marker.transform, marker.transform, t);
 }
 
 }  // namespace clover2_aruco
