@@ -101,7 +101,7 @@ private:
     void update_map(clover2_aruco_msgs::msg::MarkerMap::SharedPtr new_map);
 
     bool m_tf_publish;
-    std::recursive_mutex m_map_mutex;  ///< Map update mutex
+    std::recursive_mutex m_map_mtx;  ///< Map update mutex
     std::filesystem::path m_map_path;  ///< Path to the map file
     clover2_aruco_msgs::msg::MarkerMap::SharedPtr
         m_map_msg;  ///< Current MarkerMap message

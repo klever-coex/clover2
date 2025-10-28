@@ -14,12 +14,12 @@ tracker::tracker(const rclcpp::NodeOptions& options)
     enable_watch_parameters();
 
     declare_and_watch_parameter<std::string>(
-        "odom", "aruco_odom",
+        "odom", "map",
         [this](const rclcpp::Parameter& p) { m_odom_id = p.as_string(); },
         "Odometry frame_id");
 
     declare_and_watch_parameter<std::string>(
-        "tracking", "traking",
+        "tracking", "base_link",
         [this](const rclcpp::Parameter& p) { m_tracking_id = p.as_string(); },
         "Tracking result");
 
@@ -56,6 +56,9 @@ tracker::CallbackReturn tracker::on_activate(
         return tracker::CallbackReturn::ERROR;
     }
 
+    m_pose_pub = create_publisher<geometry_msgs::msg::PoseStamped>(
+        "~/pose", rclcpp::SensorDataQoS());
+
     m_markers_sub = create_subscription<clover2_aruco_msgs::msg::MarkerArray>(
         "~/markers", rclcpp::SensorDataQoS(),
         std::bind(&tracker::markers_callback, this, std::placeholders::_1));
@@ -66,6 +69,7 @@ tracker::CallbackReturn tracker::on_activate(
 tracker::CallbackReturn tracker::on_deactivate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     m_markers_sub.reset();
+    m_pose_pub.reset();
 
     m_map_client.reset();
 
@@ -89,38 +93,69 @@ tracker::CallbackReturn tracker::on_shutdown(
 void tracker::markers_callback(
     const clover2_aruco_msgs::msg::MarkerArray::SharedPtr msg) {
     if (msg->markers.size() == 0) {
-        continue;
-    }
-
-    geometry_msgs::msg::PoseStamped estimated_pose;
-    geometry_msgs::msg::TransformStamped camera_transform;
-    
-    try {
-        t = m_tf_buffer->lookupTransform(m_tracking_id, msg->header.frame_id,
-                                         tf2::TimePointZero);
-    } catch (const tf2::TransformException& ex) {
-        RCLCPP_ERROR(get_logger(), "Unable got transform %s to %s: %s",
-                     m_tracking_id.c_str(), msg->header.frame_id.c_str(), ex.what());
         return;
     }
 
-    
-}
+    std::lock_guard<map_client> map_guard(*m_map_client);
 
-void tracker::mean_fusion_policy(const std::vector<clover2_aruco_msgs::msg::Marker>& makers, const geometry_msgs::msg::TransformStamped& t, geometry_msgs::msg::Pose& pose) {
-    pose.position.x = 0.0;
-    pose.position.y = 0.0;
-    pose.position.z = 0.0;
+    geometry_msgs::msg::TransformStamped camera_transform;
 
-    for (const auto& marker : markers) {
-        pose.position.x += marker.pose.position.x;
-        pose.position.y += marker.pose.position.y;
-        pose.position.z += marker.pose.position.z;
+    try {
+        camera_transform = m_tf_buffer->lookupTransform(
+            m_tracking_id, msg->header.frame_id, tf2::TimePointZero);
+    } catch (const tf2::TransformException& ex) {
+        RCLCPP_ERROR(get_logger(), "Unable got transform %s to %s: %s",
+                     m_tracking_id.c_str(), msg->header.frame_id.c_str(),
+                     ex.what());
+        return;
     }
 
-    pose.position.x /= (double)markers.size();
-    pose.position.y /= (double)markers.size();
-    pose.position.z /= (double)markers.size();
+    // get markers in tracking frame
+    transform_marker(msg->markers, camera_transform);
+
+    // get markers
+    geometry_msgs::msg::TransformStamped marker_map_transform;
+    for (auto& marker : msg->markers) {
+        if (!m_map_client->has_marker(marker.id)) {
+            continue;
+        }
+
+        if (!m_tf_buffer->canTransform(
+                marker.marker_frame_id, m_map_client->get_map_id(),
+                rclcpp::Time(0), rclcpp::Duration::from_nanoseconds(1000))) {
+            continue;
+        }
+
+        marker_map_transform = m_tf_buffer->lookupTransform(
+            marker.marker_frame_id, m_map_client->get_map_id(),
+            tf2::TimePointZero);
+
+        transform_marker(marker, marker_map_transform);
+    }
+
+    geometry_msgs::msg::PoseStamped estimated_pose;
+    estimated_pose.header.stamp = msg->header.stamp;
+    estimated_pose.header.frame_id = m_tracking_id;
+
+    tf2::Transform t;
+    tf2::fromMsg(msg->markers[0].transform, t);
+    tf2::toMsg(t, estimated_pose.pose);
+
+    m_pose_pub->publish(estimated_pose);
+}
+
+void tracker::transform_marker(
+    std::vector<clover2_aruco_msgs::msg::Marker>& markers,
+    const geometry_msgs::msg::TransformStamped& t) {
+    for (auto& marker : markers) {
+        transform_marker(marker, t);
+    }
+}
+
+void tracker::transform_marker(clover2_aruco_msgs::msg::Marker& marker,
+                               const geometry_msgs::msg::TransformStamped& t) {
+    tf2::doTransform(marker.pose, marker.pose, t);
+    tf2::doTransform(marker.transform, marker.transform, t);
 }
 
 }  // namespace clover2_aruco

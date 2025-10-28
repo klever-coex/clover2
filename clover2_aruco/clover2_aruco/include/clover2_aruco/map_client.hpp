@@ -18,43 +18,45 @@
 
 namespace clover2_aruco {
 
-/**
- * @class map_client
- * @brief ROS2 client to retrieve and manage ArUco marker maps from a map
- * server.
- *
- * This class subscribes to map update notifications and provides convenient
- * access to marker map information, including marker IDs, sizes, and map
- * metadata.
- */
 class map_client {
 public:
-
     struct marker {
-        explicit marker(int id, double size)
-        : id(id)
-        , size(size) {
+        marker()
+            : id(0)
+            , size(0.0)
+            , transform()
+            , marker_frame_id() {}
+
+        marker(const clover2_aruco_msgs::msg::Marker& msg)
+            : id(msg.id)
+            , size(msg.size)
+            , marker_frame_id(msg.marker_frame_id) {
+            tf2::fromMsg(msg.pose, transform);
         }
 
-        void set_transform(const geometry_msgs::msg::Pose& pose) {
-            tf2::fromMsg(pose, transform);
+        marker(const marker& other)
+            : id(other.id)
+            , size(other.size)
+            , transform(other.transform)
+            , marker_frame_id(other.marker_frame_id) {}
+
+        marker& operator=(const marker& other) {
+            if (this != &other) {
+                id = other.id;
+                size = other.size;
+                transform = other.transform;
+                marker_frame_id = other.marker_frame_id;
+            }
+
+            return *this;
         }
 
         int id;
         double size;
         tf2::Transform transform;
+        std::string marker_frame_id;
     };
-    
-    /**
-     * @brief Construct a new map_client object.
-     *
-     * The constructor sets up a subscription to map updates and initializes a
-     * client for the GetMap service.
-     *
-     * @tparam NodeT Type of ROS2 node (rclcpp::Node or derived)
-     * @param node Shared pointer or reference to the node
-     * @param cb_group Optional callback group for service calls
-     */
+
     template <typename NodeT>
     explicit map_client(const NodeT& node,
                         rclcpp::CallbackGroup::SharedPtr cb_group = nullptr)
@@ -80,71 +82,55 @@ public:
         update_map();
     }
 
-    /**
-     * @brief Check if the current map is valid.
-     * @return true if the map has been loaded successfully
-     * @return false otherwise
-     */
     bool valid() const { return m_map_valid; }
 
-    /**
-     * @brief Get the name of the current map.
-     * @return const char* Name of the map
-     */
     const char* get_name() const { return m_name.c_str(); }
 
-    /**
-     * @brief Get the size of a specific marker by ID.
-     * @param id Marker ID
-     * @return int Size of the marker
-     */
-    double get_marker_size(int id) const { return m_sizes.at(id); }
+    const std::string& get_map_id() const { return m_map_id; }
 
-    /**
-     * @brief Get the number of markers in the current map.
-     * @return int Number of markers
-     */
-    int get_count() const { return m_sizes.size(); }
+    double get_marker_size(int id) const { return m_markers.at(id).size; }
 
-    bool has_marker(int id) const { return m_sizes.find(id) != m_sizes.end(); };
+    int get_count() const { return m_markers.size(); }
+
+    const tf2::Transform& get_transform(int id) const {
+        return m_markers.at(id).transform;
+    }
+
+    const std::string& get_marker_frame_id(int id) const {
+        return m_markers.at(id).marker_frame_id;
+    }
+
+    bool has_marker(int id) const {
+        return m_markers.find(id) != m_markers.end();
+    }
+
+    // for lock guard
+    void lock() { m_map_mtx.lock(); }
+    void unlock() { m_map_mtx.unlock(); }
 
 private:
-    /**
-     * @brief Callback for map update notifications.
-     *
-     * This triggers a map update request whenever a notification is received.
-     * @param msg Empty message (unused)
-     */
     void map_update_callback(const std_msgs::msg::Empty::SharedPtr /* msg */) {
         update_map();
     }
 
-    /**
-     * @brief Update internal map data from a MarkerMap message.
-     * @param msg MarkerMap message received from the server
-     */
     void update_cached_map(const clover2_aruco_msgs::msg::MarkerMap& msg) {
+        std::lock_guard<std::recursive_mutex> guard(m_map_mtx);
+
         m_name = msg.name;
+        m_map_id = msg.header.frame_id;
 
-        //m_idx.clear();
-        m_sizes.clear();
+        m_markers.clear();
 
-        //m_idx.reserve(msg.markers.size());
-        m_sizes.reserve(msg.markers.size());
+        m_markers.reserve(msg.markers.size());
 
-        for (size_t i = 0; i < msg.markers.size(); i++) {
-            //m_idx[i] = msg.markers[i].id;
-            m_sizes[msg.markers[i].id] = msg.markers[i].size;
+        for (const auto& it : msg.markers) {
+            marker m(it);
+            m_markers[it.id] = m;
         }
 
         m_map_valid = true;
     }
 
-    /**
-     * @brief Request a map update from the server.
-     *
-     * Sends a GetMap service request and updates internal data upon response.
-     */
     void update_map() {
         auto map_request =
             std::make_shared<clover2_aruco_msgs::srv::GetMap::Request>();
@@ -167,18 +153,16 @@ private:
             });
     }
 
-    rclcpp::Logger m_logger;  ///< Logger for this class
-    rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr
-        m_map_update_sub;  ///< Subscription to map update notifications
-    rclcpp::Client<clover2_aruco_msgs::srv::GetMap>::SharedPtr
-        m_map_client;  ///< Client for GetMap service
+    rclcpp::Logger m_logger;
+    rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr m_map_update_sub;
+    rclcpp::Client<clover2_aruco_msgs::srv::GetMap>::SharedPtr m_map_client;
 
-    rclcpp::TimerBase::SharedPtr m_map_init_timer;
+    std::recursive_mutex m_map_mtx;
 
-    bool m_map_valid;        ///< True if the map has been successfully loaded
-    std::string m_name;      ///< Name of the current map
-    std::unordered_map<int, double>
-        m_sizes;  ///< Map from marker ID to marker size
+    bool m_map_valid;
+    std::string m_name;
+    std::string m_map_id;
+    std::unordered_map<int, marker> m_markers;
 };
 
 }  // namespace clover2_aruco

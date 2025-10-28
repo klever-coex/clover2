@@ -176,7 +176,8 @@ cv::Mat detector::marker_object_points(
 
 void detector::image_callback(
     const sensor_msgs::msg::Image::ConstSharedPtr msg) {
-    std::lock_guard<std::mutex> guard(m_camera_info_mtx);
+    std::lock_guard<std::mutex> camera_info_guard(m_camera_info_mtx);
+    std::lock_guard<map_client> map_guard(*m_map_client);
 
     if (!m_map_client->valid()) {
         RCLCPP_ERROR(get_logger(), "Invalid map");

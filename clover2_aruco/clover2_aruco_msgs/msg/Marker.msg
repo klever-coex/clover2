@@ -4,6 +4,8 @@ uint32 id
 # Side size in meters
 float32 size
 
+string marker_frame_id
+
 # Marker position
 geometry_msgs/Pose pose
 geometry_msgs/Transform transform
