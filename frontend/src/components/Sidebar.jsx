@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Drone, Settings, EthernetPort, Menu, Globe, BookOpenText } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import {
+  Drone,
+  Settings,
+  EthernetPort,
+  Menu,
+  Globe,
+  BookOpenText,
+  Terminal
+} from "lucide-react";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -18,9 +26,17 @@ const Sidebar = () => {
     { name: t("sidebar.dashboard"), icon: <Drone size={20} />, path: "/" },
     { name: t("sidebar.ros2"), icon: <EthernetPort size={20} />, path: "/ros2" },
     { name: t("sidebar.settings"), icon: <Settings size={20} />, path: "/settings" },
-    { name: t("sidebar.documentation"),
+    {
+      name: t("sidebar.documentation"),
       icon: <BookOpenText size={20} />,
-      path: `${window.location.protocol}//${window.location.hostname}:81/${language}`
+      path: `${window.location.protocol}//${window.location.hostname}:81/${language}`,
+      redirect: true
+    },
+    {
+      name: t("sidebar.terminal"),
+      icon: <Terminal size={20} />,
+      path: `${window.location.protocol}//${window.location.hostname}:3000/wetty`,
+      redirect: true
     },
   ];
 
@@ -43,6 +59,7 @@ const Sidebar = () => {
       <nav className="flex-1 p-4 space-y-2">
         {menu.map((item) => (
           <NavLink
+            target={item.redirect ? "_blank" : ""}
             key={item.name}
             to={item.path}
             className={({ isActive }) =>
