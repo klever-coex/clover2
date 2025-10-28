@@ -78,6 +78,12 @@ struct convert<clover2_aruco_msgs::msg::Marker> {
         marker.pose.orientation.z = q.z();
         marker.pose.orientation.w = q.w();
 
+        if (node["frame_id"]) {
+            marker.marker_frame_id = node["frame_id"].as<std::string>();
+        } else {
+            marker.marker_frame_id = "aruco_" + std::to_string(marker.id);
+        }
+
         return true;
     }
 };
@@ -104,7 +110,7 @@ void load_from_yaml(const std::filesystem::path& filename,
     if (config["frame_id"]) {
         map.header.frame_id = config["frame_id"].as<std::string>();
     } else {
-        RCLCPP_WARN(logger, "Map name not provided. Using default");
+        RCLCPP_WARN(logger, "Map frame_id not provided. Using default");
         map.header.frame_id = "map";
     }
 

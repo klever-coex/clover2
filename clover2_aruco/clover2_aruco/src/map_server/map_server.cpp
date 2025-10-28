@@ -109,7 +109,7 @@ map_server::CallbackReturn map_server::on_shutdown(
 void map_server::map_callback(
     const clover2_aruco_msgs::srv::GetMap::Request::SharedPtr /* request */,
     clover2_aruco_msgs::srv::GetMap::Response::SharedPtr response) {
-    std::lock_guard<std::recursive_mutex> guard(m_map_mutex);
+    std::lock_guard<std::recursive_mutex> guard(m_map_mtx);
 
     response->map = *m_map_msg;
 }
@@ -134,7 +134,7 @@ clover2_aruco_msgs::msg::MarkerMap::SharedPtr map_server::parse_map(
 }
 
 void map_server::update_map(const std::filesystem::path& filename) {
-    std::lock_guard<std::recursive_mutex> guard(m_map_mutex);
+    std::lock_guard<std::recursive_mutex> guard(m_map_mtx);
 
     auto new_map = parse_map(filename);
     update_map(new_map);
@@ -142,7 +142,7 @@ void map_server::update_map(const std::filesystem::path& filename) {
 
 void map_server::update_map(
     const clover2_aruco_msgs::msg::MarkerMap::SharedPtr new_map) {
-    std::lock_guard<std::recursive_mutex> guard(m_map_mutex);
+    std::lock_guard<std::recursive_mutex> guard(m_map_mtx);
 
     m_map_msg = new_map;
 

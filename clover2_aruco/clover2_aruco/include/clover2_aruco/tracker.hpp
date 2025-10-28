@@ -45,26 +45,32 @@ private:
     void markers_callback(
         const clover2_aruco_msgs::msg::MarkerArray::SharedPtr msg);
 
-    void mean_fusion_policy(const std::vector<clover2_aruco_msgs::msg::Marker>& makers, const geometry_msgs::msg::TransformStamped& t, geometry_msgs::msg::PoseStamped& pose);
+    // void mean_fusion_policy(const
+    // std::vector<clover2_aruco_msgs::msg::Marker>& markers, const
+    // geometry_msgs::msg::TransformStamped& t, geometry_msgs::msg::Transform&
+    // transform);
+
+    void transform_marker(std::vector<clover2_aruco_msgs::msg::Marker>& markers,
+                          const geometry_msgs::msg::TransformStamped& t);
+    void transform_marker(clover2_aruco_msgs::msg::Marker& marker,
+                          const geometry_msgs::msg::TransformStamped& t);
 
     // Camera parameters
-    std::string m_odom_id;      ///< Odometry frame_id
-    std::string m_tracking_id;  ///< Tracking result frame_id
+    std::string m_odom_id;
+    std::string m_tracking_id;
 
     // Detection parameters
-    std::shared_ptr<map_client>
-        m_map_client;  ///< Map client for marker metadata
+    std::shared_ptr<map_client> m_map_client;
 
     // TF
-    std::shared_ptr<tf2_ros::TransformBroadcaster>
-        m_tf_broadcaster;                          ///< TF broadcaster
-    std::shared_ptr<tf2_ros::Buffer> m_tf_buffer;  ///< TF buffer
-    std::shared_ptr<tf2_ros::TransformListener>
-        m_tf_listener;  ///< TF transform listener
+    std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
+    std::shared_ptr<tf2_ros::Buffer> m_tf_buffer;
+    std::shared_ptr<tf2_ros::TransformListener> m_tf_listener;
 
     // Publishers and subscribers
     rclcpp::Subscription<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr
-        m_markers_sub;  ///< Detected markers sub
+        m_markers_sub;
+    rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr m_pose_pub;
 };
 
 }  // namespace clover2_aruco
