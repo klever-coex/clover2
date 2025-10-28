@@ -45,10 +45,10 @@ private:
     void markers_callback(
         const clover2_aruco_msgs::msg::MarkerArray::SharedPtr msg);
 
-    // void mean_fusion_policy(const
-    // std::vector<clover2_aruco_msgs::msg::Marker>& markers, const
-    // geometry_msgs::msg::TransformStamped& t, geometry_msgs::msg::Transform&
-    // transform);
+    void mean_fusion_policy(
+        const std::vector<clover2_aruco_msgs::msg::Marker>& markers,
+        const geometry_msgs::msg::TransformStamped& t,
+        geometry_msgs::msg::Transform& transform);
 
     void transform_marker(std::vector<clover2_aruco_msgs::msg::Marker>& markers,
                           const geometry_msgs::msg::TransformStamped& t);
