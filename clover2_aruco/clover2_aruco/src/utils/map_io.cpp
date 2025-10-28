@@ -117,6 +117,7 @@ void load_from_yaml(const std::filesystem::path& filename,
     if (config["markers"].IsSequence()) {
         for (const auto& it : config["markers"]) {
             auto marker = it.as<clover2_aruco_msgs::msg::Marker>();
+            marker.marker_frame_id = map.header.frame_id + "_" + marker.marker_frame_id;
             map.markers.push_back(marker);
         }
     } else {

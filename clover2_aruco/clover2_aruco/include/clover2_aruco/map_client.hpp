@@ -65,7 +65,7 @@ public:
         , m_name("") {
         m_map_update_sub =
             node->template create_subscription<std_msgs::msg::Empty>(
-                "~/map_update", rclcpp::SensorDataQoS(),
+                "~/map_update", 5,
                 std::bind(&map_client::map_update_callback, this,
                           std::placeholders::_1));
 
@@ -120,7 +120,6 @@ private:
         m_map_id = msg.header.frame_id;
 
         m_markers.clear();
-
         m_markers.reserve(msg.markers.size());
 
         for (const auto& it : msg.markers) {
@@ -132,6 +131,12 @@ private:
     }
 
     void update_map() {
+        if (!m_map_client->wait_for_service(std::chrono::milliseconds(1000))) {
+            throw std::runtime_error(
+                std::string(m_map_client->get_service_name()) +
+                "service is not available!");
+        }
+
         auto map_request =
             std::make_shared<clover2_aruco_msgs::srv::GetMap::Request>();
         m_map_client->async_send_request(
