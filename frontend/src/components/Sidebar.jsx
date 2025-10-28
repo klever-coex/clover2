@@ -13,7 +13,7 @@ import {
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
-  const [language, setLanguage] = useState(localStorage.getItem("language") || "en");
+  const [language, setLanguage] = useState(localStorage.getItem("language") || "ru");
   const { t, i18n } = useTranslation();
 
   const changeLanguage = (lang) => {
