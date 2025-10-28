@@ -11,6 +11,6 @@ services:
 
   clover2-wetty:
     image: wettyoss/wetty
-    command: "--ssh-host clover2-0000.local"
+    command: "--ssh-host clover2-0000.local --title SSH"
     ports:
       - 3000:3000
