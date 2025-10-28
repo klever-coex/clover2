@@ -9,3 +9,9 @@ services:
     build: frontend
     ports:
       - "80:80"
+
+  clover2-wetty:
+    image: wettyoss/wetty
+    command: "--ssh-host clover2-0000.local"
+    ports:
+      - 3000:3000

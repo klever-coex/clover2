@@ -3,7 +3,8 @@
     "dashboard": "Dashboard",
     "ros2": "ROS2",
     "settings": "Settings",
-    "documentation": "Documentation"
+    "documentation": "Documentation",
+    "terminal": "Shell"
   },
   "header": {
     "title": "Clover2"

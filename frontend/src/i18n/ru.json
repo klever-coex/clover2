@@ -3,7 +3,8 @@
     "dashboard": "Главная",
     "ros2": "ROS2",
     "settings": "Настройки",
-    "documentation": "Документация"
+    "documentation": "Документация",
+    "terminal": "Консоль"
   },
   "header": {
     "title": "Clover2"
