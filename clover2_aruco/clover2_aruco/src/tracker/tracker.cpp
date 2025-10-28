@@ -114,31 +114,31 @@ void tracker::markers_callback(
     transform_marker(msg->markers, camera_transform);
 
     // get markers
-    geometry_msgs::msg::TransformStamped marker_map_transform;
-    for (auto& marker : msg->markers) {
-        if (!m_map_client->has_marker(marker.id)) {
-            continue;
-        }
+    // geometry_msgs::msg::TransformStamped marker_map_transform;
+    // for (auto& marker : msg->markers) {
+    //     if (!m_map_client->has_marker(marker.id)) {
+    //         continue;
+    //     }
 
-        if (!m_tf_buffer->canTransform(
-                marker.marker_frame_id, m_map_client->get_map_id(),
-                rclcpp::Time(0), rclcpp::Duration::from_nanoseconds(1000))) {
-            continue;
-        }
+    //     if (!m_tf_buffer->canTransform(
+    //             marker.marker_frame_id, m_map_client->get_map_id(),
+    //             rclcpp::Time(0), rclcpp::Duration::from_nanoseconds(1000))) {
+    //         continue;
+    //     }
 
-        marker_map_transform = m_tf_buffer->lookupTransform(
-            marker.marker_frame_id, m_map_client->get_map_id(),
-            tf2::TimePointZero);
+    //     marker_map_transform = m_tf_buffer->lookupTransform(
+    //         marker.marker_frame_id, m_map_client->get_map_id(),
+    //         tf2::TimePointZero);
 
-        transform_marker(marker, marker_map_transform);
-    }
+    //     transform_marker(marker, marker_map_transform);
+    // }
 
     geometry_msgs::msg::PoseStamped estimated_pose;
     estimated_pose.header.stamp = msg->header.stamp;
-    estimated_pose.header.frame_id = m_tracking_id;
+    estimated_pose.header.frame_id = msg->markers[0].marker_frame_id;
 
     tf2::Transform t;
-    tf2::fromMsg(msg->markers[0].transform, t);
+    tf2::fromMsg(msg->markers[0].pose, t);
     tf2::toMsg(t, estimated_pose.pose);
 
     m_pose_pub->publish(estimated_pose);
