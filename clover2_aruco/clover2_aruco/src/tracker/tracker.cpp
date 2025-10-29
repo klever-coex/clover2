@@ -53,6 +53,9 @@ tracker::CallbackReturn tracker::on_activate(
     m_pose_pub = create_publisher<geometry_msgs::msg::PoseStamped>(
         "~/pose", rclcpp::SensorDataQoS());
 
+    m_poses_debug_pub = create_publisher<geometry_msgs::msg::PoseArray>(
+        "~/poses_debug", rclcpp::SensorDataQoS());
+
     m_markers_sub = create_subscription<clover2_aruco_msgs::msg::MarkerArray>(
         "~/markers", rclcpp::SensorDataQoS(),
         std::bind(&tracker::markers_callback, this, std::placeholders::_1));
@@ -64,6 +67,7 @@ tracker::CallbackReturn tracker::on_deactivate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     m_markers_sub.reset();
     m_pose_pub.reset();
+    m_poses_debug_pub.reset();
 
     m_map_client.reset();
 
@@ -120,16 +124,27 @@ void tracker::markers_callback(
         transform_marker(marker, marker_map_transform);
     }
 
+    geometry_msgs::msg::PoseArray poses_debug;
     geometry_msgs::msg::PoseStamped estimated_pose;
     estimated_pose.header.stamp = msg->header.stamp;
     estimated_pose.header.frame_id = m_map_client->get_map_id();
 
-    estimated_pose.pose = msg->markers[0].pose;
-    tf2::Transform t;
-    tf2::fromMsg(msg->markers[0].pose, t);
-    tf2::toMsg(t.inverse(), estimated_pose.pose);
+    poses_debug.poses.reserve(msg->markers.size());
+
+    poses_debug.header.stamp = msg->header.stamp;
+    poses_debug.header.frame_id = m_map_client->get_map_id();
+
+    for (const auto& marker : msg->markers) {
+        geometry_msgs::msg::Pose pose;
+        tf2::Transform t;
+        tf2::fromMsg(marker.pose, t);
+        tf2::toMsg(t.inverse(), pose);
+
+        poses_debug.poses.push_back(pose);
+    }
 
     m_pose_pub->publish(estimated_pose);
+    m_poses_debug_pub->publish(poses_debug);
 }
 
 void tracker::transform_marker(
@@ -143,7 +158,6 @@ void tracker::transform_marker(
 void tracker::transform_marker(clover2_aruco_msgs::msg::Marker& marker,
                                const geometry_msgs::msg::TransformStamped& t) {
     tf2::doTransform(marker.pose, marker.pose, t);
-    // tf2::doTransform(marker.transform, marker.transform, t);
 }
 
 }  // namespace clover2_aruco

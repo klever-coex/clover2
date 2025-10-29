@@ -17,6 +17,7 @@
 // Msgs includes
 #include <clover2_aruco_msgs/msg/marker.hpp>
 #include <clover2_aruco_msgs/msg/marker_array.hpp>
+#include <geometry_msgs/msg/pose_array.hpp>
 
 namespace clover2_aruco {
 
@@ -71,6 +72,7 @@ private:
     rclcpp::Subscription<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr
         m_markers_sub;
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr m_pose_pub;
+    rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr m_poses_debug_pub;
 };
 
 }  // namespace clover2_aruco
