@@ -239,7 +239,7 @@ void detector::image_callback(
             fill_pose(marker, marker_rot[i], marker_pose[i]);
             marker.id = ids[i];
             marker.size = m_map_client->get_marker_size(ids[i]);
-            marker.marker_frame_id = get_marker_frame_id(ids[i]);
+            marker.marker_frame_id = m_map_client->get_marker_frame_id(ids[i]);
             marker_array->markers.push_back(marker);
 
             // add transform

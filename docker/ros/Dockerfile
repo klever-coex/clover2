@@ -1,6 +1,6 @@
 FROM ubuntu:noble
 
-ARG ROS_DISTRO=unset
+ARG ROS_DISTRO=jazzy
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -52,5 +52,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-${ROS_DISTRO}-ros-base=0.10.0-1* \
     && rm -rf /var/lib/apt/lists/*
 
-# Install just
-RUN curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/bin
+WORKDIR /app/clover2_ws/src
+COPY . ./clover2
+
+RUN . /opt/ros/${ROS_DISTRO}/setup.sh && colcon build --symlink-install
