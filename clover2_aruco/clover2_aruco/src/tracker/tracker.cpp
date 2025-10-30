@@ -98,7 +98,7 @@ void tracker::markers_callback(
         auto camera_transform_msg = m_tf_buffer->lookupTransform(
             m_tracking_id, msg->header.frame_id, tf2::TimePointZero);
 
-        tf2::fromMsg(camera_transform_msg.transform, camera_transform);
+        camera_transform = tf2::transformToEigen(camera_transform_msg);
     } catch (const tf2::TransformException& ex) {
         RCLCPP_ERROR(get_logger(), "Unable got transform %s to %s: %s",
                      m_tracking_id.c_str(), msg->header.frame_id.c_str(),
