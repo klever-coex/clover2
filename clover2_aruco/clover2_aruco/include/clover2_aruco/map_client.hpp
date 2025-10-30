@@ -3,6 +3,7 @@
 // ROS2 includes
 #include <rclcpp/rclcpp.hpp>
 #include <tf2/LinearMath/Transform.hpp>
+#include <tf2_eigen/tf2_eigen.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 // Msgs includes
@@ -53,7 +54,7 @@ public:
 
         int id;
         double size;
-        tf2::Transform transform;
+        Eigen::Affine3d transform;
         std::string marker_frame_id;
     };
 
@@ -92,7 +93,7 @@ public:
 
     int get_count() const { return m_markers.size(); }
 
-    const tf2::Transform& get_transform(int id) const {
+    const Eigen::Affine3d& get_transform(int id) const {
         return m_markers.at(id).transform;
     }
 

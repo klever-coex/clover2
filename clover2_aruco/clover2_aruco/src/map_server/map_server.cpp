@@ -67,16 +67,17 @@ map_server::CallbackReturn map_server::on_activate(
                                std::placeholders::_1, std::placeholders::_2));
 
     m_map_notify_timer =
-            this->create_wall_timer(std::chrono::seconds(0), [this]() {
-                try {
-                    RCLCPP_DEBUG(get_logger(), "Using map '%s'", m_map_msg->name.c_str());
-                    update_map(m_map_path);
-                } catch (const std::exception& e) {
-                    RCLCPP_ERROR(get_logger(), "Configure error: %s", e.what());
-                }
+        this->create_wall_timer(std::chrono::seconds(0), [this]() {
+            try {
+                RCLCPP_DEBUG(get_logger(), "Using map '%s'",
+                             m_map_msg->name.c_str());
+                update_map(m_map_path);
+            } catch (const std::exception& e) {
+                RCLCPP_ERROR(get_logger(), "Configure error: %s", e.what());
+            }
 
-                m_map_notify_timer.reset();
-            });
+            m_map_notify_timer.reset();
+        });
 
     return map_server::CallbackReturn::SUCCESS;
 }
@@ -156,7 +157,8 @@ void map_server::update_map(
             transform.header.frame_id = m_map_msg->header.frame_id;
             transform.header.stamp = get_clock()->now();
 
-            transform.child_frame_id = "map_aruco_" + std::to_string(it.id);
+            transform.child_frame_id =
+                m_map_msg->header.frame_id + "_aruco_" + std::to_string(it.id);
 
             tf2::Transform t;
             tf2::fromMsg(it.pose, t);

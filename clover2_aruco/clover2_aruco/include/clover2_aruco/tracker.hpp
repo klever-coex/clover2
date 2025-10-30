@@ -46,16 +46,6 @@ private:
     void markers_callback(
         const clover2_aruco_msgs::msg::MarkerArray::SharedPtr msg);
 
-    void mean_fusion_policy(
-        const std::vector<clover2_aruco_msgs::msg::Marker>& markers,
-        const geometry_msgs::msg::TransformStamped& t,
-        geometry_msgs::msg::Transform& transform);
-
-    void transform_marker(std::vector<clover2_aruco_msgs::msg::Marker>& markers,
-                          const geometry_msgs::msg::TransformStamped& t);
-    void transform_marker(clover2_aruco_msgs::msg::Marker& marker,
-                          const geometry_msgs::msg::TransformStamped& t);
-
     // Camera parameters
     std::string m_odom_id;
     std::string m_tracking_id;
@@ -72,7 +62,8 @@ private:
     rclcpp::Subscription<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr
         m_markers_sub;
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr m_pose_pub;
-    rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr m_poses_debug_pub;
+    rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr
+        m_poses_debug_pub;
 };
 
 }  // namespace clover2_aruco

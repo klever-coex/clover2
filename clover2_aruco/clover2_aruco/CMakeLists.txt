@@ -23,6 +23,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(tf2_eigen REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 # Find OpenCV with ArUco module support
@@ -42,6 +43,7 @@ set(dependencies
   std_msgs
   tf2_geometry_msgs
   tf2_ros
+  tf2_eigen
 )
 
 # ============================================================================

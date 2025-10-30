@@ -73,7 +73,6 @@ detector::detector(const rclcpp::NodeOptions& options)
 
 detector::CallbackReturn detector::on_configure(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
-
     m_detector_parameters = cv::aruco::DetectorParameters::create();
     m_dictionary = cv::makePtr<cv::aruco::Dictionary>(
         cv::aruco::getPredefinedDictionary(m_dictionary_id));
@@ -83,7 +82,6 @@ detector::CallbackReturn detector::on_configure(
 
 detector::CallbackReturn detector::on_activate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
-
     m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
 
     m_map_client = std::make_shared<map_client>(shared_from_this());
@@ -223,7 +221,7 @@ void detector::image_callback(
                              marker_pose[i],
                              estimate_parameters->useExtrinsicGuess,
                              estimate_parameters->solvePnPMethod);
-                
+
                 pose_estimated[i] = true;
             }
         });
@@ -246,8 +244,7 @@ void detector::image_callback(
             transform.header = msg->header;
             transform.child_frame_id = get_marker_frame_id(ids[i]);
             transform.transform.rotation = marker.pose.orientation;
-            fill_translation(transform.transform.translation,
-                                marker_pose[i]);
+            fill_translation(transform.transform.translation, marker_pose[i]);
             transforms.push_back(transform);
         }
     }
