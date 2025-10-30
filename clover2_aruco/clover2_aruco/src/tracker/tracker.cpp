@@ -15,11 +15,6 @@ tracker::tracker(const rclcpp::NodeOptions& options)
     enable_watch_parameters();
 
     declare_and_watch_parameter<std::string>(
-        "odom", "map",
-        [this](const rclcpp::Parameter& p) { m_odom_id = p.as_string(); },
-        "Odometry frame_id");
-
-    declare_and_watch_parameter<std::string>(
         "tracking", "base_link",
         [this](const rclcpp::Parameter& p) { m_tracking_id = p.as_string(); },
         "Tracking result");
@@ -97,7 +92,8 @@ void tracker::markers_callback(
         return;
     }
 
-    tf2::Transform camera_transform;
+    // transform between tracking frame and camera frame
+    Eigen::Affine3d camera_transform;
     try {
         auto camera_transform_msg = m_tf_buffer->lookupTransform(
             m_tracking_id, msg->header.frame_id, tf2::TimePointZero);
@@ -110,15 +106,18 @@ void tracker::markers_callback(
         return;
     }
 
+    // tracking position
+    geometry_msgs::msg::PoseStamped estimated_pose;
+    estimated_pose.header.stamp = msg->header.stamp;
+    estimated_pose.header.frame_id = m_map_client->get_map_id();
+
+    // debug poses of camera from each marker 
     geometry_msgs::msg::PoseArray poses_debug;
     poses_debug.header.stamp = msg->header.stamp;
     poses_debug.header.frame_id = m_map_client->get_map_id();
     poses_debug.poses.reserve(msg->markers.size());
 
-    geometry_msgs::msg::PoseStamped estimated_pose;
-    estimated_pose.header.stamp = msg->header.stamp;
-    estimated_pose.header.frame_id = m_map_client->get_map_id();
-
+    // temp variables for estimating
     Eigen::Vector3d avg_translation = Eigen::Vector3d::Zero();
     Eigen::Quaterniond avg_quat = Eigen::Quaterniond::Identity();
     Eigen::Vector4d cumulative_q = Eigen::Vector4d::Zero();
@@ -127,6 +126,7 @@ void tracker::markers_callback(
         Eigen::Affine3d t;
         tf2::fromMsg(marker.pose, t);
 
+        // transform maker pose in camera frame to camera pose in map frame
         t = (t * m_map_client->get_transform(marker.id).inverse()).inverse();
 
         // add debug transform

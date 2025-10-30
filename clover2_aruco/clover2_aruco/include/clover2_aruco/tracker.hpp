@@ -47,7 +47,6 @@ private:
         const clover2_aruco_msgs::msg::MarkerArray::SharedPtr msg);
 
     // Camera parameters
-    std::string m_odom_id;
     std::string m_tracking_id;
 
     // Detection parameters

@@ -139,6 +139,7 @@ private:
     image_geometry::PinholeCameraModel m_camera_model;  ///< Camera model
 
     // Detection parameters
+    bool m_tf_publish;
     int m_dictionary_id;   ///< OpenCV ArUco dictionary ID
     double m_marker_size;  ///< Marker size in meters
     std::shared_ptr<map_client>
