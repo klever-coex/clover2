@@ -20,11 +20,6 @@ map_server::map_server(const rclcpp::NodeOptions& options)
         [this](const rclcpp::Parameter& p) { m_map_path = p.as_string(); },
         "Path to map file whit .txt/.yaml/.yml extension.");
 
-    declare_and_watch_parameter<bool>(
-        "tf_publish", true,
-        [this](const rclcpp::Parameter& p) { m_tf_publish = p.as_bool(); },
-        "Enable map markers transform pub.");
-
     register_on_configure(
         std::bind(&map_server::on_configure, this, std::placeholders::_1));
     register_on_activate(
@@ -147,28 +142,26 @@ void map_server::update_map(
 
     m_map_msg = new_map;
 
-    if (m_tf_publish) {
-        std::vector<geometry_msgs::msg::TransformStamped> transforms;
-        transforms.reserve(m_map_msg->markers.size());
+    std::vector<geometry_msgs::msg::TransformStamped> transforms;
+    transforms.reserve(m_map_msg->markers.size());
 
-        for (const auto& it : m_map_msg->markers) {
-            geometry_msgs::msg::TransformStamped transform;
+    for (const auto& it : m_map_msg->markers) {
+        geometry_msgs::msg::TransformStamped transform;
 
-            transform.header.frame_id = m_map_msg->header.frame_id;
-            transform.header.stamp = get_clock()->now();
+        transform.header.frame_id = m_map_msg->header.frame_id;
+        transform.header.stamp = get_clock()->now();
 
-            transform.child_frame_id =
-                m_map_msg->header.frame_id + "_aruco_" + std::to_string(it.id);
+        transform.child_frame_id =
+            m_map_msg->header.frame_id + "_aruco_" + std::to_string(it.id);
 
-            tf2::Transform t;
-            tf2::fromMsg(it.pose, t);
-            tf2::toMsg(t, transform.transform);
+        tf2::Transform t;
+        tf2::fromMsg(it.pose, t);
+        tf2::toMsg(t, transform.transform);
 
-            transforms.push_back(transform);
-        }
-
-        m_tf_static_broadcaster->sendTransform(transforms);
+        transforms.push_back(transform);
     }
+
+    m_tf_static_broadcaster->sendTransform(transforms);
 
     m_map_update_pub->publish(std_msgs::msg::Empty());
 }

@@ -59,6 +59,11 @@ detector::detector(const rclcpp::NodeOptions& options)
         },
         "Single marker frame_id prefix");
 
+    declare_and_watch_parameter<bool>(
+        "tf_publish", true,
+        [this](const rclcpp::Parameter& p) { m_tf_publish = p.as_bool(); },
+        "Enable map markers transform pub.");
+
     register_on_configure(
         std::bind(&detector::on_configure, this, std::placeholders::_1));
     register_on_activate(
@@ -229,10 +234,8 @@ void detector::image_callback(
         for (size_t i = 0; i < ids.size(); i++) {
             if (!pose_estimated[i]) continue;
 
-            clover2_aruco_msgs::msg::Marker marker;
-            geometry_msgs::msg::TransformStamped transform;
-
             // add marker
+            clover2_aruco_msgs::msg::Marker marker;
             fill_corners(marker, corners[i]);
             fill_pose(marker, marker_rot[i], marker_pose[i]);
             marker.id = ids[i];
@@ -241,15 +244,18 @@ void detector::image_callback(
             marker_array->markers.push_back(marker);
 
             // add transform
-            transform.header = msg->header;
-            transform.child_frame_id = get_marker_frame_id(ids[i]);
-            transform.transform.rotation = marker.pose.orientation;
-            fill_translation(transform.transform.translation, marker_pose[i]);
-            transforms.push_back(transform);
+            if (m_tf_publish) {
+                geometry_msgs::msg::TransformStamped transform;
+                transform.header = msg->header;
+                transform.child_frame_id = get_marker_frame_id(ids[i]);
+                transform.transform.rotation = marker.pose.orientation;
+                fill_translation(transform.transform.translation, marker_pose[i]);
+                transforms.push_back(transform);
+            }
         }
     }
 
-    if (!transforms.empty()) {
+    if (!transforms.empty() && m_tf_publish) {
         m_tf_broadcaster->sendTransform(transforms);
     }
 

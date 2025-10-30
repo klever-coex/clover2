@@ -3,11 +3,13 @@
 import os
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration
 from launch.event_handlers import OnProcessStart
 from launch.actions import RegisterEventHandler
 from launch_ros.actions import ComposableNodeContainer, LoadComposableNodes
 from launch_ros.descriptions import ComposableNode
+
 from ament_index_python.packages import get_package_share_directory
 
 
@@ -17,10 +19,12 @@ def launch_setup(context, *args, **kwargs):
     log_level = LaunchConfiguration('log_level')
     params_file = LaunchConfiguration('params_file')
     camera_name = LaunchConfiguration('camera_name')
+    aruco_detector = LaunchConfiguration('aruco_detector')
 
     camera_remappings = [
-        ('~/image_raw', f'/{camera_name.perform(context)}/image_raw'),
-        ('~/camera_info', f'/{camera_name.perform(context)}/camera_info'),
+        # ('~/image_raw', f'/{camera_name.perform(context)}/image_raw'),
+        # ('~/camera_info', f'/{camera_name.perform(context)}/camera_info'),
+        ('~', f'/{camera_name.perform(context)}')
     ]
 
     map_server_remappings = [
@@ -28,31 +32,41 @@ def launch_setup(context, *args, **kwargs):
         ('~/get_map', '/map_server/get_map'),
     ]
 
-    launch_nodes = []
-    components = [
-        ComposableNode(
-            package='camera_ros',
-            plugin='camera::CameraNode',
-            name=camera_name.perform(context),
-            parameters=[
-                params_file,
-                {
-                    'use_sim_time': use_sim_time
-                }
-            ]
-        ),
-        ComposableNode(
-            package='clover2_aruco',
-            plugin='clover2_aruco::detector',
-            name=camera_name.perform(context) + '_aruco_detector',
-            parameters=[
-                params_file,
-                {
-                    'use_sim_time': use_sim_time
-                }
-            ],
-            remappings=camera_remappings + map_server_remappings,
-        )]
+    camera_component = LoadComposableNodes(
+        target_container=camera_container,
+        composable_node_descriptions=[
+            ComposableNode(
+                package='camera_ros',
+                plugin='camera::CameraNode',
+                name=camera_name.perform(context),
+                parameters=[
+                    params_file,
+                    {
+                        'use_sim_time': use_sim_time
+                    }
+                ]
+            )
+        ]
+    )
+
+    aruco_detector_component = LoadComposableNodes(
+        condition=IfCondition(aruco_detector),
+        target_container=camera_container,
+        composable_node_descriptions=[
+            ComposableNode(
+                package='clover2_aruco',
+                plugin='clover2_aruco::detector',
+                name=camera_name.perform(context) + '_aruco_detector',
+                parameters=[
+                    params_file,
+                    {
+                        'use_sim_time': use_sim_time
+                    }
+                ],
+                remappings=camera_remappings + map_server_remappings,
+            )
+        ]
+    )
 
     camera_container = ComposableNodeContainer(
         name=camera_name.perform(context) + '_container',
@@ -65,16 +79,19 @@ def launch_setup(context, *args, **kwargs):
         arguments=['--ros-args', '--log-level', log_level]
     )
 
-    launch_nodes.append(camera_container)
-
-    launch_nodes.append(RegisterEventHandler(
+    load_composible = RegisterEventHandler(
         OnProcessStart(
             target_action=camera_container,
             on_start=[
-                LoadComposableNodes(composable_node_descriptions=components, target_container=camera_container)]
-        )))
+                camera_component,
+                aruco_detector_component
+            ],
+        ))
 
-    return launch_nodes
+    return [
+        camera_container,
+        load_composible,
+    ]
 
 
 def generate_launch_description():
@@ -102,9 +119,17 @@ def generate_launch_description():
         description='Camera name'
     )
 
+    aruco_detector_declare = DeclareLaunchArgument(
+        'aruco_detector',
+        default_value='false',
+        description='Enable aruco detection on this camera'
+    )
+
     return LaunchDescription([
         use_sim_time_declare,
         log_level_declare,
         params_file_declare,
         camera_name_declare,
-    ] + [OpaqueFunction(function=launch_setup)])
+        aruco_detector_declare,
+        OpaqueFunction(function=launch_setup),
+    ])

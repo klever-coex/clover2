@@ -2,7 +2,6 @@
 #include <rclcpp/logger.hpp>
 #include <rclcpp/logging.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
-#include <tf2/LinearMath/Transform.hpp>
 #include <yaml-cpp/yaml.h>
 
 #include <fstream>
@@ -16,12 +15,12 @@ struct convert<clover2_aruco_msgs::msg::Marker> {
             return false;
         }
 
-        if (!node["id"] || !node["size"]) {
-            return false;
+        if (!node["id"]) {
+            throw std::runtime_error("Marker id is required");
         }
 
         marker.id = node["id"].as<int>();
-        marker.size = node["size"].as<double>();
+        marker.size = node["size"].as<double>(-1.0);
 
         marker.pose.position.x = 0.0;
         marker.pose.position.y = 0.0;
@@ -29,46 +28,30 @@ struct convert<clover2_aruco_msgs::msg::Marker> {
 
         if (node["pose"]) {
             auto& pose = node["pose"];
-            if (pose["x"]) {
-                marker.pose.position.x = pose["x"].as<double>();
-            }
 
-            if (pose["y"]) {
-                marker.pose.position.y = pose["y"].as<double>();
-            }
-
-            if (pose["z"]) {
-                marker.pose.position.z = pose["z"].as<double>();
-            }
+            marker.pose.position.x = pose["x"].as<double>(0.0);
+            marker.pose.position.y = pose["y"].as<double>(0.0);
+            marker.pose.position.z = pose["z"].as<double>(0.0);
         }
 
         tf2::Quaternion q;
         if (node["rot"]) {
             auto& rot = node["rot"];
-            double roll = 0.0, pitch = 0.0, yaw = 0.0;
 
-            if (rot["roll"]) {
-                roll = rot["roll"].as<double>();
-            }
-
-            if (rot["pitch"]) {
-                pitch = rot["pitch"].as<double>();
-            }
-
-            if (rot["yaw"]) {
-                yaw = rot["yaw"].as<double>();
-            }
-
-            q.setRPY(roll, pitch, yaw);
+            q.setRPY(                          //
+                rot["roll"].as<double>(0.0),   //
+                rot["pitch"].as<double>(0.0),  //
+                rot["yaw"].as<double>(0.0)     //
+            );
         } else if (node["quat"]) {
             auto& quat = node["quat"];
 
-            if (!quat["x"] || !quat["y"] || !quat["z"] || !quat["w"]) {
-                return false;
-            }
-
-            q.setValue(quat["x"].as<double>(), quat["y"].as<double>(),
-                       quat["z"].as<double>(), quat["w"].as<double>());
+            q.setValue(                     //
+                quat["x"].as<double>(0.0),  //
+                quat["y"].as<double>(0.0),  //
+                quat["z"].as<double>(0.0),  //
+                quat["w"].as<double>(1.0)   //
+            );
         } else {
             q.setRPY(0.0, 0.0, 0.0);
         }
@@ -78,11 +61,7 @@ struct convert<clover2_aruco_msgs::msg::Marker> {
         marker.pose.orientation.z = q.z();
         marker.pose.orientation.w = q.w();
 
-        if (node["frame_id"]) {
-            marker.marker_frame_id = node["frame_id"].as<std::string>();
-        } else {
-            marker.marker_frame_id = "aruco_" + std::to_string(marker.id);
-        }
+        marker.marker_frame_id = node["frame_id"].as<std::string>("");
 
         return true;
     }
@@ -97,27 +76,35 @@ void load_from_yaml(const std::filesystem::path& filename,
     auto logger = rclcpp::get_logger("load_from_yaml");
 
     YAML::Node config = YAML::LoadFile(filename);
-
-    if (config["name"]) {
-        map.name = config["name"].as<std::string>();
-    } else {
-        map.name = filename.stem();
-    }
+    map.name = config["name"].as<std::string>(filename.stem());
 
     RCLCPP_DEBUG(logger, "Parsing map '%s' form '%s'", map.name.c_str(),
                  filename.c_str());
 
-    if (config["frame_id"]) {
-        map.header.frame_id = config["frame_id"].as<std::string>();
-    } else {
-        RCLCPP_WARN(logger, "Map frame_id not provided. Using default");
-        map.header.frame_id = "map";
-    }
+    double default_size = config["default_size"].as<double>(-1.0);
+    map.header.frame_id = config["frame_id"].as<std::string>("map");
 
     if (config["markers"].IsSequence()) {
         for (const auto& it : config["markers"]) {
             auto marker = it.as<clover2_aruco_msgs::msg::Marker>();
-            marker.marker_frame_id = map.header.frame_id + "_" + marker.marker_frame_id;
+
+            if (marker.size < 0.0 && default_size < 0.0) {
+                RCLCPP_ERROR(logger,
+                             "Missing size property for %d marker. Default "
+                             "size also dont exist.");
+                throw std::runtime_error("Missing marker size");
+            }
+
+            // override marker size if needed
+            if (marker.size < 0.0) {
+                marker.size = default_size;
+            }
+
+            if (marker.marker_frame_id.empty()) {
+                marker.marker_frame_id =
+                    map.header.frame_id + "_aruco_" + std::to_string(marker.id);
+            }
+
             map.markers.push_back(marker);
         }
     } else {
@@ -129,6 +116,7 @@ void load_from_txt(const std::filesystem::path& filename,
                    clover2_aruco_msgs::msg::MarkerMap& map) {
     auto logger = rclcpp::get_logger("load_from_txt");
     map.name = filename.stem();
+    map.header.frame_id = map.name;
 
     std::ifstream f(filename);
     if (!f.good()) {
@@ -188,6 +176,9 @@ void load_from_txt(const std::filesystem::path& filename,
                          marker.id);
             roll = 0;
         }
+
+        marker.marker_frame_id =
+            map.header.frame_id + "_aruco_" + std::to_string(marker.id);
 
         tf2::Quaternion q;
         q.setRPY(roll, pitch, yaw);
