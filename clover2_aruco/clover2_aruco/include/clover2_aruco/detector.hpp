@@ -1,8 +1,8 @@
 #pragma once
 
 // ROS2 includes
-#include <rclcpp/rclcpp.hpp>
 #include <image_geometry/pinhole_camera_model.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 // Clover2 includes
 #include <clover2_aruco/map_client.hpp>
@@ -136,7 +136,7 @@ private:
     // Camera parameters
     std::string m_aruco_frame_id;  ///< Base frame for ArUco markers
     std::mutex m_camera_info_mtx;  ///< Mutex for thread-safe camera info access
-    image_geometry::PinholeCameraModel m_camera_model; ///< Camera model
+    image_geometry::PinholeCameraModel m_camera_model;  ///< Camera model
 
     // Detection parameters
     int m_dictionary_id;   ///< OpenCV ArUco dictionary ID
