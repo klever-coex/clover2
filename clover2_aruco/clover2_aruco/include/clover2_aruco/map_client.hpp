@@ -65,7 +65,7 @@ public:
         , m_name("") {
         m_map_update_sub =
             node->template create_subscription<std_msgs::msg::Empty>(
-                "~/map_update", 5,
+                "~/map_update", rclcpp::SensorDataQoS(),
                 std::bind(&map_client::map_update_callback, this,
                           std::placeholders::_1));
 

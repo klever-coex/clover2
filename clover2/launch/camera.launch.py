@@ -3,13 +3,13 @@
 import os
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.conditions import UnlessCondition
-from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.substitutions import LaunchConfiguration
 from launch.event_handlers import OnProcessStart
 from launch.actions import RegisterEventHandler
 from launch_ros.actions import ComposableNodeContainer, LoadComposableNodes
 from launch_ros.descriptions import ComposableNode
 from ament_index_python.packages import get_package_share_directory
+
 
 def launch_setup(context, *args, **kwargs):
 
@@ -17,8 +17,11 @@ def launch_setup(context, *args, **kwargs):
     log_level = LaunchConfiguration('log_level')
     params_file = LaunchConfiguration('params_file')
     camera_name = LaunchConfiguration('camera_name')
-    reuse_container = LaunchConfiguration('reuse_container')
-    container_name = LaunchConfiguration('container_name')
+
+    camera_remappings = [
+        ('~/image_raw', f'/{camera_name.perform(context)}/image_raw'),
+        ('~/camera_info', f'/{camera_name.perform(context)}/camera_info'),
+    ]
 
     map_server_remappings = [
         ('~/map_update', '/map_server/map_update'),
@@ -26,21 +29,6 @@ def launch_setup(context, *args, **kwargs):
     ]
 
     launch_nodes = []
-    
-    camera_container = ComposableNodeContainer(
-        condition=UnlessCondition(PythonExpression(["'", reuse_container, "' == 'true'"])),
-        name=container_name,
-        namespace='',
-        package='rclcpp_components',
-        executable='component_container_mt',
-        respawn=True,
-        respawn_delay=1.0,
-        output='screen',
-        arguments=['--ros-args', '--log-level', log_level]
-    )
-
-    launch_nodes.append(camera_container)    
-    
     components = [
         ComposableNode(
             package='camera_ros',
@@ -63,17 +51,27 @@ def launch_setup(context, *args, **kwargs):
                     'use_sim_time': use_sim_time
                 }
             ],
-            remappings=map_server_remappings,
+            remappings=camera_remappings + map_server_remappings,
         )]
+
+    camera_container = ComposableNodeContainer(
+        name=camera_name.perform(context) + '_container',
+        namespace='',
+        package='rclcpp_components',
+        executable='component_container_mt',
+        respawn=True,
+        respawn_delay=1.0,
+        output='screen',
+        arguments=['--ros-args', '--log-level', log_level]
+    )
+
+    launch_nodes.append(camera_container)
 
     launch_nodes.append(RegisterEventHandler(
         OnProcessStart(
             target_action=camera_container,
             on_start=[
-                LoadComposableNodes(
-                    composable_node_descriptions=components,
-                    target_container=container_name
-                )]
+                LoadComposableNodes(composable_node_descriptions=components, target_container=camera_container)]
         )))
 
     return launch_nodes
@@ -103,22 +101,10 @@ def generate_launch_description():
         'camera_name',
         description='Camera name'
     )
-    
-    reuse_container_declare = DeclareLaunchArgument(
-        'reuse_container',
-        default_value='true'
-    )
-    
-    container_name_declare = DeclareLaunchArgument(
-        'container_name',
-        default_value='camera_container'
-    )
 
     return LaunchDescription([
         use_sim_time_declare,
         log_level_declare,
         params_file_declare,
         camera_name_declare,
-        reuse_container_declare,
-        container_name_declare
     ] + [OpaqueFunction(function=launch_setup)])
