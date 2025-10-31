@@ -38,6 +38,12 @@ const Sidebar = () => {
       path: `${window.location.protocol}//${window.location.hostname}:3000/wetty`,
       redirect: true
     },
+    {
+      name: t("sidebar.camera"),
+      icon: <Terminal size={20} />,
+      path: `${window.location.protocol}//${window.location.hostname}:8081`,
+      redirect: true
+    },
   ];
 
   const languages = [

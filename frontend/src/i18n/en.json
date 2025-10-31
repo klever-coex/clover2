@@ -4,7 +4,8 @@
     "ros2": "ROS2",
     "settings": "Settings",
     "documentation": "Documentation",
-    "terminal": "Shell"
+    "terminal": "Shell",
+    "camera": "Camera Viwer"
   },
   "header": {
     "title": "Clover2"

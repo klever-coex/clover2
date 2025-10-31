@@ -9,8 +9,8 @@ from ament_index_python.packages import get_package_share_directory
 
 # Set FCU URL based on connection type
 fcu_url_mappings = {
-    'usb': '/dev/px4fmu:115200',
-    'uart': '/dev/ttyACM0:915000',
+    'usb': '/dev/ttyACM0:115200', # TODO: add udev rules
+    'uart': '/dev/ttyAMA0:915000',
     'tcp': 'tcp://localhost:5760'
 }
 

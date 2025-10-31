@@ -22,15 +22,26 @@ def launch_setup(context, *args, **kwargs):
     aruco_detector = LaunchConfiguration('aruco_detector')
 
     camera_remappings = [
-        # ('~/image_raw', f'/{camera_name.perform(context)}/image_raw'),
-        # ('~/camera_info', f'/{camera_name.perform(context)}/camera_info'),
-        ('~', f'/{camera_name.perform(context)}')
+        ('~/image_raw', f'/{camera_name.perform(context)}/image_raw'),
+        ('~/camera_info', f'/{camera_name.perform(context)}/camera_info'),
     ]
 
     map_server_remappings = [
         ('~/map_update', '/map_server/map_update'),
         ('~/get_map', '/map_server/get_map'),
     ]
+    
+    camera_container = ComposableNodeContainer(
+        name=camera_name.perform(context) + '_container',
+        namespace='',
+        package='rclcpp_components',
+        executable='component_container_mt',
+        respawn=True,
+        respawn_delay=1.0,
+        output='screen',
+        arguments=['--ros-args', '--log-level', log_level]
+    )
+
 
     camera_component = LoadComposableNodes(
         target_container=camera_container,
@@ -66,17 +77,6 @@ def launch_setup(context, *args, **kwargs):
                 remappings=camera_remappings + map_server_remappings,
             )
         ]
-    )
-
-    camera_container = ComposableNodeContainer(
-        name=camera_name.perform(context) + '_container',
-        namespace='',
-        package='rclcpp_components',
-        executable='component_container_mt',
-        respawn=True,
-        respawn_delay=1.0,
-        output='screen',
-        arguments=['--ros-args', '--log-level', log_level]
     )
 
     load_composible = RegisterEventHandler(
