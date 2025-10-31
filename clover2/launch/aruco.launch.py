@@ -92,7 +92,7 @@ def generate_launch_description():
 
     map_declare = DeclareLaunchArgument(
         'map',
-        default_value='default.yaml',
+        default_value='example.yaml',
         description='Map name'
     )
 

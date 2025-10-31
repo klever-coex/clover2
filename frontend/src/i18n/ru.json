@@ -4,7 +4,8 @@
     "ros2": "ROS2",
     "settings": "Настройки",
     "documentation": "Документация",
-    "terminal": "Консоль"
+    "terminal": "Консоль",
+    "camera": "Просмотр камеры"
   },
   "header": {
     "title": "Clover2"

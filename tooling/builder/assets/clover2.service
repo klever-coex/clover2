@@ -1,0 +1,15 @@
+[Unit]
+Description=Clover2 ROS Service
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/clover2_ws
+ExecStart=/etc/clover2/ros_launch.sh
+Environment="RCUTILS_COLORIZED_OUTPUT=1"
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

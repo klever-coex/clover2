@@ -45,7 +45,7 @@ def generate_launch_description():
 
     fcu_conn_declare = DeclareLaunchArgument(
         'fcu_conn',
-        default_value='uart',
+        default_value='usb',
         description='Flight controller unit connection type: usb, uart, or tcp'
     )
 
@@ -69,7 +69,7 @@ def generate_launch_description():
             'use_sim_time': use_sim_time,
             'log_level': log_level,
             'params_file': params_file,
-            'map': 'default.yaml',
+            'map': 'example.yaml',
         }.items()
     )
 

@@ -47,7 +47,7 @@ tracker::CallbackReturn tracker::on_activate(
     m_map_client = std::make_shared<map_client>(shared_from_this());
 
     m_pose_pub = create_publisher<geometry_msgs::msg::PoseStamped>(
-        "~/pose", rclcpp::SensorDataQoS());
+        "~/pose", rclcpp::SystemDefaultsQoS());
 
     m_poses_debug_pub = create_publisher<geometry_msgs::msg::PoseArray>(
         "~/poses_debug", rclcpp::SensorDataQoS());
