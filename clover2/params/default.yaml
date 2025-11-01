@@ -25,7 +25,7 @@
 
 /**/main_camera_aruco_detector:
   ros__parameters:
-    marker_dict: "4X4_50"
+    marker_dict: "4X4_250"
     prefix_frame_id: "aruco_"
     tf_publish: true
 

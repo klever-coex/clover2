@@ -46,7 +46,7 @@ def launch_setup(context, *args, **kwargs):
     tracker_cmd = Node(
         package='clover2_aruco',
         executable='tracker',
-        name='map_server',
+        name='aruco_tracker',
         parameters=[
             params_file,
             {

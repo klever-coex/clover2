@@ -45,7 +45,7 @@ def generate_launch_description():
 
     fcu_conn_declare = DeclareLaunchArgument(
         'fcu_conn',
-        default_value='usb',
+        default_value='uart',
         description='Flight controller unit connection type: usb, uart, or tcp'
     )
 
@@ -56,6 +56,16 @@ def generate_launch_description():
     )
 
     # Start additional launch files
+    description_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            PathJoinSubstitution([
+                pkg_clover2,
+                'launch',
+                'description.launch.py'
+            ])
+        ])
+    )
+
     aruco_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
@@ -130,6 +140,7 @@ def generate_launch_description():
         aruco_declare,
 
         # Launch nodes
+        description_cmd,
         aruco_cmd,
         main_camera_cmd,
         fcu_bridge_cmd,

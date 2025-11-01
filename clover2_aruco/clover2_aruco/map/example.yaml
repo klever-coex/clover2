@@ -5,14 +5,16 @@ default_size: 0.15
 
 markers:
   - id: 25
-    size: 0.33
+    size: 0.22
     pose:
       x: 1
     rot:
       roll: 0
       pitch: 0
-      yaw: 0
-  - id: 27
-    size: 0.33
+      yaw: 1.5707963
+  - id: 136
+    size: 0.22
     pose:
       x: 0
+    rot:
+      yaw: -1.5707963

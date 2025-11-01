@@ -41,7 +41,7 @@ detector::detector(const rclcpp::NodeOptions& options)
     enable_watch_parameters();
 
     declare_and_watch_parameter<std::string>(
-        "marker_dict", "4X4_50",
+        "marker_dict", "4X4_250",
         [this](const rclcpp::Parameter& p) {
             auto dictionary_id = marker_dictionary_map.find(p.as_string());
             if (dictionary_id == marker_dictionary_map.end()) {
@@ -96,7 +96,7 @@ detector::CallbackReturn detector::on_activate(
             "~/markers", rclcpp::SensorDataQoS());
 
     m_debug_pub = this->create_publisher<sensor_msgs::msg::Image>(
-        "~/debug", rclcpp::SensorDataQoS());
+        "~/debug", rclcpp::SystemDefaultsQoS());
 
     m_camera_info_sub = this->create_subscription<sensor_msgs::msg::CameraInfo>(
         "~/camera_info", rclcpp::SensorDataQoS(),

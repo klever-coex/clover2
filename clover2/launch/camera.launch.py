@@ -35,7 +35,7 @@ def launch_setup(context, *args, **kwargs):
         name=camera_name.perform(context) + '_container',
         namespace='',
         package='rclcpp_components',
-        executable='component_container_mt',
+        executable='component_container',
         respawn=True,
         respawn_delay=1.0,
         output='screen',
