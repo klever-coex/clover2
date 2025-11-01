@@ -10,7 +10,7 @@ from ament_index_python.packages import get_package_share_directory
 # Set FCU URL based on connection type
 fcu_url_mappings = {
     'usb': '/dev/ttyACM0:115200', # TODO: add udev rules
-    'uart': '/dev/ttyAMA0:915000',
+    'uart': '/dev/ttyAMA0:921600',
     'tcp': 'tcp://localhost:5760'
 }
 
@@ -26,7 +26,7 @@ def launch_setup(context, *args, **kwargs):
 
     # Get connection type
     fcu_url = fcu_url_mappings.get(
-        fcu_conn.perform(context), fcu_url_mappings['usb'])
+        fcu_conn.perform(context), fcu_url_mappings['uart'])
 
     # Start mavros node
     mavros_node = Node(
@@ -87,7 +87,7 @@ def generate_launch_description():
 
     fcu_conn_declare = DeclareLaunchArgument(
         'fcu_conn',
-        default_value='usb',
+        default_value='uart',
         choices=['usb', 'uart', 'tcp'],
         description='Flight controller unit connection type: usb, uart, or tcp',
     )

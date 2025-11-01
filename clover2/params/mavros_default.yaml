@@ -21,6 +21,9 @@
       - open_drone_id
       - terrain
       - wind_estimation
+      - setpoint_accel
+      - camera
+      - setpoint_trajectory
 
 # Common configuration for PX4 autopilot
 #

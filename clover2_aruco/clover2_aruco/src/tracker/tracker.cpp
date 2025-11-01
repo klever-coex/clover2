@@ -50,7 +50,7 @@ tracker::CallbackReturn tracker::on_activate(
         "~/pose", rclcpp::SystemDefaultsQoS());
 
     m_poses_debug_pub = create_publisher<geometry_msgs::msg::PoseArray>(
-        "~/poses_debug", rclcpp::SensorDataQoS());
+        "~/poses_debug", rclcpp::SystemDefaultsQoS());
 
     m_markers_sub = create_subscription<clover2_aruco_msgs::msg::MarkerArray>(
         "~/markers", rclcpp::SensorDataQoS(),
@@ -123,18 +123,24 @@ void tracker::markers_callback(
     Eigen::Vector4d cumulative_q = Eigen::Vector4d::Zero();
 
     for (const auto& marker : msg->markers) {
-        Eigen::Affine3d t;
-        tf2::fromMsg(marker.pose, t);
+        // Eigen::Affine3d t;
+        // tf2::fromMsg(marker.pose, t);
 
+	Eigen::Affine3d marker_pose;
+        tf2::fromMsg(marker.pose, marker_pose);
+
+	Eigen::Affine3d camera_in_map = m_map_client->get_transform(marker.id) * marker_pose.inverse();
+
+        Eigen::Affine3d drone_in_map = camera_in_map * camera_transform.inverse();
         // transform maker pose in camera frame to camera pose in map frame
-        t = (t * m_map_client->get_transform(marker.id).inverse()).inverse();
+        //t = (t * camera_transform * m_map_client->get_transform(marker.id).inverse()).inverse();
 
         // add debug transform
-        poses_debug.poses.push_back(tf2::toMsg(t));
+        poses_debug.poses.push_back(tf2::toMsg(drone_in_map));
 
         // estimate position
-        avg_translation += t.translation();
-        Eigen::Quaterniond q(t.rotation());
+        avg_translation += drone_in_map.translation();
+        Eigen::Quaterniond q(drone_in_map.rotation());
         cumulative_q += q.coeffs();
     }
 
@@ -148,6 +154,8 @@ void tracker::markers_callback(
     result_pose.translate(avg_translation);
     result_pose.rotate(avg_quat);
     estimated_pose.pose = tf2::toMsg(result_pose);
+    // estimated_pose.pose.position.x *= -1.0;
+    // estimated_pose.pose.position.y *= -1.0;
 
     // publish estimated pose
     m_pose_pub->publish(estimated_pose);
