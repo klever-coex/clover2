@@ -1,11 +1,11 @@
 
-info "Setup locales"
+log_info "Setup locales"
 sudo apt update && sudo apt install locales
 sudo locale-gen en_US en_US.UTF-8
 sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 export LANG=en_US.UTF-8
 
-info "Adding ROS2 repository"
+log_info "Adding ROS2 repository"
 sudo apt install -yq software-properties-common
 sudo add-apt-repository -y universe
 export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep -F "tag_name" | awk -F\" '{print $4}')
@@ -14,10 +14,10 @@ sudo dpkg -i /tmp/ros2-apt-source.deb
 sudo apt update
 sudo apt upgrade -yq
 
-info "Install ROS2"
+log_info "Install ROS2"
 sudo apt install -yq ros-dev-tools ros-$ROS_DISTRO-ros-base
 
-info "Install extra packages"
+log_info "Install extra packages"
 sudo apt install -yq geographiclib-tools
 
 wget -qO- https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh | sudo bash

@@ -9,20 +9,20 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-info() {
+log_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
 }
 
-warn() {
+log_warn() {
     echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
-error() {
+log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
     exit 1
 }
 
-stage() {
+log_stage() {
     echo -e "${BLUE}[STAGE]${NC} $1"
 }
 
@@ -34,7 +34,7 @@ STAGES_DIR="$BUILDER_DIR/stages"
 run_stage() {
     local STAGE_FILE=$1
     local STAGE=$(basename "$STAGE_FILE")
-    stage "Process stage $STAGE"
+    log_stage "Process stage $STAGE"
 
     source $STAGE_FILE
 }
