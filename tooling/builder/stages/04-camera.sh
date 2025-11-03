@@ -13,7 +13,13 @@ camera_libcamera() {
 }
 
 camera_ros_support() {
-    log_info "Build ROS camera support"
+    set +u
+    log_info "Build ROS camera driver"
+
+    if ! [ -v ROS_DISTRO ]; then
+        log_error "ROS_DISTRO is not set"
+    fi
+
     LIBCAMERA_ROS_WS=$(mktemp -d --suffix="-libcamera_ros")
     cd $LIBCAMERA_ROS_WS && mkdir src && cd src
     git clone --branch $LIBCAMERA_VERSION --depth 1 https://github.com/christianrauch/camera_ros.git
@@ -54,5 +60,5 @@ sudo apt install -y \
     libgtest-dev \
     abi-compliance-checker
 
-camera_ros_support
 camera_libcamera
+camera_ros_support
