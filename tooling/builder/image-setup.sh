@@ -37,7 +37,6 @@ run_stage() {
     stage "Process stage $STAGE"
 
     source $STAGE_FILE
-    stage
 }
 
 for stage in "$STAGES_DIR"/*; do
