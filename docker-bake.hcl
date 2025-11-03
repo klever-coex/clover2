@@ -22,16 +22,16 @@ function "tag" {
 }
 
 target "clover2-gui" {
-    context = "frontend"
-    dockerfile = "Dockerfile"
+    context = "."
+    dockerfile = "docker/frontend/Dockerfile"
     platforms = "${PLATFORMS}"
     labels = LABELS
     tags = tag("clover2-gui")
 }
 
 target "clover2-docs" {
-    context = "docs"
-    dockerfile = "Dockerfile"
+    context = "."
+    dockerfile = "docker/docs/Dockerfile"
     platforms = "${PLATFORMS}"
     labels = LABELS
     tags = tag("clover2-docs")
