@@ -1,7 +1,7 @@
 
 log_info "Upgrade system"
-sudo apt update -qq
-sudo apt upgrade -qqy
+sudo apt update -qq >/dev/null
+sudo apt upgrade -qqy >/dev/null
 
 log_info "Install common packages"
 sudo apt install -qqy \
@@ -12,4 +12,4 @@ sudo apt install -qqy \
     locales \
     curl \
     avahi-daemon \
-    libnss-mdns
+    libnss-mdns >/dev/null
