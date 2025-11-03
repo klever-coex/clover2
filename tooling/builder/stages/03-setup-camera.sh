@@ -1,6 +1,6 @@
 LIBCAMERA_VERSION="0.5.1"
 
-info "Install libcamera deps"
+log_info "Install libcamera deps"
 sudo apt install -y \
     clang \
     meson \
@@ -30,20 +30,20 @@ sudo apt install -y \
     libgtest-dev \
     abi-compliance-checker
 
-info "Clone libcamera project"
+log_info "Clone libcamera project"
 CAMERA_SOURCE_DIR=$(mktemp -d --suffix="-libcamera")
-git clone --branch v$LIBCAMERA_VERSION --detach https://github.com/raspberrypi/libcamera.git $CAMERA_SOURCE_DIR
+git clone --branch v$LIBCAMERA_VERSION --depth 1 https://github.com/raspberrypi/libcamera.git $CAMERA_SOURCE_DIR
 cd $CAMERA_SOURCE_DIR
 
-info "Build and install libcamera"
+log_info "Build and install libcamera"
 meson setup build --buildtype=release -Dpipelines=rpi/vc4,rpi/pisp -Dipas=rpi/vc4,rpi/pisp -Dv4l2=enabled -Dgstreamer=enabled -Dtest=false -Dlc-compliance=disabled -Dcam=enabled -Dqcam=disabled -Ddocumentation=disabled -Dpycamera=enabled
 ninja -C build install
 sudo ninja -C build install
 sudo usermod -aG video $USER
 
-info "Build ROS camera support"
+log_info "Build ROS camera support"
 CAMERA_ROS_WS=$(mktemp -d --suffix=-camera_ros_ws)
 cd $CAMERA_ROS_WS && mkdir src && cd src
-git clone --branch $LIBCAMERA_VERSION --detach https://github.com/christianrauch/camera_ros.git
+git clone --branch $LIBCAMERA_VERSION --depth 1 https://github.com/christianrauch/camera_ros.git
 cd $CAMERA_ROS_WS
 colcon build --install-base /opt/ros/${ROS_DISTRO}/ --merge-install
