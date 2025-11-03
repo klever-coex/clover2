@@ -15,9 +15,16 @@ sudo apt update
 sudo apt upgrade -yq
 
 log_info "Install ROS2"
-sudo apt install -yq ros-dev-tools ros-$ROS_DISTRO-ros-base
+sudo apt install -yq \
+    ros-dev-tools \
+    ros-$ROS_DISTRO-ros-core \
+    ros-$ROS_DISTRO-ros-base \
+    ros-$ROS_DISTRO-rosidl-typesupport-c \
+    python3-colcon-common-extensions \
+    python3-colcon-mixin \
+    python3-rosdep \
+    python3-vcstool
 
-log_info "Install extra packages"
-sudo apt install -yq geographiclib-tools
-
-wget -qO- https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh | sudo bash
+log_info "Rosdep"
+sudo rosdep init
+rosdep update --rosdistro $ROS_DISTRO
