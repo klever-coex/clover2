@@ -6,7 +6,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY . /app
+COPY docs /app
 
 RUN pip3 install --no-cache-dir -r requirements.txt
 
@@ -16,8 +16,8 @@ FROM nginx:1.25-alpine
 
 COPY --from=builder /app/build/html /usr/share/nginx/html
 
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY docker/docs/nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 81
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["nginx", "-g", "daemon off"]

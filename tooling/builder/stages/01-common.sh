@@ -5,5 +5,13 @@ stage() {
     sudo apt upgrade -qqy
 
     info "Install common packages"
-    sudo apt install -qqy raspi-config meson cmake libboost-dev locales curl
+    sudo apt install -qqy \
+        raspi-config \
+        meson \
+        cmake \
+        libboost-dev \
+        locales \
+        curl \
+        avahi-daemon \
+        libnss-mdns
 }
