@@ -1,8 +1,8 @@
 
 log_info "Setup locales"
 DEBIAN_FRONTEND=noninteractive sudo apt update && sudo apt install locales
-sudo locale-gen en_US en_US.UTF-8
-sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+sudo locale-gen en_US en_US.UTF-8 >/dev/null
+sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 >/dev/null
 export LANG=en_US.UTF-8
 
 log_info "Adding ROS2 repository"
@@ -26,5 +26,5 @@ sudo apt install -yq \
     python3-vcstool >/dev/null
 
 log_info "Rosdep"
-sudo rosdep init
+sudo rosdep init || true
 rosdep update --rosdistro $ROS_DISTRO
