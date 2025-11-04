@@ -1,4 +1,5 @@
 LIBCAMERA_VERSION="bfd68f786964636b09f8122e6c09c230367390e7"
+CAMERA_ROS_VERSION="v0.5.1"
 
 camera_libcamera() {
     log_info "Install libcamera deps"
@@ -57,7 +58,7 @@ camera_ros_support() {
 
     LIBCAMERA_ROS_WS=$(mktemp -d --suffix="-libcamera_ros")
     cd $LIBCAMERA_ROS_WS && mkdir src && cd src
-    git clone --branch $LIBCAMERA_VERSION --depth 1 https://github.com/christianrauch/camera_ros.git
+    git clone --branch $CAMERA_ROS_VERSION --depth 1 https://github.com/christianrauch/camera_ros.git
     cd $LIBCAMERA_ROS_WS
 
     source /opt/ros/$ROS_DISTRO/setup.bash
