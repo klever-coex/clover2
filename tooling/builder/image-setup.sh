@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e # Exit on any error
+set -ex # Exit on any error
 
 ROS_DISTRO=jazzy
 
@@ -30,14 +30,24 @@ BUILDER_DIR=$(dirname "$(readlink -f "$0")")
 REPO_DIR=$(readlink -m "$BUILDER_DIR/../..")
 ASSETS_DIR="$BUILDER_DIR/assets"
 STAGES_DIR="$BUILDER_DIR/stages"
+STAGES_LOG_DIR=".stages_meta"
 
 run_stage() {
     local STAGE_FILE=$1
     local STAGE=$(basename "$STAGE_FILE")
+
+    if [ -f "$STAGES_LOG_DIR/$STAGE.done" ]; then
+        log_stage "Skip stage $STAGE"
+    fi
+    
     log_stage "Process stage $STAGE"
 
     source $STAGE_FILE
+
+    touch $STAGES_LOG_DIR/$STAGE.done
 }
+
+mkdir -p $STAGES_LOG_DIR
 
 for stage in "$STAGES_DIR"/*; do
     if [ -f "$stage" ]; then
