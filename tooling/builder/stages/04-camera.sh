@@ -63,7 +63,11 @@ camera_ros_support() {
 
     source /opt/ros/$ROS_DISTRO/setup.bash
     rosdep install -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO --skip-keys=libcamera
-    sudo colcon build --install-base /opt/ros/$ROS_DISTRO/ --merge-install
+
+    sudo su
+    source /opt/ros/$ROS_DISTRO/setup.bash
+    colcon build --install-base /opt/ros/$ROS_DISTRO/ --merge-install
+    exit
 }
 
 if ! command -v cam >/dev/null 2>&1; then
