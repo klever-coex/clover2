@@ -1,10 +1,10 @@
 
 log_info "Upgrade system"
-sudo apt update -qq >/dev/null
-sudo apt upgrade -qqy >/dev/null
+DEBIAN_FRONTEND=noninteractive sudo apt update -qq >/dev/null
+DEBIAN_FRONTEND=noninteractive sudo apt upgrade -qqy >/dev/null
 
 log_info "Install common packages"
-sudo apt install -qqy \
+DEBIAN_FRONTEND=noninteractive sudo apt install -qqy \
     raspi-config \
     meson \
     cmake \

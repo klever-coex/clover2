@@ -1,10 +1,11 @@
-LIBCAMERA_VERSION="0.5.1"
+LIBCAMERA_VERSION="bfd68f786964636b09f8122e6c09c230367390e7"
 
 camera_libcamera() {
-    log_info "Clone libcamera project"
+    log_info "Clone libcamera project (ver: $LIBCAMERA_VERSION)"
     LIBCAMERA_SOURCE_DIR=$(mktemp -d --suffix="-libcamera")
-    git clone --branch v$LIBCAMERA_VERSION --depth 1 https://github.com/raspberrypi/libcamera.git $LIBCAMERA_SOURCE_DIR
+    git clone https://github.com/raspberrypi/libcamera.git $LIBCAMERA_SOURCE_DIR
     cd $LIBCAMERA_SOURCE_DIR
+    git checkout $LIBCAMERA_VERSION
 
     log_info "Build libcamera"
     meson setup build --buildtype=release -Dpipelines=rpi/vc4,rpi/pisp -Dipas=rpi/vc4,rpi/pisp -Dv4l2=enabled -Dgstreamer=enabled -Dtest=false -Dlc-compliance=disabled -Dcam=enabled -Dqcam=disabled -Ddocumentation=disabled -Dpycamera=enabled
@@ -25,40 +26,44 @@ camera_ros_support() {
     git clone --branch $LIBCAMERA_VERSION --depth 1 https://github.com/christianrauch/camera_ros.git
     cd $LIBCAMERA_ROS_WS
 
+    source /opt/ros/$ROS_DISTRO/setup.bash
     rosdep install -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO --skip-keys=libcamera
-
-    source /opt/ros/$ROS_DISTRO/setup.bash && sudo colcon build --install-base /opt/ros/$ROS_DISTRO/ --merge-install
+    sudo colcon build --install-base /opt/ros/$ROS_DISTRO/ --merge-install
 }
 
 log_info "Install libcamera deps"
 sudo apt install -y \
+    abi-compliance-checker \
     clang \
+    cmake \
+    libcrypto++-dev \
+    libdw-dev \
+    libevent-dev \
+    libevent-dev \
+    libexif-dev \
+    libgstreamer-plugins-base1.0-dev \
+    libgstreamer1.0-dev \
+    libgtest-dev \
+    libjpeg-dev \
+    liblttng-ust-dev \
+    libpython3-dev pybind11-dev \
+    libssl-dev \
+    libtiff-dev \
+    libudev-dev \
+    libudev-dev \
+    libunwind-dev \
+    libyaml-dev \
+    libyuv-dev \
+    lttng-tools \
     meson \
     ninja-build \
-    pkg-config \
-    libyaml-dev \
-    python3-yaml \
-    python3-ply \
-    python3-jinja2 \
     openssl \
-    libdw-dev \
-    libunwind-dev \
-    libudev-dev \
-    libudev-dev \
-    libgstreamer1.0-dev \
-    libgstreamer-plugins-base1.0-dev \
-    libpython3-dev pybind11-dev \
-    libevent-dev \
-    libtiff-dev \
-    liblttng-ust-dev \
-    python3-jinja2 \
-    lttng-tools \
-    libexif-dev \
-    libjpeg-dev \
+    pkg-config \
     pybind11-dev \
-    libevent-dev \
-    libgtest-dev \
-    abi-compliance-checker
+    python3-jinja2 \
+    python3-jinja2 \
+    python3-ply \
+    python3-yaml
 
 camera_libcamera
 camera_ros_support
