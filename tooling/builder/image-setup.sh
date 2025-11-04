@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex # Exit on any error
+set -e # Exit on any error
 
 ROS_DISTRO=jazzy
 
@@ -38,11 +38,10 @@ run_stage() {
 
     if [ -f "$STAGES_LOG_DIR/$STAGE.done" ]; then
         log_stage "Skip stage $STAGE"
+    else
+        log_stage "Process stage $STAGE"
+        source $STAGE_FILE
     fi
-    
-    log_stage "Process stage $STAGE"
-
-    source $STAGE_FILE
 
     touch $STAGES_LOG_DIR/$STAGE.done
 }

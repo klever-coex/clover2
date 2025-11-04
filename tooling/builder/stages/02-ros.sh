@@ -1,6 +1,9 @@
 
+log_info "Update system"
+DEBIAN_FRONTEND=noninteractive sudo apt update >/dev/null
+DEBIAN_FRONTEND=noninteractive sudo apt install locales >/dev/null
+
 log_info "Setup locales"
-DEBIAN_FRONTEND=noninteractive sudo apt update && sudo apt install locales
 sudo locale-gen en_US en_US.UTF-8 >/dev/null
 sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 >/dev/null
 export LANG=en_US.UTF-8
