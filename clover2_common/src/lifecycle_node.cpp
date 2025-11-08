@@ -1,14 +1,10 @@
 #include <clover2_common/lifecycle_node.hpp>
 #include <lifecycle_msgs/msg/state.hpp>
 
-#include <memory>
-#include <string>
-#include <vector>
-
 namespace clover2_common {
 
-lifecycle_node::lifecycle_node(const std::string &node_name,
-                               const rclcpp::NodeOptions &options)
+lifecycle_node::lifecycle_node(const std::string& node_name,
+                               const rclcpp::NodeOptions& options)
     : rclcpp_lifecycle::LifecycleNode(node_name, options) {
     declare_parameter("autostart", true);
 
@@ -30,16 +26,16 @@ lifecycle_node::lifecycle_node(const std::string &node_name,
 lifecycle_node::~lifecycle_node() { RCLCPP_INFO(get_logger(), "Destroying"); }
 
 lifecycle_node::SetParametersResult lifecycle_node::on_set_parameters_cb(
-    const std::vector<rclcpp::Parameter> &parameters) {
+    const std::vector<rclcpp::Parameter>& parameters) {
     SetParametersResult result;
     result.successful = true;
 
-    for (auto &p : parameters) {
+    for (auto& p : parameters) {
         auto it = m_watch_parameters.find(p.get_name());
         if (it != m_watch_parameters.end()) {
             try {
                 it->second(p);
-            } catch (std::exception &ex) {
+            } catch (std::exception& ex) {
                 result.successful = false;
                 result.reason = ex.what();
                 RCLCPP_ERROR(get_logger(), "Fail set parameter `%s` with: %s",
