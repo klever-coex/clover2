@@ -1,5 +1,7 @@
 /**:
   ros__parameters:
+    startup_px4_usb_quirk: false
+
     plugin_denylist:
       # common
 
@@ -24,12 +26,6 @@
       - setpoint_accel
       - camera
       - setpoint_trajectory
-
-# Common configuration for PX4 autopilot
-#
-/**:
-  ros__parameters:
-    startup_px4_usb_quirk: false
 
 # --- system plugins ---
 
