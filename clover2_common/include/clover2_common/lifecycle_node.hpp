@@ -7,6 +7,7 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <vector>
 
 namespace clover2_common {
 
@@ -16,19 +17,19 @@ using CallbackReturn =
 class lifecycle_node : public rclcpp_lifecycle::LifecycleNode {
 public:
     using SetParametersResult = rcl_interfaces::msg::SetParametersResult;
-    using ParameterFunctorT = std::function<void(const rclcpp::Parameter &p)>;
+    using ParameterFunctorT = std::function<void(const rclcpp::Parameter& p)>;
     using SharedPtr = std::shared_ptr<rclcpp_lifecycle::LifecycleNode>;
 
-    lifecycle_node(const std::string &node_name,
-                   const rclcpp::NodeOptions &options = rclcpp::NodeOptions());
+    lifecycle_node(const std::string& node_name,
+                   const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
 
     virtual ~lifecycle_node();
 
     template <typename ParameterT>
     void declare_and_watch_parameter(
-        const std::string &name, const ParameterT &default_value,
-        ParameterFunctorT cb, const std::string &description = "",
-        const std::string &additional_constraints = "",
+        const std::string& name, const ParameterT& default_value,
+        ParameterFunctorT cb, const std::string& description = "",
+        const std::string& additional_constraints = "",
         bool read_only = false) {
         m_watch_parameters[name] = cb;
 
@@ -47,7 +48,7 @@ public:
 
 protected:
     SetParametersResult on_set_parameters_cb(
-        const std::vector<rclcpp::Parameter> &parameters);
+        const std::vector<rclcpp::Parameter>& parameters);
 
     rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr
         m_set_parameters_handle_ptr;
