@@ -18,6 +18,7 @@
 
 // STL
 #include <filesystem>
+#include <memory>
 #include <mutex>
 
 namespace clover2_aruco {

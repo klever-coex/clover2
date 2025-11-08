@@ -91,7 +91,8 @@ void load_from_yaml(const std::filesystem::path& filename,
             if (marker.size < 0.0 && default_size < 0.0) {
                 RCLCPP_ERROR(logger,
                              "Missing size property for %d marker. Default "
-                             "size also dont exist.", marker.id);
+                             "size also dont exist.",
+                             marker.id);
                 throw std::runtime_error("Missing marker size");
             }
 

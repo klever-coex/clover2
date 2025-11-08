@@ -111,7 +111,7 @@ void tracker::markers_callback(
     estimated_pose.header.stamp = msg->header.stamp;
     estimated_pose.header.frame_id = m_map_client->get_map_id();
 
-    // debug poses of camera from each marker 
+    // debug poses of camera from each marker
     geometry_msgs::msg::PoseArray poses_debug;
     poses_debug.header.stamp = msg->header.stamp;
     poses_debug.header.frame_id = m_map_client->get_map_id();
@@ -126,14 +126,17 @@ void tracker::markers_callback(
         // Eigen::Affine3d t;
         // tf2::fromMsg(marker.pose, t);
 
-	Eigen::Affine3d marker_pose;
+        Eigen::Affine3d marker_pose;
         tf2::fromMsg(marker.pose, marker_pose);
 
-	Eigen::Affine3d camera_in_map = m_map_client->get_transform(marker.id) * marker_pose.inverse();
+        Eigen::Affine3d camera_in_map =
+            m_map_client->get_transform(marker.id) * marker_pose.inverse();
 
-        Eigen::Affine3d drone_in_map = camera_in_map * camera_transform.inverse();
+        Eigen::Affine3d drone_in_map =
+            camera_in_map * camera_transform.inverse();
         // transform maker pose in camera frame to camera pose in map frame
-        //t = (t * camera_transform * m_map_client->get_transform(marker.id).inverse()).inverse();
+        // t = (t * camera_transform *
+        // m_map_client->get_transform(marker.id).inverse()).inverse();
 
         // add debug transform
         poses_debug.poses.push_back(tf2::toMsg(drone_in_map));

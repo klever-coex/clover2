@@ -11,10 +11,25 @@ def generate_launch_description():
         package="tf2_ros",
         executable="static_transform_publisher",
         name="cmcu06_right_tf",
-        arguments=["--frame-id", "base_link", "--child-frame-id", "main_camera_link", "--x", "0.05", "--y", "0.0", "--z", "-0.07", "--roll", "-1.5707963", "--pitch", "0.0", "--yaw", "3.1415926"]
+        arguments=[
+            "--frame-id",
+            "base_link",
+            "--child-frame-id",
+            "main_camera_link",
+            "--x",
+            "0.05",
+            "--y",
+            "0.0",
+            "--z",
+            "-0.07",
+            "--roll",
+            "-1.5707963",
+            "--pitch",
+            "0.0",
+            "--yaw",
+            "3.1415926",
+        ]
         # arguments=["--frame-id", "base_link", "--child-frame-id", "main_camera_link", "--roll", "0", "--pitch", "3.1415926", "--yaw", "0"]
     )
 
-    return LaunchDescription([
-        camera_transorm_cmd
-    ])
+    return LaunchDescription([camera_transorm_cmd])

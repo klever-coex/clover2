@@ -174,7 +174,7 @@ target_link_libraries(detector
   opencv_aruco
 )
 
-ament_target_dependencies(detector 
+ament_target_dependencies(detector
   ${dependencies}
 )
 
@@ -194,7 +194,7 @@ target_link_libraries(map_server
   opencv_aruco
 )
 
-ament_target_dependencies(map_server 
+ament_target_dependencies(map_server
   ${dependencies}
 )
 
@@ -214,7 +214,7 @@ target_link_libraries(tracker
   opencv_aruco
 )
 
-ament_target_dependencies(tracker 
+ament_target_dependencies(tracker
   ${dependencies}
 )
 

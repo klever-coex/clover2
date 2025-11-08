@@ -17,9 +17,7 @@ protected:
         detector_node = std::make_shared<clover2_aruco::detector>(options);
     }
 
-    void TearDown() override {
-        detector_node.reset();
-    }
+    void TearDown() override { detector_node.reset(); }
 
     clover2_aruco::detector::SharedPtr detector_node;
 };

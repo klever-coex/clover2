@@ -249,7 +249,8 @@ void detector::image_callback(
                 transform.header = msg->header;
                 transform.child_frame_id = get_marker_frame_id(ids[i]);
                 transform.transform.rotation = marker.pose.orientation;
-                fill_translation(transform.transform.translation, marker_pose[i]);
+                fill_translation(transform.transform.translation,
+                                 marker_pose[i]);
                 transforms.push_back(transform);
             }
         }
