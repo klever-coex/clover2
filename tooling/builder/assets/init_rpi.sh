@@ -1,19 +1,6 @@
 #! /usr/bin/env bash
 
-#
-# Script for build the image. Used builder script of the target repo
-# For build: docker run --privileged -it --rm -v /dev:/dev -v $(pwd):/builder/repo smirart/builder
-#
-# Copyright (C) 2018 Copter Express Technologies
-#
-# Author: Artem Smirnov <urpylka@gmail.com>
-#
-# Distributed under MIT License (available at https://opensource.org/licenses/MIT).
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-
-set -e # Exit immidiately on non-zero result
+set -e
 
 echo_stamp() {
   # TEMPLATE: echo_stamp <TEXT> <TYPE>
@@ -35,26 +22,8 @@ echo_stamp() {
   echo -e ${TEXT}
 }
 
-NEW_SSID='clover2-'$(head -c 100 /dev/urandom | xxd -ps -c 100 | sed -e "s/[^0-9]//g" | cut -c 1-4)
+NEW_SSID='clover2_'$(head -c 100 /dev/urandom | md5sum | tr '[:lower:]' '[:upper:]' | cut -c 1-6)
 echo_stamp "Setting SSID to ${NEW_SSID}"
-# TODO: Use wpa_cli insted direct file edit
-# FIXME: We rely on raspberrypi-net-mods to copy our file to /etc/wpa_supplicant.
-# This is not very reliable, but seems to fix our rfkill problem.
-cat << EOF >> /boot/wpa_supplicant.conf
-ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-update_config=1
-country=GB
-network={
-    ssid="${NEW_SSID}"
-    psk="cloverwifi"
-    mode=2
-    proto=WPA RSN
-    key_mgmt=WPA-PSK
-    pairwise=CCMP
-    group=CCMP
-    auth_alg=OPEN
-}
-EOF
 
 NEW_HOSTNAME=$(echo ${NEW_SSID} | tr '[:upper:]' '[:lower:]')
 echo_stamp "Setting hostname to $NEW_HOSTNAME"
