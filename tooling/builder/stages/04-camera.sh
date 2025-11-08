@@ -1,5 +1,5 @@
 LIBCAMERA_VERSION="bfd68f786964636b09f8122e6c09c230367390e7"
-CAMERA_ROS_VERSION="v0.5.1"
+CAMERA_ROS_VERSION="0.5.1"
 
 camera_libcamera() {
     log_info "Install libcamera deps"
@@ -64,10 +64,7 @@ camera_ros_support() {
     source /opt/ros/$ROS_DISTRO/setup.bash
     rosdep install -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO --skip-keys=libcamera
 
-    sudo su
-    source /opt/ros/$ROS_DISTRO/setup.bash
-    colcon build --install-base /opt/ros/$ROS_DISTRO/ --merge-install
-    exit
+    sudo su -c "source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --install-base /opt/ros/$ROS_DISTRO/ --merge-install"
 }
 
 if ! command -v cam >/dev/null 2>&1; then

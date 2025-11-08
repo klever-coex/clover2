@@ -10,5 +10,3 @@ echo 'dtparam=fan_temp0_speed=175' | sudo tee -a /boot/firmware/config.txt
 
 # Enable UART0
 echo 'dtoverlay=uart0-pi5' | sudo tee -a /boot/firmware/config.txt
-
-log_info 
