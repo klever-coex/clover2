@@ -62,7 +62,7 @@ camera_ros_support() {
     cd $LIBCAMERA_ROS_WS
 
     source /opt/ros/$ROS_DISTRO/setup.bash
-    rosdep install -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO --skip-keys=libcamera
+    rosdep install -y --from-paths src --ignore-src --skip-keys=libcamera
 
     sudo su -c "source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --install-base /opt/ros/$ROS_DISTRO/ --merge-install"
 }
