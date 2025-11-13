@@ -4,6 +4,7 @@
 *.DS_Store
 
 *.pyc
+__pycache__
 
 /docs/build
 /docs/**/*.mo

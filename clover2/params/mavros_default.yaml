@@ -11,7 +11,6 @@
       - fake_gps
       - geofence
       - gimbal_control
-      - gimbal_control
       - global_position
       - gps_input
       - gps_rtk
@@ -26,6 +25,7 @@
       - setpoint_accel
       - camera
       - setpoint_trajectory
+      - guided_target
 
 # --- system plugins ---
 
@@ -93,7 +93,7 @@
 /**/local_position:
   ros__parameters:
     frame_id: "map"
-    tf.send: false
+    tf.send: true
     tf.frame_id: "map"
     tf.child_frame_id: "base_link"
     tf.send_fcu: false
@@ -134,14 +134,6 @@
     tf.child_frame_id: "target_position"
     tf.rate_limit: 50.0
     mav_frame: LOCAL_NED
-
-# guided_target
-/**/guided_target:
-  ros__parameters:
-    tf.listen: false           # enable tf listener (disable topic subscribers)
-    tf.frame_id: "map"
-    tf.child_frame_id: "target_position"
-    tf.rate_limit: 50.0
 
 # setpoint_velocity
 /**/setpoint_velocity:
