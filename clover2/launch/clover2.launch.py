@@ -44,7 +44,7 @@ def generate_launch_description():
     fcu_conn_declare = DeclareLaunchArgument(
         "fcu_conn",
         default_value="uart",
-        description="Flight controller unit connection type: usb, uart, or tcp",
+        description="Flight controller unit connection type: usb, uart, tcp or udp",
     )
 
     aruco_declare = DeclareLaunchArgument(
@@ -117,9 +117,9 @@ def generate_launch_description():
             aruco_declare,
             # Launch nodes
             description_cmd,
-            aruco_cmd,
-            main_camera_cmd,
+            # aruco_cmd,
+            # main_camera_cmd,
             fcu_bridge_cmd,
-            web_support_cmd,
+            # web_support_cmd,
         ]
     )
