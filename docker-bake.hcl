@@ -1,6 +1,6 @@
 variable "REGISTRY" { default = "localhost:5000/" }
 
-variable "TAG" { default = "latest" }
+variable "GIT_COMMIT" { default = "latest" }
 
 variable "LABELS" {
   default = {
@@ -18,7 +18,7 @@ variable "PLATFORMS" {
 
 function "tag" {
     params = [name]
-    result = ["${REGISTRY}${name}:${TAG}"]
+    result = ["${REGISTRY}${name}:${GIT_COMMIT}"]
 }
 
 target "clover2-gui" {
