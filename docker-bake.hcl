@@ -1,10 +1,10 @@
-variable "REGISTRY" { default = "localhost:5000/" }
-
-variable "GIT_COMMIT" { default = "latest" }
+variable "REGISTRY" { }
+variable "GIT_COMMIT" { }
+variable "VERSION" { }
 
 variable "LABELS" {
   default = {
-    "org.opencontainers.image.source"   = "https://github.com/l_motya/clover2"
+    "org.opencontainers.image.source"   = "https://gitlab.com/l_motya/clover2"
     "org.opencontainers.image.licenses" = "MIT"
   }
 }
@@ -16,9 +16,16 @@ variable "PLATFORMS" {
   ]
 }
 
-function "tag" {
+function "tagged" {
     params = [name]
-    result = ["${REGISTRY}${name}:${GIT_COMMIT}"]
+    result = [
+      "${REGISTRY}${name}:${VERSION}",
+      "${REGISTRY}${name}:${GIT_COMMIT}"
+      ]
+}
+
+group "build" {
+  targets = ["clover2-gui", "clover2-docs"]
 }
 
 target "clover2-gui" {
@@ -26,7 +33,7 @@ target "clover2-gui" {
     dockerfile = "docker/frontend/Dockerfile"
     platforms = "${PLATFORMS}"
     labels = LABELS
-    tags = tag("clover2-gui")
+    tags = tagged("clover2-gui")
 }
 
 target "clover2-docs" {
@@ -34,5 +41,5 @@ target "clover2-docs" {
     dockerfile = "docker/docs/Dockerfile"
     platforms = "${PLATFORMS}"
     labels = LABELS
-    tags = tag("clover2-docs")
+    tags = tagged("clover2-docs")
 }
