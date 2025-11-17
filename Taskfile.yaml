@@ -1,0 +1,15 @@
+version: '3'
+
+env:
+  REGISTRY: "localhost:5000/"
+  PROJECT_DIR: "{{.TASKFILE_DIR}}"
+  VERSION:
+    sh: cat "${PROJECT_DIR}/VERSION"
+  GIT_COMMIT:
+    sh: git rev-parse --short HEAD
+
+tasks:
+  build:docker:
+    cmds:
+      - echo ${PROJECT_DIR}
+      - docker buildx bake
