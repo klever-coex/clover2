@@ -1,7 +1,13 @@
+.docker-task: &docker-task
+    image: docker:latest
+    services:
+      - docker:dind
+
 stages:
   - build
 
 build_job:
+  <<: *docker-task
   stage: build
   script:
     - docker buildx bake
