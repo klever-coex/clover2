@@ -52,9 +52,5 @@ class ClientBase(ABC):
         pass
 
     @abstractmethod
-    def _goto_impl(self, setpoint: GoToSetpoint, frame_id: str):
-        pass
-
-    @abstractmethod
     def send_state_impl(self, setpoint: GoToSetpoint, frame_id: str):
         pass

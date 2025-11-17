@@ -3,8 +3,8 @@ from enum import Enum
 import rclpy
 from rclpy.node import Node
 
-from clover2.client import ClientBase
-from clover2.data import GoToSetpoint
+from .client import ClientBase
+from .data import GoToSetpoint, FlightMode
 
 
 class OffboardMode(Enum):
@@ -17,6 +17,7 @@ class OffboardHelper:
     def __init__(self, node: Node, client: ClientBase):
         self._logger = node.get_logger().get_child("offboard")
 
+        self.frame_id = "base_link"
         self._client = client
         self._current_mode = OffboardMode.POSITION
 
@@ -25,6 +26,10 @@ class OffboardHelper:
         self._offboard_timer = node.create_timer(
             1.0 / 50.0, self._offboard_timer_callback
         )
+
+        self._logger.debug("Setting mode...")
+        if not self._client.set_mode(FlightMode.OFFBOARD):
+            raise Exception("Mode change fail")
 
         self._logger.info("Offboard helper started")
 
@@ -41,12 +46,12 @@ class OffboardHelper:
                 pass
 
     def _send_position(self):
-        self._client.send_state_impl(self._position_setopint, "")
+        self._client.send_state_impl(self._position_setopint, self.frame_id)
 
     def _send_speed(self):
         pass
 
-    def move(self, setpoint: GoToSetpoint):
+    def move(self, setpoint: GoToSetpoint, frame_id: str = "map"):
         state = self._client.get_state()
 
         if setpoint.x is None:
@@ -58,4 +63,5 @@ class OffboardHelper:
         if setpoint.z is None:
             setpoint.z = state.z()
 
+        self.frame_id = frame_id
         self._position_setopint = setpoint

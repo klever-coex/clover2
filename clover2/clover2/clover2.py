@@ -1,13 +1,14 @@
 import rclpy
 from rclpy.node import Node
 
+import atexit
 import threading
 
-from clover2.data import *
-from clover2.client import factory
-from clover2.client import client_base
-from clover2.offboard_helper import OffboardHelper
-from clover2 import utils
+from .data import *
+from .client import factory
+from .client import client_base
+from .offboard_helper import OffboardHelper
+from . import utils
 
 
 class Clover2(Node):
@@ -16,10 +17,15 @@ class Clover2(Node):
         if not node_name or len(node_name) == 0:
             node_name = "clover2_" + utils.generate_random_string(8)
 
+        self._ros_thread = None
+
         self._init_ros(node_name)
 
         self._client = factory.Client(factory.ClientType.MAVROS, node=self)
         self._offboard = OffboardHelper(self, self._client)
+
+        # Stop function on exit
+        atexit.register(self._stop)
 
     def _init_ros(self, node_name: str):
 
@@ -37,6 +43,17 @@ class Clover2(Node):
     def _ros_worker(self):
         while rclpy.ok():
             rclpy.spin(self)
+
+    def _stop(self):
+        self.get_logger().debug(f"Exit callback for {self.get_name()}")
+
+        if rclpy.ok():
+            rclpy.shutdown()
+
+            if self._ros_thread is not None:
+                self._ros_thread.join()
+
+            self.destroy_node()
 
     def is_armed(self) -> bool:
         return self._client.is_armed()
@@ -77,6 +94,7 @@ class Clover2(Node):
         z: SetpointValue = None,
         yaw: SetpointValue = None,
         speed: SetpointValue = None,
+        frame_id: str = "map",
     ):
         setpoint = GoToSetpoint(x, y, z, yaw, speed)
-        self._offboard.move(setpoint)
+        self._offboard.move(setpoint, frame_id=frame_id)

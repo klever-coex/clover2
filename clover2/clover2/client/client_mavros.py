@@ -5,6 +5,12 @@ from clover2 import utils
 import rclpy
 import rclpy.qos
 from rclpy.node import Node
+
+from tf2_geometry_msgs import do_transform_point
+from tf2_ros import TransformException
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_listener import TransformListener
+
 from sensor_msgs.msg import BatteryState
 from mavros_msgs.msg import State, PositionTarget
 from mavros_msgs.srv import SetMode, CommandTOL, CommandBool
@@ -33,7 +39,7 @@ class ClientMavros(ClientBase):
         # Create logger instance for client
         self._logger = node.get_logger().get_child("client")
 
-        ReliabilityQoS = rclpy.qos.QoSProfile(
+        BestEffortQoS = rclpy.qos.QoSProfile(
             reliability=rclpy.qos.ReliabilityPolicy.BEST_EFFORT,
             history=rclpy.qos.HistoryPolicy.KEEP_LAST,
             depth=10,
@@ -45,31 +51,34 @@ class ClientMavros(ClientBase):
         )
 
         self._state_sub = node.create_subscription(
-            State, "mavros/state", self._state_callback, ReliabilityQoS
+            State, "mavros/state", self._state_callback, BestEffortQoS
         )
 
         self._battery_sub = node.create_subscription(
-            BatteryState, "mavros/battery", self._battery_callback, ReliabilityQoS
+            BatteryState, "mavros/battery", self._battery_callback, BestEffortQoS
         )
 
         self._local_pose_sub = node.create_subscription(
             PoseStamped,
             "mavros/local_position/pose",
             self._pose_callback,
-            ReliabilityQoS,
+            BestEffortQoS,
         )
 
         self._local_velocity_sub = node.create_subscription(
             TwistStamped,
             "mavros/local_position/velocity_local",
             self._velocity_callback,
-            ReliabilityQoS,
+            BestEffortQoS,
         )
 
         self._set_mode_client = node.create_client(SetMode, "mavros/set_mode")
         self._takeoff_client = node.create_client(CommandTOL, "mavros/cmd/takeoff")
         self._land_client = node.create_client(CommandTOL, "mavros/cmd/land")
         self._arming_client = node.create_client(CommandBool, "mavros/cmd/arming")
+
+        self._tf2_buffer = Buffer()
+        self._tf2_listener = TransformListener(self._tf2_buffer, node)
 
         self._logger.info("Waiting for MAVROS services...")
 
@@ -145,11 +154,11 @@ class ClientMavros(ClientBase):
 
     def get_battery(self) -> Battery:
         if not self._battery_state:
-            return Battery()
+            return None
 
         return Battery(
             voltage=self._battery_state.voltage,
-            percentage=self._battery_state.percentage,
+            percentage=self._battery_state.percentage * 100.0,
             current=self._battery_state.current,
         )
 
@@ -201,23 +210,12 @@ class ClientMavros(ClientBase):
             self._logger.error(f"Land error: {str(e)}")
             return False
 
-    def _goto_impl(
-        self,
-        x: SetpointType,
-        y: SetpointType,
-        z: SetpointType,
-        yaw: SetpointType,
-        frame_id: str,
-        speed: SetpointType,
-    ):
-        pass
-
-    def send_state_impl(self, setpoint: GoToSetpoint, frame_id: str):
+    def send_state_impl(self, setpoint: GoToSetpoint, frame_id: str = "map"):
         request = PositionTarget()
 
         request.header.stamp = self._node.get_clock().now().to_msg()
 
-        request.header.frame_id = frame_id if frame_id else "base_link"
+        request.header.frame_id = frame_id
         request.coordinate_frame = PositionTarget.FRAME_LOCAL_NED
 
         request.type_mask = (
