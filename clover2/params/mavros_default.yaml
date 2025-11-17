@@ -113,7 +113,7 @@
 /**/setpoint_attitude:
   ros__parameters:
     reverse_thrust: false       # allow reversed thrust
-    use_quaternion: false       # enable PoseStamped topic subscriber
+    use_quaternion: true       # enable PoseStamped topic subscriber
     tf.listen: false            # enable tf listener (disable topic subscribers)
     tf.frame_id: "map"
     tf.child_frame_id: "target_attitude"
@@ -123,8 +123,6 @@
 /**/setpoint_raw:
   ros__parameters:
     thrust_scaling: 1.0       # used in setpoint_raw attitude callback.
-    # Note: PX4 expects normalized thrust values between 0 and 1, which means that
-    # the scaling needs to be unitary and the inputs should be 0..1 as well.
 
 # setpoint_position
 /**/setpoint_position:
