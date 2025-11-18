@@ -123,20 +123,13 @@ void tracker::markers_callback(
     Eigen::Vector4d cumulative_q = Eigen::Vector4d::Zero();
 
     for (const auto& marker : msg->markers) {
-        // Eigen::Affine3d t;
-        // tf2::fromMsg(marker.pose, t);
-
         Eigen::Affine3d marker_pose;
         tf2::fromMsg(marker.pose, marker_pose);
 
         Eigen::Affine3d camera_in_map =
             m_map_client->get_transform(marker.id) * marker_pose.inverse();
 
-        Eigen::Affine3d drone_in_map =
-            camera_in_map * camera_transform.inverse();
-        // transform maker pose in camera frame to camera pose in map frame
-        // t = (t * camera_transform *
-        // m_map_client->get_transform(marker.id).inverse()).inverse();
+        Eigen::Affine3d drone_in_map = camera_in_map * camera_transform;
 
         // add debug transform
         poses_debug.poses.push_back(tf2::toMsg(drone_in_map));
