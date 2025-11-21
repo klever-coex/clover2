@@ -4,6 +4,7 @@
 *.DS_Store
 
 *.pyc
+__pycache__
 
 /docs/build
 /docs/**/*.mo
@@ -23,3 +24,5 @@ node_modules
 dist
 dist-ssr
 *.local
+
+/build-*-image/

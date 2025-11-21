@@ -1,0 +1,9 @@
+#cloud-config
+users:
+- name: pi
+  groups: users,adm,dialout,audio,netdev,video,plugdev,cdrom,games,input,gpio,spi,i2c,render,sudo
+  shell: /bin/bash
+  lock_passwd: false
+  passwd: $5$wi9OHuudJO$cFBi4oapnuDAL7tQw/u.72ieNvqzNYI3Um7fjS4vy2C
+
+ssh_pwauth: true
