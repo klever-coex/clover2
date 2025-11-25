@@ -1,7 +1,7 @@
 version: '3'
 
 env:
-  REGISTRY: "localhost:5000/"
+  REGISTRY: "registry.gitlab.com/coex2/clover2"
   PROJECT_DIR: "{{.TASKFILE_DIR}}"
   VERSION:
     sh: cat "${PROJECT_DIR}/VERSION"
