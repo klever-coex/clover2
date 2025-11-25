@@ -1,6 +1,7 @@
 import logging
 import subprocess
 import pathlib
+import tempfile
 from typing import Dict
 from dataclasses import dataclass, field
 
@@ -12,8 +13,9 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ChrootConfig:
     image: pathlib.Path
-    mount_point: pathlib.Path
     fstab: Dict[int, pathlib.Path]
+    mount_point: pathlib.Path = field(
+        default_factory=lambda: pathlib.Path(tempfile.mkdtemp(prefix="clover2.")))
     with_sudo: bool = field(default=True)
 
     def __post_init__(self):
@@ -45,10 +47,9 @@ class Chroot(ComponentBase):
             logger.debug(f"Coping {src} to {dest}")
             subprocess.run([self.sudo, "cp", f"{src}", f"{dest}"], check=True)
 
-        except Exception as e:
-            logger.error(f"An error occurred: {e}")
         finally:
             self._close_image()
+            raise
 
     async def execute(self, args):
         return super().execute(args)

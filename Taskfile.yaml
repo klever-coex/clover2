@@ -9,22 +9,13 @@ env:
     sh: git rev-parse --short HEAD
 
 tasks:
-  docker:build:
+  build-docker-bake:
     cmds:
       - docker buildx bake
 
-  clover2-image:prepare:
+  build-image-clover2:
     cmds:
-      - ${PROJECT_DIR}/tooling/builder/prepare-image.py --configuration clover2 --skip
-
-  clover2-image:build:
-    cmds:
-      - packer build ${PROJECT_DIR}/tooling/builder/clover2.pkr.hcl
-
-  clover2-image:
-    cmds:
-      - task: clover2-image:prepare
-      - task: clover2-image:build
+      - ${PROJECT_DIR}/tooling/builder/builder.py --sudo --output ${PROJECT_DIR}/build-clover2-image/clover2-${GIT_COMMIT}.img
 
   clean:
     cmds:

@@ -43,7 +43,7 @@ run_stage() {
         source $STAGE_FILE
     fi
 
-    touch $STAGES_LOG_DIR/$STAGE.done
+    # touch $STAGES_LOG_DIR/$STAGE.done
 }
 
 mkdir -p $STAGES_LOG_DIR

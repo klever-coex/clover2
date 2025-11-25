@@ -18,7 +18,7 @@ stages:
   <<: *docker-task
   stage: docker-build
   script:
-    - docker buildx bake
+    - task build-docker-bake
 
 docker-bake-latest:
   <<: *trigger-master

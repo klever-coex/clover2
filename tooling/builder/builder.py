@@ -4,9 +4,10 @@ import re
 import pathlib
 import argparse
 import shutil
-import tempfile
 import logging
 import asyncio
+import requests
+import tempfile
 import subprocess
 
 from components.chroot import ChrootConfig, Chroot
@@ -22,23 +23,40 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def parse_args():
-    args = argparse.ArgumentParser()
+def download_image(args):
+    tmp_dir = pathlib.Path(tempfile.mkdtemp(prefix="clover2-downloads."))
+    logger.info(f"Use tmp dir for downloads: '{tmp_dir}'")
 
-    args.add_argument("--image", "-i", type=pathlib.Path, required=True)
-    args.add_argument("--output", "-o", type=pathlib.Path, required=True)
-    args.add_argument("--sudo", "-S", action='store_true')
+    destination_path = tmp_dir / pathlib.Path(config.UBUNTU_IMAGE_URL).name
 
-    return args.parse_args()
+    logger.info(f"Downloading: '{config.UBUNTU_IMAGE_URL}'")
+    with requests.get(config.UBUNTU_IMAGE_URL, stream=True) as r:
+        r.raise_for_status()
+        with open(destination_path, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+
+    logger.info(f"Decompress...")
+    subprocess.run(["unxz", destination_path], check=True)
+
+    image_path = destination_path.parent / destination_path.stem
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+
+    logger.info(f"Copy image to '{args.output}'")
+    if args.output.is_file():
+        logger.info(f"Remove old `{args.output}`")
+        args.output.unlink()
+
+    shutil.copy(image_path, args.output)
+    subprocess.run(["qemu-img", "resize", f"{args.output}", "8G"], check=True)
 
 
-async def chroot_state(args, image: pathlib.Path, mount_point: pathlib.Path):
+async def chroot_state(args, image: pathlib.Path):
     cfg = ChrootConfig(
         image,
-        mount_point,
         {
-            1: "", # mount to /
-            0: "boot", # mount to /boot
+            1: "",  # mount to /
+            0: "boot",  # mount to /boot
         },
         with_sudo=args.sudo
     )
@@ -71,22 +89,22 @@ async def qemu_state(args, image: pathlib.Path):
         logger.info("Run image setup script")
         await qemu.execute("/bin/bash /home/pi/clover2_ws/src/clover2/tooling/builder/image-setup.sh")
 
+
+def parse_args():
+    args = argparse.ArgumentParser()
+
+    args.add_argument("--output", "-o", type=pathlib.Path, required=True)
+    args.add_argument("--sudo", "-S", action='store_true')
+
+    return args.parse_args()
+
+
 async def main():
     args = parse_args()
 
-    logger.info(f"Copy image to '{args.output}'")
+    download_image(args)
 
-    # TODO: move to download component
-    if args.output.is_file():
-        logger.info(f"Remove old `{args.output}`")
-        args.output.unlink()
-
-    shutil.copy(args.image, args.output)
-    subprocess.run(["qemu-img", "resize", f"{args.output}", "8G"], check=True)
-
-    await chroot_state(args, args.output, pathlib.Path(
-        tempfile.mkdtemp(prefix="clover2.")))
-
+    await chroot_state(args, args.output)
     await qemu_state(args, args.output)
 
 
