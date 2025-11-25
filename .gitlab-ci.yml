@@ -6,7 +6,7 @@ stages:
   services:
     - docker:dind
   before_script:
-    - docker login -u "$DOCKER_REGISTRY_USER" -p "$DOCKER_REGISTRY_PASSWORD" registry.gitlab.com
+    - echo "$DOCKER_REGISTRY_PASSWORD" | docker login registry.gitlab.com --username $DOCKER_REGISTRY_USER --password-stdin
 
 .trigger-master: &trigger-master
   rules:
