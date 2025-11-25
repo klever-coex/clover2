@@ -11,7 +11,7 @@ env:
 tasks:
   build-docker-bake:
     cmds:
-      - docker buildx bake {{.GROUP}}
+      - docker buildx bake --progress=plain {{.GROUP}}
 
   build-image-clover2:
     cmds:
