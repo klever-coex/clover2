@@ -5,6 +5,8 @@ stages:
   image: docker:latest
   services:
     - docker:dind
+  before_script:
+    - docker login -u "$DOCKER_REGISTRY_USER" -p "$DOCKER_REGISTRY_PASSWORD" registry.gitlab.com
 
 .trigger-master: &trigger-master
   rules:

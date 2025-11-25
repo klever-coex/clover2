@@ -44,6 +44,7 @@ target "clover2-gui_base" {
     dockerfile = "docker/frontend/Dockerfile"
     platforms = "${PLATFORMS}"
     labels = LABELS
+    output = ["type=registry"]
 }
 
 target "clover2-docs_base" {
@@ -51,6 +52,7 @@ target "clover2-docs_base" {
     dockerfile = "docker/docs/Dockerfile"
     platforms = "${PLATFORMS}"
     labels = LABELS
+    output = ["type=registry"]
 }
 
 target "clover2-gui" {
