@@ -1,13 +1,29 @@
-.docker-task: &docker-task
-    image: docker:latest
-    services:
-      - docker:dind
-
 stages:
-  - build
+  - docker-build
 
-build_job:
+.docker-setup: &docker-task
+  image: docker:latest
+  services:
+    - docker:dind
+
+.trigger-master: &trigger-master
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^master$/
+
+.trigger-merge-request: &trigger-merge-request
+  only:
+    - merge_request
+
+.docker-bake: &docker-bake
   <<: *docker-task
-  stage: build
+  stage: docker-build
   script:
     - docker buildx bake
+
+docker-bake-latest:
+  <<: *trigger-master
+  <<: *docker-bake
+
+docker-bake-tagged:
+  <<: *trigger-merge-request
+  <<: *docker-bake

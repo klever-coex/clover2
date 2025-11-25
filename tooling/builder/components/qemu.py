@@ -10,14 +10,14 @@ from .component_base import ComponentBase
 
 logger = logging.getLogger(__name__)
 
+# default_factory = lambda : random.choice(range(2000, 4000))
 
 @dataclass
 class QemuConfig:
     image: pathlib.Path
     ssh_user: str
     ssh_password: str
-    ssh_port: int = field(default=random.choice(range(2000, 4000)))
-    sftp_port: int = field(default=random.choice(range(2000, 4000)))
+    ssh_port: int = field(default_factory=lambda: random.choice(range(2000, 4000)))
     machine: str = field(default="virt")
     smp: int = field(default=4)
     cpu: str = field(default="cortex-a57")
@@ -47,10 +47,10 @@ class Qemu(ComponentBase):
         async with asyncssh.connect('localhost', username=self.cfg.ssh_user, password=self.cfg.ssh_password, port=self.cfg.ssh_port, known_hosts=None) as conn:
             async with conn.create_process(cmd) as process:
                 async for stdout_data in process.stdout:
-                    logger.info(stdout_data.rstrip())
+                    logger.getChild("ssh").info(stdout_data.rstrip())
 
                 async for stderr_data in process.stderr:
-                    logger.error(stderr_data.rstrip())
+                    logger.getChild("ssh").error(stderr_data.rstrip())
 
                 await process.wait()
 

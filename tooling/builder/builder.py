@@ -37,8 +37,8 @@ async def chroot_state(args, image: pathlib.Path, mount_point: pathlib.Path):
         image,
         mount_point,
         {
-            1: "",
-            0: "boot",
+            1: "", # mount to /
+            0: "boot", # mount to /boot
         },
         with_sudo=args.sudo
     )
@@ -64,11 +64,12 @@ async def qemu_state(args, image: pathlib.Path):
     async with Qemu(cfg) as qemu:
         await qemu.execute("mkdir -p /home/pi/clover2_ws/src/clover2")
 
-        # for item in config.PROJECT_DIR.iterdir():
-        #     if not re.match(r"^build.*$", item.name):
-        #         await qemu.copy_to(item, ("/home/pi/clover2_ws/src/clover2"))
+        for item in config.PROJECT_DIR.iterdir():
+            if not re.match(r"^build.*$", item.name) and not item.name == ".venv":
+                await qemu.copy_to(item, ("/home/pi/clover2_ws/src/clover2"))
 
-        # await qemu.execute("/home/pi/clover2_ws/src/clover2/tooling/builder/image-setup.sh")
+        logger.info("Run image setup script")
+        await qemu.execute("/bin/bash /home/pi/clover2_ws/src/clover2/tooling/builder/image-setup.sh")
 
 async def main():
     args = parse_args()
@@ -76,13 +77,17 @@ async def main():
     logger.info(f"Copy image to '{args.output}'")
 
     # TODO: move to download component
+    if args.output.is_file():
+        logger.info(f"Remove old `{args.output}`")
+        args.output.unlink()
+
     shutil.copy(args.image, args.output)
     subprocess.run(["qemu-img", "resize", f"{args.output}", "8G"], check=True)
 
     await chroot_state(args, args.output, pathlib.Path(
         tempfile.mkdtemp(prefix="clover2.")))
 
-    # await qemu_state(args, args.output)
+    await qemu_state(args, args.output)
 
 
 if __name__ == "__main__":

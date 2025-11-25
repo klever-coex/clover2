@@ -1,10 +1,12 @@
+log_info "Remove snap"
+sudo apt purge snapd -y
 
 log_info "Upgrade system"
-sudo apt update -qq >/dev/null
-sudo apt upgrade -qqy >/dev/null
+sudo apt-get update
+sudo apt-get upgrade -qy
 
 log_info "Install common packages"
-sudo apt install -qqy \
+sudo apt-get install -qy \
     raspi-config \
     meson \
     cmake \
@@ -12,4 +14,4 @@ sudo apt install -qqy \
     locales \
     curl \
     avahi-daemon \
-    libnss-mdns >/dev/null
+    libnss-mdns

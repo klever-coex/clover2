@@ -3,7 +3,7 @@ CAMERA_ROS_VERSION="0.5.1"
 
 camera_libcamera() {
     log_info "Install libcamera deps"
-    sudo apt install -y \
+    sudo apt-get install -y \
         abi-compliance-checker \
         clang \
         cmake \
@@ -44,7 +44,7 @@ camera_libcamera() {
 
     log_info "Build libcamera"
     meson setup build --buildtype=release -Dpipelines=rpi/vc4,rpi/pisp -Dipas=rpi/vc4,rpi/pisp -Dv4l2=enabled -Dgstreamer=enabled -Dtest=false -Dlc-compliance=disabled -Dcam=enabled -Dqcam=disabled -Ddocumentation=disabled -Dpycamera=enabled
-    yes | ninja -C build install
+    yes | sudo ninja -C build install
     sudo usermod -aG video $USER
 }
 
