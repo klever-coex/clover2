@@ -14,16 +14,20 @@ stages:
   only:
     - merge_request
 
-.docker-bake: &docker-bake
+.docker-web: &docker-web
   <<: *docker-task
   stage: docker-build
   script:
-    - task build-docker-bake
+    - task build-docker-bake GROUP=$BAKE_GROUP
 
-docker-bake-latest:
+docker-web-master:
   <<: *trigger-master
-  <<: *docker-bake
+  <<: *docker-web
+  variables:
+    BAKE_GROUP: "web"
 
-docker-bake-tagged:
+docker-web-mr:
   <<: *trigger-merge-request
-  <<: *docker-bake
+  <<: *docker-web
+  variables:
+    BAKE_GROUP: "web-dev"
