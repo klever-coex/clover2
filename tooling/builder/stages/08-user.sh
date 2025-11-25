@@ -4,7 +4,7 @@
 # echo "PasswordAuthentication yes" | sudo tee /etc/ssh/sshd_config.d/10-allow-password.conf
 
 log_info "Install ZSH"
-sudo apt install zsh -y
+sudo apt-get install zsh -y
 chsh -s $(which zsh)
 
 log_info "Install Oh My ZSH"
