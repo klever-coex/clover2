@@ -1,5 +1,5 @@
 stages:
-  - docker-build
+  - docker
 
 .docker-setup: &docker-task
   image: docker:latest
@@ -18,7 +18,7 @@ stages:
 
 .docker-web: &docker-web
   <<: *docker-task
-  stage: docker-build
+  stage: docker
   script:
     - task build-docker-bake GROUP=$BAKE_GROUP
 
