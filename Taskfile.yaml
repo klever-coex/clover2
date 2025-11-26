@@ -9,11 +9,11 @@ env:
     sh: git rev-parse --short HEAD
 
 tasks:
-  build-docker-bake:
+  clover2-docker-bake:
     cmds:
       - docker buildx bake --progress=plain {{.GROUP}}
 
-  build-image-clover2:
+  clover2-build-image:
     cmds:
       - ${PROJECT_DIR}/tooling/builder/builder.py --sudo --output ${PROJECT_DIR}/build-clover2-image/clover2-${GIT_COMMIT}.img
 

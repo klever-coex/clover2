@@ -16,20 +16,32 @@ stages:
   only:
     - merge_request
 
-.docker-web: &docker-web
+.docker-bake: &docker-bake
   <<: *docker-task
   stage: docker
   script:
-    - task build-docker-bake GROUP=$BAKE_GROUP
+    - task clover2-docker-bake GROUP=$BAKE_GROUP
 
 docker-web-master:
   <<: *trigger-master
-  <<: *docker-web
+  <<: *docker-bake
   variables:
     BAKE_GROUP: "web"
 
 docker-web-mr:
   <<: *trigger-merge-request
-  <<: *docker-web
+  <<: *docker-bake
   variables:
     BAKE_GROUP: "web-dev"
+
+docker-tolling-master:
+  <<: *trigger-master
+  <<: *docker-bake
+  variables:
+    BAKE_GROUP: "tolling"
+
+docker-tooling-mr:
+  <<: *trigger-merge-request
+  <<: *docker-bake
+  variables:
+    BAKE_GROUP: "tooling-dev"
