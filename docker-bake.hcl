@@ -19,7 +19,7 @@ variable "PLATFORMS" {
 function "tagged" {
     params = [name]
     result = [
-      "${REGISTRY}${name}:${VERSION}",
+      "${REGISTRY}${name}:${GIT_COMMIT}",
     ]
 }
 
