@@ -57,7 +57,7 @@ target "clover2-docs_base" {
 
 target "clover2-gui" {
     inherits = ["clover2-gui_base"]
-    tags = tagged_with_latest("clover2-gui")
+    tags = tagged_with_latest("clover2-gui-2")
 }
 
 target "clover2-docs" {
@@ -67,7 +67,7 @@ target "clover2-docs" {
 
 target "clover2-gui-dev" {
     inherits = ["clover2-gui_base"]
-    tags = tagged("clover2-gui")
+    tags = tagged("clover2-gui-2")
 }
 
 target "clover2-docs-dev" {
