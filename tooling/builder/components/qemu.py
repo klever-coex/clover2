@@ -10,8 +10,6 @@ from .component_base import ComponentBase
 
 logger = logging.getLogger(__name__)
 
-# default_factory = lambda : random.choice(range(2000, 4000))
-
 @dataclass
 class QemuConfig:
     image: pathlib.Path
