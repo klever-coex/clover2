@@ -17,15 +17,15 @@ variable "PLATFORMS" {
 }
 
 function "tagged" {
-    params = [name]
-    result = [
+  params = [name]
+  result = [
       "${REGISTRY}${name}:${GIT_COMMIT}",
     ]
 }
 
 function "tagged_with_latest" {
-    params = [name]
-    result = [
+  params = [name]
+  result = [
       "${REGISTRY}${name}:${VERSION}",
       "${REGISTRY}${name}:latest",
     ]
@@ -39,38 +39,64 @@ group "web-dev" {
   targets = ["clover2-gui-dev", "clover2-docs-dev"]
 }
 
+group "tooling" {
+  targets = ["clover2-builder"]
+}
+
+group "tooling-dev" {
+  targets = ["clover2-builder-dev"]
+}
+
 target "clover2-gui_base" {
-    context = "."
-    dockerfile = "docker/frontend/Dockerfile"
-    platforms = "${PLATFORMS}"
-    labels = LABELS
-    output = ["type=registry"]
+  context = "."
+  dockerfile = "docker/frontend/Dockerfile"
+  platforms = "${PLATFORMS}"
+  labels = LABELS
+  output = ["type=registry"]
 }
 
 target "clover2-docs_base" {
-    context = "."
-    dockerfile = "docker/docs/Dockerfile"
-    platforms = "${PLATFORMS}"
-    labels = LABELS
-    output = ["type=registry"]
+  context = "."
+  dockerfile = "docker/docs/Dockerfile"
+  platforms = "${PLATFORMS}"
+  labels = LABELS
+  output = ["type=registry"]
 }
 
 target "clover2-gui" {
-    inherits = ["clover2-gui_base"]
-    tags = tagged_with_latest("clover2-gui-2")
+  inherits = ["clover2-gui_base"]
+  tags = tagged_with_latest("clover2-gui")
 }
 
 target "clover2-docs" {
-    inherits = ["clover2-docs_base"]
-    tags = tagged_with_latest("clover2-docs")
+  inherits = ["clover2-docs_base"]
+  tags = tagged_with_latest("clover2-docs")
 }
 
 target "clover2-gui-dev" {
-    inherits = ["clover2-gui_base"]
-    tags = tagged("clover2-gui-2")
+  inherits = ["clover2-gui_base"]
+  tags = tagged("clover2-gui")
 }
 
 target "clover2-docs-dev" {
-    inherits = ["clover2-docs_base"]
-    tags = tagged("clover2-docs")
+  inherits = ["clover2-docs_base"]
+  tags = tagged("clover2-docs")
 }
+
+target "clover2-builder_base" {
+  context = "."
+  dockerfile = "docker/builder/Dockerfile"
+  labels = LABELS
+  output = ["type=registry"]
+}
+
+target "clover2-builder" {
+  inherits = ["clover2-builder_base"]
+  tags = tagged("clover2-builder")
+}
+
+target "clover2-builder-dev" {
+  inherits = ["clover2-builder_base"]
+  tags = tagged_with_latest("clover2-builder")
+}
+
