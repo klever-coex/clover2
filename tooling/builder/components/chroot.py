@@ -2,6 +2,7 @@ import logging
 import subprocess
 import pathlib
 import tempfile
+import asyncio
 from typing import Dict
 from dataclasses import dataclass, field
 
@@ -41,24 +42,25 @@ class Chroot(ComponentBase):
         if not src.is_file():
             raise Exception("Only files copy supported")
 
-        try:
-            self._open_image()
-
-            logger.debug(f"Coping {src} to {dest}")
-            subprocess.run([self.sudo, "cp", f"{src}", f"{dest}"], check=True)
-
-        finally:
-            self._close_image()
-            raise
+        logger.debug(f"Copying {src} to {dest}")
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(
+            None,
+            lambda: subprocess.run([self.sudo, "cp", str(src), str(dest)], check=True),
+        )
 
     async def execute(self, args):
-        return super().execute(args)
+        return await super().execute(args)
 
     async def __aenter__(self):
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, self._open_image)
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        return True
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, self._close_image)
+        return False
 
     def _open_image(self):
         logger.debug(f'Opening image `{self.cfg.image}`')

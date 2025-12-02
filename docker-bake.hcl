@@ -4,8 +4,10 @@ variable "VERSION" { }
 
 variable "LABELS" {
   default = {
-    "org.opencontainers.image.source"   = "https://gitlab.com/l_motya/clover2"
+    "org.opencontainers.image.source"   = "https://gitlab.com/coex2/clover2"
     "org.opencontainers.image.licenses" = "MIT"
+    "org.opencontainers.image.authors"  = "Lapin Matvey"
+    "org.opencontainers.image.version"  = "${VERSION}"
   }
 }
 
@@ -19,7 +21,7 @@ variable "PLATFORMS" {
 function "tagged" {
   params = [name]
   result = [
-      "${REGISTRY}${name}:${GIT_COMMIT}",
+      "${REGISTRY}${name}:${VERSION}",
     ]
 }
 
@@ -30,6 +32,12 @@ function "tagged_with_latest" {
       "${REGISTRY}${name}:latest",
     ]
 }
+
+#      ___       _ __   __  _____
+#     / _ )__ __(_) /__/ / / ___/______  __ _____  ___
+#    / _  / // / / / _  / / (_ / __/ _ \/ // / _ \(_-<
+#   /____/\_,_/_/_/\_,_/  \___/_/  \___/\_,_/ .__/___/
+#                                          /_/
 
 group "web" {
   targets = ["clover2-gui", "clover2-docs"]
@@ -47,41 +55,48 @@ group "tooling-dev" {
   targets = ["clover2-builder-dev"]
 }
 
-target "clover2-gui_base" {
-  context = "."
-  dockerfile = "docker/frontend/Dockerfile"
-  platforms = "${PLATFORMS}"
-  labels = LABELS
-  output = ["type=registry"]
-}
+#      ____           ___           __                         __
+#     / __/__  ____  / _ \___ ___  / /__  __ ____ _  ___ ___  / /_
+#    / _// _ \/ __/ / // / -_) _ \/ / _ \/ // /  ' \/ -_) _ \/ __/
+#   /_/  \___/_/   /____/\__/ .__/_/\___/\_, /_/_/_/\__/_//_/\__/
+#                          /_/          /___/
 
-target "clover2-docs_base" {
+target "_common" {
   context = "."
-  dockerfile = "docker/docs/Dockerfile"
-  platforms = "${PLATFORMS}"
   labels = LABELS
   output = ["type=registry"]
+  platforms = "${PLATFORMS}"
 }
 
 target "clover2-gui" {
-  inherits = ["clover2-gui_base"]
+  dockerfile = "docker/frontend/Dockerfile"
+  inherits = ["_common"]
   tags = tagged_with_latest("clover2-gui")
 }
 
 target "clover2-docs" {
-  inherits = ["clover2-docs_base"]
+  dockerfile = "docker/docs/Dockerfile"
+  inherits = ["_common"]
   tags = tagged_with_latest("clover2-docs")
 }
 
 target "clover2-gui-dev" {
-  inherits = ["clover2-gui_base"]
+  dockerfile = "docker/frontend/Dockerfile"
+  inherits = ["_common"]
   tags = tagged("clover2-gui")
 }
 
 target "clover2-docs-dev" {
-  inherits = ["clover2-docs_base"]
+  dockerfile = "docker/docs/Dockerfile"
+  inherits = ["_common"]
   tags = tagged("clover2-docs")
 }
+
+#    ______          ___
+#   /_  __/__  ___  / (_)__  ___ _
+#    / / / _ \/ _ \/ / / _ \/ _ `/
+#   /_/  \___/\___/_/_/_//_/\_, /
+#                          /___/
 
 target "clover2-builder_base" {
   context = "."
@@ -92,11 +107,10 @@ target "clover2-builder_base" {
 
 target "clover2-builder" {
   inherits = ["clover2-builder_base"]
-  tags = tagged("clover2-builder")
+  tags = tagged_with_latest("clover2-builder")
 }
 
 target "clover2-builder-dev" {
   inherits = ["clover2-builder_base"]
-  tags = tagged_with_latest("clover2-builder")
+  tags = tagged("clover2-builder")
 }
-

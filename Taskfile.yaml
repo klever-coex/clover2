@@ -4,7 +4,8 @@ env:
   REGISTRY: "registry.gitlab.com/coex2/clover2/"
   PROJECT_DIR: "{{.TASKFILE_DIR}}"
   VERSION:
-    sh: cat "${PROJECT_DIR}/VERSION"
+    sh: git rev-parse --short HEAD
+    # sh: cat "${PROJECT_DIR}/VERSION"
   GIT_COMMIT:
     sh: git rev-parse --short HEAD
 
@@ -14,6 +15,10 @@ tasks:
       GROUP: '{{.GROUP | default "all"}}'
     cmds:
       - docker buildx bake --progress=plain {{.GROUP}}
+
+  clover2-image:download:
+    cmds:
+      - ${PROJECT_DIR}/tooling/builder/download.py --configuration clover2-ubuntu24 --output ${PROJECT_DIR}/build-clover2-image/clover2-${GIT_COMMIT}.img
 
   clover2-image:build:
     cmds:
