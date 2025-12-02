@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e # Exit on any error
+set -ex # Exit on any error
 
 ROS_DISTRO=jazzy
 
@@ -43,7 +43,10 @@ run_stage() {
         source $STAGE_FILE
     fi
 
-    # touch $STAGES_LOG_DIR/$STAGE.done
+    log_info "Clean apt cache"
+    sudo apt-get autoclean
+
+    cd /home/pi
 }
 
 mkdir -p $STAGES_LOG_DIR

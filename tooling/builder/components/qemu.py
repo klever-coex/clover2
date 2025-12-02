@@ -17,9 +17,9 @@ class QemuConfig:
     ssh_password: str
     ssh_port: int = field(default_factory=lambda: random.choice(range(2000, 4000)))
     machine: str = field(default="virt")
-    smp: int = field(default=4)
+    smp: int = field(default=8)
     cpu: str = field(default="cortex-a57")
-    drive_size: str = field(default="8G")
+    ram_size: str = field(default="8G")
     extra_args: list[str] = field(default_factory=[])
 
 
@@ -85,7 +85,7 @@ class Qemu(ComponentBase):
         self.qemu_args += ["-machine", f"{self.cfg.machine}"]
         self.qemu_args += ["-cpu", f"{self.cfg.cpu}"]
         self.qemu_args += ["-smp", f"{self.cfg.smp}"]
-        self.qemu_args += ["-m", f"{self.cfg.drive_size}"]
+        self.qemu_args += ["-m", f"{self.cfg.ram_size}"]
         self.qemu_args += ["-nographic"]
 
     def resize_image(self, image: pathlib.Path, new_size: str):

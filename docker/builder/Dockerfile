@@ -1,15 +1,17 @@
-FROM debian:bookworm-slim
+FROM ubuntu:noble
 
 # Install dependencies
 RUN apt-get update && \
     apt-get install -y \
         curl \
         git \
+        kpartx \
         python3-dev \
-        python3-venv && \
+        python3-venv \
         qemu-system \
         qemu-system-aarch64 \
         qemu-utils \
+        xz-utils && \
     rm -rf /var/lib/apt/lists/*
 
 # Install task-go
@@ -26,3 +28,7 @@ RUN /bin/bash -c "python3 -m venv /docker_venv && \
     . /docker_venv/bin/activate && \
     pip3 install -r ./requirements.txt && \
     rm ./requirements.txt"
+
+COPY ./docker/builder/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]

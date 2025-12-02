@@ -42,8 +42,8 @@ def clover2_ubuntu_24_04_download(cfg: ImageConfiguration):
 
 
 image_configurations: dict = {
-    "ubuntu24-clover2": ImageConfiguration(
-        "ubuntu24-clover2",
+    "clover2-ubuntu24": ImageConfiguration(
+        "clover2-ubuntu24",
         "https://cdimage.ubuntu.com/releases/24.04/release/ubuntu-24.04.3-preinstalled-server-arm64+raspi.img.xz",
         clover2_ubuntu_24_04_download
     )
