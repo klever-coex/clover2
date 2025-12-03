@@ -80,11 +80,20 @@ docker-build-tooling-release:
 image-build-master:
   <<: *job-master
   <<: *image-builder-in-docker
+  needs:
+    - docker-build-tooling-master
+    - docker-build-deploy-master
 
 image-build-mr:
-  <<: *job-master
+  <<: *job-mr
   <<: *image-builder-in-docker
+  needs:
+    - docker-build-tooling-mr
+    - docker-build-deploy-mr
 
 image-build-release:
-  <<: *job-master
+  <<: *job-release
   <<: *image-builder-in-docker
+  needs:
+    - docker-build-tooling-release
+    - docker-build-deploy-release
