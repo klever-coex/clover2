@@ -45,6 +45,7 @@ run_stage() {
 
     log_info "Clean apt cache"
     sudo apt-get autoclean
+    sudo apt-get clean
 
     cd /home/pi
 }
