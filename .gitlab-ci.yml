@@ -1,3 +1,6 @@
+variables:
+  IMAGE_ARTIFACT_PATTERN: "build-clover2-image/clover2-*.img"
+
 stages:
   - docker
   - image
@@ -49,12 +52,19 @@ stages:
 .image-builder-in-docker: &image-builder-in-docker
   <<: *docker-task
   stage: image
+  when: manual
   script:
     - task clover2-builder:in-docker TASK=download
     - task clover2-builder:in-docker TASK=build
   artifacts:
     paths:
-      - build-clover2-image/clover2-0.0.1-unknown.img
+      - ${IMAGE_ARTIFACT_PATTERN}
+  artifacts:
+    name: "clover2-image-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - ${IMAGE_ARTIFACT_PATTERN}
+    expire_in: 1 week
+    when: on_success
 
 docker-build-deploy-master:
   <<: *job-master

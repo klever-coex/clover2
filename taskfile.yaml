@@ -9,7 +9,7 @@ env:
     sh: id -u
   GID:
     sh: id -g
-  VERSION:
+  CLOVER2_VERSION:
     sh: |
       base="$(cat "${PROJECT_DIR}/VERSION" 2>/dev/null || echo "0.0.0")"
       case "${BUILD_MODE}" in
@@ -43,7 +43,7 @@ tasks:
   clover2-builder:download:
     desc: "Download base disk image for clover2-builder (uses tooling/builder/download.py)."
     cmds:
-      - ${PROJECT_DIR}/tooling/builder/download.py --configuration clover2-ubuntu24 --output ${PROJECT_DIR}/build-clover2-image/clover2-{{.VERSION}}.img
+      - ${PROJECT_DIR}/tooling/builder/download.py --configuration clover2-ubuntu24 --output ${PROJECT_DIR}/build-clover2-image/clover2-{{.CLOVER2_VERSION}}.img
 
   clover2-builder:build:
     desc: "Build the clover2 image locally using tooling/builder/builder.py (produces build-clover2-image/*)."
@@ -51,10 +51,14 @@ tasks:
       - |
         ${PROJECT_DIR}/tooling/builder/builder.py \
           --sudo \
-          --output ${PROJECT_DIR}/build-clover2-image/clover2-{{.VERSION}}.img
+          --output ${PROJECT_DIR}/build-clover2-image/clover2-{{.CLOVER2_VERSION}}.img
+
+  clover2-builder:image-setup:
+    cmds:
+      - /bin/bash ${PROJECT_DIR}/tooling/builder/image-setup.sh
 
   clover2-builder:in-docker:
-    desc: "Run any Taskfile task inside the clover2-builder:${VERSION} docker image. Set TASK env var (e.g. TASK=build)."
+    desc: "Run any Taskfile task inside the clover2-builder:${CLOVER2_VERSION} docker image. Set TASK env var (e.g. TASK=build)."
     deps:
       - task: clover2-docker:bake
         vars:
@@ -70,12 +74,8 @@ tasks:
           -v /dev:/dev \
           -v ${PROJECT_DIR}:/builder \
           -w /builder \
-          ${REGISTRY}clover2-builder:${VERSION} \
+          ${REGISTRY}clover2-builder:${CLOVER2_VERSION} \
             sh -c "task clover2-builder:{{.TASK}}"
-
-  get-version:
-    cmds:
-      - echo "${VERSION}"
 
   clean:
     desc: "Cleanup build artifacts"

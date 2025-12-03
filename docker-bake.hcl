@@ -1,14 +1,14 @@
 variable "BUILD_MODE" { }
 variable "REGISTRY_POLICY" { }
 variable "REGISTRY" { }
-variable "VERSION" { }
+variable "CLOVER2_VERSION" { }
 
 variable "LABELS" {
   default = {
     "org.opencontainers.image.source"   = "https://gitlab.com/coex2/clover2"
     "org.opencontainers.image.licenses" = "MIT"
     "org.opencontainers.image.authors"  = "Lapin Matvey"
-    "org.opencontainers.image.version"  = "${VERSION}"
+    "org.opencontainers.image.version"  = "${CLOVER2_VERSION}"
   }
 }
 
@@ -24,7 +24,7 @@ variable "PLATFORMS" {
 function "tagged" {
   params = [name]
   result = [
-    "${REGISTRY}${name}:${VERSION}",
+    "${REGISTRY}${name}:${CLOVER2_VERSION}",
 
     # For master build have dirty version and latest tag
     equal("master", BUILD_MODE) ? "${REGISTRY}${name}:latest" : "",
