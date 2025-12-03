@@ -1,5 +1,6 @@
 stages:
   - docker
+  - image
 
 .docker-setup: &docker-task
   image: docker:latest
@@ -8,40 +9,82 @@ stages:
   before_script:
     - echo "$DOCKER_REGISTRY_PASSWORD" | docker login registry.gitlab.com --username $DOCKER_REGISTRY_USER --password-stdin
 
-.trigger-master: &trigger-master
+.job-master: &job-master
+  variables:
+    BUILD_MODE: master
   rules:
-    - if: $CI_COMMIT_TAG =~ /^master$/
+    - if: $CI_COMMIT_REF_NAME == "master"
 
-.trigger-mr: &trigger-merge-request
+.job-mr: &job-mr
+  variables:
+    BUILD_MODE: develop
   only:
     - merge_request
+
+.job-release: &job-release
+  variables:
+    BUILD_MODE: release
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^master$/
 
 .docker-bake: &docker-bake
   <<: *docker-task
   stage: docker
   script:
-    - task clover2-docker-bake GROUP=$BAKE_GROUP
+    - task clover2-docker:bake TARGET=$BAKE_TARGET
 
-docker-web-master:
-  <<: *trigger-master
+.docker-build-deploy: &docker-build-deploy
   <<: *docker-bake
   variables:
-    BAKE_GROUP: "web"
+    BAKE_GROUP: "clover2-deploy"
 
-docker-web-mr:
-  <<: *trigger-merge-request
+.docker-build-tooling: &docker-build-tooling
   <<: *docker-bake
   variables:
-    BAKE_GROUP: "web-dev"
+    BAKE_GROUP: "clover2-tooling"
 
-docker-tolling-master:
-  <<: *trigger-master
-  <<: *docker-bake
-  variables:
-    BAKE_GROUP: "tolling"
+.image-builder-in-docker: &image-builder-in-docker
+  <<: *docker-task
+  stage: image
+  script:
+    - task clover2-builder:in-docker TASK=download
+    - task clover2-builder:in-docker TASK=build
+  artifacts:
+    paths:
+      - build-clover2-image/clover2-0.0.1-unknown.img
 
-docker-tooling-mr:
-  <<: *trigger-merge-request
-  <<: *docker-bake
-  variables:
-    BAKE_GROUP: "tooling-dev"
+docker-build-deploy-master:
+  <<: *job-master
+  <<: *docker-build-deploy
+
+docker-build-deploy-mr:
+  <<: *job-mr
+  <<: *docker-build-deploy
+
+docker-build-deploy-release:
+  <<: *job-release
+  <<: *docker-build-deploy
+
+docker-build-tooling-master:
+  <<: *job-master
+  <<: *docker-build-tooling
+
+docker-build-tooling-mr:
+  <<: *job-mr
+  <<: *docker-build-tooling
+
+docker-build-tooling-release:
+  <<: *job-release
+  <<: *docker-build-tooling
+
+image-build-master:
+  <<: *job-master
+  <<: *image-builder-in-docker
+
+image-build-mr:
+  <<: *job-master
+  <<: *image-builder-in-docker
+
+image-build-release:
+  <<: *job-master
+  <<: *image-builder-in-docker

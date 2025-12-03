@@ -45,6 +45,7 @@ async def qemu_state(args, image: pathlib.Path):
         image=image,
         ssh_user="pi",
         ssh_password="raspberry",
+        smp=16,
         extra_args=[
             "-append", '"console=ttyAMA0,115200 root=/dev/vda2 rw"',
             "-kernel", f"{config.PROJECT_DIR}/tooling/builder/assets/kernel-qemu-raspi4"

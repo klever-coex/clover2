@@ -1,6 +1,7 @@
+variable "BUILD_MODE" { }
+variable "REGISTRY_POLICY" { }
 variable "REGISTRY" { }
 variable "VERSION" { }
-variable "BUILD_MODE" { }
 
 variable "LABELS" {
   default = {
@@ -36,21 +37,39 @@ function "tagged" {
   ]
 }
 
+target "_output" {
+  output = ["type=registry"]
+}
+
+#      ___       _ __   __  _____
+#     / _ )__ __(_) /__/ / / ___/______  __ _____  ___
+#    / _  / // / / / _  / / (_ / __/ _ \/ // / _ \(_-<
+#   /____/\_,_/_/_/\_,_/  \___/_/  \___/\_,_/ .__/___/
+#                                          /_/
+
+group "all" {
+  targets = ["clover2-deploy", "clover2-builder"]
+}
+
+group "clover2-tooling" {
+  targets = ["clover2-builder"]
+}
+
 #      ____           ___           __                         __
 #     / __/__  ____  / _ \___ ___  / /__  __ ____ _  ___ ___  / /_
 #    / _// _ \/ __/ / // / -_) _ \/ / _ \/ // /  ' \/ -_) _ \/ __/
 #   /_/  \___/_/   /____/\__/ .__/_/\___/\_, /_/_/_/\__/_//_/\__/
 #                          /_/          /___/
 
-target "clover2-web" {
+target "clover2-deploy" {
   dockerfile = item.dockerfile
   name = "clover2-${item.tgt}"
-  target = item.tgt
   tags = item.tags
+
+  inherits = ["_output"]
 
   context = "."
   labels = LABELS
-  output = ["type=registry"]
   platforms = "${PLATFORMS}"
 
   matrix = {
@@ -79,6 +98,6 @@ target "clover2-builder" {
   context = "."
   dockerfile = "docker/builder/Dockerfile"
   labels = LABELS
-  output = ["type=registry"]
+  inherits = ["_output"]
   tags = tagged("clover2-builder")
 }
