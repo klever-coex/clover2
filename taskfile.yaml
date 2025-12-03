@@ -61,7 +61,7 @@ tasks:
       - |
         docker run \
           --rm \
-          -it \
+          -i \
           --privileged \
           -v /dev:/dev \
           -v ${PROJECT_DIR}:/builder \
