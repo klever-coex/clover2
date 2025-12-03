@@ -5,6 +5,10 @@ env:
   REGISTRY: "registry.gitlab.com/coex2/clover2/"
   REGISTRY_POLICY: build # build or pull
   PROJECT_DIR: "{{.TASKFILE_DIR}}"
+  UID:
+    sh: id -u
+  GID:
+    sh: id -g
   VERSION:
     sh: |
       base="$(cat "${PROJECT_DIR}/VERSION" 2>/dev/null || echo "0.0.0")"
