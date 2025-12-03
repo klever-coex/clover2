@@ -111,13 +111,19 @@ class Qemu(ComponentBase):
 
         logger.getChild("QEMU").info("finish")
 
-    async def wait_ssh(self):
+    async def wait_ssh(self, timeout=120):
+        retries = int(timeout / 5)
         while True:
             await asyncio.sleep(5)
             try:
-                await self.execute("ls")
+                await self.execute("uname -a")
                 break
             except Exception as e:
                 logger.info(f"Wait ssh connection for 5s ({e})")
+
+            if retries < 0:
+                raise Exception(f"Failed to connect to ssh within {timeout}s")
+
+            retries -= 1
 
         logger.info("SSH ready")
