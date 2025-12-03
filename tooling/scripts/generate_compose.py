@@ -12,19 +12,13 @@ logger = logging.getLogger(__name__)
 SERVICES = {
     "clover2-docs": {
         "ports": ["80:81"],
-        "log_dir": "docs",
-        "container_log_path": "/var/log/clover2/docs",
     },
     "clover2-gui": {
         "ports": ["80:80"],
-        "log_dir": "gui",
-        "container_log_path": "/var/log/clover2/gui",
     },
     "clover2-wetty": {
         "ports": ["3000:3000"],
         "image": "wettyoss/wetty",
-        "log_dir": "gui",
-        "container_log_path": "/var/log/clover2/gui",
     },
 }
 
@@ -46,11 +40,6 @@ def build_service_entry(name: str, cfg: dict, registry: str, tag: str, project_r
 
     if cfg.get("ipc"):
         service["ipc"] = "host"
-
-    host_log_dir = (project_root / "logs" / cfg["log_dir"]).as_posix()
-    container_log = cfg.get("container_log_path", f"/var/log/{name}")
-
-    service["volumes"] = [f"{host_log_dir}:{container_log}"]
 
     return service
 
@@ -101,7 +90,7 @@ def parse_args():
 def main():
     args = parse_args()
 
-    selected = [name for name in SERVICES.keys() if getattr(args, name)]
+    selected = [name for name in SERVICES.keys() if getattr(args, name.replace("-", "_"))]
     if not selected:
         logger.error(
             "No services selected. Pass one or more service flags.")

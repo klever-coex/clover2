@@ -11,6 +11,7 @@ RUN apt-get update && \
         qemu-system \
         qemu-system-aarch64 \
         qemu-utils \
+        sudo \
         xz-utils && \
     rm -rf /var/lib/apt/lists/*
 
