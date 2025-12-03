@@ -8,4 +8,4 @@ sudo apt-get install zsh -y
 sudo chsh -s $(which zsh)
 
 log_info "Install Oh My ZSH"
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+# sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"

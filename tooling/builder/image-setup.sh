@@ -2,6 +2,7 @@
 set -ex # Exit on any error
 
 ROS_DISTRO=jazzy
+USER=pi
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -47,7 +48,7 @@ run_stage() {
     sudo apt-get autoclean
     sudo apt-get clean
 
-    cd /home/pi
+    cd /home/$USER
 }
 
 mkdir -p $STAGES_LOG_DIR
