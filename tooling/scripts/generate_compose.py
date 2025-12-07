@@ -90,7 +90,8 @@ def parse_args():
 def main():
     args = parse_args()
 
-    selected = [name for name in SERVICES.keys() if getattr(args, name.replace("-", "_"))]
+    selected = [name for name in SERVICES.keys(
+    ) if getattr(args, name.replace("-", "_"))]
     if not selected:
         logger.error(
             "No services selected. Pass one or more service flags.")

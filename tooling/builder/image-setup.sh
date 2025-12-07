@@ -44,10 +44,6 @@ run_stage() {
         source $STAGE_FILE
     fi
 
-    log_info "Clean apt cache"
-    sudo apt-get autoclean
-    sudo apt-get clean
-
     cd /home/$USER
 }
 

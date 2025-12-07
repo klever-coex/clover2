@@ -1,23 +1,30 @@
 #! /usr/bin/env bash
 
-echo "--- Fix home directory permissions"
+echo "---> Fix home directory permissions <---"
 chmod +rx /home/pi
 
-/usr/bin/raspi-config nonint do_ssh 0
-
-NEW_SSID='clover2-'$(head -c 100 /dev/urandom | xxd -ps -c 100 | sed -e "s/[^0-9]//g" | cut -c 1-6)
-
-echo "--- Creating Wi-Fi AP with SSID=${NEW_SSID}"
-
+NEW_SSID='clover2-'$(openssl rand -hex 2)
 NEW_HOSTNAME=$(echo ${NEW_SSID} | tr '[:upper:]' '[:lower:]')
-echo "--- Setting hostname to $NEW_HOSTNAME"
-hostnamectl set-hostname $NEW_HOSTNAME \
-&& sed -i 's/127\.0\.1\.1.*/127.0.1.1\t'${NEW_HOSTNAME}' '${NEW_HOSTNAME}'.local/g' /etc/hosts
 
+echo "---> Creating Wi-Fi AP with SSID=${NEW_SSID} <---"
+nmcli con add type wifi ifname wlan0 mode ap con-name clover2 ssid $NEW_SSID autoconnect true \
+    && nmcli con modify clover2 802-11-wireless.band bg \
+    && nmcli con modify clover2 ipv4.method shared ipv4.address 192.168.11.1/24 \
+    && nmcli con modify clover2 ipv6.method disabled \
+    && nmcli con modify clover2 wifi-sec.key-mgmt wpa-psk \
+    && nmcli con modify clover2 wifi-sec.psk "cloverwifi" \
+    && systemctl disable dnsmasq
+
+echo "---> Setting hostname to $NEW_HOSTNAME <---"
+hostnamectl set-hostname $NEW_HOSTNAME \
+    && sed -i 's/127\.0\.1\.1.*/127.0.1.1\t'${NEW_HOSTNAME}' '${NEW_HOSTNAME}'.local/g' /etc/hosts
+
+echo "---> Remove firstboot scrip  <---"
 systemctl disable clover2-firstboot.service
 rm /etc/systemd/system/clover2-firstboot.service
 systemctl daemon-reload
 
 rm /root/clover2_firstboot.sh
 
-reboot
+echo "---> Reboot <---"
+sudo reboot
