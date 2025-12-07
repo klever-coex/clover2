@@ -7,4 +7,4 @@ chmod +x /tmp/docker-install.sh
 /bin/bash /tmp/docker-install.sh
 
 log_info "Fix docker permissions"
-sudo usermod -aG docker pi
+sudo usermod -aG docker $USER
