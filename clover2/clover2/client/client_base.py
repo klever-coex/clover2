@@ -5,6 +5,7 @@ from enum import Enum
 from rclpy.task import Future
 
 from clover2.data import *
+from geometry_msgs.msg import Point, Vector3
 
 SetpointType = Union[Real, None]
 
@@ -44,13 +45,21 @@ class ClientBase(ABC):
 
     # Flight
     @abstractmethod
-    def takeoff(self, z: Real, timeout: Real) -> bool:
-        pass
-
-    @abstractmethod
     def land(self, timeout: Real) -> bool:
         pass
 
     @abstractmethod
     def send_state_impl(self, setpoint: GoToSetpoint, frame_id: str):
+        pass
+
+    @abstractmethod
+    def send_raw_local_impl(
+        self, pos: Point, vel: Vector3, acc: Vector3, yaw: float, yaw_rate: float
+    ):
+        pass
+
+    @abstractmethod
+    def send_raw_body_impl(
+        self, vel: Vector3, acc: Vector3, yaw: float, yaw_rate: float
+    ):
         pass

@@ -10,6 +10,8 @@ from .client import client_base
 from .offboard_helper import OffboardHelper
 from . import utils
 
+from geometry_msgs.msg import Point, Vector3
+
 
 class Clover2(Node):
     def __init__(self, node_name: str = ""):
@@ -93,8 +95,9 @@ class Clover2(Node):
         y: SetpointValue = None,
         z: SetpointValue = None,
         yaw: SetpointValue = None,
-        speed: SetpointValue = None,
+        speed: SetpointValue = 0.5,
         frame_id: str = "map",
     ):
-        setpoint = GoToSetpoint(x, y, z, yaw, speed)
-        self._offboard.move(setpoint, frame_id=frame_id)
+        pos = Point(x=x, y=y, z=z)
+        vel = Vector3(x=speed, y=speed, z=speed)
+        self._offboard.move(pos=pos, vel=vel, yaw=yaw, yaw_rate=None, frame_id=frame_id)

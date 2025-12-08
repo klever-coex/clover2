@@ -6,15 +6,10 @@ import rclpy
 import rclpy.qos
 from rclpy.node import Node
 
-from tf2_geometry_msgs import do_transform_point
-from tf2_ros import TransformException
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
-
 from sensor_msgs.msg import BatteryState
 from mavros_msgs.msg import State, PositionTarget
 from mavros_msgs.srv import SetMode, CommandTOL, CommandBool
-from geometry_msgs.msg import PoseStamped, TwistStamped
+from geometry_msgs.msg import PoseStamped, TwistStamped, Point, Vector3
 
 
 class ClientMavros(ClientBase):
@@ -77,15 +72,16 @@ class ClientMavros(ClientBase):
         self._land_client = node.create_client(CommandTOL, "mavros/cmd/land")
         self._arming_client = node.create_client(CommandBool, "mavros/cmd/arming")
 
-        self._tf2_buffer = Buffer()
-        self._tf2_listener = TransformListener(self._tf2_buffer, node)
-
         self._logger.info("Waiting for MAVROS services...")
 
-        self._set_mode_client.wait_for_service()
-        self._takeoff_client.wait_for_service()
-        self._land_client.wait_for_service()
-        self._arming_client.wait_for_service()
+        self._set_mode_client.wait_for_service(timeout_sec=1.0)
+        self._takeoff_client.wait_for_service(timeout_sec=1.0)
+        self._land_client.wait_for_service(timeout_sec=1.0)
+        self._arming_client.wait_for_service(timeout_sec=1.0)
+
+        for cli in node.clients:
+            if not cli.wait_for_service(timeout_sec=1.0):
+                raise Exception(f"Wait service timeout {cli.srv_name}")
 
     def _state_callback(self, msg: State):
         self._current_state = msg
@@ -186,18 +182,6 @@ class ClientMavros(ClientBase):
             self._logger.error(f"Arming error: {str(e)}")
             return None
 
-    def takeoff(self, z: float | int, timeout: float | int = 10.0) -> bool:
-        try:
-            request = CommandTOL.Request()
-            request.altitude = z
-
-            response = self._takeoff_client.call(request, timeout_sec=1.0)
-            return response.success or False
-
-        except Exception as e:
-            self._logger.error(f"Takeoff error: {e}")
-            return False
-
     def land(self, timeout: float | int = 10.0) -> bool:
         try:
             future = self._land_client.call_async(CommandTOL.Request())
@@ -209,6 +193,110 @@ class ClientMavros(ClientBase):
         except Exception as e:
             self._logger.error(f"Land error: {str(e)}")
             return False
+
+    def _check_ignore(self, val, flags, flag):
+        if val is None:
+            return 0.0, (flags | flag)
+        return val, flags
+
+    def send_raw_local_impl(
+        self, pos: Point, vel: Vector3, acc: Vector3, yaw: float, yaw_rate: float
+    ):
+        request = PositionTarget()
+
+        request.header.stamp = self._node.get_clock().now().to_msg()
+        request.coordinate_frame = PositionTarget.FRAME_LOCAL_NED
+
+        request.type_mask = 0
+
+        pos.x, request.type_mask = self._check_ignore(
+            pos.x, request.type_mask, PositionTarget.IGNORE_PX
+        )
+        pos.y, request.type_mask = self._check_ignore(
+            pos.y, request.type_mask, PositionTarget.IGNORE_PY
+        )
+        pos.z, request.type_mask = self._check_ignore(
+            pos.z, request.type_mask, PositionTarget.IGNORE_PZ
+        )
+
+        vel.x, request.type_mask = self._check_ignore(
+            vel.x, request.type_mask, PositionTarget.IGNORE_VX
+        )
+        vel.y, request.type_mask = self._check_ignore(
+            vel.y, request.type_mask, PositionTarget.IGNORE_VY
+        )
+        vel.z, request.type_mask = self._check_ignore(
+            vel.z, request.type_mask, PositionTarget.IGNORE_VZ
+        )
+
+        acc.x, request.type_mask = self._check_ignore(
+            acc.x, request.type_mask, PositionTarget.IGNORE_AFX
+        )
+        acc.y, request.type_mask = self._check_ignore(
+            acc.y, request.type_mask, PositionTarget.IGNORE_AFY
+        )
+        acc.z, request.type_mask = self._check_ignore(
+            acc.z, request.type_mask, PositionTarget.IGNORE_AFZ
+        )
+
+        yaw, request.type_mask = self._check_ignore(
+            yaw, request.type_mask, PositionTarget.IGNORE_YAW
+        )
+        yaw_rate, request.type_mask = self._check_ignore(
+            yaw_rate, request.type_mask, PositionTarget.IGNORE_YAW_RATE
+        )
+
+        request.position = pos
+        request.velocity = vel
+        request.acceleration_or_force = acc
+        request.yaw = yaw
+        request.yaw_rate = yaw_rate
+
+        self._setpoint_raw_local.publish(request)
+
+    def send_raw_body_impl(
+        self, vel: Vector3, acc: Vector3, yaw: float, yaw_rate: float
+    ):
+        request = PositionTarget()
+
+        request.header.stamp = self._node.get_clock().now().to_msg()
+        request.coordinate_frame = PositionTarget.FRAME_BODY_NED
+
+        request.type_mask = 0
+
+        vel.x, request.type_mask = self._check_ignore(
+            vel.x, request.type_mask, PositionTarget.IGNORE_VX
+        )
+        vel.y, request.type_mask = self._check_ignore(
+            vel.y, request.type_mask, PositionTarget.IGNORE_VY
+        )
+        vel.z, request.type_mask = self._check_ignore(
+            vel.z, request.type_mask, PositionTarget.IGNORE_VZ
+        )
+
+        acc.x, request.type_mask = self._check_ignore(
+            acc.x, request.type_mask, PositionTarget.IGNORE_AFX
+        )
+        acc.y, request.type_mask = self._check_ignore(
+            acc.y, request.type_mask, PositionTarget.IGNORE_AFY
+        )
+        acc.z, request.type_mask = self._check_ignore(
+            acc.z, request.type_mask, PositionTarget.IGNORE_AFZ
+        )
+
+        yaw, request.type_mask = self._check_ignore(
+            yaw, request.type_mask, PositionTarget.IGNORE_YAW
+        )
+        yaw_rate, request.type_mask = self._check_ignore(
+            yaw_rate, request.type_mask, PositionTarget.IGNORE_YAW_RATE
+        )
+
+        request.velocity = vel
+        request.acceleration_or_force = acc
+        request.yaw = yaw
+        request.yaw_rate = yaw_rate
+
+        self._setpoint_raw_local.publish(request)
 
     def send_state_impl(self, setpoint: GoToSetpoint, frame_id: str = "map"):
         request = PositionTarget()
