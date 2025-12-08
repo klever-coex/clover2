@@ -1,9 +1,9 @@
 version: '3'
 
 env:
-  BUILD_MODE: develop
+  BUILD_MODE: develop   # develop or master or release
   REGISTRY: "registry.gitlab.com/coex2/clover2/"
-  REGISTRY_POLICY: build # build or pull
+  REGISTRY_POLICY: build  # build or pull
   PROJECT_DIR: "{{.TASKFILE_DIR}}"
   UID:
     sh: id -u
