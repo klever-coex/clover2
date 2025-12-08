@@ -127,7 +127,7 @@
 # setpoint_position
 /**/setpoint_position:
   ros__parameters:
-    tf.listen: false            # enable tf listener (disable topic subscribers)
+    tf.listen: true            # enable tf listener (disable topic subscribers)
     tf.frame_id: "map"
     tf.child_frame_id: "target_position"
     tf.rate_limit: 50.0
