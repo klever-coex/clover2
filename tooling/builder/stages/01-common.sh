@@ -7,11 +7,12 @@ sudo apt-get upgrade -qy >/dev/null
 
 log_info "Install common packages"
 sudo apt-get install -qy \
-    raspi-config \
-    meson \
-    cmake \
-    libboost-dev \
-    locales \
-    curl \
     avahi-daemon \
-    libnss-mdns
+    cmake \
+    curl \
+    libboost-dev \
+    libnss-mdns \
+    locales \
+    meson \
+    network-manager \
+    raspi-config
