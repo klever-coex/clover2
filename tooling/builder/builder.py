@@ -4,12 +4,8 @@ import re
 import os
 import pathlib
 import argparse
-import shutil
 import logging
 import asyncio
-import requests
-import tempfile
-import subprocess
 
 from components.chroot import ChrootConfig, Chroot
 from components.qemu import QemuConfig, Qemu
@@ -102,8 +98,7 @@ async def main():
 
 if __name__ == "__main__":
     try:
-        # asyncio.run(main())
-        envs_to_string(ENVS_FOR_PASS)
+        asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("Keyboard interrupt")
         exit(-1)
