@@ -6,7 +6,7 @@ After=cloud-init.target
 
 [Service]
 Type=oneshot
-ExecStart=/root/clover2_firstboot.sh
+ExecStart=/bin/bash /root/clover2_firstboot.sh
 RemainAfterExit=no
 User=root
 Group=root
