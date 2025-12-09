@@ -1,7 +1,8 @@
 #!/bin/bash
-set -e # Exit on any error
+set -ex # Exit on any error
 
 ROS_DISTRO=jazzy
+USER=pi
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -43,7 +44,7 @@ run_stage() {
         source $STAGE_FILE
     fi
 
-    touch $STAGES_LOG_DIR/$STAGE.done
+    cd /home/$USER
 }
 
 mkdir -p $STAGES_LOG_DIR
