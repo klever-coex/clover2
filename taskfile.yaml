@@ -1,8 +1,12 @@
 version: '3'
 
+dotenv:
+  - .env
+
 env:
   BUILD_MODE: develop   # develop or master or release
-  REGISTRY: "registry.gitlab.com/coex2/clover2/"
+  REGISTRY_HOST: "registry.gitlab.com"
+  REGISTRY: "{{.REGISTRY_HOST}}/coex2/clover2/"
   REGISTRY_POLICY: build  # build or pull
   PROJECT_DIR: "{{.TASKFILE_DIR}}"
   UID:
@@ -43,7 +47,10 @@ tasks:
   clover2-builder:download:
     desc: "Download base disk image for clover2-builder (uses tooling/builder/download.py)."
     cmds:
-      - ${PROJECT_DIR}/tooling/builder/download.py --configuration clover2-ubuntu24 --output ${PROJECT_DIR}/build-clover2-image/clover2-{{.CLOVER2_VERSION}}.img
+      - |
+        ${PROJECT_DIR}/tooling/builder/download.py \
+          --configuration clover2-ubuntu24 \
+          --output ${PROJECT_DIR}/build-clover2-image/clover2-{{.CLOVER2_VERSION}}.img
 
   clover2-builder:build:
     desc: "Build the clover2 image locally using tooling/builder/builder.py (produces build-clover2-image/*)."

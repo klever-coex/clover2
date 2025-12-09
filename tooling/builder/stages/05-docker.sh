@@ -8,3 +8,6 @@ chmod +x /tmp/docker-install.sh
 
 log_info "Fix docker permissions"
 sudo usermod -aG docker $USER
+
+log_info "Login to registry"
+echo "$DOCKER_REGISTRY_PASSWORD" | sudo docker login $REGISTRY_HOST --username $DOCKER_REGISTRY_USER --password-stdin
