@@ -1,8 +1,6 @@
 [Unit]
 Description=Clover2 First Boot Script
 After=network.target
-Wants=network.target
-After=cloud-init.target
 
 [Service]
 Type=oneshot
