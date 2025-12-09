@@ -6,7 +6,7 @@ COPY frontend .
 RUN npm ci
 RUN npm run build
 
-FROM nginx:1.25-alpine
+FROM nginx:1.29.3-alpine-slim
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 

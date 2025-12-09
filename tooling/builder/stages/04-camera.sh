@@ -3,7 +3,7 @@ CAMERA_ROS_VERSION="0.5.1"
 
 camera_libcamera() {
     log_info "Install libcamera deps"
-    sudo apt install -y \
+    sudo apt-get install -y \
         abi-compliance-checker \
         clang \
         cmake \
@@ -44,7 +44,7 @@ camera_libcamera() {
 
     log_info "Build libcamera"
     meson setup build --buildtype=release -Dpipelines=rpi/vc4,rpi/pisp -Dipas=rpi/vc4,rpi/pisp -Dv4l2=enabled -Dgstreamer=enabled -Dtest=false -Dlc-compliance=disabled -Dcam=enabled -Dqcam=disabled -Ddocumentation=disabled -Dpycamera=enabled
-    yes | ninja -C build install
+    yes | sudo ninja -C build install
     sudo usermod -aG video $USER
 }
 
@@ -56,14 +56,17 @@ camera_ros_support() {
         log_error "ROS_DISTRO is not set"
     fi
 
+    log_info "Clone ROS2 libcamera project"
     LIBCAMERA_ROS_WS=$(mktemp -d --suffix="-libcamera_ros")
     cd $LIBCAMERA_ROS_WS && mkdir src && cd src
     git clone --branch $CAMERA_ROS_VERSION --depth 1 https://github.com/christianrauch/camera_ros.git
     cd $LIBCAMERA_ROS_WS
 
+    log_info "Install ROS2 libcamera deps"
     source /opt/ros/$ROS_DISTRO/setup.bash
     rosdep install -y --from-paths src --ignore-src --skip-keys=libcamera
 
+    log_info "Build ROS2 libcamera packages"
     sudo su -c "source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --install-base /opt/ros/$ROS_DISTRO/ --merge-install"
 }
 

@@ -1,0 +1,2 @@
+asyncssh>=2.21.1
+requests

@@ -1,15 +1,18 @@
+log_info "Remove snap"
+sudo apt purge snapd -y
 
 log_info "Upgrade system"
-DEBIAN_FRONTEND=noninteractive apt update -qq >/dev/null
-DEBIAN_FRONTEND=noninteractive apt upgrade -qqy >/dev/null
+sudo apt-get update -qq >/dev/null
+sudo apt-get upgrade -qy >/dev/null
 
 log_info "Install common packages"
-DEBIAN_FRONTEND=noninteractive apt install -qqy \
-    raspi-config \
-    meson \
-    cmake \
-    libboost-dev \
-    locales \
-    curl \
+sudo apt-get install -qy \
     avahi-daemon \
-    libnss-mdns >/dev/null
+    cmake \
+    curl \
+    libboost-dev \
+    libnss-mdns \
+    locales \
+    meson \
+    network-manager \
+    raspi-config
