@@ -63,7 +63,7 @@ group "clover2-tooling" {
 
 target "clover2-deploy" {
   dockerfile = item.dockerfile
-  name = "clover2-${item.tgt}"
+  name = "${item.tgt}"
   tags = item.tags
 
   inherits = ["_output"]
@@ -75,14 +75,19 @@ target "clover2-deploy" {
   matrix = {
     item = [
       {
+        dockerfile = "docker/docs/Dockerfile"
+        tgt = "clover2-docs"
+        tags = tagged("clover2-docs")
+      },
+      {
         dockerfile = "docker/frontend/Dockerfile"
-        tgt = "gui"
+        tgt = "clover2-gui"
         tags = tagged("clover2-gui")
       },
       {
-        dockerfile = "docker/docs/Dockerfile"
-        tgt = "docs"
-        tags = tagged("clover2-docs")
+        dockerfile = "docker/ros/Dockerfile"
+        tgt = "clover2-ros"
+        tags = tagged("clover2-ros")
       }
     ]
   }

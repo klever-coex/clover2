@@ -1,58 +1,30 @@
-FROM ubuntu:noble
+FROM ros:jazzy-ros-base
 
-ARG ROS_DISTRO=jazzy
+WORKDIR /clover2_ws
+COPY . /clover2_ws/src
 
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Setup locates
-RUN echo 'Europe/Moscow' > /etc/timezone && \
-    ln -s /usr/share/zoneinfo/Europe/Moscow /etc/localtime && \
-    apt-get update && \
-    apt-get install -q -y --no-install-recommends tzdata && \
+RUN apt-get update -y && \
+    rosdep install --from-paths src --ignore-src -r -y && \
+    apt-get install -y \
+        geographiclib-tools && \
     rm -rf /var/lib/apt/lists/*
 
-# Install packages
-RUN apt-get update && apt-get install -q -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    dirmngr \
-    gnupg2 \
-    && rm -rf /var/lib/apt/lists/*
+RUN wget -qO- https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh | sudo bash
 
-# Setup ROS Apt sources
-RUN curl -L -s -o /tmp/ros2-apt-source.deb https://github.com/ros-infrastructure/ros-apt-source/releases/download/1.1.0/ros2-apt-source_1.1.0.jammy_all.deb \
-    && echo "1600cb8cc28258a39bffc1736a75bcbf52d1f2db371a4d020c1b187d2a5a083b /tmp/ros2-apt-source.deb" | sha256sum --strict --check \
-    && apt-get update \
-    && apt-get install /tmp/ros2-apt-source.deb \
-    && rm -f /tmp/ros2-apt-source.deb \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -y && \
+    apt-get install -y \
+        ros-jazzy-mavros-msgs \
+        ros-jazzy-mavros \
+        ros-jazzy-mavros-extras \
+        ros-jazzy-camera-info-manager \
+        ros-jazzy-cv-bridge \
+        ros-jazzy-image-view \
+        ros-jazzy-image-geometry && \
+    rm -rf /var/lib/apt/lists/*
 
-# Setup environment
-ENV LANG=C.UTF-8
-ENV LC_ALL=C.UTF-8
+RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && colcon build --install-base /opt/clover2 --merge-install"
 
-# Install bootstrap tools
-RUN apt-get update && apt-get install --no-install-recommends -y \
-    build-essential \
-    git \
-    python3-colcon-common-extensions \
-    python3-colcon-mixin \
-    python3-rosdep \
-    python3-vcstool \
-    libasio-dev \
-    && rm -rf /var/lib/apt/lists/*
+COPY docker/ros/entrypoint.sh /
 
-# Bootstrap rosdep
-RUN rosdep init && \
-  rosdep update --rosdistro ${ROS_DISTRO}
-
-# Install ros2 packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ros-${ROS_DISTRO}-ros-core=0.10.0-1* \
-    ros-${ROS_DISTRO}-ros-base=0.10.0-1* \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /app/clover2_ws/src
-COPY . ./clover2
-
-RUN . /opt/ros/${ROS_DISTRO}/setup.sh && colcon build --symlink-install
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["bash"]
