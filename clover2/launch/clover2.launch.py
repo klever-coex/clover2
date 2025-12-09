@@ -117,9 +117,9 @@ def generate_launch_description():
             aruco_declare,
             # Launch nodes
             description_cmd,
-            # aruco_cmd,
-            # main_camera_cmd,
+            aruco_cmd,
+            main_camera_cmd,
             fcu_bridge_cmd,
-            # web_support_cmd,
+            web_support_cmd,
         ]
     )

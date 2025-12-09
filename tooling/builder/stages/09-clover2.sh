@@ -39,5 +39,5 @@ sudo systemctl enable clover2.service
 sudo systemctl enable clover2-web.service
 sudo systemctl enable clover2-firstboot.service
 
-log_info "Set image version"
+log_info "Set image version ${CLOVER2_VERSION}"
 echo "CLOVER2_VERSION=${CLOVER2_VERSION}" | sudo tee -a /usr/lib/os-release
