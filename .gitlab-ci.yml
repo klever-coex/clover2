@@ -1,0 +1,112 @@
+variables:
+  IMAGE_ARTIFACT_PATTERN: "build-clover2-image/clover2-*.img"
+
+stages:
+  - docker
+  - image
+
+.docker-setup: &docker-task
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - echo "$DOCKER_REGISTRY_PASSWORD" | docker login registry.gitlab.com --username $DOCKER_REGISTRY_USER --password-stdin
+  after_script:
+    - echo "Fixing permissions for cleanup..."
+    - sudo chown -R $(id -u):$(id -g) . 2>/dev/null || true
+
+.job-master: &job-master
+  variables:
+    BUILD_MODE: master
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "master"
+
+.job-mr: &job-mr
+  variables:
+    BUILD_MODE: develop
+  only:
+    - merge_request
+
+.job-release: &job-release
+  variables:
+    BUILD_MODE: release
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^master$/
+
+.docker-bake: &docker-bake
+  <<: *docker-task
+  stage: docker
+  script:
+    - task clover2-docker:bake TARGET=$BAKE_TARGET
+
+.docker-build-deploy: &docker-build-deploy
+  <<: *docker-bake
+  variables:
+    BAKE_GROUP: "clover2-deploy"
+
+.docker-build-tooling: &docker-build-tooling
+  <<: *docker-bake
+  variables:
+    BAKE_GROUP: "clover2-tooling"
+
+.image-builder-in-docker: &image-builder-in-docker
+  <<: *docker-task
+  stage: image
+  when: manual
+  script:
+    - task clover2-builder:in-docker TASK=download
+    - task clover2-builder:in-docker TASK=build
+  artifacts:
+    paths:
+      - ${IMAGE_ARTIFACT_PATTERN}
+  artifacts:
+    name: "clover2-image-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - ${IMAGE_ARTIFACT_PATTERN}
+    expire_in: 1 week
+    when: on_success
+
+docker-build-deploy-master:
+  <<: *job-master
+  <<: *docker-build-deploy
+
+docker-build-deploy-mr:
+  <<: *job-mr
+  <<: *docker-build-deploy
+
+docker-build-deploy-release:
+  <<: *job-release
+  <<: *docker-build-deploy
+
+docker-build-tooling-master:
+  <<: *job-master
+  <<: *docker-build-tooling
+
+docker-build-tooling-mr:
+  <<: *job-mr
+  <<: *docker-build-tooling
+
+docker-build-tooling-release:
+  <<: *job-release
+  <<: *docker-build-tooling
+
+image-build-master:
+  <<: *job-master
+  <<: *image-builder-in-docker
+  needs:
+    - docker-build-tooling-master
+    - docker-build-deploy-master
+
+image-build-mr:
+  <<: *job-mr
+  <<: *image-builder-in-docker
+  needs:
+    - docker-build-tooling-mr
+    - docker-build-deploy-mr
+
+image-build-release:
+  <<: *job-release
+  <<: *image-builder-in-docker
+  needs:
+    - docker-build-tooling-release
+    - docker-build-deploy-release

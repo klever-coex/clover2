@@ -1,5 +1,4 @@
 FROM python:3.11-slim AS builder
-# FROM alpine:3.14 AS builder
 
 RUN apt-get update && \
     apt-get install -y make && \
@@ -12,7 +11,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 RUN make html
 
-FROM nginx:1.25-alpine
+FROM nginx:1.29.3-alpine-slim
 
 COPY --from=builder /app/build/html /usr/share/nginx/html
 
