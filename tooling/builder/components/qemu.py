@@ -10,6 +10,10 @@ from .component_base import ComponentBase
 
 logger = logging.getLogger(__name__)
 
+def serialize_dict(d: dict):
+    envs_map = [f'{k}="{v}"' for k, v in d.items()]
+    return ' '.join(envs_map)
+
 @dataclass
 class QemuConfig:
     image: pathlib.Path
@@ -41,9 +45,10 @@ class Qemu(ComponentBase):
             async with conn.start_sftp_client() as sftp:
                 await sftp.put(src, dest, recurse=True)
 
-    async def execute(self, cmd):
+    async def execute(self, cmd, secrets = {}):
         async with asyncssh.connect('localhost', username=self.cfg.ssh_user, password=self.cfg.ssh_password, port=self.cfg.ssh_port, known_hosts=None) as conn:
-            async with conn.create_process(cmd) as process:
+            final_cmd = f'{serialize_dict(secrets)} {cmd}'
+            async with conn.create_process(final_cmd) as process:
                 async for stdout_data in process.stdout:
                     logger.getChild("ssh").info(stdout_data.rstrip())
 

@@ -49,6 +49,9 @@ run_stage() {
 
 mkdir -p $STAGES_LOG_DIR
 
+echo $BUILD_MODE
+echo $DOCKER_REGISTRY_USER
+
 for stage in "$STAGES_DIR"/*; do
     if [ -f "$stage" ]; then
         run_stage "$stage"

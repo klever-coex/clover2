@@ -64,15 +64,6 @@ tasks:
     cmds:
       - /bin/bash ${PROJECT_DIR}/tooling/builder/image-setup.sh
 
-  test:
-    cmds:
-      - echo "BUILD_MODE=$BUILD_MODE"
-      - echo "DOCKER_REGISTRY_USER=$DOCKER_REGISTRY_USER"
-      - echo "DOCKER_REGISTRY_PASSWORD=$DOCKER_REGISTRY_PASSWORD"
-      - echo "REGISTRY_HOST=$REGISTRY_HOST"
-      - echo "REGISTRY=$REGISTRY"
-      - echo "REGISTRY_POLICY=$REGISTRY_POLICY"
-
   clover2-builder:in-docker:
     desc: "Run any Taskfile task inside the clover2-builder:${CLOVER2_VERSION} docker image. Set TASK env var (e.g. TASK=build)."
     deps:
