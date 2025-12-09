@@ -1,0 +1,83 @@
+version: '3'
+
+env:
+  BUILD_MODE: develop   # develop or master or release
+  REGISTRY: "registry.gitlab.com/coex2/clover2/"
+  REGISTRY_POLICY: build  # build or pull
+  PROJECT_DIR: "{{.TASKFILE_DIR}}"
+  UID:
+    sh: id -u
+  GID:
+    sh: id -g
+  CLOVER2_VERSION:
+    sh: |
+      base="$(cat "${PROJECT_DIR}/VERSION" 2>/dev/null || echo "0.0.0")"
+      case "${BUILD_MODE}" in
+        release)
+          echo "${base}"
+          ;;
+        master|develop)
+          git_hash="$(git -C "${PROJECT_DIR}" rev-parse --short HEAD 2>/dev/null || echo "unknown")"
+          echo "${base}-${git_hash}"
+          ;;
+        *)
+          echo "ERROR: Unknown BUILD_MODE '${BUILD_MODE}'. Expected one of: release, master, develop" >&2
+          exit 1
+          ;;
+      esac
+
+tasks:
+  clover2-docker:bake:
+    desc: "Build docker images using docker buildx bake (uses TARGETs via TARGET var)."
+    vars:
+      TARGET: '{{.TARGET | default "all"}}'
+    cmds:
+      - docker buildx bake --progress=plain {{.TARGET}}
+
+  clover2-docker:print:
+    vars:
+      TARGET: '{{.TARGET | default "all"}}'
+    cmds:
+      - docker buildx bake --print {{.TARGET}}
+
+  clover2-builder:download:
+    desc: "Download base disk image for clover2-builder (uses tooling/builder/download.py)."
+    cmds:
+      - ${PROJECT_DIR}/tooling/builder/download.py --configuration clover2-ubuntu24 --output ${PROJECT_DIR}/build-clover2-image/clover2-{{.CLOVER2_VERSION}}.img
+
+  clover2-builder:build:
+    desc: "Build the clover2 image locally using tooling/builder/builder.py (produces build-clover2-image/*)."
+    cmds:
+      - |
+        ${PROJECT_DIR}/tooling/builder/builder.py \
+          --sudo \
+          --output ${PROJECT_DIR}/build-clover2-image/clover2-{{.CLOVER2_VERSION}}.img
+
+  clover2-builder:image-setup:
+    cmds:
+      - /bin/bash ${PROJECT_DIR}/tooling/builder/image-setup.sh
+
+  clover2-builder:in-docker:
+    desc: "Run any Taskfile task inside the clover2-builder:${CLOVER2_VERSION} docker image. Set TASK env var (e.g. TASK=build)."
+    deps:
+      - task: clover2-docker:bake
+        vars:
+          TARGET: clover2-builder
+    vars:
+      TASK: '{{.TASK}}'
+    cmds:
+      - |
+        docker run \
+          --rm \
+          -i \
+          --privileged \
+          -v /dev:/dev \
+          -v ${PROJECT_DIR}:/builder \
+          -w /builder \
+          ${REGISTRY}clover2-builder:${CLOVER2_VERSION} \
+            sh -c "task clover2-builder:{{.TASK}}"
+
+  clean:
+    desc: "Cleanup build artifacts"
+    cmds:
+      - rm -rf ${PROJECT_DIR}/build-*-image ${PROJECT_DIR}/docs/build

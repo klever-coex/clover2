@@ -1,18 +1,15 @@
 [Unit]
-Description=First Boot Script
+Description=Clover2 First Boot Script
 After=network.target
 Wants=network.target
-# If you use cloud-init, wait for it to finish
 After=cloud-init.target
 
 [Service]
 Type=oneshot
 ExecStart=/root/clover2_firstboot.sh
 RemainAfterExit=no
-# User and group to run as (root is safest for system tasks)
 User=root
 Group=root
-# Standard output and error logging
 StandardOutput=journal
 StandardError=journal
 
