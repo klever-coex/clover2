@@ -4,10 +4,9 @@ dotenv:
   - .env
 
 env:
-  BUILD_MODE: develop   # develop or master or release
+  BUILD_MODE: '{{.BUILD_MODE | default "develop"}}'   # develop or master or release
   REGISTRY_HOST: "registry.gitlab.com"
   REGISTRY: "{{.REGISTRY_HOST}}/coex2/clover2/"
-  REGISTRY_POLICY: build  # build or pull
   PROJECT_DIR: "{{.TASKFILE_DIR}}"
   UID:
     sh: id -u
@@ -61,8 +60,10 @@ tasks:
           --output ${PROJECT_DIR}/build-clover2-image/clover2-{{.CLOVER2_VERSION}}.img
 
   clover2-builder:image-setup:
+    vars:
+      SECRET_SERVER: '{{.SECRET_SERVER | default "127.0.1.1:3000"}}'
     cmds:
-      - /bin/bash ${PROJECT_DIR}/tooling/builder/image-setup.sh
+      - /bin/bash ${PROJECT_DIR}/tooling/builder/image-setup.sh --secret_server {{.SECRET_SERVER}}
 
   clover2-builder:in-docker:
     desc: "Run any Taskfile task inside the clover2-builder:${CLOVER2_VERSION} docker image. Set TASK env var (e.g. TASK=build)."
@@ -77,6 +78,7 @@ tasks:
         docker run \
           --rm \
           -i \
+          --net=host \
           --privileged \
           -v /dev:/dev \
           -v ${PROJECT_DIR}:/builder \
@@ -88,3 +90,7 @@ tasks:
     desc: "Cleanup build artifacts"
     cmds:
       - rm -rf ${PROJECT_DIR}/build-*-image ${PROJECT_DIR}/docs/build
+
+  secret_server:
+    cmds:
+      - ${PROJECT_DIR}/tooling/builder/utils/secret_server.py
