@@ -6,10 +6,11 @@ wget -qO- https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts
 
 log_info "Install MAVROS"
 sudo apt-get install -yq \
-    ros-$ROS_DISTRO-mavros-msgs \
-    ros-$ROS_DISTRO-mavros \
-    ros-$ROS_DISTRO-mavros-extras \
     ros-$ROS_DISTRO-camera-info-manager \
     ros-$ROS_DISTRO-cv-bridge \
+    ros-$ROS_DISTRO-image-geometry \
     ros-$ROS_DISTRO-image-view \
-    ros-$ROS_DISTRO-image-geometry
+    ros-$ROS_DISTRO-mavros \
+    ros-$ROS_DISTRO-mavros-extras \
+    ros-$ROS_DISTRO-mavros-msgs \
+    ros-$ROS_DISTRO-web-video-server

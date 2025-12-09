@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+import os
 import pathlib
 import argparse
 import shutil
@@ -22,6 +23,19 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+
+ENVS_FOR_PASS = [
+    "BUILD_MODE",
+    "REGISTRY_HOST",
+    "REGISTRY",
+    "REGISTRY_POLICY",
+    "DOCKER_REGISTRY_USER",
+    "DOCKER_REGISTRY_PASSWORD"
+]
+
+def envs_to_string(names):
+    envs_map = [f'{name}="{os.environ.get(name)}"' for name in names]
+    return ' '.join(envs_map)
 
 async def chroot_state(args, image: pathlib.Path):
     cfg = ChrootConfig(
@@ -62,11 +76,12 @@ async def qemu_state(args, image: pathlib.Path):
         logger.info("Install Task-go")
         await qemu.execute("curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo bash")
         await qemu.execute("sudo apt-get update && sudo apt-get install -y task")
-        
+
+        logger.info("Cleanup git project")
         await qemu.execute("cd /home/pi/clover2_ws/src/clover2 && git clean -fdx")
 
         logger.info("Run image setup script")
-        await qemu.execute("cd /home/pi/clover2_ws/src/clover2 && task clover2-builder:image-setup")
+        await qemu.execute(f"{envs_to_string(ENVS_FOR_PASS)} cd /home/pi/clover2_ws/src/clover2 && task clover2-builder:image-setup")
 
 
 def parse_args():
@@ -87,7 +102,8 @@ async def main():
 
 if __name__ == "__main__":
     try:
-        asyncio.run(main())
+        # asyncio.run(main())
+        envs_to_string(ENVS_FOR_PASS)
     except KeyboardInterrupt:
         logger.info("Keyboard interrupt")
         exit(-1)

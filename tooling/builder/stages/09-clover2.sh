@@ -18,7 +18,7 @@ python3 $REPO_DIR/tooling/scripts/generate_compose.py \
     --output /opt/clover2/docker-compose.yaml
 
 # TODO:
-# sudo docker compose --project-directory /opt/clover2 pull
+sudo docker compose --project-directory /opt/clover2 pull
 
 log_info "Install udev rules"
 sudo cp $ASSETS_DIR/10-vchiq-permissions.rules /etc/udev/rules.d/
