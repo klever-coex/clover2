@@ -29,9 +29,9 @@ ENVS_FOR_PASS = [
     "DOCKER_REGISTRY_PASSWORD"
 ]
 
-def envs_to_string(names):
-    envs_map = [f'{name}="{os.environ.get(name)}"' for name in names]
-    return ' '.join(envs_map)
+def parse_env(names: list) -> dict:
+    envs_map = {name: os.environ.get(name) for name in names if os.environ.get(name)}
+    return envs_map
 
 async def chroot_state(args, image: pathlib.Path):
     cfg = ChrootConfig(
@@ -69,15 +69,16 @@ async def qemu_state(args, image: pathlib.Path):
             if not re.match(r"^build.*$", item.name) and not item.name == ".venv":
                 await qemu.copy_to(item, ("/home/pi/clover2_ws/src/clover2"))
 
-        # logger.info("Install Task-go")
-        # await qemu.execute("curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo bash")
-        # await qemu.execute("sudo apt-get update && sudo apt-get install -y task")
+        logger.info("Install Task-go")
+        await qemu.execute("curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo bash")
+        await qemu.execute("sudo apt-get update && sudo apt-get install -y task")
 
-        # logger.info("Cleanup git project")
-        # await qemu.execute("cd /home/pi/clover2_ws/src/clover2 && git clean -fdx")
+        logger.info("Cleanup git project")
+        await qemu.execute("cd /home/pi/clover2_ws/src/clover2 && git clean -fdx")
 
         logger.info("Run image setup script")
-        await qemu.execute(f"{envs_to_string(ENVS_FOR_PASS)} cd /home/pi/clover2_ws/src/clover2 && task test")
+        env = parse_env(ENVS_FOR_PASS)
+        await qemu.execute(f"cd /home/pi/clover2_ws/src/clover2 && task clover2-builder:image-setup", env)
 
 
 def parse_args():
