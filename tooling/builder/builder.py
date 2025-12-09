@@ -24,7 +24,6 @@ ENVS_FOR_PASS = [
     "BUILD_MODE",
     "REGISTRY_HOST",
     "REGISTRY",
-    "REGISTRY_POLICY",
     "DOCKER_REGISTRY_USER",
     "DOCKER_REGISTRY_PASSWORD"
 ]
@@ -77,8 +76,7 @@ async def qemu_state(args, image: pathlib.Path):
         await qemu.execute("cd /home/pi/clover2_ws/src/clover2 && git clean -fdx")
 
         logger.info("Run image setup script")
-        env = parse_env(ENVS_FOR_PASS)
-        await qemu.execute(f"cd /home/pi/clover2_ws/src/clover2 && task clover2-builder:image-setup", env)
+        await qemu.execute(f"cd /home/pi/clover2_ws/src/clover2 && task clover2-builder:image-setup")
 
 
 def parse_args():

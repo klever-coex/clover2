@@ -10,6 +10,26 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+POSITIONAL_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -S|--secret_server)
+      SECRET_SERVER="$2"
+      shift
+      shift
+      ;;
+    -*|--*)
+      echo "Unknown option $1"
+      exit 1
+      ;;
+    *)
+      POSITIONAL_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+
 log_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
 }
@@ -25,6 +45,10 @@ log_error() {
 
 log_stage() {
     echo -e "${BLUE}[STAGE]${NC} $1"
+}
+
+fetch_secret() {
+    echo "$(curl -1sLf http://$SECRET_SERVER/secret/$1)"
 }
 
 BUILDER_DIR=$(dirname "$(readlink -f "$0")")
@@ -46,11 +70,6 @@ run_stage() {
 
     cd /home/$USER
 }
-
-mkdir -p $STAGES_LOG_DIR
-
-echo $BUILD_MODE
-echo $DOCKER_REGISTRY_USER
 
 for stage in "$STAGES_DIR"/*; do
     if [ -f "$stage" ]; then

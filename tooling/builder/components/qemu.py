@@ -77,7 +77,7 @@ class Qemu(ComponentBase):
         logger.debug(f"Configure net...")
 
         self.qemu_args += ["-device", "virtio-net-device,netdev=net0"]
-        self.qemu_args += ["-netdev", f"user,id=net0,hostfwd=tcp::{self.cfg.ssh_port}-:22,hostfwd=tcp::8080-:80"]
+        self.qemu_args += ["-netdev", f"user,id=net0,hostfwd=tcp::{self.cfg.ssh_port}-:22"]
 
     def configure_drives(self):
         logger.debug(f"Configure drives...")
