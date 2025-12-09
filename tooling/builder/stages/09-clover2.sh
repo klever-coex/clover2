@@ -1,16 +1,15 @@
 log_info "Build clover2 workspace"
 
 cd /home/$USER/clover2_ws
-source /opt/ros/$ROS_DISTRO/setup.bash
-rosdep install -y --from-paths src --ignore-src
-colcon build --symlink-install
+/bin/bash -c "cd /home/$USER/clover2_ws && source /opt/ros/$ROS_DISTRO/setup.bash && rosdep install -y --from-paths src --ignore-src"
+/bin/bash -c "cd /home/$USER/clover2_ws && source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --symlink-install"
 
 log_info "Create /opt/clover2 dir"
 sudo mkdir /opt/clover2
 sudo chown -R $USER:$USER /opt/clover2
 
 log_info "Install docker"
-sudo python3 $REPO_DIR/tooling/scripts/generate_compose.py \
+python3 $REPO_DIR/tooling/scripts/generate_compose.py \
     --project-root $REPO_DIR \
     --version "$CLOVER2_VERSION" \
     --clover2-docs \
