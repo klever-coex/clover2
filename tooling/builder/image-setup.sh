@@ -47,10 +47,6 @@ log_stage() {
     echo -e "${BLUE}[STAGE]${NC} $1"
 }
 
-fetch_secret() {
-    echo "$(curl -1sLf http://$SECRET_SERVER/secret/$1)"
-}
-
 BUILDER_DIR=$(dirname "$(readlink -f "$0")")
 REPO_DIR=$(readlink -m "$BUILDER_DIR/../..")
 ASSETS_DIR="$BUILDER_DIR/assets"
