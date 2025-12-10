@@ -70,7 +70,7 @@ tasks:
     deps:
       - task: clover2-docker:bake
         vars:
-          TARGET: clover2-builder
+          TARGET: builder
     vars:
       TASK: '{{.TASK}}'
     cmds:
