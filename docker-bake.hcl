@@ -5,7 +5,7 @@ variable "CLOVER2_VERSION" { }
 
 variable "LABELS" {
   default = {
-    "org.opencontainers.image.source"   = "https://gitlab.com/coex2/clover2"
+    # "org.opencontainers.image.source"   = "https://gitlab.com/coex2/clover2"
     "org.opencontainers.image.licenses" = "MIT"
     "org.opencontainers.image.authors"  = "Lapin Matvey"
     "org.opencontainers.image.version"  = "${CLOVER2_VERSION}"
@@ -48,11 +48,11 @@ target "_output" {
 #                                          /_/
 
 group "all" {
-  targets = ["clover2-deploy", "clover2-builder"]
+  targets = ["deploy", "builder"]
 }
 
-group "clover2-tooling" {
-  targets = ["clover2-builder"]
+group "tooling" {
+  targets = ["builder"]
 }
 
 #      ____           ___           __                         __
@@ -61,7 +61,7 @@ group "clover2-tooling" {
 #   /_/  \___/_/   /____/\__/ .__/_/\___/\_, /_/_/_/\__/_//_/\__/
 #                          /_/          /___/
 
-target "clover2-deploy" {
+target "deploy" {
   dockerfile = item.dockerfile
   name = "${item.tgt}"
   tags = item.tags
@@ -84,11 +84,12 @@ target "clover2-deploy" {
         tgt = "clover2-gui"
         tags = tagged("clover2-gui")
       },
-      {
-        dockerfile = "docker/ros/Dockerfile"
-        tgt = "clover2-ros"
-        tags = tagged("clover2-ros")
-      }
+      # TODO: uncomment after release
+      # {
+      #   dockerfile = "docker/ros/Dockerfile"
+      #   tgt = "clover2-ros"
+      #   tags = tagged("clover2-ros")
+      # }
     ]
   }
 }
@@ -99,7 +100,7 @@ target "clover2-deploy" {
 #   /_/  \___/\___/_/_/_//_/\_, /
 #                          /___/
 
-target "clover2-builder" {
+target "builder" {
   context = "."
   dockerfile = "docker/builder/Dockerfile"
   labels = LABELS

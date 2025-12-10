@@ -1,0 +1,4 @@
+#!/bin/sh
+
+figlet -f slant clover2 | lolcat
+echo ""

@@ -5,8 +5,8 @@ dotenv:
 
 env:
   BUILD_MODE: '{{.BUILD_MODE | default "develop"}}'   # develop or master or release
-  REGISTRY_HOST: "registry.gitlab.com"
-  REGISTRY: "{{.REGISTRY_HOST}}/coex2/clover2/"
+  REGISTRY_HOST: "docker.io"
+  REGISTRY: "{{.REGISTRY_HOST}}/lapinmotya/"
   PROJECT_DIR: "{{.TASKFILE_DIR}}"
   UID:
     sh: id -u
@@ -90,7 +90,3 @@ tasks:
     desc: "Cleanup build artifacts"
     cmds:
       - rm -rf ${PROJECT_DIR}/build-*-image ${PROJECT_DIR}/docs/build
-
-  secret_server:
-    cmds:
-      - ${PROJECT_DIR}/tooling/builder/utils/secret_server.py

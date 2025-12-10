@@ -10,17 +10,15 @@ camera_libcamera() {
         libcrypto++-dev \
         libdw-dev \
         libevent-dev \
-        libevent-dev \
         libexif-dev \
         libgstreamer-plugins-base1.0-dev \
         libgstreamer1.0-dev \
         libgtest-dev \
         libjpeg-dev \
         liblttng-ust-dev \
-        libpython3-dev pybind11-dev \
+        libpython3-dev \
         libssl-dev \
         libtiff-dev \
-        libudev-dev \
         libudev-dev \
         libunwind-dev \
         libyaml-dev \
