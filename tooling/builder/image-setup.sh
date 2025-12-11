@@ -65,6 +65,9 @@ run_stage() {
     fi
 
     cd /home/$USER
+
+    sudo apt-get clean -y
+    sudo apt-get autoclean -y
 }
 
 for stage in "$STAGES_DIR"/*; do
