@@ -10,9 +10,12 @@ sudo chown -R $USER:$USER /opt/clover2
 
 log_info "Setup docker compose"
 # Pre-generate docker compose for pull
-DOCKER_COMPOSE_TMPDIR=$(mktemp -d)
-envsubst < $ASSETS_DIR/docker-compose.yaml.in > $DOCKER_COMPOSE_TMPDIR/docker-compose.yaml
-sudo docker compose --project-directory $DOCKER_COMPOSE_TMPDIR pull
+# DOCKER_COMPOSE_TMPDIR=$(mktemp -d)
+# envsubst < $ASSETS_DIR/docker-compose.yaml.in > $DOCKER_COMPOSE_TMPDIR/docker-compose.yaml
+# sudo docker compose --project-directory $DOCKER_COMPOSE_TMPDIR pull
+# podman pull --arch=arm64 "${REGISTRY}clover2-gui:${CLOVER2_VERSION}"
+# podman pull --arch=arm64 "${REGISTRY}clover2-docs:${CLOVER2_VERSION}"
+# podman pull --arch=arm64 "${REGISTRY_HOST}/wettyoss/wetty"
 
 log_info "Install udev rules"
 sudo cp $ASSETS_DIR/udev/* /etc/udev/rules.d/
