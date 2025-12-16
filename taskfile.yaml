@@ -91,4 +91,4 @@ tasks:
   clean:
     desc: "Cleanup build artifacts"
     cmds:
-      - rm -rf ${PROJECT_DIR}/build-*-image ${PROJECT_DIR}/docs/build
+      - rm -rf ${PROJECT_DIR}/build-* ${PROJECT_DIR}/docs/build

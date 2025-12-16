@@ -21,11 +21,17 @@ echo "---> Generate /opt/clover2/docker-compose.yaml <---"
 envsubst < $REPO_DIR/tooling/builder/assets/docker-compose.yaml.in > /opt/clover2/docker-compose.yaml
 chown pi /opt/clover2/docker-compose.yaml
 
-echo "---> Remove firstboot scrip  <---"
+echo "---> Remove firstboot scrip <---"
 systemctl disable clover2-firstboot.service
 rm /etc/systemd/system/clover2-firstboot.service
 systemctl daemon-reload
 
+echo "---> Install docker images <---"
+for f in /root/*.tar; do
+    cat $f | docker load
+done
+
+rm /root/*.tar
 rm /root/clover2_firstboot.sh
 
 echo "---> Reboot <---"

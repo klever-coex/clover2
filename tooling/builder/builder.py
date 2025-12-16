@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import re
-import os
 import pathlib
 import argparse
 import logging
@@ -20,18 +19,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-ENVS_FOR_PASS = [
-    "BUILD_MODE",
-    "REGISTRY_HOST",
-    "REGISTRY",
-    "DOCKER_REGISTRY_USER",
-    "DOCKER_REGISTRY_PASSWORD"
-]
-
-def parse_env(names: list) -> dict:
-    envs_map = {name: os.environ.get(name) for name in names if os.environ.get(name)}
-    return envs_map
-
 async def chroot_state(args, image: pathlib.Path):
     cfg = ChrootConfig(
         image,
@@ -45,8 +32,13 @@ async def chroot_state(args, image: pathlib.Path):
     async with Chroot(cfg) as chroot:
         await chroot.copy_to(
             config.PROJECT_DIR / "tooling/builder/assets/01-nopasswd", "etc/sudoers.d")
+
         await chroot.copy_to(config.PROJECT_DIR /
                              "tooling/builder/assets/user-data", "boot")
+        
+        if config.DOCKER_OUTPUT_DIR.is_dir():
+            for image in config.DOCKER_OUTPUT_DIR.glob("*.tar"):
+                await chroot.copy_to(image, "root/")
 
 
 async def qemu_state(args, image: pathlib.Path):

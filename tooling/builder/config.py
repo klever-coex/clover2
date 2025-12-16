@@ -7,8 +7,10 @@ from typing import Callable
 from dataclasses import dataclass, field
 
 assert os.environ.get("PROJECT_DIR") is not None, "PROJECT_DIR unset"
+assert os.environ.get("DOCKER_OUTPUT_DIR") is not None, "DOCKER_OUTPUT_DIR unset"
 
 PROJECT_DIR: pathlib.Path = pathlib.Path(os.environ.get("PROJECT_DIR"))
+DOCKER_OUTPUT_DIR: pathlib.Path = pathlib.Path(os.environ.get("DOCKER_OUTPUT_DIR"))
 
 
 @dataclass
