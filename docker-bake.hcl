@@ -42,7 +42,7 @@ function "outputs" {
   params = [name]
   result = [
     "type=registry",
-    "type=oci,dest=${DOCKER_OUTPUT_DIR}/${name}_${CLOVER2_VERSION}.tar"
+    "type=oci,dest=${DOCKER_OUTPUT_DIR}/${name}.tar"
   ]
 }
 
@@ -90,10 +90,10 @@ target "project-deploy" {
         dockerfile = "docker/frontend/Dockerfile"
         tgt = "clover2-gui"
       },
-      {
-        dockerfile = "docker/ros/Dockerfile"
-        tgt = "clover2-ros"
-      }
+      # {
+      #   dockerfile = "docker/ros/Dockerfile"
+      #   tgt = "clover2-ros"
+      # }
     ]
   }
 }
@@ -120,7 +120,7 @@ target "builder" {
   dockerfile = item.dockerfile
   name = "${item.tgt}"
   tags = tagged(item.tgt)
-  output = outputs(item.tgt)
+  output = ["type=registry"]
 
   context = "."
   labels = LABELS

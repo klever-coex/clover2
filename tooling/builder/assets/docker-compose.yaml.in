@@ -10,7 +10,7 @@ services:
     ports:
     - 80:80
   clover2-wetty:
-    image: wettyoss/wetty
+    image: ${REGISTRY}clover2-wetty:${CLOVER2_VERSION}
     restart: unless-stopped
     command: --ssh-user pi --ssh-host ${HOSTNAME}
     ports:
