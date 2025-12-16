@@ -27,4 +27,4 @@ dist
 dist-ssr
 *.local
 
-/build-*-image/
+/build-*

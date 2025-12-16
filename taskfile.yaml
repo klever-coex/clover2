@@ -5,9 +5,10 @@ dotenv:
 
 env:
   BUILD_MODE: '{{.BUILD_MODE | default "develop"}}'   # develop or master or release
-  REGISTRY_HOST: "docker.io"
-  REGISTRY: "{{.REGISTRY_HOST}}/lapinmotya/"
+  REGISTRY_HOST: "registry.gitlab.com"
+  REGISTRY: "{{.REGISTRY_HOST}}/coex2/clover2/"
   PROJECT_DIR: "{{.TASKFILE_DIR}}"
+  DOCKER_OUTPUT_DIR: "{{.PROJECT_DIR}}/build-docker"
   UID:
     sh: id -u
   GID:
@@ -35,6 +36,7 @@ tasks:
     vars:
       TARGET: '{{.TARGET | default "all"}}'
     cmds:
+      - mkdir -p ${DOCKER_OUTPUT_DIR}
       - docker buildx bake --progress=plain {{.TARGET}}
 
   clover2-docker:print:

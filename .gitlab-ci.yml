@@ -10,7 +10,7 @@ stages:
   services:
     - docker:dind
   before_script:
-    - echo "$DOCKER_REGISTRY_PASSWORD" | docker login --username $DOCKER_REGISTRY_USER --password-stdin
+    - echo "$DOCKER_REGISTRY_PASSWORD" | docker login registry.gitlab.com --username $DOCKER_REGISTRY_USER --password-stdin
   after_script:
     - echo "Fixing permissions for cleanup..."
     - sudo chown -R $(id -u):$(id -g) . 2>/dev/null || true
