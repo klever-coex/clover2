@@ -21,9 +21,6 @@ sudo cp $ASSETS_DIR/ros2_launch.sh /opt/clover2/
 sudo chmod +x /root/clover2_firstboot.sh
 sudo chmod +x /opt/clover2/ros2_launch.sh
 
-log_info "Setup firstboot script"
-sudo 
-
 log_info "Install clover2 services"
 sudo cp $ASSETS_DIR/systemd/* /etc/systemd/system/
 
