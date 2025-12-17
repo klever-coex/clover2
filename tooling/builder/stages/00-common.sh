@@ -18,7 +18,8 @@ sudo apt-get install -qy \
     raspi-config
 
 log_info "Copy build variables into image"
+
 CLOVER2_ENV_FILE="/root/.clover2-env"
-echo "export REGISTRY=\"$REGISTRY\"" >> "$CLOVER2_ENV_FILE"
-echo "export REGISTRY_HOST=\"$REGISTRY_HOST\"" >> "$CLOVER2_ENV_FILE"
-echo "export CLOVER2_VERSION=\"$CLOVER2_VERSION\"" >> "$CLOVER2_ENV_FILE"
+echo "export REGISTRY=\"$REGISTRY\"" | sudo tee -a "$CLOVER2_ENV_FILE"
+echo "export REGISTRY_HOST=\"$REGISTRY_HOST\"" | sudo tee -a "$CLOVER2_ENV_FILE"
+echo "export CLOVER2_VERSION=\"$CLOVER2_VERSION\"" | sudo tee -a "$CLOVER2_ENV_FILE"
