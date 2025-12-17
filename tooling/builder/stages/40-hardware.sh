@@ -12,4 +12,4 @@ echo 'dtparam=fan_temp0_speed=175' | sudo tee -a /boot/firmware/config.txt
 echo 'dtoverlay=uart0-pi5' | sudo tee -a /boot/firmware/config.txt
 
 # Disable console on UART
-sudo sed -i -e 's/\(^\| \)console=serial0,921600\( \|$\)/ /g' -e 's/  */ /g' -e 's/^ //;s/ $//' /boot/firmware/cmdline.txt
+sudo sed -i -e 's/\(^\| \)console=serial0,115200\( \|$\)/ /g' -e 's/  */ /g' -e 's/^ //;s/ $//' /boot/firmware/cmdline.txt
