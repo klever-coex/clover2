@@ -31,3 +31,6 @@ sudo apt-get install -yq \
 log_info "Rosdep"
 sudo rosdep init
 rosdep update
+
+log_info "Add ROS2 source to bashrc"
+echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc

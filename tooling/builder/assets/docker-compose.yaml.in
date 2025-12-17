@@ -12,6 +12,6 @@ services:
   clover2-wetty:
     image: ${REGISTRY}clover2-wetty:${CLOVER2_VERSION}
     restart: unless-stopped
-    command: --ssh-user pi --ssh-host ${HOSTNAME}
+    command: --ssh-user pi --ssh-host ${CLOVER2_HOSTNAME}
     ports:
     - 3000:3000
