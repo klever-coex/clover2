@@ -357,10 +357,10 @@ void detector::produce_diagnostics(
     } else {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "Running");
         stat.add("Map", m_map_client->get_name());
+        stat.add("Camera Frame ID", m_camera_model.tfFrame());
+        stat.add("Markers Detected", m_last_marker_count);
     }
 
-    stat.add("Camera Frame ID", m_camera_model.tfFrame());
-    stat.add("Markers Detected", m_last_marker_count);
     stat.add("Dictionary ID", m_dictionary_id);
 }
 
