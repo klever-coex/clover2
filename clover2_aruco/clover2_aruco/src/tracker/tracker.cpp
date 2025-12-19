@@ -150,8 +150,6 @@ void tracker::markers_callback(
     result_pose.translate(avg_translation);
     result_pose.rotate(avg_quat);
     estimated_pose.pose = tf2::toMsg(result_pose);
-    // estimated_pose.pose.position.x *= -1.0;
-    // estimated_pose.pose.position.y *= -1.0;
 
     // publish estimated pose
     m_pose_pub->publish(estimated_pose);

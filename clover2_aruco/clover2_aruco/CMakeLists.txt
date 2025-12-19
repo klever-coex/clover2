@@ -14,6 +14,7 @@ find_package(ament_cmake_ros REQUIRED)
 find_package(clover2_aruco_msgs REQUIRED)
 find_package(clover2_common REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(diagnostic_updater REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(image_geometry REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -21,9 +22,9 @@ find_package(rclcpp_components REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(tf2_eigen REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
-find_package(tf2_eigen REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 # Find OpenCV with ArUco module support
@@ -34,6 +35,7 @@ set(dependencies
   clover2_aruco_msgs
   clover2_common
   cv_bridge
+  diagnostic_updater
   geometry_msgs
   image_geometry
   rclcpp
@@ -41,9 +43,9 @@ set(dependencies
   rclcpp_lifecycle
   sensor_msgs
   std_msgs
+  tf2_eigen
   tf2_geometry_msgs
   tf2_ros
-  tf2_eigen
 )
 
 # ============================================================================
