@@ -146,10 +146,10 @@ private:
     image_geometry::PinholeCameraModel m_camera_model;  ///< Camera model
 
     // Detection parameters
-    size_t m_last_marker_count;  ///< Last detected marker count
-    bool m_tf_publish;           ///< Flag to enable TF publishing
-    int m_dictionary_id;         ///< OpenCV ArUco dictionary ID
-    double m_marker_size;        ///< Marker size in meters
+    size_t m_last_marker_count;     ///< Last detected marker count
+    bool m_tf_publish;              ///< Flag to enable TF publishing
+    std::string m_dictionary_name;  ///< OpenCV ArUco dictionary ID
+    double m_marker_size;           ///< Marker size in meters
     std::shared_ptr<map_client>
         m_map_client;  ///< Map client for marker metadata
     cv::Ptr<cv::aruco::Dictionary> m_dictionary;  ///< ArUco dictionary object

@@ -48,7 +48,7 @@ detector::detector(const rclcpp::NodeOptions& options)
                 throw std::runtime_error("invalid marker type " +
                                          p.as_string());
             }
-            m_dictionary_id = dictionary_id->second;
+            m_dictionary_name = p.as_string();
         },
         "Used marker dictionary");
 
@@ -79,8 +79,9 @@ detector::detector(const rclcpp::NodeOptions& options)
 detector::CallbackReturn detector::on_configure(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     m_detector_parameters = cv::aruco::DetectorParameters::create();
-    m_dictionary = cv::makePtr<cv::aruco::Dictionary>(
-        cv::aruco::getPredefinedDictionary(m_dictionary_id));
+    m_dictionary =
+        cv::makePtr<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(
+            marker_dictionary_map.at(m_dictionary_name)));
 
     m_diagnostic_updater = std::make_shared<diagnostic_updater::Updater>(this);
     m_diagnostic_updater->setHardwareID(this->get_name());
@@ -361,7 +362,7 @@ void detector::produce_diagnostics(
         stat.add("Markers Detected", m_last_marker_count);
     }
 
-    stat.add("Dictionary ID", m_dictionary_id);
+    stat.add("Dictionary ID", m_dictionary_name);
 }
 
 }  // namespace clover2_aruco
