@@ -85,9 +85,9 @@ public:
 
     bool valid() const { return m_map_valid; }
 
-    const char* get_name() const { return m_name.c_str(); }
+    std::string get_name() const { return m_name; }
 
-    const std::string& get_map_id() const { return m_map_id; }
+    std::string get_map_id() const { return m_map_id; }
 
     double get_marker_size(int id) const { return m_markers.at(id).size; }
 
@@ -152,7 +152,7 @@ private:
                 auto resp = future.get();
                 RCLCPP_INFO(m_logger,
                             "Update map from %s to %s with %ld markers",
-                            get_name(), resp->map.name.c_str(),
+                            get_name().c_str(), resp->map.name.c_str(),
                             resp->map.markers.size());
 
                 update_cached_map(resp->map);

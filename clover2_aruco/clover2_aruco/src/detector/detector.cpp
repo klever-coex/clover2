@@ -82,6 +82,12 @@ detector::CallbackReturn detector::on_configure(
     m_dictionary = cv::makePtr<cv::aruco::Dictionary>(
         cv::aruco::getPredefinedDictionary(m_dictionary_id));
 
+    m_diagnostic_updater = std::make_shared<diagnostic_updater::Updater>(this);
+    m_diagnostic_updater->setHardwareID(this->get_name());
+
+    m_diagnostic_updater->add("Detector Status", this,
+                              &detector::produce_diagnostics);
+
     return detector::CallbackReturn::SUCCESS;
 }
 
@@ -130,6 +136,8 @@ detector::CallbackReturn detector::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     m_detector_parameters.reset();
     m_dictionary.reset();
+
+    m_diagnostic_updater.reset();
 
     return detector::CallbackReturn::SUCCESS;
 }
@@ -184,6 +192,11 @@ void detector::image_callback(
 
     if (!m_map_client->valid()) {
         RCLCPP_ERROR(get_logger(), "Invalid map");
+        return;
+    }
+
+    if (!m_camera_model.initialized()) {
+        RCLCPP_ERROR(get_logger(), "Camera info not initialized");
         return;
     }
 
@@ -256,6 +269,9 @@ void detector::image_callback(
         }
     }
 
+    // update for diagnostics
+    m_last_marker_count = marker_array->markers.size();
+
     if (!transforms.empty() && m_tf_publish) {
         m_tf_broadcaster->sendTransform(transforms);
     }
@@ -279,6 +295,11 @@ void detector::image_callback(
 void detector::camera_info_callback(
     const sensor_msgs::msg::CameraInfo::ConstSharedPtr msg) {
     std::lock_guard<std::mutex> guard(m_camera_info_mtx);
+
+    // validate camera info
+    if (msg->height == 0 || msg->width == 0 || msg->d.size() == 0) {
+        return;
+    }
 
     m_camera_model.fromCameraInfo(msg);
 }
@@ -323,6 +344,24 @@ void detector::fill_translation(geometry_msgs::msg::Vector3& translation,
 
 std::string detector::get_marker_frame_id(const int id) const {
     return m_aruco_frame_id + std::to_string(id);
+}
+
+void detector::produce_diagnostics(
+    diagnostic_updater::DiagnosticStatusWrapper& stat) {
+    if (!m_camera_model.initialized()) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Waiting for Camera Info");
+    } else if (!m_map_client || !m_map_client->valid()) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+                     "Map Invalid or Missing");
+    } else {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "Running");
+        stat.add("Map", m_map_client->get_name());
+    }
+
+    stat.add("Camera Frame ID", m_camera_model.tfFrame());
+    stat.add("Markers Detected", m_last_marker_count);
+    stat.add("Dictionary ID", m_dictionary_id);
 }
 
 }  // namespace clover2_aruco

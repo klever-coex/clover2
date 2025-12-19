@@ -3,9 +3,7 @@
     startup_px4_usb_quirk: false
 
     plugin_denylist:
-      # common
-
-      # extras
+      - camera
       - debug_value
       - distance_sensor
       - fake_gps
@@ -15,17 +13,19 @@
       - gps_input
       - gps_rtk
       - gps_status
+      - guided_target
       - hil
       - image_pub
-      - rangefinder
-      - wheel_odometry
+      - mocap
       - open_drone_id
-      - terrain
-      - wind_estimation
+      - play_tune
+      - rangefinder
       - setpoint_accel
-      - camera
       - setpoint_trajectory
-      - guided_target
+      - tdr_radio
+      - terrain
+      - wheel_odometry
+      - wind_estimation
 
 # --- system plugins ---
 

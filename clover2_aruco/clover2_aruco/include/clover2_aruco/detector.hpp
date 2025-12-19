@@ -1,6 +1,7 @@
 #pragma once
 
 // ROS2 includes
+#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <image_geometry/pinhole_camera_model.hpp>
 #include <rclcpp/rclcpp.hpp>
 
@@ -132,6 +133,12 @@ public:
      */
     std::string get_marker_frame_id(const int id) const;
 
+    /**
+     * @brief Produce diagnostics information for the node.
+     * @param stat Diagnostic status wrapper
+     */
+    void produce_diagnostics(diagnostic_updater::DiagnosticStatusWrapper& stat);
+
 private:
     // Camera parameters
     std::string m_aruco_frame_id;  ///< Base frame for ArUco markers
@@ -139,9 +146,10 @@ private:
     image_geometry::PinholeCameraModel m_camera_model;  ///< Camera model
 
     // Detection parameters
-    bool m_tf_publish;
-    int m_dictionary_id;   ///< OpenCV ArUco dictionary ID
-    double m_marker_size;  ///< Marker size in meters
+    size_t m_last_marker_count;  ///< Last detected marker count
+    bool m_tf_publish;           ///< Flag to enable TF publishing
+    int m_dictionary_id;         ///< OpenCV ArUco dictionary ID
+    double m_marker_size;        ///< Marker size in meters
     std::shared_ptr<map_client>
         m_map_client;  ///< Map client for marker metadata
     cv::Ptr<cv::aruco::Dictionary> m_dictionary;  ///< ArUco dictionary object
@@ -151,6 +159,10 @@ private:
     // TF
     std::shared_ptr<tf2_ros::TransformBroadcaster>
         m_tf_broadcaster;  ///< TF broadcaster
+
+    // diagnostics
+    std::shared_ptr<diagnostic_updater::Updater>
+        m_diagnostic_updater;  ///< Diagnostic updater
 
     // Publishers and subscribers
     rclcpp::Publisher<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr
