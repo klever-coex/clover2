@@ -19,9 +19,9 @@
     ExposureTimeMode: 1
     format: 'RGB888'
     frame_id: 'main_camera_link'
-    height: 600
+    height: 480
     StatsOutputEnable: false
-    width: 800
+    width: 640
 
 /**/main_camera_aruco_detector:
   ros__parameters:
