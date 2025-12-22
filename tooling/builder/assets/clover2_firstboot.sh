@@ -33,6 +33,9 @@ for f in /root/*.tar; do
     cat $f | docker load
 done
 
+echo "---> Expand filesystem <---"
+sudo raspi-config nonint do_expand_rootfs | true
+
 rm /root/*.tar
 rm /root/clover2_firstboot.sh
 
