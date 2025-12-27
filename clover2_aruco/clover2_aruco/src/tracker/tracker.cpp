@@ -49,6 +49,9 @@ tracker::CallbackReturn tracker::on_activate(
     m_pose_pub = create_publisher<geometry_msgs::msg::PoseStamped>(
         "~/pose", rclcpp::SystemDefaultsQoS());
 
+    m_pose_cov_pub = create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
+        "~/pose_cov", rclcpp::SystemDefaultsQoS());
+
     m_poses_debug_pub = create_publisher<geometry_msgs::msg::PoseArray>(
         "~/poses_debug", rclcpp::SystemDefaultsQoS());
 
@@ -63,6 +66,7 @@ tracker::CallbackReturn tracker::on_deactivate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     m_markers_sub.reset();
     m_pose_pub.reset();
+    m_pose_cov_pub.reset();
     m_poses_debug_pub.reset();
 
     m_map_client.reset();
@@ -111,6 +115,9 @@ void tracker::markers_callback(
     estimated_pose.header.stamp = msg->header.stamp;
     estimated_pose.header.frame_id = m_map_client->get_map_id();
 
+    geometry_msgs::msg::PoseWithCovarianceStamped estimated_pose_cov;
+    estimated_pose_cov.header = estimated_pose.header;
+
     // debug poses of camera from each marker
     geometry_msgs::msg::PoseArray poses_debug;
     poses_debug.header.stamp = msg->header.stamp;
@@ -144,15 +151,26 @@ void tracker::markers_callback(
     avg_translation /= static_cast<double>(msg->markers.size());
     cumulative_q /= static_cast<double>(msg->markers.size());
     avg_quat.coeffs() = cumulative_q.normalized();
+    
 
     // fill pose msg
     Eigen::Affine3d result_pose = Eigen::Affine3d::Identity();
     result_pose.translate(avg_translation);
     result_pose.rotate(avg_quat);
+    
     estimated_pose.pose = tf2::toMsg(result_pose);
+    estimated_pose_cov.pose.pose = estimated_pose.pose;
+    estimated_pose_cov.pose.covariance[0] = 0.1;
+    estimated_pose_cov.pose.covariance[7] = 0.1;
+    estimated_pose_cov.pose.covariance[14] = 0.1;
+
+    estimated_pose_cov.pose.covariance[21] = 0.05;
+    estimated_pose_cov.pose.covariance[28] = 0.05;
+    estimated_pose_cov.pose.covariance[35] = 0.05;
 
     // publish estimated pose
     m_pose_pub->publish(estimated_pose);
+    m_pose_cov_pub->publish(estimated_pose_cov);
 
     // publish tracker id poses form each marker
     if (m_poses_debug_pub->get_subscription_count() != 0) {
