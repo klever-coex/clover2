@@ -1,12 +1,24 @@
-name: example
+name: test
 frame_id: map
 version: 0
 default_size: 0.15
 
 markers:
-  - id: 25
+  - id: 0
     size: 0.35
     pose:
-      x: 1
-  - id: 10
+      x: 0.0
+      y: 0.0
+      z: 0
+      rot_z: 0
+      rot_y: 0
+      rot_x: 0
+  - id: 1
     size: 0.35
+    pose:
+      x: 1.0
+      y: 0.0
+      z: 0
+      rot_z: 0
+      rot_y: 0
+      rot_x: 0
