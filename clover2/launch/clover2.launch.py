@@ -9,6 +9,7 @@ from launch.substitutions import (
     PathJoinSubstitution,
     TextSubstitution,
 )
+from launch_ros.actions import Node
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 from ament_index_python.packages import get_package_share_directory
@@ -106,6 +107,17 @@ def generate_launch_description():
             "params_file": params_file,
         }.items(),
     )
+    
+    ekf_cmd = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='screen',
+        parameters=[os.path.join(pkg_clover2, 'params', 'robot_localization.yaml')],
+        remappings=[
+            # ("/odometry/filtered", "/mavros/"),
+        ],
+    )
 
     return LaunchDescription(
         [
@@ -121,5 +133,6 @@ def generate_launch_description():
             main_camera_cmd,
             fcu_bridge_cmd,
             web_support_cmd,
+            ekf_cmd,
         ]
     )

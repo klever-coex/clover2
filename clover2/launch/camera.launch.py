@@ -71,7 +71,10 @@ def launch_setup(context, *args, **kwargs):
     load_composible = RegisterEventHandler(
         OnProcessStart(
             target_action=camera_container,
-            on_start=[camera_component, aruco_detector_component],
+            on_start=[
+                # camera_component,
+                aruco_detector_component
+            ],
         )
     )
 

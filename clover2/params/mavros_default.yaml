@@ -227,8 +227,8 @@
 /**/vision_pose:
   ros__parameters:
     tf.listen: false           # enable tf listener (disable topic subscribers)
-    tf.frame_id: "odom"
-    tf.child_frame_id: "vision_estimate"
+    tf.frame_id: "map"
+    tf.child_frame_id: "base_link"
     tf.rate_limit: 20.0
 
 # vision_speed_estimate
