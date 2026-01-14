@@ -64,7 +64,7 @@ async def qemu_state(args, image: pathlib.Path):
         await qemu.execute("sudo apt-get update && sudo apt-get install -y make")
 
         logger.info("Cleanup git project")
-        await qemu.execute("cd /home/pi/clover2_ws/src/clover2 && git clean -fdx")
+        await qemu.execute("cd /home/pi/clover2_ws/src/clover2 && git reset --hard HEAD && git clean -fdx")
 
         logger.info("Run image setup script")
         await qemu.execute(f"cd /home/pi/clover2_ws/src/clover2 && make builder-image-setup")

@@ -53,6 +53,9 @@ protected:
     SetParametersResult on_set_parameters_cb(
         const std::vector<rclcpp::Parameter>& parameters);
 
+    void produce_lifecycle_diagnostics(
+        diagnostic_updater::DiagnosticStatusWrapper& status);
+
     rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr
         m_set_parameters_handle_ptr;
 
