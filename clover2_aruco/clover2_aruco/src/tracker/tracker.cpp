@@ -13,6 +13,7 @@ namespace clover2_aruco {
 tracker::tracker(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("tracker", options) {
     enable_watch_parameters();
+    enable_diagnostic_updater();
 
     declare_and_watch_parameter<std::string>(
         "tracking", "base_link",

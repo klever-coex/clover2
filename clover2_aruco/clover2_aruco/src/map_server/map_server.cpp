@@ -14,6 +14,7 @@ map_server::map_server(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("map_server", options)
     , m_map_path("") {
     enable_watch_parameters();
+    enable_diagnostic_updater();
 
     declare_and_watch_parameter<std::string>(
         "map", "",

@@ -39,6 +39,7 @@ namespace clover2_aruco {
 detector::detector(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("aruco_detector", options) {
     enable_watch_parameters();
+    enable_diagnostic_updater();
 
     declare_and_watch_parameter<std::string>(
         "marker_dict", "4X4_250",
