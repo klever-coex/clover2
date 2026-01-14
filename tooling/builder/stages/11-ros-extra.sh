@@ -14,6 +14,7 @@ sudo apt-get install -yq \
     ros-$ROS_DISTRO-mavros \
     ros-$ROS_DISTRO-mavros-extras \
     ros-$ROS_DISTRO-mavros-msgs \
+    ros-$ROS_DISTRO-tf-transformations \
     ros-$ROS_DISTRO-web-video-server
 
 log_info "Copy camera calibration files"

@@ -1,8 +1,10 @@
 #pragma once
 
+#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
+// STL
 #include <memory>
 #include <string>
 #include <thread>
@@ -45,6 +47,7 @@ public:
     }
 
     void enable_watch_parameters();
+    void enable_diagnostic_updater();
 
 protected:
     SetParametersResult on_set_parameters_cb(
@@ -55,6 +58,7 @@ protected:
 
     rclcpp::TimerBase::SharedPtr m_init_timer;
 
+    std::shared_ptr<diagnostic_updater::Updater> m_diagnostic_updater;
     std::unordered_map<std::string, ParameterFunctorT> m_watch_parameters;
 };
 
