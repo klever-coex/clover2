@@ -57,9 +57,14 @@ void lifecycle_node::enable_watch_parameters() {
 void lifecycle_node::enable_diagnostic_updater() {
     m_diagnostic_updater = std::make_shared<diagnostic_updater::Updater>(this);
     m_diagnostic_updater->setHardwareID(this->get_name());
+
+    m_diagnostic_updater->add(
+        "Lifecycle State",
+        std::bind(&lifecycle_node::produce_lifecycle_diagnostics, this,
+                  std::placeholders::_1));
 }
 
-void produce_lifecycle_diagnostics(
+void lifecycle_node::produce_lifecycle_diagnostics(
     diagnostic_updater::DiagnosticStatusWrapper& status) {
     uint8_t level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     auto& state = this->get_current_state();
@@ -89,7 +94,7 @@ void produce_lifecycle_diagnostics(
             break;
     }
 
-    status.summaryf(level, "ID Lookup failed");
+    status.summaryf(level, "Lifecycle State: %s", state.label().c_str());
 }
 
 }  // namespace clover2_common
