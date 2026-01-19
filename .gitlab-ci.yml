@@ -37,25 +37,25 @@ stages:
   <<: *docker-task
   stage: docker
   script:
-    - task clover2-docker:bake TARGET=$BAKE_TARGET
+    - make docker-bake-$BAKE_TARGET
 
 .docker-build-deploy: &docker-build-deploy
   <<: *docker-bake
   variables:
-    BAKE_GROUP: "clover2-deploy"
+    BAKE_GROUP: "deploy"
 
 .docker-build-tooling: &docker-build-tooling
   <<: *docker-bake
   variables:
-    BAKE_GROUP: "clover2-tooling"
+    BAKE_GROUP: "tooling"
 
 .image-builder-in-docker: &image-builder-in-docker
   <<: *docker-task
   stage: image
   when: manual
   script:
-    - task clover2-builder:in-docker TASK=download
-    - task clover2-builder:in-docker TASK=build
+    - make builder-download-in-docker
+    - make builder-build-in-docker
   artifacts:
     paths:
       - ${IMAGE_ARTIFACT_PATTERN}

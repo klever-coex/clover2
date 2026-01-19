@@ -49,6 +49,8 @@ public:
     void enable_watch_parameters();
     void enable_diagnostic_updater();
 
+    std::shared_ptr<diagnostic_updater::Updater> get_diagnostic_updater();
+
 protected:
     SetParametersResult on_set_parameters_cb(
         const std::vector<rclcpp::Parameter>& parameters);
