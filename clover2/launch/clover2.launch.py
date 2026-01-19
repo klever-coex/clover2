@@ -23,6 +23,7 @@ def generate_launch_description():
     params_file = LaunchConfiguration("params_file")
     fcu_conn = LaunchConfiguration("fcu_conn")
     aruco = LaunchConfiguration("aruco")
+    optical_flow = LaunchConfiguration("optical_flow")
 
     # Declare arguments
     use_sim_time_declare = DeclareLaunchArgument(
@@ -49,6 +50,10 @@ def generate_launch_description():
 
     aruco_declare = DeclareLaunchArgument(
         "aruco", default_value="true", description="Enable aruco navigation"
+    )
+    
+    optical_flow_declare = DeclareLaunchArgument(
+        "optical_flow", default_value="true", description="Enable optical flow"
     )
 
     # Start additional launch files
@@ -81,6 +86,7 @@ def generate_launch_description():
             "params_file": params_file,
             "camera_name": TextSubstitution(text="main_camera"),
             "aruco_detector": aruco,
+            "optical_flow": optical_flow,
         }.items(),
     )
 

@@ -64,6 +64,11 @@ void lifecycle_node::enable_diagnostic_updater() {
                   std::placeholders::_1));
 }
 
+std::shared_ptr<diagnostic_updater::Updater>
+lifecycle_node::get_diagnostic_updater() {
+    return m_diagnostic_updater;
+}
+
 void lifecycle_node::produce_lifecycle_diagnostics(
     diagnostic_updater::DiagnosticStatusWrapper& status) {
     uint8_t level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;

@@ -40,6 +40,8 @@ detector::detector(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("aruco_detector", options) {
     enable_watch_parameters();
     enable_diagnostic_updater();
+    
+    m_diagnostic_updater = get_diagnostic_updater();
 
     declare_and_watch_parameter<std::string>(
         "marker_dict", "4X4_250",
@@ -83,9 +85,6 @@ detector::CallbackReturn detector::on_configure(
     m_dictionary =
         cv::makePtr<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(
             marker_dictionary_map.at(m_dictionary_name)));
-
-    m_diagnostic_updater = std::make_shared<diagnostic_updater::Updater>(this);
-    m_diagnostic_updater->setHardwareID(this->get_name());
 
     m_diagnostic_updater->add("Detector Status", this,
                               &detector::produce_diagnostics);
@@ -139,7 +138,7 @@ detector::CallbackReturn detector::on_cleanup(
     m_detector_parameters.reset();
     m_dictionary.reset();
 
-    m_diagnostic_updater.reset();
+    m_diagnostic_updater->removeByName("Detector Status");
 
     return detector::CallbackReturn::SUCCESS;
 }
