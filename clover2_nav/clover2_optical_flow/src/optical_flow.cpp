@@ -13,9 +13,6 @@ namespace clover2_optical_flow {
 
 optical_flow::optical_flow(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("optical_flow", options)
-    , m_roi_px(128)
-    , m_calc_flow_gyro(false)
-    , m_flow_gyro_default(NAN)
     , m_fcu_frame_id("base_link")
     , m_local_frame_id("map")
     , m_prev_stamp(rclcpp::Time(0))
@@ -85,13 +82,12 @@ optical_flow::CallbackReturn optical_flow::on_activate(
     m_debug_pub = this->create_publisher<sensor_msgs::msg::Image>(
         "~/debug", rclcpp::SystemDefaultsQoS());
 
-    // Create camera info subscriber
+    // Create subscribers
     m_camera_info_sub = this->create_subscription<sensor_msgs::msg::CameraInfo>(
         "~/camera_info", rclcpp::SensorDataQoS(),
         std::bind(&optical_flow::camera_info_callback, this,
                   std::placeholders::_1));
 
-    // Create image subscriber
     m_image_sub = this->create_subscription<sensor_msgs::msg::Image>(
         "~/image_raw", rclcpp::SensorDataQoS(),
         std::bind(&optical_flow::flow_callback, this, std::placeholders::_1));
@@ -205,13 +201,11 @@ void optical_flow::flow_callback(
     flow_msg.temperature = 0;
 
     double response;
-    cv::Point2d shift = cv::phaseCorrelate(m_prev, m_curr, m_hann, &response);
+    cv::Point2d phase_shift = cv::phaseCorrelate(m_prev, m_curr, m_hann, &response);
 
     // Undistort flow in pixels
-    uint32_t flow_center_x = msg->width / 2;
-    uint32_t flow_center_y = msg->height / 2;
-    shift.x += flow_center_x;
-    shift.y += flow_center_y;
+    cv::Point2d image_center = cv::Point2d(msg->width, msg->height) / 2.0;
+    cv::Point2d shift = phase_shift + image_center;
 
     std::vector<cv::Point2d> points_dist = {shift};
     std::vector<cv::Point2d> points_undist(1);
@@ -220,8 +214,7 @@ void optical_flow::flow_callback(
     auto dist_coeffs = m_camera_model.distortionCoeffs();
     cv::undistortPoints(points_dist, points_undist, camera_matrix, dist_coeffs,
                         cv::noArray(), camera_matrix);
-    points_undist[0].x -= flow_center_x;
-    points_undist[0].y -= flow_center_y;
+    points_undist[0] -= image_center;
 
     // Calculate flow in radians
     double focal_length_x = camera_matrix(0, 0);
@@ -280,7 +273,7 @@ void optical_flow::flow_callback(
     // Publish debug image
     if (m_debug_pub->get_subscription_count() > 0) {
         // publish debug image
-        draw_flow(img, shift.x, shift.y, response);
+        draw_flow(img, phase_shift.x, phase_shift.y, response);
         cv_bridge::CvImage out_msg;
         out_msg.header.frame_id = msg->header.frame_id;
         out_msg.header.stamp = msg->header.stamp;
@@ -318,11 +311,6 @@ geometry_msgs::msg::Vector3Stamped optical_flow::calc_flow_gyro(
     flow.vector.z = -diff.z();
 
     return flow;
-}
-
-void optical_flow::vpe_callback(
-    const geometry_msgs::msg::PoseStamped::ConstSharedPtr& msg) {
-    m_last_vpe_time = rclcpp::Time(msg->header.stamp);
 }
 
 }  // namespace clover2_optical_flow

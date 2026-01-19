@@ -66,12 +66,6 @@ public:
     void flow_callback(const sensor_msgs::msg::Image::ConstSharedPtr& msg);
 
     /**
-     * @brief Callback for VPE pose subscription.
-     * @param msg Incoming pose message
-     */
-    void vpe_callback(const geometry_msgs::msg::PoseStamped::ConstSharedPtr& msg);
-
-    /**
      * @brief Callback for camera info topic subscription.
      * @param msg Incoming camera info message
      */
