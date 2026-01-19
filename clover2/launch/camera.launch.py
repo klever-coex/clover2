@@ -20,6 +20,7 @@ def launch_setup(context, *args, **kwargs):
     params_file = LaunchConfiguration("params_file")
     camera_name = LaunchConfiguration("camera_name")
     aruco_detector = LaunchConfiguration("aruco_detector")
+    optical_flow = LaunchConfiguration("optical_flow")
 
     camera_remappings = [
         ("~/image_raw", f"/{camera_name.perform(context)}/image_raw"),
@@ -68,10 +69,24 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
+    optical_flow_component = LoadComposableNodes(
+        condition=IfCondition(optical_flow),
+        target_container=camera_container,
+        composable_node_descriptions=[
+            ComposableNode(
+                package="clover2_optical_flow",
+                plugin="clover2_optical_flow::optical_flow",
+                name=camera_name.perform(context) + "_of",
+                parameters=[params_file, {"use_sim_time": use_sim_time}],
+                remappings=camera_remappings,
+            )
+        ],
+    )
+
     load_composible = RegisterEventHandler(
         OnProcessStart(
             target_action=camera_container,
-            on_start=[camera_component, aruco_detector_component],
+            on_start=[camera_component, aruco_detector_component, optical_flow_component],
         )
     )
 
@@ -108,6 +123,12 @@ def generate_launch_description():
         description="Enable aruco detection on this camera",
     )
 
+    optical_flow_declare = DeclareLaunchArgument(
+        "optical_flow",
+        default_value="false",
+        description="Enable optical flow calculation on this camera",
+    )
+
     return LaunchDescription(
         [
             use_sim_time_declare,
@@ -115,6 +136,7 @@ def generate_launch_description():
             params_file_declare,
             camera_name_declare,
             aruco_detector_declare,
+            optical_flow_declare,
             OpaqueFunction(function=launch_setup),
         ]
     )
