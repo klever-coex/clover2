@@ -11,7 +11,8 @@ from ament_index_python.packages import get_package_share_directory
 fcu_url_mappings = {
     "usb": "/dev/ttyACM0:115200",  # TODO: add udev rules
     "uart": "/dev/ttyAMA0:921600",
-    "tcp": "tcp://localhost:5760",
+    "tcp": "tcp://127.0.0.1:5760",
+    "udp": "udp://:14540@localhost:14580",
 }
 
 
@@ -22,7 +23,7 @@ def launch_setup(context, *args, **kwargs):
     log_level = LaunchConfiguration("log_level")
     params_file = LaunchConfiguration("params_file")
     mavros_params_file = LaunchConfiguration("mavros_params_file")
-    fcu_conn = LaunchConfiguration("mavros_params_file")
+    fcu_conn = LaunchConfiguration("fcu_conn")
 
     # Get connection type
     fcu_url = fcu_url_mappings.get(fcu_conn.perform(context), fcu_url_mappings["uart"])
@@ -81,8 +82,8 @@ def generate_launch_description():
     fcu_conn_declare = DeclareLaunchArgument(
         "fcu_conn",
         default_value="uart",
-        choices=["usb", "uart", "tcp"],
-        description="Flight controller unit connection type: usb, uart, or tcp",
+        choices=["usb", "uart", "tcp", "udp"],
+        description="Flight controller unit connection type: usb, uart, tcp or udp",
     )
 
     return LaunchDescription(

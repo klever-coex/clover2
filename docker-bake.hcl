@@ -1,13 +1,14 @@
 variable "BUILD_MODE" { }
+variable "DOCKER_OUTPUT_DIR" { }
 variable "REGISTRY_POLICY" { }
 variable "REGISTRY" { }
 variable "CLOVER2_VERSION" { }
 
 variable "LABELS" {
   default = {
-    "org.opencontainers.image.source"   = "https://gitlab.com/coex2/clover2"
-    "org.opencontainers.image.licenses" = "MIT"
     "org.opencontainers.image.authors"  = "Lapin Matvey"
+    "org.opencontainers.image.licenses" = "MIT"
+    "org.opencontainers.image.source"   = "https://gitlab.com/coex2/clover2"
     "org.opencontainers.image.version"  = "${CLOVER2_VERSION}"
   }
 }
@@ -37,8 +38,12 @@ function "tagged" {
   ]
 }
 
-target "_output" {
-  output = ["type=registry"]
+function "outputs" {
+  params = [name]
+  result = [
+    "type=registry",
+    "type=oci,dest=${DOCKER_OUTPUT_DIR}/${name}.tar"
+  ]
 }
 
 #      ___       _ __   __  _____
@@ -48,11 +53,15 @@ target "_output" {
 #                                          /_/
 
 group "all" {
-  targets = ["clover2-deploy", "clover2-builder"]
+  targets = ["deploy", "tooling"]
 }
 
-group "clover2-tooling" {
-  targets = ["clover2-builder"]
+group "tooling" {
+  targets = ["builder"]
+}
+
+group "deploy" {
+  targets = ["project-deploy", "mirror-wetty"]
 }
 
 #      ____           ___           __                         __
@@ -61,12 +70,11 @@ group "clover2-tooling" {
 #   /_/  \___/_/   /____/\__/ .__/_/\___/\_, /_/_/_/\__/_//_/\__/
 #                          /_/          /___/
 
-target "clover2-deploy" {
+target "project-deploy" {
   dockerfile = item.dockerfile
-  name = "clover2-${item.tgt}"
-  tags = item.tags
-
-  inherits = ["_output"]
+  name = "${item.tgt}"
+  tags = tagged(item.tgt)
+  output = outputs(item.tgt)
 
   context = "."
   labels = LABELS
@@ -75,17 +83,31 @@ target "clover2-deploy" {
   matrix = {
     item = [
       {
-        dockerfile = "docker/frontend/Dockerfile"
-        tgt = "gui"
-        tags = tagged("clover2-gui")
+        dockerfile = "docker/docs/Dockerfile"
+        tgt = "clover2-docs"
       },
       {
-        dockerfile = "docker/docs/Dockerfile"
-        tgt = "docs"
-        tags = tagged("clover2-docs")
+        dockerfile = "docker/frontend/Dockerfile"
+        tgt = "clover2-gui"
+      },
+      {
+        dockerfile = "docker/ros/Dockerfile"
+        tgt = "clover2-ros"
       }
     ]
   }
+}
+
+target "mirror-wetty" {
+  tags = tagged("clover2-wetty")
+  output = outputs("clover2-wetty")
+
+  context = "."
+  platforms = "${PLATFORMS}"
+
+  dockerfile-inline = <<EOF
+  FROM wettyoss/wetty
+  EOF
 }
 
 #    ______          ___
@@ -94,10 +116,21 @@ target "clover2-deploy" {
 #   /_/  \___/\___/_/_/_//_/\_, /
 #                          /___/
 
-target "clover2-builder" {
+target "builder" {
+  dockerfile = item.dockerfile
+  name = "${item.tgt}"
+  tags = tagged(item.tgt)
+  output = ["type=registry"]
+
   context = "."
-  dockerfile = "docker/builder/Dockerfile"
   labels = LABELS
-  inherits = ["_output"]
-  tags = tagged("clover2-builder")
+
+  matrix = {
+    item = [
+      {
+        dockerfile = "docker/builder/Dockerfile"
+        tgt = "clover2-builder"
+      }
+    ]
+  }
 }
