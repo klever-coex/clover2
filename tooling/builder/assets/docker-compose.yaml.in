@@ -1,0 +1,17 @@
+services:
+  clover2-docs:
+    image: ${REGISTRY}clover2-docs:${CLOVER2_VERSION}
+    restart: unless-stopped
+    ports:
+    - 81:80
+  clover2-gui:
+    image: ${REGISTRY}clover2-gui:${CLOVER2_VERSION}
+    restart: unless-stopped
+    ports:
+    - 80:80
+  clover2-wetty:
+    image: ${REGISTRY}clover2-wetty:${CLOVER2_VERSION}
+    restart: unless-stopped
+    command: --ssh-user pi --ssh-host ${CLOVER2_HOSTNAME}
+    ports:
+    - 3000:3000

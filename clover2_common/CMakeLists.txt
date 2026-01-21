@@ -8,14 +8,16 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
 
+find_package(diagnostic_updater REQUIRED)
+find_package(lifecycle_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
-find_package(lifecycle_msgs REQUIRED)
 
 set(dependencies
+  diagnostic_updater
+  lifecycle_msgs
   rclcpp
   rclcpp_lifecycle
-  lifecycle_msgs
 )
 
 include_directories(include)

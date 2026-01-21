@@ -45,9 +45,10 @@ run_stage() {
     fi
 
     cd /home/$USER
-}
 
-mkdir -p $STAGES_LOG_DIR
+    sudo apt-get clean -y
+    sudo apt-get autoclean -y
+}
 
 for stage in "$STAGES_DIR"/*; do
     if [ -f "$stage" ]; then

@@ -10,7 +10,7 @@ class ComponentBase(ABC):
         pass
 
     @abstractmethod
-    async def execute(self, args: list[str]):
+    async def execute(self, args: list[str], secrets: dict[str, str] = {}):
         pass
 
     @abstractmethod
