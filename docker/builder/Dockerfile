@@ -3,9 +3,11 @@ FROM ubuntu:noble
 # Install dependencies
 RUN apt-get update && \
     apt-get install -y \
+        build-essential \
         curl \
         git \
         kpartx \
+        make \
         python3-dev \
         python3-venv \
         qemu-system \
@@ -13,13 +15,6 @@ RUN apt-get update && \
         qemu-utils \
         sudo \
         xz-utils && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install task-go
-RUN curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | bash
-RUN apt-get update && \
-    apt-get install -y \
-        task && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /builder

@@ -9,6 +9,10 @@
   ros__parameters:
     tracking: "base_link"
 
+/**/main_camera_of:
+  ros__parameters:
+    roi: 256
+
 /**/main_camera:
   ros__parameters:
     AwbMode: 0
@@ -19,9 +23,9 @@
     ExposureTimeMode: 1
     format: 'RGB888'
     frame_id: 'main_camera_link'
-    height: 600
+    height: 480
     StatsOutputEnable: false
-    width: 800
+    width: 640
 
 /**/main_camera_aruco_detector:
   ros__parameters:

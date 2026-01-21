@@ -49,8 +49,8 @@ class Chroot(ComponentBase):
             lambda: subprocess.run([self.sudo, "cp", str(src), str(dest)], check=True),
         )
 
-    async def execute(self, args):
-        return await super().execute(args)
+    async def execute(self, args, secrets = {}):
+        return await super().execute(args, secrets)
 
     async def __aenter__(self):
         loop = asyncio.get_running_loop()

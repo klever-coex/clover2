@@ -1,0 +1,1 @@
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1b8c", ATTRS{idProduct}=="0036", SYMLINK+="px4fmu"

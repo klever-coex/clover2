@@ -3,12 +3,8 @@
 import re
 import pathlib
 import argparse
-import shutil
 import logging
 import asyncio
-import requests
-import tempfile
-import subprocess
 
 from components.chroot import ChrootConfig, Chroot
 from components.qemu import QemuConfig, Qemu
@@ -36,8 +32,13 @@ async def chroot_state(args, image: pathlib.Path):
     async with Chroot(cfg) as chroot:
         await chroot.copy_to(
             config.PROJECT_DIR / "tooling/builder/assets/01-nopasswd", "etc/sudoers.d")
+
         await chroot.copy_to(config.PROJECT_DIR /
                              "tooling/builder/assets/user-data", "boot")
+        
+        if config.DOCKER_OUTPUT_DIR.is_dir():
+            for image in config.DOCKER_OUTPUT_DIR.glob("*.tar"):
+                await chroot.copy_to(image, "root/")
 
 
 async def qemu_state(args, image: pathlib.Path):
@@ -59,14 +60,14 @@ async def qemu_state(args, image: pathlib.Path):
             if not re.match(r"^build.*$", item.name) and not item.name == ".venv":
                 await qemu.copy_to(item, ("/home/pi/clover2_ws/src/clover2"))
 
-        logger.info("Install Task-go")
-        await qemu.execute("curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo bash")
-        await qemu.execute("sudo apt-get update && sudo apt-get install -y task")
-        
-        await qemu.execute("cd /home/pi/clover2_ws/src/clover2 && git clean -fdx")
+        logger.info("Install make")
+        await qemu.execute("sudo apt-get update && sudo apt-get install -y make")
+
+        logger.info("Cleanup git project")
+        await qemu.execute("cd /home/pi/clover2_ws/src/clover2 && git reset --hard HEAD && git clean -fdx")
 
         logger.info("Run image setup script")
-        await qemu.execute("cd /home/pi/clover2_ws/src/clover2 && task clover2-builder:image-setup")
+        await qemu.execute(f"cd /home/pi/clover2_ws/src/clover2 && make builder-image-setup")
 
 
 def parse_args():
