@@ -9,6 +9,10 @@
   ros__parameters:
     tracking: "base_link"
 
+/**/main_camera_of:
+  ros__parameters:
+    roi: 256
+
 /**/main_camera:
   ros__parameters:
     AwbMode: 0

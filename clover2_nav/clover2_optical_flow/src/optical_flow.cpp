@@ -23,7 +23,7 @@ optical_flow::optical_flow(const rclcpp::NodeOptions& options)
 
     // Declare parameters
     declare_and_watch_parameter<int>(
-        "roi", 128,
+        "roi", 256,
         [this](const rclcpp::Parameter& p) { m_roi_px = p.as_int(); },
         "ROI size in pixels");
 
@@ -78,7 +78,7 @@ optical_flow::CallbackReturn optical_flow::on_activate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     // Create publishers
     m_flow_pub = this->create_publisher<mavros_msgs::msg::OpticalFlowRad>(
-        "mavros/px4flow/raw/send", rclcpp::SensorDataQoS());
+        "mavros/px4flow/raw/send", rclcpp::SystemDefaultsQoS());
     m_debug_pub = this->create_publisher<sensor_msgs::msg::Image>(
         "~/debug", rclcpp::SystemDefaultsQoS());
 

@@ -95,9 +95,9 @@ class Clover2(Node):
         y: SetpointValue = None,
         z: SetpointValue = None,
         yaw: SetpointValue = None,
-        speed: SetpointValue = 0.5,
+        speed: SetpointValue = 0.3,
         frame_id: str = "map",
     ):
         pos = Point(x=x, y=y, z=z)
         vel = Vector3(x=speed, y=speed, z=speed)
-        self._offboard.move(pos=pos, vel=vel, yaw=yaw, yaw_rate=None, frame_id=frame_id)
+        self._offboard.move(pos=pos, vel=vel, yaw=yaw, yaw_rate=0.1, frame_id=frame_id)
