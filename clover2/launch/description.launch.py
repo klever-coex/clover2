@@ -10,7 +10,7 @@ def generate_launch_description():
     camera_transorm_cmd = Node(
         package="tf2_ros",
         executable="static_transform_publisher",
-        name="cmcu06_right_tf",
+        name="camera_to_base",
         arguments=[
             "--frame-id",
             "base_link",
@@ -23,13 +23,12 @@ def generate_launch_description():
             "--z",
             "-0.07",
             "--roll",
-            "-1.5707963",
-            "--pitch",
             "0.0",
-            "--yaw",
+            "--pitch",
             "3.1415926",
-        ]
-        # arguments=["--frame-id", "base_link", "--child-frame-id", "main_camera_link", "--roll", "0", "--pitch", "3.1415926", "--yaw", "0"]
+            "--yaw",
+            "-1.5707963",
+        ],
     )
 
     return LaunchDescription([camera_transorm_cmd])

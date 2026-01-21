@@ -1,0 +1,8 @@
+#!/bin/sh
+
+echo
+
+. /etc/os-release
+echo "Project version: $CLOVER2_VERSION"
+
+echo

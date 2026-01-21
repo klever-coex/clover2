@@ -3,29 +3,29 @@
     startup_px4_usb_quirk: false
 
     plugin_denylist:
-      # common
-
-      # extras
+      - camera
       - debug_value
       - distance_sensor
       - fake_gps
       - geofence
       - gimbal_control
-      - gimbal_control
       - global_position
       - gps_input
       - gps_rtk
       - gps_status
+      - guided_target
       - hil
       - image_pub
-      - rangefinder
-      - wheel_odometry
+      - mocap
       - open_drone_id
-      - terrain
-      - wind_estimation
+      - play_tune
+      - rangefinder
       - setpoint_accel
-      - camera
       - setpoint_trajectory
+      - tdr_radio
+      - terrain
+      - wheel_odometry
+      - wind_estimation
 
 # --- system plugins ---
 
@@ -93,7 +93,7 @@
 /**/local_position:
   ros__parameters:
     frame_id: "map"
-    tf.send: false
+    tf.send: true
     tf.frame_id: "map"
     tf.child_frame_id: "base_link"
     tf.send_fcu: false
@@ -113,7 +113,7 @@
 /**/setpoint_attitude:
   ros__parameters:
     reverse_thrust: false       # allow reversed thrust
-    use_quaternion: false       # enable PoseStamped topic subscriber
+    use_quaternion: true       # enable PoseStamped topic subscriber
     tf.listen: false            # enable tf listener (disable topic subscribers)
     tf.frame_id: "map"
     tf.child_frame_id: "target_attitude"
@@ -123,25 +123,15 @@
 /**/setpoint_raw:
   ros__parameters:
     thrust_scaling: 1.0       # used in setpoint_raw attitude callback.
-    # Note: PX4 expects normalized thrust values between 0 and 1, which means that
-    # the scaling needs to be unitary and the inputs should be 0..1 as well.
 
 # setpoint_position
 /**/setpoint_position:
   ros__parameters:
-    tf.listen: false            # enable tf listener (disable topic subscribers)
+    tf.listen: true            # enable tf listener (disable topic subscribers)
     tf.frame_id: "map"
     tf.child_frame_id: "target_position"
     tf.rate_limit: 50.0
     mav_frame: LOCAL_NED
-
-# guided_target
-/**/guided_target:
-  ros__parameters:
-    tf.listen: false           # enable tf listener (disable topic subscribers)
-    tf.frame_id: "map"
-    tf.child_frame_id: "target_position"
-    tf.rate_limit: 50.0
 
 # setpoint_velocity
 /**/setpoint_velocity:

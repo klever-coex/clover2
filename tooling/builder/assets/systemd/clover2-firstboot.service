@@ -1,0 +1,15 @@
+[Unit]
+Description=Clover2 First Boot Script
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /root/clover2_firstboot.sh
+RemainAfterExit=no
+User=root
+Group=root
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

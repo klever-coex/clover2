@@ -7,8 +7,10 @@ from typing import Callable
 from dataclasses import dataclass, field
 
 assert os.environ.get("PROJECT_DIR") is not None, "PROJECT_DIR unset"
+assert os.environ.get("DOCKER_OUTPUT_DIR") is not None, "DOCKER_OUTPUT_DIR unset"
 
 PROJECT_DIR: pathlib.Path = pathlib.Path(os.environ.get("PROJECT_DIR"))
+DOCKER_OUTPUT_DIR: pathlib.Path = pathlib.Path(os.environ.get("DOCKER_OUTPUT_DIR"))
 
 
 @dataclass
@@ -16,11 +18,9 @@ class ImageConfiguration:
     name: str
     base_image_url: str
     build_dir: pathlib.Path = field(init=False)
-    base_image_file: pathlib.Path = field(init=False)
 
     def __post_init__(self):
         self.build_dir = PROJECT_DIR / f"build-{self.name}-image"
-        self.base_image_file = self.build_dir / (self.name + "-orig.img")
 
 
 image_configurations: dict = {
