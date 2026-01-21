@@ -90,10 +90,10 @@ target "project-deploy" {
         dockerfile = "docker/frontend/Dockerfile"
         tgt = "clover2-gui"
       },
-      # {
-      #   dockerfile = "docker/ros/Dockerfile"
-      #   tgt = "clover2-ros"
-      # }
+      {
+        dockerfile = "docker/ros/Dockerfile"
+        tgt = "clover2-ros"
+      }
     ]
   }
 }
