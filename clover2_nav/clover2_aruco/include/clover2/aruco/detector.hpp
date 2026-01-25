@@ -6,8 +6,8 @@
 #include <rclcpp/rclcpp.hpp>
 
 // Clover2 includes
-#include <clover2_aruco/map_client.hpp>
-#include <clover2_common/lifecycle_node.hpp>
+#include <clover2/aruco/map_client.hpp>
+#include <clover2/common/lifecycle_node.hpp>
 
 // TF2 includes
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -26,7 +26,7 @@
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
-namespace clover2_aruco {
+namespace clover2::aruco {
 
 /**
  * @class detector
@@ -35,7 +35,7 @@ namespace clover2_aruco {
  * This node subscribes to camera images and camera info, detects ArUco markers
  * based on a dictionary, publishes marker arrays, and broadcasts transforms.
  */
-class detector : public clover2_common::lifecycle_node {
+class detector : public clover2::common::lifecycle_node {
 public:
     using SharedPtr =
         std::shared_ptr<detector>;  ///< Shared pointer type for detector
@@ -175,4 +175,4 @@ private:
         m_image_sub;  ///< Camera image subscriber
 };
 
-}  // namespace clover2_aruco
+}  // namespace clover2::aruco

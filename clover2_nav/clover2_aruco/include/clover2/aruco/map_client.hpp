@@ -17,7 +17,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace clover2_aruco {
+namespace clover2::aruco {
 
 class map_client {
 public:
@@ -171,4 +171,4 @@ private:
     std::unordered_map<int, marker> m_markers;
 };
 
-}  // namespace clover2_aruco
+}  // namespace clover2::aruco

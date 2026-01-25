@@ -1,5 +1,5 @@
-#include <clover2_aruco/map_server.hpp>
-#include <clover2_aruco/utils/map_io.hpp>
+#include <clover2/aruco/map_server.hpp>
+#include <clover2/aruco/utils/map_io.hpp>
 #include <lifecycle_msgs/msg/state.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2/LinearMath/Transform.hpp>
@@ -8,10 +8,10 @@
 
 #include <fstream>
 
-namespace clover2_aruco {
+namespace clover2::aruco {
 
 map_server::map_server(const rclcpp::NodeOptions& options)
-    : clover2_common::lifecycle_node("map_server", options)
+    : clover2::common::lifecycle_node("map_server", options)
     , m_map_path("") {
     enable_watch_parameters();
     enable_diagnostic_updater();
@@ -119,10 +119,10 @@ clover2_aruco_msgs::msg::MarkerMap::SharedPtr map_server::parse_map(
 
     if (extension == ".txt") {
         RCLCPP_DEBUG(get_logger(), "Detect legacy map format");
-        clover2_aruco::utils::load_from_txt(filename, *map);
+        clover2::aruco::utils::load_from_txt(filename, *map);
     } else if (extension == ".yaml" || extension == ".yml") {
         RCLCPP_DEBUG(get_logger(), "Detect new map format");
-        clover2_aruco::utils::load_from_yaml(filename, *map);
+        clover2::aruco::utils::load_from_yaml(filename, *map);
     } else {
         throw std::runtime_error("Unexpected map format: " + extension);
     }
@@ -167,8 +167,8 @@ void map_server::update_map(
     m_map_update_pub->publish(std_msgs::msg::Empty());
 }
 
-}  // namespace clover2_aruco
+}  // namespace clover2::aruco
 
 #include "rclcpp_components/register_node_macro.hpp"
 
-RCLCPP_COMPONENTS_REGISTER_NODE(clover2_aruco::map_server)
+RCLCPP_COMPONENTS_REGISTER_NODE(clover2::aruco::map_server)

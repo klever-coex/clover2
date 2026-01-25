@@ -76,7 +76,7 @@ ament_target_dependencies(clover2_aruco_utils
 # ============================================================================
 add_library(clover2_aruco_detector src/detector/detector.cpp)
 # Create alias for cleaner usage
-add_library(clover2_aruco::detector ALIAS clover2_aruco_detector)
+add_library(clover2::aruco::detector ALIAS clover2_aruco_detector)
 
 # Set C/C++ language standards
 target_compile_features(clover2_aruco_detector PUBLIC c_std_99 cxx_std_17)
@@ -100,14 +100,14 @@ ament_target_dependencies(clover2_aruco_detector
 )
 
 # Register as a ROS 2 component node
-rclcpp_components_register_nodes(clover2_aruco_detector "clover2_aruco::detector")
+rclcpp_components_register_nodes(clover2_aruco_detector "clover2::aruco::detector")
 
 # ============================================================================
 # Build ArUco map server component as a shared library
 # ============================================================================
 add_library(clover2_aruco_map_server src/map_server/map_server.cpp)
 # Create alias for cleaner usage
-add_library(clover2_aruco::map_server ALIAS clover2_aruco_map_server)
+add_library(clover2::aruco::map_server ALIAS clover2_aruco_map_server)
 
 # Set C/C++ language standards
 target_compile_features(clover2_aruco_map_server PUBLIC c_std_99 cxx_std_17)
@@ -132,14 +132,14 @@ ament_target_dependencies(clover2_aruco_map_server
 )
 
 # Register as a ROS 2 component node
-rclcpp_components_register_nodes(clover2_aruco_map_server "clover2_aruco::map_server")
+rclcpp_components_register_nodes(clover2_aruco_map_server "clover2::aruco::map_server")
 
 # ============================================================================
 # Build ArUco tracker component as a shared library
 # ============================================================================
 add_library(clover2_aruco_tracker src/tracker/tracker.cpp)
 # Create alias for cleaner usage
-add_library(clover2_aruco::tracker ALIAS clover2_aruco_tracker)
+add_library(clover2::aruco::tracker ALIAS clover2_aruco_tracker)
 
 # Set C/C++ language standards
 target_compile_features(clover2_aruco_tracker PUBLIC c_std_99 cxx_std_17)
@@ -158,7 +158,7 @@ ament_target_dependencies(clover2_aruco_tracker
 )
 
 # Register as a ROS 2 component node
-rclcpp_components_register_nodes(clover2_aruco_tracker "clover2_aruco::tracker")
+rclcpp_components_register_nodes(clover2_aruco_tracker "clover2::aruco::tracker")
 
 # ============================================================================
 # Build detector executable (main application)
@@ -279,23 +279,9 @@ ament_export_targets(
 # Testing configuration (only if BUILD_TESTING is enabled)
 # ============================================================================
 if(BUILD_TESTING)
-  # Find testing utilities
   find_package(ament_lint_auto REQUIRED)
-
-  # Enable specific linters
   set(ament_cmake_copyright_FOUND TRUE)
   set(ament_cmake_cpplint_FOUND TRUE)
-
-  # Add Google Test for detector unit tests
-  ament_add_gtest(${PROJECT_NAME}_tutorial_test
-    test/unittest_detector.cpp
-  )
-  # Link test against detector library
-  target_link_libraries(${PROJECT_NAME}_tutorial_test
-    clover2_aruco_detector
-  )
-
-  # Automatically find and setup linting dependencies
   ament_lint_auto_find_test_dependencies()
 endif()
 

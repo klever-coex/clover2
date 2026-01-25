@@ -9,7 +9,7 @@
 #include <rclcpp/rclcpp.hpp>
 
 // Clover2 includes
-#include <clover2_common/lifecycle_node.hpp>
+#include <clover2/common/lifecycle_node.hpp>
 
 // TF2 includes
 #include <tf2/exceptions.h>
@@ -31,7 +31,7 @@
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
-namespace clover2_optical_flow {
+namespace clover2::optical_flow {
 
 /**
  * @class optical_flow
@@ -40,7 +40,7 @@ namespace clover2_optical_flow {
  * This node subscribes to camera images and camera info, calculates optical flow
  * using phase correlation, and publishes flow data in MAVROS format.
  */
-class optical_flow : public clover2_common::lifecycle_node {
+class optical_flow : public clover2::common::lifecycle_node {
 public:
     using SharedPtr = std::shared_ptr<optical_flow>;
     using CallbackReturn =
@@ -134,4 +134,4 @@ private:
         m_image_sub;  ///< Camera image subscriber
 };
 
-}  // namespace clover2_optical_flow
+}  // namespace clover2::optical_flow

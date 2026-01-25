@@ -48,7 +48,7 @@ set(dependencies
 # ============================================================================
 add_library(clover2_optical_flow_component src/optical_flow.cpp)
 # Create alias for cleaner usage
-add_library(clover2_optical_flow::optical_flow ALIAS clover2_optical_flow_component)
+add_library(clover2::optical_flow::optical_flow ALIAS clover2_optical_flow_component)
 
 # Set C/C++ language standards
 target_compile_features(clover2_optical_flow_component PUBLIC c_std_99 cxx_std_17)
@@ -69,7 +69,7 @@ ament_target_dependencies(clover2_optical_flow_component
 )
 
 # Register as a ROS 2 component node
-rclcpp_components_register_nodes(clover2_optical_flow_component "clover2_optical_flow::optical_flow")
+rclcpp_components_register_nodes(clover2_optical_flow_component "clover2::optical_flow::optical_flow")
 
 # ============================================================================
 # Build optical_flow executable (main application)

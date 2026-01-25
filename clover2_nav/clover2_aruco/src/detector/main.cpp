@@ -1,4 +1,4 @@
-#include <clover2_aruco/detector.hpp>
+#include <clover2/aruco/detector.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <memory>
@@ -10,8 +10,8 @@ int main(int argc, char* argv[]) {
         rclcpp::executors::SingleThreadedExecutor executor;
 
         auto options = rclcpp::NodeOptions();
-        clover2_aruco::detector::SharedPtr detector =
-            std::make_shared<clover2_aruco::detector>(options);
+        clover2::aruco::detector::SharedPtr detector =
+            std::make_shared<clover2::aruco::detector>(options);
 
         executor.add_node(detector->get_node_base_interface());
         executor.spin();
