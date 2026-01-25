@@ -1,4 +1,4 @@
-#include <clover2_aruco/detector.hpp>
+#include <clover2/aruco/detector.hpp>
 #include <cv_bridge/cv_bridge.hpp>
 #include <lifecycle_msgs/msg/state.hpp>
 
@@ -34,10 +34,10 @@ const static std::unordered_map<std::string, int> marker_dictionary_map = {
      cv::aruco::PREDEFINED_DICTIONARY_NAME::DICT_APRILTAG_36h11},
 };
 
-namespace clover2_aruco {
+namespace clover2::aruco {
 
 detector::detector(const rclcpp::NodeOptions& options)
-    : clover2_common::lifecycle_node("aruco_detector", options) {
+    : clover2::common::lifecycle_node("aruco_detector", options) {
     enable_watch_parameters();
     enable_diagnostic_updater();
     
@@ -365,8 +365,8 @@ void detector::produce_diagnostics(
     stat.add("Dictionary ID", m_dictionary_name);
 }
 
-}  // namespace clover2_aruco
+}  // namespace clover2::aruco
 
 #include "rclcpp_components/register_node_macro.hpp"
 
-RCLCPP_COMPONENTS_REGISTER_NODE(clover2_aruco::detector)
+RCLCPP_COMPONENTS_REGISTER_NODE(clover2::aruco::detector)

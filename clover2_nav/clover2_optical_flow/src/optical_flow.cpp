@@ -1,4 +1,4 @@
-#include <clover2_optical_flow/optical_flow.hpp>
+#include <clover2/optical_flow/optical_flow.hpp>
 #include <lifecycle_msgs/msg/state.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
@@ -7,12 +7,10 @@
 #include <memory>
 #include <vector>
 
-using cv::Mat;
-
-namespace clover2_optical_flow {
+namespace clover2::optical_flow {
 
 optical_flow::optical_flow(const rclcpp::NodeOptions& options)
-    : clover2_common::lifecycle_node("optical_flow", options)
+    : clover2::common::lifecycle_node("optical_flow", options)
     , m_fcu_frame_id("base_link")
     , m_local_frame_id("map")
     , m_prev_stamp(rclcpp::Time(0))
@@ -115,8 +113,8 @@ optical_flow::CallbackReturn optical_flow::on_cleanup(
     m_tf_listener.reset();
 
     // Clear state
-    m_prev = Mat();
-    m_curr = Mat();
+    m_prev = cv::Mat();
+    m_curr = cv::Mat();
     m_roi = cv::Rect();
 
     return CallbackReturn::SUCCESS;
@@ -313,8 +311,8 @@ geometry_msgs::msg::Vector3Stamped optical_flow::calc_flow_gyro(
     return flow;
 }
 
-}  // namespace clover2_optical_flow
+}  // namespace clover2::optical_flow
 
 #include "rclcpp_components/register_node_macro.hpp"
 
-RCLCPP_COMPONENTS_REGISTER_NODE(clover2_optical_flow::optical_flow)
+RCLCPP_COMPONENTS_REGISTER_NODE(clover2::optical_flow::optical_flow)

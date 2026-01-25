@@ -1,4 +1,4 @@
-#include <clover2_aruco/utils/map_io.hpp>
+#include <clover2/aruco/utils/map_io.hpp>
 #include <rclcpp/logger.hpp>
 #include <rclcpp/logging.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
@@ -69,7 +69,7 @@ struct convert<clover2_aruco_msgs::msg::Marker> {
 
 }  // namespace YAML
 
-namespace clover2_aruco::utils {
+namespace clover2::aruco::utils {
 
 void load_from_yaml(const std::filesystem::path& filename,
                     clover2_aruco_msgs::msg::MarkerMap& map) {
@@ -195,4 +195,4 @@ void load_from_txt(const std::filesystem::path& filename,
     map.header.frame_id = "map";
 }
 
-}  // namespace clover2_aruco::utils
+}  // namespace clover2::aruco::utils

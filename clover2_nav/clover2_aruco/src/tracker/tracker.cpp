@@ -1,4 +1,4 @@
-#include <clover2_aruco/tracker.hpp>
+#include <clover2/aruco/tracker.hpp>
 #include <lifecycle_msgs/msg/state.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2/LinearMath/Transform.hpp>
@@ -8,10 +8,10 @@
 
 #include <fstream>
 
-namespace clover2_aruco {
+namespace clover2::aruco {
 
 tracker::tracker(const rclcpp::NodeOptions& options)
-    : clover2_common::lifecycle_node("tracker", options) {
+    : clover2::common::lifecycle_node("tracker", options) {
     enable_watch_parameters();
     enable_diagnostic_updater();
 
@@ -179,8 +179,8 @@ void tracker::markers_callback(
     }
 }
 
-}  // namespace clover2_aruco
+}  // namespace clover2::aruco
 
 #include "rclcpp_components/register_node_macro.hpp"
 
-RCLCPP_COMPONENTS_REGISTER_NODE(clover2_aruco::tracker)
+RCLCPP_COMPONENTS_REGISTER_NODE(clover2::aruco::tracker)

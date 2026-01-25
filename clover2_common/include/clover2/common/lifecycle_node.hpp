@@ -11,7 +11,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace clover2_common {
+namespace clover2::common {
 
 using CallbackReturn =
     rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
@@ -67,4 +67,4 @@ protected:
     std::unordered_map<std::string, ParameterFunctorT> m_watch_parameters;
 };
 
-}  // namespace clover2_common
+}  // namespace clover2::common

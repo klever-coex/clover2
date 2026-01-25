@@ -5,8 +5,8 @@
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
 // Clover2 includes
-#include <clover2_aruco/map_client.hpp>
-#include <clover2_common/lifecycle_node.hpp>
+#include <clover2/aruco/map_client.hpp>
+#include <clover2/common/lifecycle_node.hpp>
 
 // TF2 includes
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -20,9 +20,9 @@
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 
-namespace clover2_aruco {
+namespace clover2::aruco {
 
-class tracker : public clover2_common::lifecycle_node {
+class tracker : public clover2::common::lifecycle_node {
 public:
     using SharedPtr = std::shared_ptr<tracker>;
     using CallbackReturn = rclcpp_lifecycle::node_interfaces::
@@ -67,4 +67,4 @@ private:
         m_poses_debug_pub;
 };
 
-}  // namespace clover2_aruco
+}  // namespace clover2::aruco
