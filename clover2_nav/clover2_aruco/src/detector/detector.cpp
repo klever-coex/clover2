@@ -5,6 +5,11 @@
 #include <string>
 #include <unordered_map>
 
+namespace {
+
+static constexpr const double transition_eps = 1e-4;
+static constexpr const double rotation_eps = 1e-4;
+
 const static std::unordered_map<std::string, int> marker_dictionary_map = {
     {"4X4_50", cv::aruco::PREDEFINED_DICTIONARY_NAME::DICT_4X4_50},
     {"4X4_100", cv::aruco::PREDEFINED_DICTIONARY_NAME::DICT_4X4_100},
@@ -34,13 +39,15 @@ const static std::unordered_map<std::string, int> marker_dictionary_map = {
      cv::aruco::PREDEFINED_DICTIONARY_NAME::DICT_APRILTAG_36h11},
 };
 
+}  // namespace
+
 namespace clover2::aruco {
 
 detector::detector(const rclcpp::NodeOptions& options)
     : clover2::common::lifecycle_node("aruco_detector", options) {
     enable_watch_parameters();
     enable_diagnostic_updater();
-    
+
     m_diagnostic_updater = get_diagnostic_updater();
 
     declare_and_watch_parameter<std::string>(
@@ -186,6 +193,27 @@ cv::Mat detector::marker_object_points(
     return objPoints;
 }
 
+const std::vector<cv::Point3f>& detector::get_marker_obj_points(
+    int id, double length,
+    const cv::Ptr<cv::aruco::EstimateParameters>& params) {
+    auto it = m_marker_obj_cache.find(id);
+    if (it != m_marker_obj_cache.end()) return it->second;
+
+    std::vector<cv::Point3f> pts(4);
+
+    if (params->pattern == cv::aruco::CW_top_left_corner) {
+        pts = {{0, 0, 0},
+               {float(length), 0, 0},
+               {float(length), float(length), 0},
+               {0, float(length), 0}};
+    } else {
+        float h = length * 0.5f;
+        pts = {{-h, h, 0}, {h, h, 0}, {h, -h, 0}, {-h, -h, 0}};
+    }
+
+    return m_marker_obj_cache.emplace(id, pts).first->second;
+}
+
 void detector::image_callback(
     const sensor_msgs::msg::Image::ConstSharedPtr msg) {
     std::lock_guard<std::mutex> camera_info_guard(m_camera_info_mtx);
@@ -216,6 +244,7 @@ void detector::image_callback(
                              m_detector_parameters, rejected);
 
     std::vector<bool> pose_estimated(ids.size(), false);
+    std::vector<cv::Mat> marker_cov(ids.size());
     std::vector<cv::Vec3d> marker_rot(ids.size()), marker_pose(ids.size());
 
     if (ids.size() != 0) {
@@ -231,15 +260,40 @@ void detector::image_callback(
                     continue;
                 }
 
-                cv::Mat marker_obj_points = marker_object_points(
-                    m_map_client->get_marker_size(ids[i]), estimate_parameters);
+                // cv::Mat marker_obj_points = marker_object_points(
+                //     m_map_client->get_marker_size(ids[i]),
+                //     estimate_parameters);
 
-                cv::solvePnP(marker_obj_points, cv::Mat(corners[i]),
-                             m_camera_model.fullIntrinsicMatrix(),
-                             m_camera_model.distortionCoeffs(), marker_rot[i],
-                             marker_pose[i],
+                const auto& obj_pts = get_marker_obj_points(
+                    ids[i], m_map_client->get_marker_size(ids[i]),
+                    estimate_parameters);
+
+                std::vector<cv::Point2f> undist_corners;
+                cv::fisheye::undistortPoints(
+                    corners[i], undist_corners,
+                    m_camera_model.fullIntrinsicMatrix(),
+                    m_camera_model.distortionCoeffs(), cv::Mat(), m_k_rect);
+
+                cv::solvePnP(obj_pts, undist_corners, m_k_rect, cv::Mat(),
+                             marker_rot[i], marker_pose[i],
                              estimate_parameters->useExtrinsicGuess,
                              estimate_parameters->solvePnPMethod);
+
+                // cv::solvePnP(obj_pts,                                 //
+                //              cv::Mat(corners[i]),                     //
+                //              m_camera_model.fullIntrinsicMatrix(),    //
+                //              m_camera_model.distortionCoeffs(),       //
+                //              marker_rot[i],                           //
+                //              marker_pose[i],                          //
+                //              estimate_parameters->useExtrinsicGuess,  //
+                //              estimate_parameters->solvePnPMethod);
+
+                compute_pose_covariance(obj_pts,         //
+                                        marker_rot[i],   //
+                                        marker_pose[i],  //
+                                        m_k_rect,        //
+                                        0.7,             //
+                                        marker_cov[i]);
 
                 pose_estimated[i] = true;
             }
@@ -252,6 +306,7 @@ void detector::image_callback(
             clover2_aruco_msgs::msg::Marker marker;
             fill_corners(marker, corners[i]);
             fill_pose(marker, marker_rot[i], marker_pose[i]);
+            fill_covariance(marker, marker_cov[i]);
             marker.id = ids[i];
             marker.size = m_map_client->get_marker_size(ids[i]);
             marker.marker_frame_id = m_map_client->get_marker_frame_id(ids[i]);
@@ -262,7 +317,7 @@ void detector::image_callback(
                 geometry_msgs::msg::TransformStamped transform;
                 transform.header = msg->header;
                 transform.child_frame_id = get_marker_frame_id(ids[i]);
-                transform.transform.rotation = marker.pose.orientation;
+                transform.transform.rotation = marker.pose.pose.orientation;
                 fill_translation(transform.transform.translation,
                                  marker_pose[i]);
                 transforms.push_back(transform);
@@ -270,6 +325,132 @@ void detector::image_callback(
         }
     }
 
+    publish_detection(msg, std::move(marker_array), transforms, image, corners,
+                      ids);
+}
+
+void detector::camera_info_callback(
+    const sensor_msgs::msg::CameraInfo::ConstSharedPtr msg) {
+    std::lock_guard<std::mutex> guard(m_camera_info_mtx);
+
+    // validate camera info
+    if (msg->height == 0 || msg->width == 0 || msg->d.size() == 0) {
+        return;
+    }
+
+    m_camera_model.fromCameraInfo(msg);
+
+    cv::Matx33d K = m_camera_model.fullIntrinsicMatrix();
+    cv::Mat D = m_camera_model.distortionCoeffs();
+
+    cv::Mat R = cv::Mat::eye(3, 3, CV_64F);
+    cv::fisheye::estimateNewCameraMatrixForUndistortRectify(
+        K, D, cv::Size(msg->width, msg->height), R, m_k_rect, 1.0);
+}
+
+void detector::compute_pose_covariance(const std::vector<cv::Point3f>& obj_pts,
+                                       const cv::Vec3d& rvec,
+                                       const cv::Vec3d& tvec, const cv::Mat& K,
+                                       double sigma_pixel, cv::Mat& pose_cov) {
+    const int N = obj_pts.size();
+    cv::Mat J(2 * N, 6, CV_64F);
+    std::vector<cv::Point2f> proj_p(N), proj_m(N);
+
+    auto project = [&](const cv::Vec3d& r, const cv::Vec3d& t,
+                       std::vector<cv::Point2f>& out) {
+        cv::projectPoints(obj_pts, r, t, K, cv::Mat(), out);
+    };
+
+    // translation
+    for (int i = 0; i < 3; i++) {
+        cv::Vec3d dt(0, 0, 0);
+        dt[i] = transition_eps;
+
+        project(rvec, tvec + dt, proj_p);
+        project(rvec, tvec - dt, proj_m);
+
+        double inv = 1.0 / (2 * transition_eps);
+        for (int k = 0; k < N; k++) {
+            J.at<double>(2 * k, i) = (proj_p[k].x - proj_m[k].x) * inv;
+            J.at<double>(2 * k + 1, i) = (proj_p[k].y - proj_m[k].y) * inv;
+        }
+    }
+
+    // rotation
+    for (int i = 0; i < 3; i++) {
+        cv::Vec3d dr(0, 0, 0);
+        dr[i] = rotation_eps;
+
+        project(rvec + dr, tvec, proj_p);
+        project(rvec - dr, tvec, proj_m);
+
+        double inv = 1.0 / (2 * rotation_eps);
+        for (int k = 0; k < N; k++) {
+            J.at<double>(2 * k, i + 3) = (proj_p[k].x - proj_m[k].x) * inv;
+            J.at<double>(2 * k + 1, i + 3) = (proj_p[k].y - proj_m[k].y) * inv;
+        }
+    }
+
+    cv::Mat Sigma_img =
+        cv::Mat::eye(2 * N, 2 * N, CV_64F) * sigma_pixel * sigma_pixel;
+    pose_cov = (J.t() * Sigma_img.inv() * J).inv();
+}
+
+void detector::fill_corners(clover2_aruco_msgs::msg::Marker& marker,
+                            const std::vector<cv::Point2f>& corners) const {
+    marker.c1.x = corners[0].x;
+    marker.c1.y = corners[0].y;
+
+    marker.c2.x = corners[1].x;
+    marker.c2.y = corners[1].y;
+
+    marker.c3.x = corners[2].x;
+    marker.c3.y = corners[2].y;
+
+    marker.c4.x = corners[3].x;
+    marker.c4.y = corners[3].y;
+}
+
+void detector::fill_pose(clover2_aruco_msgs::msg::Marker& marker,
+                         const cv::Vec3d& rvec, const cv::Vec3d& tvec) const {
+    marker.pose.pose.position.x = tvec[0];
+    marker.pose.pose.position.y = tvec[1];
+    marker.pose.pose.position.z = tvec[2];
+
+    double angle = cv::norm(rvec);
+    auto axis = rvec / angle;
+
+    tf2::Quaternion q(tf2::Vector3(axis[0], axis[1], axis[2]), angle);
+    marker.pose.pose.orientation.x = q.x();
+    marker.pose.pose.orientation.y = q.y();
+    marker.pose.pose.orientation.z = q.z();
+    marker.pose.pose.orientation.w = q.w();
+}
+
+void detector::fill_covariance(clover2_aruco_msgs::msg::Marker& marker,
+                               const cv::Mat& cov) {
+    marker.pose.covariance.fill(0.0);
+
+    for (int r = 0; r < 6; r++) {
+        for (int c = 0; c < 6; c++) {
+            marker.pose.covariance[r * 6 + c] = cov.at<double>(r, c);
+        }
+    }
+}
+
+void detector::fill_translation(geometry_msgs::msg::Vector3& translation,
+                                const cv::Vec3d& tvec) const {
+    translation.x = tvec[0];
+    translation.y = tvec[1];
+    translation.z = tvec[2];
+}
+
+void detector::publish_detection(
+    const sensor_msgs::msg::Image::ConstSharedPtr& msg,
+    std::unique_ptr<clover2_aruco_msgs::msg::MarkerArray> marker_array,
+    const std::vector<geometry_msgs::msg::TransformStamped>& transforms,
+    const cv::Mat& image, const std::vector<std::vector<cv::Point2f>>& corners,
+    const std::vector<int>& ids) {
     // update for diagnostics
     m_last_marker_count = marker_array->markers.size();
 
@@ -291,56 +472,6 @@ void detector::image_callback(
         sensor_msgs::msg::Image::SharedPtr out_msg = cv_out.toImageMsg();
         m_debug_pub->publish(*out_msg);
     }
-}
-
-void detector::camera_info_callback(
-    const sensor_msgs::msg::CameraInfo::ConstSharedPtr msg) {
-    std::lock_guard<std::mutex> guard(m_camera_info_mtx);
-
-    // validate camera info
-    if (msg->height == 0 || msg->width == 0 || msg->d.size() == 0) {
-        return;
-    }
-
-    m_camera_model.fromCameraInfo(msg);
-}
-
-void detector::fill_corners(clover2_aruco_msgs::msg::Marker& marker,
-                            const std::vector<cv::Point2f>& corners) const {
-    marker.c1.x = corners[0].x;
-    marker.c1.y = corners[0].y;
-
-    marker.c2.x = corners[1].x;
-    marker.c2.y = corners[1].y;
-
-    marker.c3.x = corners[2].x;
-    marker.c3.y = corners[2].y;
-
-    marker.c4.x = corners[3].x;
-    marker.c4.y = corners[3].y;
-}
-
-void detector::fill_pose(clover2_aruco_msgs::msg::Marker& marker,
-                         const cv::Vec3d& rvec, const cv::Vec3d& tvec) const {
-    marker.pose.position.x = tvec[0];
-    marker.pose.position.y = tvec[1];
-    marker.pose.position.z = tvec[2];
-
-    double angle = cv::norm(rvec);
-    auto axis = rvec / angle;
-
-    tf2::Quaternion q(tf2::Vector3(axis[0], axis[1], axis[2]), angle);
-    marker.pose.orientation.x = q.x();
-    marker.pose.orientation.y = q.y();
-    marker.pose.orientation.z = q.z();
-    marker.pose.orientation.w = q.w();
-}
-
-void detector::fill_translation(geometry_msgs::msg::Vector3& translation,
-                                const cv::Vec3d& tvec) const {
-    translation.x = tvec[0];
-    translation.y = tvec[1];
-    translation.z = tvec[2];
 }
 
 std::string detector::get_marker_frame_id(const int id) const {

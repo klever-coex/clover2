@@ -1,7 +1,5 @@
 #!/bin/sh
 
-# don't try refresh this more than once per minute
-# Due to cpu consumption and login delays (LP: #1893716)
 CACHE="/var/lib/landscape/landscape-sysinfo.cache"
 HAS_CACHE="FALSE"
 CACHE_NEEDS_UPDATE="FALSE"

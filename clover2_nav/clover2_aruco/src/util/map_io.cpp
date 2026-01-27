@@ -1,4 +1,4 @@
-#include <clover2/aruco/utils/map_io.hpp>
+#include <clover2/aruco/util/map_io.hpp>
 #include <rclcpp/logger.hpp>
 #include <rclcpp/logging.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
@@ -22,16 +22,16 @@ struct convert<clover2_aruco_msgs::msg::Marker> {
         marker.id = node["id"].as<int>();
         marker.size = node["size"].as<double>(-1.0);
 
-        marker.pose.position.x = 0.0;
-        marker.pose.position.y = 0.0;
-        marker.pose.position.z = 0.0;
+        marker.pose.pose.position.x = 0.0;
+        marker.pose.pose.position.y = 0.0;
+        marker.pose.pose.position.z = 0.0;
 
         if (node["pose"]) {
             auto& pose = node["pose"];
 
-            marker.pose.position.x = pose["x"].as<double>(0.0);
-            marker.pose.position.y = pose["y"].as<double>(0.0);
-            marker.pose.position.z = pose["z"].as<double>(0.0);
+            marker.pose.pose.position.x = pose["x"].as<double>(0.0);
+            marker.pose.pose.position.y = pose["y"].as<double>(0.0);
+            marker.pose.pose.position.z = pose["z"].as<double>(0.0);
         }
 
         tf2::Quaternion q;
@@ -56,10 +56,10 @@ struct convert<clover2_aruco_msgs::msg::Marker> {
             q.setRPY(0.0, 0.0, 0.0);
         }
 
-        marker.pose.orientation.x = q.x();
-        marker.pose.orientation.y = q.y();
-        marker.pose.orientation.z = q.z();
-        marker.pose.orientation.w = q.w();
+        marker.pose.pose.orientation.x = q.x();
+        marker.pose.pose.orientation.y = q.y();
+        marker.pose.pose.orientation.z = q.z();
+        marker.pose.pose.orientation.w = q.w();
 
         marker.marker_frame_id = node["frame_id"].as<std::string>("");
 
@@ -69,7 +69,7 @@ struct convert<clover2_aruco_msgs::msg::Marker> {
 
 }  // namespace YAML
 
-namespace clover2::aruco::utils {
+namespace clover2::aruco::util {
 
 void load_from_yaml(const std::filesystem::path& filename,
                     clover2_aruco_msgs::msg::MarkerMap& map) {
@@ -143,8 +143,8 @@ void load_from_txt(const std::filesystem::path& filename,
             throw std::runtime_error("Malformed input: " + line);
         }
 
-        if (!(s >> marker.id >> marker.size >> marker.pose.position.x >>
-              marker.pose.position.y)) {
+        if (!(s >> marker.id >> marker.size >> marker.pose.pose.position.x >>
+              marker.pose.pose.position.y)) {
             RCLCPP_ERROR(
                 logger,
                 "Not enough data in line: %s; "
@@ -153,11 +153,11 @@ void load_from_txt(const std::filesystem::path& filename,
             continue;
         }
 
-        if (!(s >> marker.pose.position.z)) {
+        if (!(s >> marker.pose.pose.position.z)) {
             RCLCPP_DEBUG(logger,
                          "No z coordinate provided for marker %d, assuming 0",
                          marker.id);
-            marker.pose.position.z = 0;
+            marker.pose.pose.position.z = 0;
         }
 
         if (!(s >> yaw)) {
@@ -184,10 +184,10 @@ void load_from_txt(const std::filesystem::path& filename,
         tf2::Quaternion q;
         q.setRPY(roll, pitch, yaw);
 
-        marker.pose.orientation.x = q.x();
-        marker.pose.orientation.y = q.y();
-        marker.pose.orientation.z = q.z();
-        marker.pose.orientation.w = q.w();
+        marker.pose.pose.orientation.x = q.x();
+        marker.pose.pose.orientation.y = q.y();
+        marker.pose.pose.orientation.z = q.z();
+        marker.pose.pose.orientation.w = q.w();
 
         map.markers.push_back(marker);
     }
@@ -195,4 +195,4 @@ void load_from_txt(const std::filesystem::path& filename,
     map.header.frame_id = "map";
 }
 
-}  // namespace clover2::aruco::utils
+}  // namespace clover2::aruco::util

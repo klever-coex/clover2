@@ -32,7 +32,7 @@ public:
             : id(msg.id)
             , size(msg.size)
             , marker_frame_id(msg.marker_frame_id) {
-            tf2::fromMsg(msg.pose, transform);
+            tf2::fromMsg(msg.pose.pose, transform);
         }
 
         marker(const marker& other)
