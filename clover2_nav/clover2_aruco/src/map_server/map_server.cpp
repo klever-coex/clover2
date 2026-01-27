@@ -1,5 +1,5 @@
 #include <clover2/aruco/map_server.hpp>
-#include <clover2/aruco/utils/map_io.hpp>
+#include <clover2/aruco/util/map_io.hpp>
 #include <lifecycle_msgs/msg/state.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2/LinearMath/Transform.hpp>
@@ -119,10 +119,10 @@ clover2_aruco_msgs::msg::MarkerMap::SharedPtr map_server::parse_map(
 
     if (extension == ".txt") {
         RCLCPP_DEBUG(get_logger(), "Detect legacy map format");
-        clover2::aruco::utils::load_from_txt(filename, *map);
+        clover2::aruco::util::load_from_txt(filename, *map);
     } else if (extension == ".yaml" || extension == ".yml") {
         RCLCPP_DEBUG(get_logger(), "Detect new map format");
-        clover2::aruco::utils::load_from_yaml(filename, *map);
+        clover2::aruco::util::load_from_yaml(filename, *map);
     } else {
         throw std::runtime_error("Unexpected map format: " + extension);
     }
@@ -156,7 +156,7 @@ void map_server::update_map(
             m_map_msg->header.frame_id + "_aruco_" + std::to_string(it.id);
 
         tf2::Transform t;
-        tf2::fromMsg(it.pose, t);
+        tf2::fromMsg(it.pose.pose, t);
         tf2::toMsg(t, transform.transform);
 
         transforms.push_back(transform);

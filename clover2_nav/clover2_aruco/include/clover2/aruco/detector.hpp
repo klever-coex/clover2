@@ -78,6 +78,7 @@ public:
      */
     CallbackReturn on_shutdown(const rclcpp_lifecycle::State& /* state */);
 
+private:
     /**
      * @brief Generate the 3D object points of a marker for pose estimation.
      * @param markerLength Marker side length in meters
@@ -101,6 +102,11 @@ public:
     void camera_info_callback(
         const sensor_msgs::msg::CameraInfo::ConstSharedPtr msg);
 
+    void compute_pose_covariance(const std::vector<cv::Point3f>& obj_pts,
+                                 const cv::Vec3d& rvec, const cv::Vec3d& tvec,
+                                 const cv::Mat& K, double sigma_pixel,
+                                 cv::Mat& Sigma_pose);
+
     /**
      * @brief Fill marker corners from detected 2D points.
      * @param marker Marker message to fill
@@ -117,6 +123,9 @@ public:
      */
     void fill_pose(clover2_aruco_msgs::msg::Marker& marker,
                    const cv::Vec3d& rvec, const cv::Vec3d& tvec) const;
+
+    void fill_covariance(clover2_aruco_msgs::msg::Marker& marker,
+                         const cv::Mat& cov);
 
     /**
      * @brief Fill a geometry_msgs::Vector3 with translation data.
@@ -139,7 +148,18 @@ public:
      */
     void produce_diagnostics(diagnostic_updater::DiagnosticStatusWrapper& stat);
 
-private:
+    const std::vector<cv::Point3f>& get_marker_obj_points(
+        int id, double length,
+        const cv::Ptr<cv::aruco::EstimateParameters>& params);
+
+    void publish_detection(
+        const sensor_msgs::msg::Image::ConstSharedPtr& msg,
+        std::unique_ptr<clover2_aruco_msgs::msg::MarkerArray> marker_array,
+        const std::vector<geometry_msgs::msg::TransformStamped>& transforms,
+        const cv::Mat& image,
+        const std::vector<std::vector<cv::Point2f>>& corners,
+        const std::vector<int>& ids);
+
     // Camera parameters
     std::string m_aruco_frame_id;  ///< Base frame for ArUco markers
     std::mutex m_camera_info_mtx;  ///< Mutex for thread-safe camera info access
@@ -149,12 +169,13 @@ private:
     size_t m_last_marker_count;     ///< Last detected marker count
     bool m_tf_publish;              ///< Flag to enable TF publishing
     std::string m_dictionary_name;  ///< OpenCV ArUco dictionary ID
-    double m_marker_size;           ///< Marker size in meters
+    cv::Mat m_k_rect;
     std::shared_ptr<map_client>
         m_map_client;  ///< Map client for marker metadata
     cv::Ptr<cv::aruco::Dictionary> m_dictionary;  ///< ArUco dictionary object
     cv::Ptr<cv::aruco::DetectorParameters>
         m_detector_parameters;  ///< OpenCV detector parameters
+    std::unordered_map<int, std::vector<cv::Point3f>> m_marker_obj_cache;
 
     // TF
     std::shared_ptr<tf2_ros::TransformBroadcaster>
