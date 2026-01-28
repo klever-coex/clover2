@@ -1,10 +1,15 @@
+// clover2
 #include <clover2/aruco/detail/g2o_types.hpp>
 #include <clover2/aruco/optimizer/graph_linearizer.hpp>
+#include <clover2/common/util/time_buffer.hpp>
+
+// ROS2
 #include <rclcpp/create_timer.hpp>
 #include <rclcpp/logging.hpp>
 #include <rclcpp/node_interfaces/node_parameters_interface.hpp>
 #include <rclcpp/node_interfaces/node_timers_interface.hpp>
 
+// STL
 #include <functional>
 
 namespace clover2::aruco::optimizer {
@@ -59,10 +64,6 @@ void graph_linearizer::on_timer() {
     if (buffer_snapshot.empty()) {
         return;
     }
-
-    // TODO(motya): Variant A g2o pipeline: build a single-pose graph using
-    // g2o_types::VertexPose and EdgePoseMeasurement, synchronized via
-    // time_buffer and timestamp-weighted covariance.
 
     marker result;
     notify_data_ready(result, m_last_timestamp);

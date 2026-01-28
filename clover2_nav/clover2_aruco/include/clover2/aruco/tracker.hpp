@@ -57,7 +57,7 @@ private:
 
     // Optimization parameters
     std::string m_optimizer_type;
-    
+
     // Camera parameters
     std::string m_tracking_id;
 
@@ -74,7 +74,8 @@ private:
     rclcpp::Subscription<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr
         m_markers_sub;
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr m_pose_pub;
-    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr m_pose_cov_pub;
+    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr
+        m_pose_cov_pub;
     rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr
         m_poses_debug_pub;
 };

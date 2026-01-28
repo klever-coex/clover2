@@ -1,5 +1,6 @@
 #pragma once
 
+// STL
 #include <deque>
 #include <mutex>
 
@@ -8,14 +9,9 @@ namespace clover2::common::util {
 template <typename ValueT, typename TimeT = double>
 class time_buffer {
 public:
-    struct item {
-        TimeT timestamp;
-        ValueT data;
-    };
-
-    using Container = std::deque<item>;
-    using iterator = typename Container::iterator;
-    using const_iterator = typename Container::const_iterator;
+    using item_type = std::pair<TimeT, ValueT>;
+    using iterator = typename std::deque<item_type>::iterator;
+    using const_iterator = typename std::deque<item_type>::const_iterator;
 
     explicit time_buffer(const TimeT& history_sec)
         : m_history_sec(history_sec) {}
@@ -52,40 +48,32 @@ public:
         std::lock_guard<std::recursive_mutex> lock(m_mutex);
 
         while (!m_buffer.empty() &&
-               m_buffer.front().timestamp < current_time - m_history_sec) {
+               m_buffer.front().first < current_time - m_history_sec) {
             m_buffer.pop_front();
         }
     }
 
-    iterator begin() { return m_buffer.begin(); }
-    iterator end() { return m_buffer.end(); }
+    std::deque<item_type>& buffer() { return m_buffer; }
 
-    const_iterator begin() const { return m_buffer.begin(); }
-    const_iterator end() const { return m_buffer.end(); }
+    item_type& front() { return m_buffer.front(); }
 
-    const_iterator cbegin() const { return m_buffer.cbegin(); }
-    const_iterator cend() const { return m_buffer.cend(); }
+    const item_type& front() const { return m_buffer.front(); }
 
-    size_t size() const {
-        std::lock_guard<std::recursive_mutex> lock(m_mutex);
-        return m_buffer.size();
-    }
+    item_type& back() { return m_buffer.back(); }
 
-    bool empty() const {
-        std::lock_guard<std::recursive_mutex> lock(m_mutex);
-        return m_buffer.empty();
-    }
+    const item_type& back() const { return m_buffer.back(); }
 
-    void clear() {
-        std::lock_guard<std::recursive_mutex> lock(m_mutex);
-        m_buffer.clear();
-    }
+    size_t size() const { return m_buffer.size(); }
+
+    bool empty() const { return m_buffer.empty(); }
+
+    void clear() { m_buffer.clear(); }
 
     TimeT windowSize() const { return m_history_sec; }
 
 private:
     TimeT m_history_sec;
-    std::deque<item> m_buffer;
+    std::deque<item_type> m_buffer;
     mutable std::recursive_mutex m_mutex;
 };
 

@@ -171,8 +171,9 @@ void tracker::markers_callback(
         optimizer::marker measurement;
         measurement.id = marker.id;
         measurement.transform = drone_in_map;
-        clover2::aruco::util::cov_ros_to_eigen(marker.pose.covariance, measurement.cov);
-        
+        clover2::aruco::util::cov_ros_to_eigen(marker.pose.covariance,
+                                               measurement.cov);
+
         // add measurement for optimizer
         measurements.push_back(measurement);
 
@@ -231,7 +232,8 @@ void tracker::publish_pose(const optimizer::marker& pose,
     geometry_msgs::msg::PoseWithCovarianceStamped estimated_pose_cov;
     estimated_pose_cov.header = estimated_pose.header;
     estimated_pose_cov.pose.pose = estimated_pose.pose;
-    clover2::aruco::util::cov_eigen_to_ros(pose.cov, estimated_pose_cov.pose.covariance);
+    clover2::aruco::util::cov_eigen_to_ros(pose.cov,
+                                           estimated_pose_cov.pose.covariance);
 
     m_pose_pub->publish(estimated_pose);
     m_pose_cov_pub->publish(estimated_pose_cov);

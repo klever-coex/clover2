@@ -1,48 +1,51 @@
+// clover2
 #include <clover2/aruco/optimizer/simple_mean.hpp>
+#include <clover2/common/util/time_buffer.hpp>
+
+// ROS2
 #include <rclcpp/logging.hpp>
 
 namespace clover2::aruco::optimizer {
 
 simple_mean::simple_mean(const clover2::aruco::optimizer::context& ctx)
     : base_optimizer(ctx)
-    , m_source_frame("")
-    , m_timestamp(std::chrono::nanoseconds(0)) {}
+    , m_source_frame("") {}
 
 void simple_mean::optimize() {
-    marker result;
-    result.transform = Eigen::Affine3d::Identity();
-    result.cov.setZero();
-
-    if (!m_measurements.empty()) {
-        Eigen::Vector3d avg_translation = Eigen::Vector3d::Zero();
-        Eigen::Vector4d cumulative_q = Eigen::Vector4d::Zero();
-        Eigen::Matrix<double, 6, 6> avg_cov =
-            Eigen::Matrix<double, 6, 6>::Zero();
-
-        for (const auto& measurement : m_measurements) {
-            avg_translation += measurement.transform.translation();
-            Eigen::Quaterniond q(measurement.transform.rotation());
-            cumulative_q += q.coeffs();
-            avg_cov += measurement.cov;
-        }
-
-        avg_translation /= static_cast<double>(m_measurements.size());
-        cumulative_q /= static_cast<double>(m_measurements.size());
-        avg_cov /= static_cast<double>(m_measurements.size());
-
-        Eigen::Quaterniond avg_quat = Eigen::Quaterniond::Identity();
-        if (cumulative_q.norm() > 0.0) {
-            avg_quat.coeffs() = cumulative_q.normalized();
-        }
-
-        result.transform = Eigen::Affine3d::Identity();
-        result.transform.translate(avg_translation);
-        result.transform.rotate(avg_quat);
-        result.cov = avg_cov;
+    if (m_measurements->empty()) {
+        return;
     }
 
-    notify_data_ready(result, m_timestamp);
-    clear_measurements();
+    auto avg_cov = Eigen::Matrix<double, 6, 6>::Zero();
+    auto avg_translation = Eigen::Vector3d::Zero();
+    auto cumulative_q = Eigen::Vector4d::Zero();
+
+    time_buffer_type buffer_copy(*m_measurements);
+
+    for (const auto& [timestamp, marker] : buffer_copy.buffer()) {
+        avg_translation += marker.transform.translation();
+        Eigen::Quaterniond q(marker.transform.rotation());
+        cumulative_q += q.coeffs();
+        avg_cov += marker.cov;
+    }
+
+    double count = static_cast<double>(buffer_copy.size());
+    avg_cov /= count;
+    avg_translation /= count;
+    cumulative_q /= count;
+
+    auto avg_quat = Eigen::Quaterniond::Identity();
+    if (cumulative_q.norm() > 0.0) {
+        avg_quat.coeffs() = cumulative_q.normalized();
+    }
+
+    marker result;
+    result.transform = Eigen::Affine3d::Identity();
+    result.transform.translate(avg_translation);
+    result.transform.rotate(avg_quat);
+    result.cov = avg_cov;
+
+    notify_data_ready(result, buffer_copy.back().first);
 }
 
 void simple_mean::push_measurement(std::string& source_frame,
@@ -57,10 +60,12 @@ void simple_mean::push_measurement(std::string& source_frame,
     }
 
     m_source_frame = source_frame;
-    m_timestamp = timestamp;
-    m_measurements = measurement;
+
+    for (const auto& it : measurement) {
+        m_measurements->add(timestamp, it);
+    }
 }
 
-void simple_mean::clear_measurements() { m_measurements.clear(); }
+void simple_mean::clear_measurements() { m_measurements->clear(); }
 
 }  // namespace clover2::aruco::optimizer

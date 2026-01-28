@@ -1,9 +1,8 @@
 #pragma once
 
+#include <Eigen/Geometry>
 #include <g2o/core/base_unary_edge.h>
 #include <g2o/core/base_vertex.h>
-
-#include <Eigen/Geometry>
 
 #include <algorithm>
 #include <cmath>
@@ -35,8 +34,7 @@ inline Eigen::Matrix3d so3_exp(const Eigen::Vector3d& omega) {
 
 inline Eigen::Vector3d so3_log(const Eigen::Matrix3d& R) {
     const double cos_theta = (R.trace() - 1.0) * 0.5;
-    const double cos_theta_clamped =
-        std::min(1.0, std::max(-1.0, cos_theta));
+    const double cos_theta_clamped = std::min(1.0, std::max(-1.0, cos_theta));
     const double theta = std::acos(cos_theta_clamped);
 
     if (theta < 1e-10) {
@@ -108,7 +106,9 @@ class VertexPose : public g2o::BaseVertex<6, Eigen::Isometry3d> {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    void setToOriginImpl() override { _estimate = Eigen::Isometry3d::Identity(); }
+    void setToOriginImpl() override {
+        _estimate = Eigen::Isometry3d::Identity();
+    }
 
     void oplusImpl(const double* update) override {
         Eigen::Matrix<double, 6, 1> xi;
@@ -139,4 +139,3 @@ public:
 };
 
 }  // namespace clover2::aruco::detail::g2o_types
-
