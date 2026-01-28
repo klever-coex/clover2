@@ -1,8 +1,14 @@
+// clover2
 #include <clover2/optical_flow/optical_flow.hpp>
-#include <lifecycle_msgs/msg/state.hpp>
-#include <sensor_msgs/image_encodings.hpp>
+
+// ROS2
 #include <tf2/LinearMath/Quaternion.hpp>
 
+// msgs
+#include <lifecycle_msgs/msg/state.hpp>
+#include <sensor_msgs/image_encodings.hpp>
+
+// STL
 #include <cmath>
 #include <memory>
 #include <vector>
@@ -199,7 +205,8 @@ void optical_flow::flow_callback(
     flow_msg.temperature = 0;
 
     double response;
-    cv::Point2d phase_shift = cv::phaseCorrelate(m_prev, m_curr, m_hann, &response);
+    cv::Point2d phase_shift =
+        cv::phaseCorrelate(m_prev, m_curr, m_hann, &response);
 
     // Undistort flow in pixels
     cv::Point2d image_center = cv::Point2d(msg->width, msg->height) / 2.0;

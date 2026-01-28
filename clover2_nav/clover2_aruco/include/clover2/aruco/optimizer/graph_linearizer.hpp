@@ -1,8 +1,15 @@
 #pragma once
 
+// clover2
 #include <clover2/aruco/optimizer/base_optimizer.hpp>
-#include <clover2/common/util/time_buffer.hpp>
+
+// ROS2
 #include <rclcpp/timer.hpp>
+
+namespace clover2::common::util {
+template <typename ValueT, typename TimeT>
+class time_buffer;
+}  // namespace clover2::common::util
 
 namespace clover2::aruco::optimizer {
 

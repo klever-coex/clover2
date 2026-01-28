@@ -1,6 +1,6 @@
 #include <clover2/aruco/optimizer/fabric.hpp>
-#include <clover2/aruco/optimizer/simple_mean.hpp>
 #include <clover2/aruco/optimizer/graph_linearizer.hpp>
+#include <clover2/aruco/optimizer/simple_mean.hpp>
 
 namespace clover2::aruco::optimizer {
 

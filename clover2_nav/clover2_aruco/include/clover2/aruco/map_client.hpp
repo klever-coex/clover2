@@ -1,19 +1,19 @@
 #pragma once
 
-// ROS2 includes
+// ROS2
 #include <rclcpp/rclcpp.hpp>
 #include <tf2/LinearMath/Transform.hpp>
 #include <tf2_eigen/tf2_eigen.hpp>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
-// Msgs includes
+// msgs
 #include <clover2_aruco_msgs/msg/marker_map.hpp>
 #include <std_msgs/msg/empty.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
-// Srvs includes
+// srvs
 #include <clover2_aruco_msgs/srv/get_map.hpp>
 
-// STL includes
+// STL
 #include <unordered_map>
 #include <vector>
 

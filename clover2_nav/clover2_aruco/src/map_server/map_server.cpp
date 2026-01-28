@@ -1,11 +1,17 @@
+// clover2
 #include <clover2/aruco/map_server.hpp>
 #include <clover2/aruco/util/map_io.hpp>
+
+// ROS2
 #include <lifecycle_msgs/msg/state.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2/LinearMath/Transform.hpp>
+
+// msgs
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_msgs/msg/tf_message.hpp>
 
+// STL
 #include <fstream>
 
 namespace clover2::aruco {

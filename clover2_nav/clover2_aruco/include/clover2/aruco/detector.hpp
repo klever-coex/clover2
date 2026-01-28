@@ -1,26 +1,24 @@
 #pragma once
 
-// ROS2 includes
-#include <diagnostic_updater/diagnostic_updater.hpp>
-#include <image_geometry/pinhole_camera_model.hpp>
-#include <rclcpp/rclcpp.hpp>
-
-// Clover2 includes
+// clover2
 #include <clover2/aruco/map_client.hpp>
 #include <clover2/common/lifecycle_node.hpp>
 
-// TF2 includes
+// ROS2
+#include <diagnostic_updater/diagnostic_updater.hpp>
+#include <image_geometry/pinhole_camera_model.hpp>
+#include <rclcpp/rclcpp.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 
-// OpenCV includes
+// OpenCV
 #include <opencv2/aruco.hpp>
 #include <opencv2/aruco/dictionary.hpp>
 #include <opencv2/core.hpp>
 
-// Msgs includes
+// msgs
 #include <clover2_aruco_msgs/msg/marker.hpp>
 #include <clover2_aruco_msgs/msg/marker_array.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
