@@ -28,7 +28,7 @@ def download_image(args, cfg: config.ImageConfiguration):
                 f.write(chunk)
 
     logger.info(f"Decompress...")
-    subprocess.run(["unxz", destination_path], check=True)
+    subprocess.run(["unxz", "-T0", destination_path], check=True)
 
     image_path = destination_path.parent / destination_path.stem
     args.output.parent.mkdir(parents=True, exist_ok=True)
