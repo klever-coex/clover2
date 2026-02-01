@@ -11,6 +11,8 @@
     optimizer: "graph_linearizer"
     graph_linearizer:
       history_sec: 1.0
+    simple_mean:
+      history_sec: 0.2
 
 
 /**/main_camera_of:

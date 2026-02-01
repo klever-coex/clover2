@@ -187,7 +187,7 @@ private:
     rclcpp::Publisher<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr
         m_markers_pub;  ///< Marker array publisher
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr
-        m_debug_pub;  ///< Debug image publisher
+        m_image_debug_pub;  ///< Debug image publisher
     rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr
         m_camera_info_sub;  ///< Camera info subscriber
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr

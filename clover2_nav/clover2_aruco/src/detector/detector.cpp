@@ -115,7 +115,7 @@ detector::CallbackReturn detector::on_activate(
         this->create_publisher<clover2_aruco_msgs::msg::MarkerArray>(
             "~/markers", rclcpp::SensorDataQoS());
 
-    m_debug_pub = this->create_publisher<sensor_msgs::msg::Image>(
+    m_image_debug_pub = this->create_publisher<sensor_msgs::msg::Image>(
         "~/debug", rclcpp::SystemDefaultsQoS());
 
     m_camera_info_sub = this->create_subscription<sensor_msgs::msg::CameraInfo>(
@@ -137,7 +137,7 @@ detector::CallbackReturn detector::on_deactivate(
     m_tf_broadcaster.reset();
 
     m_markers_pub.reset();
-    m_debug_pub.reset();
+    m_image_debug_pub.reset();
     m_camera_info_sub.reset();
     m_image_sub.reset();
 
@@ -161,7 +161,7 @@ detector::CallbackReturn detector::on_shutdown(
     m_tf_broadcaster.reset();
 
     m_image_sub.reset();
-    m_debug_pub.reset();
+    m_image_debug_pub.reset();
     m_camera_info_sub.reset();
     m_markers_pub.reset();
 
@@ -466,7 +466,7 @@ void detector::publish_detection(
 
     m_markers_pub->publish(std::move(marker_array));
 
-    if (m_debug_pub->get_subscription_count() != 0) {
+    if (m_image_debug_pub->get_subscription_count() != 0) {
         cv::Mat debug = image.clone();
         cv::aruco::drawDetectedMarkers(debug, corners, ids);
 
@@ -476,7 +476,7 @@ void detector::publish_detection(
         cv_out.encoding = sensor_msgs::image_encodings::BGR8;
         cv_out.image = debug;
         sensor_msgs::msg::Image::SharedPtr out_msg = cv_out.toImageMsg();
-        m_debug_pub->publish(*out_msg);
+        m_image_debug_pub->publish(*out_msg);
     }
 }
 
