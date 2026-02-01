@@ -16,9 +16,9 @@ void simple_mean::optimize() {
         return;
     }
 
-    auto avg_cov = Eigen::Matrix<double, 6, 6>::Zero();
-    auto avg_translation = Eigen::Vector3d::Zero();
-    auto cumulative_q = Eigen::Vector4d::Zero();
+    Eigen::Matrix<double, 6, 6> avg_cov = Eigen::Matrix<double, 6, 6>::Zero();
+    Eigen::Vector3d avg_translation = Eigen::Vector3d::Zero();
+    Eigen::Vector4d cumulative_q = Eigen::Vector4d::Zero();
 
     time_buffer_type buffer_copy(*m_measurements);
 
@@ -34,7 +34,7 @@ void simple_mean::optimize() {
     avg_translation /= count;
     cumulative_q /= count;
 
-    auto avg_quat = Eigen::Quaterniond::Identity();
+    Eigen::Quaterniond avg_quat = Eigen::Quaterniond::Identity();
     if (cumulative_q.norm() > 0.0) {
         avg_quat.coeffs() = cumulative_q.normalized();
     }
