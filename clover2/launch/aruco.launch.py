@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
+from pathlib import Path
 
+from ament_index_python.packages import get_package_share_directory
+from clover2.helpers.resource import CLOVER2_RESOURCE_DIR, find_file
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
-
-from ament_index_python.packages import get_package_share_directory
 
 
 def launch_setup(context, *args, **kwargs):
@@ -18,9 +19,19 @@ def launch_setup(context, *args, **kwargs):
     params_file = LaunchConfiguration("params_file")
     map = LaunchConfiguration("map")
 
-    map_filename = PathJoinSubstitution(
-        [pkg_clover2_aruco, "map", map.perform(context)]
-    )
+    # Resolve map file path
+    map_dirs = [
+        CLOVER2_RESOURCE_DIR / "map",
+        Path(pkg_clover2_aruco) / "map",
+    ]
+
+    map_filename = find_file(map.perform(context), map_dirs)
+    if map_filename is None:
+        raise ValueError(
+            f"Map file '{map.perform(context)}' not found in any of the expected directories: {map_dirs}"
+        )
+
+    map_filename = str(map_filename)
 
     # Aruco map server
     aruco_map_server_cmd = Node(
@@ -58,13 +69,13 @@ def launch_setup(context, *args, **kwargs):
         remappings=[
             # TODO: remove hardcode
             ("~/markers", "/main_camera_aruco_detector/markers"),
-            ("~/pose", "/mavros/vision_pose/pose"),
+            ("~/pose_cov", "/mavros/vision_pose/pose_cov"),
             ("~/map_update", "/map_server/map_update"),
             ("~/get_map", "/map_server/get_map"),
         ],
     )
 
-    return [aruco_map_server_cmd, tracker_cmd]
+    return [tracker_cmd]
 
 
 def generate_launch_description():

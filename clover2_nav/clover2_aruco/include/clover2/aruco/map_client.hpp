@@ -119,9 +119,7 @@ private:
 
         m_name = msg.name;
         m_map_id = msg.header.frame_id;
-
         m_markers.clear();
-        m_markers.reserve(msg.markers.size());
 
         for (const auto& it : msg.markers) {
             marker m(it);
@@ -135,7 +133,7 @@ private:
         if (!m_map_client->wait_for_service(std::chrono::milliseconds(1000))) {
             throw std::runtime_error(
                 std::string(m_map_client->get_service_name()) +
-                "service is not available!");
+                " service is not available!");
         }
 
         auto map_request =

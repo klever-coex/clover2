@@ -1,5 +1,7 @@
 #pragma once
 
+#include <rclcpp/rclcpp.hpp>
+
 // STL
 #include <deque>
 #include <mutex>
@@ -14,12 +16,12 @@ public:
     using const_iterator = typename std::deque<item_type>::const_iterator;
 
     explicit time_buffer(const TimeT& history_sec)
-        : m_history_sec(history_sec) {}
+        : m_history_window(history_sec) {}
     virtual ~time_buffer() {}
 
     time_buffer(const time_buffer& other) {
         std::lock_guard<std::recursive_mutex> lock(other.m_mutex);
-        m_history_sec = other.m_history_sec;
+        m_history_window = other.m_history_window;
         m_buffer = other.m_buffer;
     }
 
@@ -29,7 +31,7 @@ public:
         }
 
         std::scoped_lock lock(m_mutex, other.m_mutex);
-        m_history_sec = other.m_history_sec;
+        m_history_window = other.m_history_window;
         m_buffer = other.m_buffer;
         return *this;
     }
@@ -44,11 +46,23 @@ public:
         }
     }
 
+    void add(const TimeT& timestamp, const std::vector<ValueT>& data_vec,
+             bool auto_prune = true) {
+        std::lock_guard<std::recursive_mutex> lock(m_mutex);
+        for (const auto& data : data_vec) {
+            m_buffer.push_back({timestamp, data});
+        }
+
+        if (auto_prune) {
+            prune(timestamp);
+        }
+    }
+
     void prune(const TimeT& current_time) {
         std::lock_guard<std::recursive_mutex> lock(m_mutex);
 
         while (!m_buffer.empty() &&
-               m_buffer.front().first < current_time - m_history_sec) {
+               current_time - m_buffer.front().first > m_history_window) {
             m_buffer.pop_front();
         }
     }
@@ -69,10 +83,10 @@ public:
 
     void clear() { m_buffer.clear(); }
 
-    TimeT windowSize() const { return m_history_sec; }
+    TimeT windowSize() const { return m_history_window; }
 
 private:
-    TimeT m_history_sec;
+    TimeT m_history_window;
     std::deque<item_type> m_buffer;
     mutable std::recursive_mutex m_mutex;
 };

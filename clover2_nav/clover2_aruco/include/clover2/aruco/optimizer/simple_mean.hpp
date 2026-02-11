@@ -18,16 +18,21 @@ public:
     static constexpr const char* name = "simple_mean";
 
     explicit simple_mean(const clover2::aruco::optimizer::context& ctx);
-    virtual ~simple_mean() = default;
+    virtual ~simple_mean();
 
     void optimize() override;
 
-    void push_measurement(std::string& source_frame,
-                          std::chrono::nanoseconds timestamp,
-                          std::vector<marker>& measurement) override;
+    void push_measurements(const std::string& source_frame,
+                          const std::chrono::nanoseconds timestamp,
+                          const std::vector<marker>& measurement) override;
     void clear_measurements() override;
 
 private:
+    void initialize_time_buffer();
+
+    void declare_parameters();
+    void undeclare_parameters();
+
     std::string m_source_frame;
     std::shared_ptr<time_buffer_type> m_measurements;
 };

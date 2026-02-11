@@ -1,6 +1,6 @@
 image_width: 800
 image_height: 600
-camera_name: ov5647__base_axi_pcie_120000_rp1_i2c_88000_ov5647_36_800x600
+camera_name: ov5647__base_axi_pcie_120000_rp1_i2c_80000_ov5647_36_800x600
 camera_matrix:
   rows: 3
   cols: 3
