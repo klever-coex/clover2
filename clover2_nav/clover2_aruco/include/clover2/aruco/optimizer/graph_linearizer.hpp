@@ -25,9 +25,9 @@ public:
 
     void optimize() override;
 
-    void push_measurement(std::string& source_frame,
-                          std::chrono::nanoseconds timestamp,
-                          std::vector<marker>& measurement) override;
+    void push_measurements(const std::string& source_frame,
+                          const std::chrono::nanoseconds timestamp,
+                          const std::vector<marker>& measurement) override;
     void clear_measurements() override;
 
 private:

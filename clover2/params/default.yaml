@@ -8,12 +8,11 @@
 /**/aruco_tracker:
   ros__parameters:
     tracking: "base_link"
-    optimizer: "graph_linearizer"
+    optimizer: "simple_mean"
     graph_linearizer:
       history_sec: 1.0
     simple_mean:
       history_sec: 0.2
-
 
 /**/main_camera_of:
   ros__parameters:
@@ -27,11 +26,32 @@
     Contrast: 1.2
     ExposureTime: 1500
     ExposureTimeMode: 1
-    format: 'RGB888'
-    frame_id: 'main_camera_link'
-    height: 600
+    format: "RGB888"
+    frame_id: "main_camera_link"
+    height: 480
     StatsOutputEnable: false
-    width: 800
+    width: 640
+
+# /**/main_camera:
+#   ros__parameters:
+#     camera: "/base/axi/pcie@120000/rp1/i2c@88000/imx219@10"
+#     format: RGB888
+#     width: 800
+#     height: 600
+#     frame_id: main_camera_link
+#     AeEnable: false
+#     AwbEnable: false
+#     ExposureTimeMode: 1
+#     ExposureTime: 8000
+#     AnalogueGainMode: 1
+#     AnalogueGain: 2.0
+#     FrameDurationLimits: [33333, 33333]
+#     HdrMode: 0
+#     Sharpness: 0.0
+#     Contrast: 1.0
+#     Saturation: 1.0
+#     Brightness: 0.0
+#     AeFlickerMode: 0
 
 /**/main_camera_aruco_detector:
   ros__parameters:

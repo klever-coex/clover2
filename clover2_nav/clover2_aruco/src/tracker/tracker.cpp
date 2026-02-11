@@ -188,7 +188,7 @@ void tracker::markers_callback(
 
     auto timestamp =
         std::chrono::nanoseconds(rclcpp::Time(msg->header.stamp).nanoseconds());
-    m_optimizer->push_measurement(msg->header.frame_id, timestamp,
+    m_optimizer->push_measurements(msg->header.frame_id, timestamp,
                                   measurements);
 
     m_optimizer->optimize();

@@ -6,15 +6,13 @@
 
 // msg
 #include <lifecycle_msgs/msg/state.hpp>
+#include <opencv2/calib3d.hpp>
 
 // STL
 #include <string>
 #include <unordered_map>
 
 namespace {
-
-static constexpr const double transition_eps = 1e-4;
-static constexpr const double rotation_eps = 1e-4;
 
 const static std::unordered_map<std::string, int> marker_dictionary_map = {
     {"4X4_50", cv::aruco::PREDEFINED_DICTIONARY_NAME::DICT_4X4_50},
@@ -173,48 +171,25 @@ detector::CallbackReturn detector::on_shutdown(
     return detector::CallbackReturn::SUCCESS;
 }
 
-cv::Mat detector::marker_object_points(
-    double length,
-    const cv::Ptr<cv::aruco::EstimateParameters>& estimate_parameters) {
-    cv::Mat objPoints(4, 1, CV_32FC3);
-
-    if (estimate_parameters->pattern == cv::aruco::CW_top_left_corner) {
-        objPoints.ptr<cv::Vec3f>(0)[0] = cv::Vec3f(0.f, 0.f, 0);
-        objPoints.ptr<cv::Vec3f>(0)[1] = cv::Vec3f(length, 0.f, 0);
-        objPoints.ptr<cv::Vec3f>(0)[2] = cv::Vec3f(length, length, 0);
-        objPoints.ptr<cv::Vec3f>(0)[3] = cv::Vec3f(0.f, length, 0);
-    } else if (estimate_parameters->pattern == cv::aruco::CCW_center) {
-        objPoints.ptr<cv::Vec3f>(0)[0] =
-            cv::Vec3f(-length / 2.f, length / 2.f, 0);
-        objPoints.ptr<cv::Vec3f>(0)[1] =
-            cv::Vec3f(length / 2.f, length / 2.f, 0);
-        objPoints.ptr<cv::Vec3f>(0)[2] =
-            cv::Vec3f(length / 2.f, -length / 2.f, 0);
-        objPoints.ptr<cv::Vec3f>(0)[3] =
-            cv::Vec3f(-length / 2.f, -length / 2.f, 0);
-    } else {
-        throw std::runtime_error("Invalid estimate pattern");
-    }
-
-    return objPoints;
-}
-
-const std::vector<cv::Point3f>& detector::get_marker_obj_points(
+const std::vector<cv::Point3d>& detector::get_marker_obj_points(
     int id, double length,
     const cv::Ptr<cv::aruco::EstimateParameters>& params) {
     auto it = m_marker_obj_cache.find(id);
     if (it != m_marker_obj_cache.end()) return it->second;
 
-    std::vector<cv::Point3f> pts(4);
+    std::vector<cv::Point3d> pts(4);
 
     if (params->pattern == cv::aruco::CW_top_left_corner) {
-        pts = {{0, 0, 0},
-               {float(length), 0, 0},
-               {float(length), float(length), 0},
-               {0, float(length), 0}};
+        pts[0] = cv::Vec3d(0.f, 0.f, 0);
+        pts[1] = cv::Vec3d(length, 0.f, 0);
+        pts[2] = cv::Vec3d(length, length, 0);
+        pts[3] = cv::Vec3d(0.f, length, 0);
     } else {
-        float h = length * 0.5f;
-        pts = {{-h, h, 0}, {h, h, 0}, {h, -h, 0}, {-h, -h, 0}};
+        double h = length * 0.5f;
+        pts[0] = cv::Vec3d(-h, h, 0);
+        pts[1] = cv::Vec3d(h, h, 0);
+        pts[2] = cv::Vec3d(h, -h, 0);
+        pts[3] = cv::Vec3d(-h, -h, 0);
     }
 
     return m_marker_obj_cache.emplace(id, pts).first->second;
@@ -262,44 +237,23 @@ void detector::image_callback(
 
             for (int i = begin; i < end; i++) {
                 if (!m_map_client->has_marker(ids[i])) {
-                    RCLCPP_WARN(get_logger(), "Marker %d not in map", ids[i]);
                     continue;
                 }
-
-                // cv::Mat marker_obj_points = marker_object_points(
-                //     m_map_client->get_marker_size(ids[i]),
-                //     estimate_parameters);
 
                 const auto& obj_pts = get_marker_obj_points(
                     ids[i], m_map_client->get_marker_size(ids[i]),
                     estimate_parameters);
 
-                std::vector<cv::Point2f> undist_corners;
-                cv::fisheye::undistortPoints(
-                    corners[i], undist_corners,
-                    m_camera_model.fullIntrinsicMatrix(),
-                    m_camera_model.distortionCoeffs(), cv::Mat(), m_k_rect);
-
-                cv::solvePnP(obj_pts, undist_corners, m_k_rect, cv::Mat(),
-                             marker_rot[i], marker_pose[i],
-                             estimate_parameters->useExtrinsicGuess,
+                cv::solvePnP(obj_pts,                                 //
+                             cv::Mat(corners[i]),                     //
+                             m_camera_model.fullIntrinsicMatrix(),    //
+                             m_camera_model.distortionCoeffs(),       //
+                             marker_rot[i],                           //
+                             marker_pose[i],                          //
+                             estimate_parameters->useExtrinsicGuess,  //
                              estimate_parameters->solvePnPMethod);
 
-                // cv::solvePnP(obj_pts,                                 //
-                //              cv::Mat(corners[i]),                     //
-                //              m_camera_model.fullIntrinsicMatrix(),    //
-                //              m_camera_model.distortionCoeffs(),       //
-                //              marker_rot[i],                           //
-                //              marker_pose[i],                          //
-                //              estimate_parameters->useExtrinsicGuess,  //
-                //              estimate_parameters->solvePnPMethod);
-
-                compute_pose_covariance(obj_pts,         //
-                                        marker_rot[i],   //
-                                        marker_pose[i],  //
-                                        m_k_rect,        //
-                                        0.7,             //
-                                        marker_cov[i]);
+                compute_pose_covariance(marker_cov[i]);
 
                 pose_estimated[i] = true;
             }
@@ -333,6 +287,20 @@ void detector::image_callback(
 
     publish_detection(msg, std::move(marker_array), transforms, image, corners,
                       ids);
+
+    if (m_image_debug_pub->get_subscription_count() != 0) {
+        cv::Mat debug = image.clone();
+        cv::drawFrameAxes(debug, m_camera_model.fullIntrinsicMatrix(), m_camera_model.distortionCoeffs(), marker_rot, marker_pose, 0.2);
+        cv::aruco::drawDetectedMarkers(debug, corners, ids);
+
+        cv_bridge::CvImage cv_out;
+        cv_out.header.frame_id = msg->header.frame_id;
+        cv_out.header.stamp = msg->header.stamp;
+        cv_out.encoding = sensor_msgs::image_encodings::BGR8;
+        cv_out.image = debug;
+        sensor_msgs::msg::Image::SharedPtr out_msg = cv_out.toImageMsg();
+        m_image_debug_pub->publish(*out_msg);
+    }
 }
 
 void detector::camera_info_callback(
@@ -345,61 +313,19 @@ void detector::camera_info_callback(
     }
 
     m_camera_model.fromCameraInfo(msg);
-
-    cv::Matx33d K = m_camera_model.fullIntrinsicMatrix();
-    cv::Mat D = m_camera_model.distortionCoeffs();
-
-    cv::Mat R = cv::Mat::eye(3, 3, CV_64F);
-    cv::fisheye::estimateNewCameraMatrixForUndistortRectify(
-        K, D, cv::Size(msg->width, msg->height), R, m_k_rect, 1.0);
 }
 
-void detector::compute_pose_covariance(const std::vector<cv::Point3f>& obj_pts,
-                                       const cv::Vec3d& rvec,
-                                       const cv::Vec3d& tvec, const cv::Mat& K,
-                                       double sigma_pixel, cv::Mat& pose_cov) {
-    const int N = obj_pts.size();
-    cv::Mat J(2 * N, 6, CV_64F);
-    std::vector<cv::Point2f> proj_p(N), proj_m(N);
+void detector::compute_pose_covariance(cv::Mat& pose_cov) {
+    pose_cov.create(6, 6, CV_64F);
+    pose_cov.setTo(0);
 
-    auto project = [&](const cv::Vec3d& r, const cv::Vec3d& t,
-                       std::vector<cv::Point2f>& out) {
-        cv::projectPoints(obj_pts, r, t, K, cv::Mat(), out);
-    };
+    pose_cov.at<double>(0,0) = 0.05f;
+    pose_cov.at<double>(1,1) = 0.05f;
+    pose_cov.at<double>(2,2) = 0.1f;
 
-    // translation
-    for (int i = 0; i < 3; i++) {
-        cv::Vec3d dt(0, 0, 0);
-        dt[i] = transition_eps;
-
-        project(rvec, tvec + dt, proj_p);
-        project(rvec, tvec - dt, proj_m);
-
-        double inv = 1.0 / (2 * transition_eps);
-        for (int k = 0; k < N; k++) {
-            J.at<double>(2 * k, i) = (proj_p[k].x - proj_m[k].x) * inv;
-            J.at<double>(2 * k + 1, i) = (proj_p[k].y - proj_m[k].y) * inv;
-        }
-    }
-
-    // rotation
-    for (int i = 0; i < 3; i++) {
-        cv::Vec3d dr(0, 0, 0);
-        dr[i] = rotation_eps;
-
-        project(rvec + dr, tvec, proj_p);
-        project(rvec - dr, tvec, proj_m);
-
-        double inv = 1.0 / (2 * rotation_eps);
-        for (int k = 0; k < N; k++) {
-            J.at<double>(2 * k, i + 3) = (proj_p[k].x - proj_m[k].x) * inv;
-            J.at<double>(2 * k + 1, i + 3) = (proj_p[k].y - proj_m[k].y) * inv;
-        }
-    }
-
-    cv::Mat Sigma_img =
-        cv::Mat::eye(2 * N, 2 * N, CV_64F) * sigma_pixel * sigma_pixel;
-    pose_cov = (J.t() * Sigma_img.inv() * J).inv();
+    pose_cov.at<double>(3,3) = 0.01f;
+    pose_cov.at<double>(4,4) = 0.01f;
+    pose_cov.at<double>(5,5) = 0.05f;
 }
 
 void detector::fill_corners(clover2_aruco_msgs::msg::Marker& marker,
@@ -465,19 +391,6 @@ void detector::publish_detection(
     }
 
     m_markers_pub->publish(std::move(marker_array));
-
-    if (m_image_debug_pub->get_subscription_count() != 0) {
-        cv::Mat debug = image.clone();
-        cv::aruco::drawDetectedMarkers(debug, corners, ids);
-
-        cv_bridge::CvImage cv_out;
-        cv_out.header.frame_id = msg->header.frame_id;
-        cv_out.header.stamp = msg->header.stamp;
-        cv_out.encoding = sensor_msgs::image_encodings::BGR8;
-        cv_out.image = debug;
-        sensor_msgs::msg::Image::SharedPtr out_msg = cv_out.toImageMsg();
-        m_image_debug_pub->publish(*out_msg);
-    }
 }
 
 std::string detector::get_marker_frame_id(const int id) const {

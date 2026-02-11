@@ -78,16 +78,6 @@ public:
 
 private:
     /**
-     * @brief Generate the 3D object points of a marker for pose estimation.
-     * @param markerLength Marker side length in meters
-     * @param estimate_parameters OpenCV estimation parameters
-     * @return cv::Mat 3D points of marker corners
-     */
-    cv::Mat marker_object_points(
-        double markerLength,
-        const cv::Ptr<cv::aruco::EstimateParameters>& estimate_parameters);
-
-    /**
      * @brief Callback for image topic subscription.
      * @param msg Incoming camera image
      */
@@ -99,11 +89,6 @@ private:
      */
     void camera_info_callback(
         const sensor_msgs::msg::CameraInfo::ConstSharedPtr msg);
-
-    void compute_pose_covariance(const std::vector<cv::Point3f>& obj_pts,
-                                 const cv::Vec3d& rvec, const cv::Vec3d& tvec,
-                                 const cv::Mat& K, double sigma_pixel,
-                                 cv::Mat& Sigma_pose);
 
     /**
      * @brief Fill marker corners from detected 2D points.
@@ -146,9 +131,11 @@ private:
      */
     void produce_diagnostics(diagnostic_updater::DiagnosticStatusWrapper& stat);
 
-    const std::vector<cv::Point3f>& get_marker_obj_points(
+    const std::vector<cv::Point3d>& get_marker_obj_points(
         int id, double length,
         const cv::Ptr<cv::aruco::EstimateParameters>& params);
+
+    void compute_pose_covariance(cv::Mat& pose_cov);
 
     void publish_detection(
         const sensor_msgs::msg::Image::ConstSharedPtr& msg,
@@ -167,13 +154,12 @@ private:
     size_t m_last_marker_count;     ///< Last detected marker count
     bool m_tf_publish;              ///< Flag to enable TF publishing
     std::string m_dictionary_name;  ///< OpenCV ArUco dictionary ID
-    cv::Mat m_k_rect;
     std::shared_ptr<map_client>
         m_map_client;  ///< Map client for marker metadata
     cv::Ptr<cv::aruco::Dictionary> m_dictionary;  ///< ArUco dictionary object
     cv::Ptr<cv::aruco::DetectorParameters>
         m_detector_parameters;  ///< OpenCV detector parameters
-    std::unordered_map<int, std::vector<cv::Point3f>> m_marker_obj_cache;
+    std::unordered_map<int, std::vector<cv::Point3d>> m_marker_obj_cache;
 
     // TF
     std::shared_ptr<tf2_ros::TransformBroadcaster>

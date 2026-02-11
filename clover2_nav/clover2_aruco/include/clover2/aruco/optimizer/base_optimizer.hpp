@@ -48,9 +48,9 @@ public:
 
     virtual void optimize() = 0;
 
-    virtual void push_measurement(std::string& source_frame,
-                                  std::chrono::nanoseconds timestamp,
-                                  std::vector<marker>& measurement) = 0;
+    virtual void push_measurements(const std::string& source_frame,
+                                  const std::chrono::nanoseconds timestamp,
+                                  const std::vector<marker>& measurement) = 0;
     virtual void clear_measurements() = 0;
 
     void set_data_ready_callback(data_ready_callback_t callback);

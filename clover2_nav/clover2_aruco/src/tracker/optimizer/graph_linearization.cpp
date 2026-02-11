@@ -33,9 +33,9 @@ graph_linearizer::~graph_linearizer() {
 
 void graph_linearizer::optimize() {}
 
-void graph_linearizer::push_measurement(std::string& source_frame,
-                                        std::chrono::nanoseconds timestamp,
-                                        std::vector<marker>& measurement) {
+void graph_linearizer::push_measurements(const std::string& source_frame,
+                                        const std::chrono::nanoseconds timestamp,
+                                        const std::vector<marker>& measurement) {
     if (m_source_frame.empty()) {
         m_source_frame = source_frame;
     } else if (m_source_frame != source_frame) {
