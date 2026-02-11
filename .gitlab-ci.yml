@@ -42,12 +42,12 @@ stages:
 .docker-build-deploy: &docker-build-deploy
   <<: *docker-bake
   variables:
-    BAKE_GROUP: "deploy"
+    BAKE_TARGET: "deploy"
 
 .docker-build-tooling: &docker-build-tooling
   <<: *docker-bake
   variables:
-    BAKE_GROUP: "tooling"
+    BAKE_TARGET: "tooling"
 
 .image-builder-in-docker: &image-builder-in-docker
   <<: *docker-task
