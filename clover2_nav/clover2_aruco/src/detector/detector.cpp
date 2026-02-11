@@ -290,7 +290,6 @@ void detector::image_callback(
 
     if (m_image_debug_pub->get_subscription_count() != 0) {
         cv::Mat debug = image.clone();
-        cv::drawFrameAxes(debug, m_camera_model.fullIntrinsicMatrix(), m_camera_model.distortionCoeffs(), marker_rot, marker_pose, 0.2);
         cv::aruco::drawDetectedMarkers(debug, corners, ids);
 
         cv_bridge::CvImage cv_out;

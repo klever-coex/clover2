@@ -22,7 +22,7 @@ void simple_mean::optimize() {
         return;
     }
 
-    RCLCPP_INFO(m_logger, "Optimizing using %zu measurements",
+    RCLCPP_DEBUG(m_logger, "Optimizing using %zu measurements",
                 m_measurements->size());
     Eigen::Vector3d avg_translation = Eigen::Vector3d::Zero();
     Eigen::Vector4d cumulative_q = Eigen::Vector4d::Zero();
@@ -30,25 +30,25 @@ void simple_mean::optimize() {
     time_buffer_type buffer_copy(*m_measurements);
 
     for (const auto& [timestamp, marker] : buffer_copy.buffer()) {
-        RCLCPP_INFO(m_logger, "  Marker ID: %d", marker.id);
+        RCLCPP_DEBUG(m_logger, "  Marker ID: %d", marker.id);
         avg_translation += marker.transform.translation();
         Eigen::Quaterniond q(marker.transform.rotation());
         cumulative_q += q.coeffs();
     }
 
-    RCLCPP_INFO(m_logger, "Averaged over %zu measurements", buffer_copy.size());
+    RCLCPP_DEBUG(m_logger, "Averaged over %zu measurements", buffer_copy.size());
     double count = static_cast<double>(buffer_copy.size());
     avg_translation /= count;
     cumulative_q /= count;
 
-    RCLCPP_INFO(m_logger, "Computed average translation: [%f, %f, %f]",
+    RCLCPP_DEBUG(m_logger, "Computed average translation: [%f, %f, %f]",
                 avg_translation.x(), avg_translation.y(), avg_translation.z());
     Eigen::Quaterniond avg_quat = Eigen::Quaterniond::Identity();
     if (cumulative_q.norm() > 0.0) {
         avg_quat.coeffs() = cumulative_q.normalized();
     }
 
-    RCLCPP_INFO(m_logger,
+    RCLCPP_DEBUG(m_logger,
                 "Computed average rotation quaternion: [%f, %f, %f, %f]",
                 avg_quat.x(), avg_quat.y(), avg_quat.z(), avg_quat.w());
     marker result;
