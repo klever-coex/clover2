@@ -1,12 +1,12 @@
 #include <clover2/aruco/optimizer/fabric.hpp>
-#include <clover2/aruco/optimizer/graph_linearizer.hpp>
+// #include <clover2/aruco/optimizer/graph_linearizer.hpp>
 #include <clover2/aruco/optimizer/simple_mean.hpp>
 
 namespace clover2::aruco::optimizer {
 
 fabric::fabric() {
     add<simple_mean>();
-    add<graph_linearizer>();
+    // add<graph_linearizer>();
 }
 
 fabric& fabric::instance() {
