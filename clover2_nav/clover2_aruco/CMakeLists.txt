@@ -16,7 +16,7 @@ find_package(clover2_common REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(diagnostic_updater REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(g2o REQUIRED)
+# find_package(g2o REQUIRED)
 find_package(image_geometry REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
@@ -96,7 +96,7 @@ clover2_add_component_library(
   TARGET clover2_aruco_tracker
   SOURCES ${tracker_library_files}
   DEFINES CLOVER2_ARUCO_TRACKER_BUILDING_LIBRARY
-  LINK_LIBS g2o::core
+  # LINK_LIBS g2o::core
   DEPENDENCIES ${dependencies}
   COMPONENT_CLASS "clover2::aruco::tracker"
 )

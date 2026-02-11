@@ -75,7 +75,7 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
-    return [tracker_cmd]
+    return [aruco_map_server_cmd, tracker_cmd]
 
 
 def generate_launch_description():
