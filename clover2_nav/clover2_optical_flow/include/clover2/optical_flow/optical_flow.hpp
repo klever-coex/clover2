@@ -1,29 +1,26 @@
 #pragma once
 
-// STL includes
-#include <mutex>
+// clover2
+#include <clover2/common/lifecycle_node.hpp>
 
-// ROS2 includes
+// ROS2
 #include <diagnostic_updater/diagnostic_updater.hpp>
 #include <image_geometry/pinhole_camera_model.hpp>
 #include <rclcpp/rclcpp.hpp>
 
-// Clover2 includes
-#include <clover2/common/lifecycle_node.hpp>
-
-// TF2 includes
-#include <tf2/exceptions.h>
+// TF2
 #include <tf2/convert.h>
+#include <tf2/exceptions.h>
 #include <tf2/utils.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
-// OpenCV includes
-#include <opencv2/opencv.hpp>
+// OpenCV
 #include <cv_bridge/cv_bridge.hpp>
+#include <opencv2/opencv.hpp>
 
-// Msgs includes
+// Msgs
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <geometry_msgs/msg/vector3_stamped.hpp>
@@ -31,20 +28,23 @@
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
+// STL
+#include <mutex>
+
 namespace clover2::optical_flow {
 
 /**
  * @class optical_flow
  * @brief Lifecycle node for calculating optical flow using phase correlation.
  *
- * This node subscribes to camera images and camera info, calculates optical flow
- * using phase correlation, and publishes flow data in MAVROS format.
+ * This node subscribes to camera images and camera info, calculates optical
+ * flow using phase correlation, and publishes flow data in MAVROS format.
  */
 class optical_flow : public clover2::common::lifecycle_node {
 public:
     using SharedPtr = std::shared_ptr<optical_flow>;
-    using CallbackReturn =
-        rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+    using CallbackReturn = rclcpp_lifecycle::node_interfaces::
+        LifecycleNodeInterface::CallbackReturn;
 
     /**
      * @brief Construct a new optical_flow node.
@@ -94,26 +94,26 @@ public:
 
 private:
     // Parameters
-    int m_roi_px;                      ///< ROI size in pixels
-    bool m_calc_flow_gyro;             ///< Calculate flow gyro from TF
-    float m_flow_gyro_default;         ///< Default flow gyro value
-    std::string m_fcu_frame_id;        ///< FCU frame ID
-    std::string m_local_frame_id;      ///< Local frame ID
+    int m_roi_px;                  ///< ROI size in pixels
+    bool m_calc_flow_gyro;         ///< Calculate flow gyro from TF
+    float m_flow_gyro_default;     ///< Default flow gyro value
+    std::string m_fcu_frame_id;    ///< FCU frame ID
+    std::string m_local_frame_id;  ///< Local frame ID
 
     // Camera parameters
-    std::mutex m_camera_info_mtx;      ///< Mutex for thread-safe camera info access
+    std::mutex m_camera_info_mtx;  ///< Mutex for thread-safe camera info access
     image_geometry::PinholeCameraModel m_camera_model;  ///< Camera model
 
     // State
-    rclcpp::Time m_prev_stamp;         ///< Previous frame timestamp
-    rclcpp::Time m_last_vpe_time;      ///< Last VPE message timestamp
-    cv::Rect m_roi;                    ///< Region of interest
-    cv::Mat m_hann;                    ///< Hanning window for phase correlation
-    cv::Mat m_prev;                    ///< Previous frame
-    cv::Mat m_curr;                    ///< Current frame
+    rclcpp::Time m_prev_stamp;     ///< Previous frame timestamp
+    rclcpp::Time m_last_vpe_time;  ///< Last VPE message timestamp
+    cv::Rect m_roi;                ///< Region of interest
+    cv::Mat m_hann;                ///< Hanning window for phase correlation
+    cv::Mat m_prev;                ///< Previous frame
+    cv::Mat m_curr;                ///< Current frame
 
     // TF
-    std::unique_ptr<tf2_ros::Buffer> m_tf_buffer;           ///< TF buffer
+    std::unique_ptr<tf2_ros::Buffer> m_tf_buffer;               ///< TF buffer
     std::unique_ptr<tf2_ros::TransformListener> m_tf_listener;  ///< TF listener
 
     // Diagnostics

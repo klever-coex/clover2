@@ -72,7 +72,7 @@ def generate_launch_description():
             "use_sim_time": use_sim_time,
             "log_level": log_level,
             "params_file": params_file,
-            "map": "example.yaml",
+            "map": "example-1.yaml",
         }.items(),
     )
 

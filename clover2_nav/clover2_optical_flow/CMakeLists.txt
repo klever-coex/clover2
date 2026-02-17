@@ -43,51 +43,28 @@ set(dependencies
   tf2_ros
 )
 
+# Common helper macros from clover2_common
+# The extras file is loaded by find_package(clover2_common).
+
 # ============================================================================
 # Build optical_flow component as a shared library
 # ============================================================================
-add_library(clover2_optical_flow_component src/optical_flow.cpp)
-# Create alias for cleaner usage
-add_library(clover2::optical_flow::optical_flow ALIAS clover2_optical_flow_component)
-
-# Set C/C++ language standards
-target_compile_features(clover2_optical_flow_component PUBLIC c_std_99 cxx_std_17)
-
-# Set include directories for both build and install interfaces
-target_include_directories(clover2_optical_flow_component PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-
-# Link against OpenCV library
-target_link_libraries(clover2_optical_flow_component
-  ${OpenCV_LIBS}
+clover2_add_component_library(
+  TARGET clover2_optical_flow_component
+  SOURCES src/optical_flow.cpp
+  LINK_LIBS ${OpenCV_LIBS}
+  DEPENDENCIES ${dependencies}
+  COMPONENT_CLASS "clover2::optical_flow::optical_flow"
 )
-
-# Add ROS 2 dependencies
-ament_target_dependencies(clover2_optical_flow_component
-  ${dependencies}
-)
-
-# Register as a ROS 2 component node
-rclcpp_components_register_nodes(clover2_optical_flow_component "clover2::optical_flow::optical_flow")
 
 # ============================================================================
 # Build optical_flow executable (main application)
 # ============================================================================
-add_executable(optical_flow src/main.cpp)
-
-# Set include directories
-target_include_directories(optical_flow PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-
-# Link against optical_flow component library
-target_link_libraries(optical_flow
-  clover2_optical_flow_component
-)
-
-ament_target_dependencies(optical_flow
-  ${dependencies}
+clover2_add_executable(
+  TARGET optical_flow
+  SOURCES src/main.cpp
+  LINK_LIBS clover2_optical_flow_component
+  DEPENDENCIES ${dependencies}
 )
 
 # ============================================================================

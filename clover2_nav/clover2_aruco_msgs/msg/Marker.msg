@@ -7,7 +7,7 @@ float32 size
 string marker_frame_id
 
 # Marker position
-geometry_msgs/Pose pose
+geometry_msgs/PoseWithCovariance pose
 
 clover2_aruco_msgs/Point2D c1
 clover2_aruco_msgs/Point2D c2

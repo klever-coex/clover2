@@ -1,19 +1,19 @@
 #pragma once
 
-// ROS2 includes
+// clover2
+#include <clover2/common/lifecycle_node.hpp>
+
+// ROS2
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <tf2_ros/static_transform_broadcaster.hpp>
 #include <tf2_ros/transform_broadcaster.hpp>
 
-// Clover2 include
-#include <clover2/common/lifecycle_node.hpp>
-
-// Msgs includes
+// msgs
 #include <clover2_aruco_msgs/msg/marker_map.hpp>
 #include <std_msgs/msg/empty.hpp>
 
-// Srvs includes
+// srvs
 #include <clover2_aruco_msgs/srv/get_map.hpp>
 
 // STL

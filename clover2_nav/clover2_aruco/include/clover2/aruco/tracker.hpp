@@ -4,8 +4,12 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
+// Eigen includes
+#include <Eigen/Geometry>
+
 // Clover2 includes
 #include <clover2/aruco/map_client.hpp>
+#include <clover2/aruco/optimizer/base_optimizer.hpp>
 #include <clover2/common/lifecycle_node.hpp>
 
 // TF2 includes
@@ -47,11 +51,19 @@ private:
     void markers_callback(
         const clover2_aruco_msgs::msg::MarkerArray::SharedPtr msg);
 
+    void initialize_optimizer();
+    void publish_pose(const optimizer::marker& pose,
+                      std::chrono::nanoseconds timestamp);
+
+    // Optimization parameters
+    std::string m_optimizer_type;
+
     // Camera parameters
     std::string m_tracking_id;
 
     // Detection parameters
     std::shared_ptr<map_client> m_map_client;
+    std::shared_ptr<optimizer::base_optimizer> m_optimizer;
 
     // TF
     std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
@@ -62,7 +74,8 @@ private:
     rclcpp::Subscription<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr
         m_markers_sub;
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr m_pose_pub;
-    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr m_pose_cov_pub;
+    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr
+        m_pose_cov_pub;
     rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr
         m_poses_debug_pub;
 };
