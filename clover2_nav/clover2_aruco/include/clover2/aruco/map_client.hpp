@@ -1,19 +1,19 @@
 #pragma once
 
-// ROS2 includes
+// ROS2
 #include <rclcpp/rclcpp.hpp>
 #include <tf2/LinearMath/Transform.hpp>
 #include <tf2_eigen/tf2_eigen.hpp>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
-// Msgs includes
+// msgs
 #include <clover2_aruco_msgs/msg/marker_map.hpp>
 #include <std_msgs/msg/empty.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
-// Srvs includes
+// srvs
 #include <clover2_aruco_msgs/srv/get_map.hpp>
 
-// STL includes
+// STL
 #include <unordered_map>
 #include <vector>
 
@@ -32,7 +32,7 @@ public:
             : id(msg.id)
             , size(msg.size)
             , marker_frame_id(msg.marker_frame_id) {
-            tf2::fromMsg(msg.pose, transform);
+            tf2::fromMsg(msg.pose.pose, transform);
         }
 
         marker(const marker& other)
@@ -119,9 +119,7 @@ private:
 
         m_name = msg.name;
         m_map_id = msg.header.frame_id;
-
         m_markers.clear();
-        m_markers.reserve(msg.markers.size());
 
         for (const auto& it : msg.markers) {
             marker m(it);
@@ -135,7 +133,7 @@ private:
         if (!m_map_client->wait_for_service(std::chrono::milliseconds(1000))) {
             throw std::runtime_error(
                 std::string(m_map_client->get_service_name()) +
-                "service is not available!");
+                " service is not available!");
         }
 
         auto map_request =
