@@ -35,22 +35,24 @@ stages:
 
 .docker-bake: &docker-bake
   <<: *docker-task
-  stage: docker
   script:
     - make docker-bake-$BAKE_TARGET
 
 .docker-build-web: &docker-build-web
   <<: *docker-bake
+  stage: docker
   variables:
     BAKE_TARGET: "web"
 
 .docker-build-ros: &docker-build-ros
   <<: *docker-bake
+  stage: image
   variables:
     BAKE_TARGET: "ros"
 
 .docker-build-tooling: &docker-build-tooling
   <<: *docker-bake
+  stage: docker
   variables:
     BAKE_TARGET: "tooling"
 
