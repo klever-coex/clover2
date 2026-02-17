@@ -12,7 +12,6 @@ if [ "$HAS_CACHE" = "TRUE" ] && [ "$CACHE_NEEDS_UPDATE" = "FALSE" ]; then
 else
     SYSINFO=""
 
-    # pam_motd does not carry the environment
     [ -f /etc/default/locale ] && . /etc/default/locale
     export LANG
     CORES=$(grep -c ^processor /proc/cpuinfo 2>/dev/null)
