@@ -3,6 +3,7 @@
 // clover2
 #include <clover2/aruco/map_client.hpp>
 #include <clover2/common/lifecycle_node.hpp>
+#include <clover2/common/parameter_watcher.hpp>
 
 // ROS2
 #include <diagnostic_updater/diagnostic_updater.hpp>
@@ -168,6 +169,10 @@ private:
     // diagnostics
     std::shared_ptr<diagnostic_updater::Updater>
         m_diagnostic_updater;  ///< Diagnostic updater
+
+    // parameter watcher
+    clover2::common::parameter_watcher::SharedPtr
+        m_parameter_watcher;  ///< Parameter watcher
 
     // Publishers and subscribers
     rclcpp::Publisher<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr
