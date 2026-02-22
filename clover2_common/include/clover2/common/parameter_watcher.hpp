@@ -70,7 +70,7 @@ public:
      * Equivalent to default construction followed by enable_watch_parameters().
      */
     template <typename NodeT>
-    parameter_watcher(NodeT& node) {
+    explicit parameter_watcher(NodeT& node) {
         enable_watch_parameters(node);
     }
 
