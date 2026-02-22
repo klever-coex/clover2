@@ -53,15 +53,19 @@ function "outputs" {
 #                                          /_/
 
 group "all" {
-  targets = ["deploy", "tooling"]
+  targets = ["web", "tooling", "ros"]
 }
 
 group "tooling" {
   targets = ["builder"]
 }
 
-group "deploy" {
-  targets = ["project-deploy", "mirror-wetty"]
+group "web" {
+  targets = ["clover2-docs", "clover2-gui", "mirror-wetty"]
+}
+
+group "ros" {
+  targets = ["clover2-ros"]
 }
 
 #      ____           ___           __                         __
@@ -90,10 +94,10 @@ target "project-deploy" {
         dockerfile = "docker/frontend/Dockerfile"
         tgt = "clover2-gui"
       },
-      # {
-      #   dockerfile = "docker/ros/Dockerfile"
-      #   tgt = "clover2-ros"
-      # }
+      {
+        dockerfile = "docker/ros/Dockerfile"
+        tgt = "clover2-ros"
+      }
     ]
   }
 }

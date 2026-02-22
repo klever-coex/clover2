@@ -1,32 +1,30 @@
 #pragma once
 
-// ROS2 includes
+// clover2
+#include <clover2/aruco/map_client.hpp>
+#include <clover2/common/lifecycle_node.hpp>
+
+// ROS2
 #include <diagnostic_updater/diagnostic_updater.hpp>
 #include <image_geometry/pinhole_camera_model.hpp>
 #include <rclcpp/rclcpp.hpp>
-
-// Clover2 includes
-#include <clover2_aruco/map_client.hpp>
-#include <clover2_common/lifecycle_node.hpp>
-
-// TF2 includes
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 
-// OpenCV includes
+// OpenCV
 #include <opencv2/aruco.hpp>
 #include <opencv2/aruco/dictionary.hpp>
 #include <opencv2/core.hpp>
 
-// Msgs includes
+// msgs
 #include <clover2_aruco_msgs/msg/marker.hpp>
 #include <clover2_aruco_msgs/msg/marker_array.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
-namespace clover2_aruco {
+namespace clover2::aruco {
 
 /**
  * @class detector
@@ -35,7 +33,7 @@ namespace clover2_aruco {
  * This node subscribes to camera images and camera info, detects ArUco markers
  * based on a dictionary, publishes marker arrays, and broadcasts transforms.
  */
-class detector : public clover2_common::lifecycle_node {
+class detector : public clover2::common::lifecycle_node {
 public:
     using SharedPtr =
         std::shared_ptr<detector>;  ///< Shared pointer type for detector
@@ -78,16 +76,7 @@ public:
      */
     CallbackReturn on_shutdown(const rclcpp_lifecycle::State& /* state */);
 
-    /**
-     * @brief Generate the 3D object points of a marker for pose estimation.
-     * @param markerLength Marker side length in meters
-     * @param estimate_parameters OpenCV estimation parameters
-     * @return cv::Mat 3D points of marker corners
-     */
-    cv::Mat marker_object_points(
-        double markerLength,
-        const cv::Ptr<cv::aruco::EstimateParameters>& estimate_parameters);
-
+private:
     /**
      * @brief Callback for image topic subscription.
      * @param msg Incoming camera image
@@ -118,6 +107,9 @@ public:
     void fill_pose(clover2_aruco_msgs::msg::Marker& marker,
                    const cv::Vec3d& rvec, const cv::Vec3d& tvec) const;
 
+    void fill_covariance(clover2_aruco_msgs::msg::Marker& marker,
+                         const cv::Mat& cov);
+
     /**
      * @brief Fill a geometry_msgs::Vector3 with translation data.
      * @param translation Vector3 message to fill
@@ -139,7 +131,20 @@ public:
      */
     void produce_diagnostics(diagnostic_updater::DiagnosticStatusWrapper& stat);
 
-private:
+    const std::vector<cv::Point3d>& get_marker_obj_points(
+        int id, double length,
+        const cv::Ptr<cv::aruco::EstimateParameters>& params);
+
+    void compute_pose_covariance(cv::Mat& pose_cov);
+
+    void publish_detection(
+        const sensor_msgs::msg::Image::ConstSharedPtr& msg,
+        std::unique_ptr<clover2_aruco_msgs::msg::MarkerArray> marker_array,
+        const std::vector<geometry_msgs::msg::TransformStamped>& transforms,
+        const cv::Mat& image,
+        const std::vector<std::vector<cv::Point2f>>& corners,
+        const std::vector<int>& ids);
+
     // Camera parameters
     std::string m_aruco_frame_id;  ///< Base frame for ArUco markers
     std::mutex m_camera_info_mtx;  ///< Mutex for thread-safe camera info access
@@ -149,12 +154,12 @@ private:
     size_t m_last_marker_count;     ///< Last detected marker count
     bool m_tf_publish;              ///< Flag to enable TF publishing
     std::string m_dictionary_name;  ///< OpenCV ArUco dictionary ID
-    double m_marker_size;           ///< Marker size in meters
     std::shared_ptr<map_client>
         m_map_client;  ///< Map client for marker metadata
     cv::Ptr<cv::aruco::Dictionary> m_dictionary;  ///< ArUco dictionary object
     cv::Ptr<cv::aruco::DetectorParameters>
         m_detector_parameters;  ///< OpenCV detector parameters
+    std::unordered_map<int, std::vector<cv::Point3d>> m_marker_obj_cache;
 
     // TF
     std::shared_ptr<tf2_ros::TransformBroadcaster>
@@ -168,11 +173,11 @@ private:
     rclcpp::Publisher<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr
         m_markers_pub;  ///< Marker array publisher
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr
-        m_debug_pub;  ///< Debug image publisher
+        m_image_debug_pub;  ///< Debug image publisher
     rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr
         m_camera_info_sub;  ///< Camera info subscriber
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr
         m_image_sub;  ///< Camera image subscriber
 };
 
-}  // namespace clover2_aruco
+}  // namespace clover2::aruco

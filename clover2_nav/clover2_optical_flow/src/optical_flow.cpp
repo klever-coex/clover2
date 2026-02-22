@@ -1,18 +1,22 @@
-#include <clover2_optical_flow/optical_flow.hpp>
-#include <lifecycle_msgs/msg/state.hpp>
-#include <sensor_msgs/image_encodings.hpp>
+// clover2
+#include <clover2/optical_flow/optical_flow.hpp>
+
+// ROS2
 #include <tf2/LinearMath/Quaternion.hpp>
 
+// msgs
+#include <lifecycle_msgs/msg/state.hpp>
+#include <sensor_msgs/image_encodings.hpp>
+
+// STL
 #include <cmath>
 #include <memory>
 #include <vector>
 
-using cv::Mat;
-
-namespace clover2_optical_flow {
+namespace clover2::optical_flow {
 
 optical_flow::optical_flow(const rclcpp::NodeOptions& options)
-    : clover2_common::lifecycle_node("optical_flow", options)
+    : clover2::common::lifecycle_node("optical_flow", options)
     , m_fcu_frame_id("base_link")
     , m_local_frame_id("map")
     , m_prev_stamp(rclcpp::Time(0))
@@ -23,7 +27,7 @@ optical_flow::optical_flow(const rclcpp::NodeOptions& options)
 
     // Declare parameters
     declare_and_watch_parameter<int>(
-        "roi", 128,
+        "roi", 256,
         [this](const rclcpp::Parameter& p) { m_roi_px = p.as_int(); },
         "ROI size in pixels");
 
@@ -78,7 +82,7 @@ optical_flow::CallbackReturn optical_flow::on_activate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     // Create publishers
     m_flow_pub = this->create_publisher<mavros_msgs::msg::OpticalFlowRad>(
-        "mavros/px4flow/raw/send", rclcpp::SensorDataQoS());
+        "mavros/px4flow/raw/send", rclcpp::SystemDefaultsQoS());
     m_debug_pub = this->create_publisher<sensor_msgs::msg::Image>(
         "~/debug", rclcpp::SystemDefaultsQoS());
 
@@ -115,8 +119,8 @@ optical_flow::CallbackReturn optical_flow::on_cleanup(
     m_tf_listener.reset();
 
     // Clear state
-    m_prev = Mat();
-    m_curr = Mat();
+    m_prev = cv::Mat();
+    m_curr = cv::Mat();
     m_roi = cv::Rect();
 
     return CallbackReturn::SUCCESS;
@@ -201,7 +205,8 @@ void optical_flow::flow_callback(
     flow_msg.temperature = 0;
 
     double response;
-    cv::Point2d phase_shift = cv::phaseCorrelate(m_prev, m_curr, m_hann, &response);
+    cv::Point2d phase_shift =
+        cv::phaseCorrelate(m_prev, m_curr, m_hann, &response);
 
     // Undistort flow in pixels
     cv::Point2d image_center = cv::Point2d(msg->width, msg->height) / 2.0;
@@ -313,8 +318,8 @@ geometry_msgs::msg::Vector3Stamped optical_flow::calc_flow_gyro(
     return flow;
 }
 
-}  // namespace clover2_optical_flow
+}  // namespace clover2::optical_flow
 
 #include "rclcpp_components/register_node_macro.hpp"
 
-RCLCPP_COMPONENTS_REGISTER_NODE(clover2_optical_flow::optical_flow)
+RCLCPP_COMPONENTS_REGISTER_NODE(clover2::optical_flow::optical_flow)

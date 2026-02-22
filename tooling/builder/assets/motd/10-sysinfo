@@ -1,7 +1,5 @@
 #!/bin/sh
 
-# don't try refresh this more than once per minute
-# Due to cpu consumption and login delays (LP: #1893716)
 CACHE="/var/lib/landscape/landscape-sysinfo.cache"
 HAS_CACHE="FALSE"
 CACHE_NEEDS_UPDATE="FALSE"
@@ -14,7 +12,6 @@ if [ "$HAS_CACHE" = "TRUE" ] && [ "$CACHE_NEEDS_UPDATE" = "FALSE" ]; then
 else
     SYSINFO=""
 
-    # pam_motd does not carry the environment
     [ -f /etc/default/locale ] && . /etc/default/locale
     export LANG
     CORES=$(grep -c ^processor /proc/cpuinfo 2>/dev/null)

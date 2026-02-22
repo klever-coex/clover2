@@ -1,19 +1,19 @@
 #pragma once
 
-// ROS2 includes
+// clover2
+#include <clover2/common/lifecycle_node.hpp>
+
+// ROS2
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <tf2_ros/static_transform_broadcaster.hpp>
 #include <tf2_ros/transform_broadcaster.hpp>
 
-// Clover2 include
-#include <clover2_common/lifecycle_node.hpp>
-
-// Msgs includes
+// msgs
 #include <clover2_aruco_msgs/msg/marker_map.hpp>
 #include <std_msgs/msg/empty.hpp>
 
-// Srvs includes
+// srvs
 #include <clover2_aruco_msgs/srv/get_map.hpp>
 
 // STL
@@ -21,7 +21,7 @@
 #include <memory>
 #include <mutex>
 
-namespace clover2_aruco {
+namespace clover2::aruco {
 
 /**
  * @class map_server
@@ -31,7 +31,7 @@ namespace clover2_aruco {
  * clover2_aruco_msgs::srv::GetMap service. Supports both legacy and YAML map
  * formats.
  */
-class map_server : public clover2_common::lifecycle_node {
+class map_server : public clover2::common::lifecycle_node {
 public:
     using SharedPtr =
         std::shared_ptr<map_server>;  ///< Shared pointer type for map_server
@@ -118,4 +118,4 @@ private:
         m_map_update_pub;  ///< ROS2 trigger publisher
 };
 
-}  // namespace clover2_aruco
+}  // namespace clover2::aruco

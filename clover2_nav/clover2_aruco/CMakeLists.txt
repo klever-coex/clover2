@@ -48,176 +48,85 @@ set(dependencies
   tf2_ros
 )
 
+# Common helper macros from clover2_common
+# The extras file is loaded by find_package(clover2_common).
+
 # ============================================================================
 # Build ArUco utils library
 # ============================================================================
-file(GLOB_RECURSE utils_library_files "src/utils/*.cpp")
-add_library(clover2_aruco_utils ${utils_library_files})
-
-# Set C/C++ language standards
-target_compile_features(clover2_aruco_utils PUBLIC c_std_99 cxx_std_17)
-
-# Set include directories for both build and install interfaces
-target_include_directories(clover2_aruco_utils PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-
-target_link_libraries(clover2_aruco_utils
-  yaml-cpp
-)
-
-# Add ROS 2 dependencies
-ament_target_dependencies(clover2_aruco_utils
-  ${dependencies}
+file(GLOB_RECURSE utils_library_files "src/util/*.cpp")
+clover2_add_library(
+  TARGET clover2_aruco_utils
+  SOURCES ${utils_library_files}
+  LINK_LIBS yaml-cpp
+  DEPENDENCIES ${dependencies}
 )
 
 # ============================================================================
 # Build ArUco detector component as a shared library
 # ============================================================================
-add_library(clover2_aruco_detector src/detector/detector.cpp)
-# Create alias for cleaner usage
-add_library(clover2_aruco::detector ALIAS clover2_aruco_detector)
-
-# Set C/C++ language standards
-target_compile_features(clover2_aruco_detector PUBLIC c_std_99 cxx_std_17)
-
-# Set include directories for both build and install interfaces
-target_include_directories(clover2_aruco_detector PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-
-# Link against OpenCV ArUco library
-target_link_libraries(clover2_aruco_detector
-  opencv_aruco
+clover2_add_component_library(
+  TARGET clover2_aruco_detector
+  SOURCES src/detector/detector.cpp
+  DEFINES CLOVER2_ARUCO_DETECTOR_BUILDING_LIBRARY
+  LINK_LIBS opencv_aruco
+  DEPENDENCIES ${dependencies}
+  COMPONENT_CLASS "clover2::aruco::detector"
 )
-
-# Define compilation flag for the detector library
-target_compile_definitions(clover2_aruco_detector PRIVATE "CLOVER2_ARUCO_DETECTOR_BUILDING_LIBRARY")
-
-# Add ROS 2 dependencies
-ament_target_dependencies(clover2_aruco_detector
-  ${dependencies}
-)
-
-# Register as a ROS 2 component node
-rclcpp_components_register_nodes(clover2_aruco_detector "clover2_aruco::detector")
 
 # ============================================================================
 # Build ArUco map server component as a shared library
 # ============================================================================
-add_library(clover2_aruco_map_server src/map_server/map_server.cpp)
-# Create alias for cleaner usage
-add_library(clover2_aruco::map_server ALIAS clover2_aruco_map_server)
-
-# Set C/C++ language standards
-target_compile_features(clover2_aruco_map_server PUBLIC c_std_99 cxx_std_17)
-
-# Set include directories for both build and install interfaces
-target_include_directories(clover2_aruco_map_server PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-
-# Link against OpenCV ArUco and YAML libraries
-target_link_libraries(clover2_aruco_map_server
-  clover2_aruco_utils
-  opencv_aruco
+clover2_add_component_library(
+  TARGET clover2_aruco_map_server
+  SOURCES src/map_server/map_server.cpp
+  DEFINES CLOVER2_ARUCO_MAP_SERVER_BUILDING_LIBRARY
+  LINK_LIBS clover2_aruco_utils opencv_aruco
+  DEPENDENCIES ${dependencies}
+  COMPONENT_CLASS "clover2::aruco::map_server"
 )
-
-# Define compilation flag for the map server library
-target_compile_definitions(clover2_aruco_map_server PRIVATE "CLOVER2_ARUCO_MAP_SERVER_BUILDING_LIBRARY")
-
-# Add ROS 2 dependencies
-ament_target_dependencies(clover2_aruco_map_server
-  ${dependencies}
-)
-
-# Register as a ROS 2 component node
-rclcpp_components_register_nodes(clover2_aruco_map_server "clover2_aruco::map_server")
 
 # ============================================================================
 # Build ArUco tracker component as a shared library
 # ============================================================================
-add_library(clover2_aruco_tracker src/tracker/tracker.cpp)
-# Create alias for cleaner usage
-add_library(clover2_aruco::tracker ALIAS clover2_aruco_tracker)
 
-# Set C/C++ language standards
-target_compile_features(clover2_aruco_tracker PUBLIC c_std_99 cxx_std_17)
-
-# Set include directories for both build and install interfaces
-target_include_directories(clover2_aruco_tracker PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-
-# Define compilation flag for the map server library
-target_compile_definitions(clover2_aruco_tracker PRIVATE "CLOVER2_ARUCO_TRACKER_BUILDING_LIBRARY")
-
-# Add ROS 2 dependencies
-ament_target_dependencies(clover2_aruco_tracker
-  ${dependencies}
+file(GLOB_RECURSE tracker_library_files "src/tracker/*.cpp")
+clover2_add_component_library(
+  TARGET clover2_aruco_tracker
+  SOURCES ${tracker_library_files}
+  DEFINES CLOVER2_ARUCO_TRACKER_BUILDING_LIBRARY
+  DEPENDENCIES ${dependencies}
+  COMPONENT_CLASS "clover2::aruco::tracker"
 )
-
-# Register as a ROS 2 component node
-rclcpp_components_register_nodes(clover2_aruco_tracker "clover2_aruco::tracker")
 
 # ============================================================================
 # Build detector executable (main application)
 # ============================================================================
-add_executable(detector src/detector/main.cpp)
-
-# Set include directories
-target_include_directories(detector PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-
-# Link against detector library and OpenCV
-target_link_libraries(detector
-  clover2_aruco_detector
-  opencv_aruco
-)
-
-ament_target_dependencies(detector
-  ${dependencies}
+clover2_add_executable(
+  TARGET detector
+  SOURCES src/detector.cpp
+  LINK_LIBS clover2_aruco_detector opencv_aruco
+  DEPENDENCIES ${dependencies}
 )
 
 # ============================================================================
 # Build map_server executable (main application)
 # ============================================================================
-add_executable(map_server src/map_server/main.cpp)
-
-# Set include directories
-target_include_directories(map_server PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-
-# Link against map server library and OpenCV
-target_link_libraries(map_server
-  clover2_aruco_map_server
-  opencv_aruco
-)
-
-ament_target_dependencies(map_server
-  ${dependencies}
+clover2_add_executable(
+  TARGET map_server
+  SOURCES src/map_server.cpp
+  LINK_LIBS clover2_aruco_map_server opencv_aruco
+  DEPENDENCIES ${dependencies}
 )
 
 # ============================================================================
 # Build tracker executable (main application)
 # ============================================================================
-add_executable(tracker src/tracker/main.cpp)
-
-# Set include directories
-target_include_directories(tracker PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-
-# Link against map server library and OpenCV
-target_link_libraries(tracker
-  clover2_aruco_tracker
-  opencv_aruco
-)
-
-ament_target_dependencies(tracker
-  ${dependencies}
+clover2_add_executable(
+  TARGET tracker
+  SOURCES src/tracker.cpp
+  LINK_LIBS clover2_aruco_tracker opencv_aruco
+  DEPENDENCIES ${dependencies}
 )
 
 # ============================================================================
@@ -279,23 +188,9 @@ ament_export_targets(
 # Testing configuration (only if BUILD_TESTING is enabled)
 # ============================================================================
 if(BUILD_TESTING)
-  # Find testing utilities
   find_package(ament_lint_auto REQUIRED)
-
-  # Enable specific linters
   set(ament_cmake_copyright_FOUND TRUE)
   set(ament_cmake_cpplint_FOUND TRUE)
-
-  # Add Google Test for detector unit tests
-  ament_add_gtest(${PROJECT_NAME}_tutorial_test
-    test/unittest_detector.cpp
-  )
-  # Link test against detector library
-  target_link_libraries(${PROJECT_NAME}_tutorial_test
-    clover2_aruco_detector
-  )
-
-  # Automatically find and setup linting dependencies
   ament_lint_auto_find_test_dependencies()
 endif()
 
