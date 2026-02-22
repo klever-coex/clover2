@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 
 import os
-from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration
-from launch.event_handlers import OnProcessStart
-from launch.actions import RegisterEventHandler
-from launch_ros.actions import ComposableNodeContainer, LoadComposableNodes
-from launch_ros.descriptions import ComposableNode
 
 from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, RegisterEventHandler
+from launch.conditions import IfCondition
+from launch.event_handlers import OnProcessStart
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import ComposableNodeContainer, LoadComposableNodes
+from launch_ros.descriptions import ComposableNode
 
 
 def launch_setup(context, *args, **kwargs):
@@ -64,7 +63,9 @@ def launch_setup(context, *args, **kwargs):
                 plugin="clover2::aruco::detector",
                 name=camera_name.perform(context) + "_aruco_detector",
                 parameters=[params_file, {"use_sim_time": use_sim_time}],
-                remappings=camera_remappings + map_server_remappings,
+                remappings=camera_remappings
+                + map_server_remappings
+                + [("~/markers", "/aruco_tracker/markers")],
             )
         ],
     )
@@ -86,7 +87,11 @@ def launch_setup(context, *args, **kwargs):
     load_composible = RegisterEventHandler(
         OnProcessStart(
             target_action=camera_container,
-            on_start=[camera_component, aruco_detector_component, optical_flow_component],
+            on_start=[
+                camera_component,
+                aruco_detector_component,
+                optical_flow_component,
+            ],
         )
     )
 
