@@ -19,10 +19,12 @@ namespace clover2::aruco {
 map_server::map_server(const rclcpp::NodeOptions& options)
     : clover2::common::lifecycle_node("map_server", options)
     , m_map_path("") {
-    enable_watch_parameters();
+    m_parameter_watcher =
+        std::make_shared<clover2::common::parameter_watcher>(*this);
+
     enable_diagnostic_updater();
 
-    declare_and_watch_parameter<std::string>(
+    m_parameter_watcher->declare_and_watch_parameter<std::string>(
         "map", "",
         [this](const rclcpp::Parameter& p) { m_map_path = p.as_string(); },
         "Path to map file whit .txt/.yaml/.yml extension.");

@@ -2,6 +2,7 @@
 
 // clover2
 #include <clover2/common/lifecycle_node.hpp>
+#include <clover2/common/parameter_watcher.hpp>
 
 // ROS2
 #include <diagnostic_updater/diagnostic_updater.hpp>
@@ -118,6 +119,9 @@ private:
 
     // Diagnostics
     std::shared_ptr<diagnostic_updater::Updater> m_diagnostic_updater;
+
+    // Parameter watcher
+    clover2::common::parameter_watcher::SharedPtr m_parameter_watcher;
 
     // Publishers and subscribers
     rclcpp::Publisher<mavros_msgs::msg::OpticalFlowRad>::SharedPtr
