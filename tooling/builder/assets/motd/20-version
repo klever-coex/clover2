@@ -1,5 +1,4 @@
 #!/bin/sh
-
 echo
 
 . /etc/os-release

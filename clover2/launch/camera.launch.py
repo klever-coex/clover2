@@ -61,7 +61,7 @@ def launch_setup(context, *args, **kwargs):
         composable_node_descriptions=[
             ComposableNode(
                 package="clover2_aruco",
-                plugin="clover2_aruco::detector",
+                plugin="clover2::aruco::detector",
                 name=camera_name.perform(context) + "_aruco_detector",
                 parameters=[params_file, {"use_sim_time": use_sim_time}],
                 remappings=camera_remappings + map_server_remappings,
@@ -75,7 +75,7 @@ def launch_setup(context, *args, **kwargs):
         composable_node_descriptions=[
             ComposableNode(
                 package="clover2_optical_flow",
-                plugin="clover2_optical_flow::optical_flow",
+                plugin="clover2::optical_flow::optical_flow",
                 name=camera_name.perform(context) + "_of",
                 parameters=[params_file, {"use_sim_time": use_sim_time}],
                 remappings=camera_remappings,
