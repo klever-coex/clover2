@@ -16,15 +16,15 @@ UID ?= $(shell id -u)
 GID ?= $(shell id -g)
 
 # Calculate CLOVER2_VERSION based on BUILD_MODE
-VERSION_BASE := $(shell cat $(PROJECT_DIR)/VERSION 2>/dev/null || echo "0.0.0")
-GIT_HASH := $(shell git -C $(PROJECT_DIR) rev-parse --short HEAD 2>/dev/null || echo "unknown")
+CLOVER2_BASE_VERSION := $(shell cat $(PROJECT_DIR)/VERSION 2>/dev/null)
+CLOVER2_GIT_HASH := $(shell git -C $(PROJECT_DIR) rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 ifeq ($(BUILD_MODE),release)
-	CLOVER2_VERSION := $(VERSION_BASE)
+	CLOVER2_VERSION := $(CLOVER2_BASE_VERSION)
 else ifeq ($(BUILD_MODE),master)
-	CLOVER2_VERSION := $(VERSION_BASE)-$(GIT_HASH)
+	CLOVER2_VERSION := $(CLOVER2_BASE_VERSION)+$(CLOVER2_GIT_HASH)
 else ifeq ($(BUILD_MODE),develop)
-	CLOVER2_VERSION := $(VERSION_BASE)-$(GIT_HASH)
+	CLOVER2_VERSION := $(CLOVER2_BASE_VERSION)+$(CLOVER2_GIT_HASH)
 else
 	$(error Unknown BUILD_MODE '$(BUILD_MODE)'. Expected one of: release, master, develop)
 endif
@@ -98,7 +98,7 @@ clean:
 ## version: Show current version information
 version:
 	@echo "BUILD_MODE: $(BUILD_MODE)"
-	@echo "VERSION_BASE: $(VERSION_BASE)"
-	@echo "GIT_HASH: $(GIT_HASH)"
+	@echo "CLOVER2_BASE_VERSION: $(CLOVER2_BASE_VERSION)"
+	@echo "CLOVER2_GIT_HASH: $(CLOVER2_GIT_HASH)"
 	@echo "CLOVER2_VERSION: $(CLOVER2_VERSION)"
 	@echo "REGISTRY: $(REGISTRY)"
