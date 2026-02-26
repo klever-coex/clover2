@@ -30,3 +30,4 @@ sudo systemctl enable clover2-firstboot.service
 
 log_info "Set image version ${CLOVER2_VERSION}"
 echo "CLOVER2_VERSION=${CLOVER2_VERSION}" | sudo tee -a /usr/lib/os-release
+echo "CLOVER2_GIT_HASH=${CLOVER2_GIT_HASH}" | sudo tee -a /usr/lib/os-release

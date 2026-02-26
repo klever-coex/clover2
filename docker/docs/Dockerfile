@@ -1,4 +1,6 @@
-FROM python:3.11-slim AS builder
+FROM --platform=$BUILDPLATFORM python:3.11-slim AS builder
+
+ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
     apt-get install -y make && \

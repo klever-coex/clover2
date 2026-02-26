@@ -2,7 +2,10 @@ variable "BUILD_MODE" { }
 variable "DOCKER_OUTPUT_DIR" { }
 variable "REGISTRY_POLICY" { }
 variable "REGISTRY" { }
+
 variable "CLOVER2_VERSION" { }
+variable "CLOVER2_BASE_VERSION" { }
+variable "CLOVER2_GIT_HASH" { }
 
 variable "LABELS" {
   default = {
@@ -25,7 +28,7 @@ variable "PLATFORMS" {
 function "tagged" {
   params = [name]
   result = [
-    "${REGISTRY}${name}:${CLOVER2_VERSION}",
+    "${REGISTRY}${name}:${CLOVER2_GIT_HASH}",
 
     # For master build have dirty version and latest tag
     equal("master", BUILD_MODE) ? "${REGISTRY}${name}:latest" : "",
@@ -35,6 +38,7 @@ function "tagged" {
 
     # Releases have version and stable tags
     equal("release", BUILD_MODE) ? "${REGISTRY}${name}:stable" : "",
+    equal("release", BUILD_MODE) ? "${REGISTRY}${name}:${CLOVER2_VERSION}" : "",
   ]
 }
 
