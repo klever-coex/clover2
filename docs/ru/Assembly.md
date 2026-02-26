@@ -1,9 +1,9 @@
-# Programming
+# Сборка
 
 ```{toctree}
 :titlesonly:
 :maxdepth: 1
 :hidden:
 
-Programming/ROS2
+Assembly/Clover_5_0
 ```
