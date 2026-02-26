@@ -64,9 +64,6 @@ stages:
     - make builder-download-in-docker
     - make builder-build-in-docker
   artifacts:
-    paths:
-      - ${IMAGE_ARTIFACT_PATTERN}
-  artifacts:
     name: "clover2-image-${CI_COMMIT_SHORT_SHA}"
     paths:
       - ${IMAGE_ARTIFACT_PATTERN}
