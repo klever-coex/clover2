@@ -1,6 +1,6 @@
 # Обзор
 
-```{figure} ../assets/common/klever5_code.jpg
+```{figure} ../assets/common/klever5-code.jpg
 :alt: Клевер 5 КОД
 :width: 90%
 :align: center

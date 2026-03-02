@@ -1,6 +1,6 @@
 # Overview
 
-```{figure} ../assets/common/klever5_code.jpg
+```{figure} ../assets/common/klever5-code.jpg
 :alt: Klever 5 CODE
 :width: 90%
 :align: center
