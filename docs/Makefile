@@ -21,3 +21,6 @@ clean:
 
 check_images:
 	python3 ./image_cleaner.py --dry-run ./assets
+
+optimize_images:
+	python3 ./image_cleaner.py -v ./assets
