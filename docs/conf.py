@@ -14,6 +14,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
     "sphinx.ext.autosectionlabel",
+    "sphinx_copybutton",
 ]
 
 autosectionlabel_prefix_document = True
