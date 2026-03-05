@@ -56,7 +56,3 @@ html_context = {
 html_static_path = [
     (PROJECT_DIR / "assets").as_posix(),
 ]
-
-html_css_files = [
-    "css/custom.css"
-]

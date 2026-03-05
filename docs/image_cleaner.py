@@ -44,7 +44,7 @@ def needs_processing(path: Path):
         return True, f"bigger than fullhd ({w}x{h})"
 
     if ext not in VALID_EXTS:
-        return True, f"not jpg ({ext})"
+        return True, f"not {', '.join(VALID_EXTS)} ({ext})"
 
     return False, None
 
