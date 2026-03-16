@@ -138,6 +138,10 @@ target "builder" {
       {
         dockerfile = "docker/builder/Dockerfile"
         tgt = "clover2-builder"
+      },
+      {
+        dockerfile = "docker/px4/Dockerfile"
+        tgt = "clover2-px4"
       }
     ]
   }
