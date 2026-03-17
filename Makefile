@@ -6,8 +6,9 @@ export
 
 # Configuration
 BUILD_MODE ?= develop
-REGISTRY_HOST ?= registry.gitlab.com
 REGISTRY ?= $(REGISTRY_HOST)/coex2/clover2/
+REGISTRY_HOST ?= registry.gitlab.com
+REGISTRY_POLICY ?= push
 PROJECT_DIR ?= $(shell pwd)
 DOCKER_OUTPUT_DIR ?= $(PROJECT_DIR)/build-docker
 
