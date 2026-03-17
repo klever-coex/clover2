@@ -38,7 +38,7 @@ export DOCKER_OUTPUT_DIR
 ## help: Show this help message
 help:
 	@printf "Available targets:\n\n"
-	@awk '/^[a-zA-Z\-\_0-9%:\\]+/ { \
+	@awk '/^[a-zA-Z\-_0-9%:\\]+/ { \
 		helpMessage = match(lastLine, /^## (.*)/); \
 		if (helpMessage) { \
 		helpCommand = $$1; \
@@ -51,13 +51,13 @@ help:
 	{ lastLine = $$0 }' $(MAKEFILE_LIST) | sort -u
 	@printf "\n"
 
-## docker-bake-%: Build docker images using docker buildx bake
-docker-bake-%:
+## clover2-bake-%: Build docker images using buildx bake
+clover2-bake-%:
 	@mkdir -p $(DOCKER_OUTPUT_DIR)
-	docker buildx bake --progress=plain $*
+	docker buildx bake --allow=fs=/tmp/.buildx-cache --progress=plain $*
 
-## docker-print: Print docker buildx bake configuration
-docker-print-%:
+## clover2-bake-print-%: Print buildx bake configuration
+clover2-bake-print-%:
 	docker buildx bake --print $*
 
 ## builder-download: Download base disk image for builder

@@ -12,7 +12,8 @@ variable "LABELS" {
     "org.opencontainers.image.authors"  = "Lapin Matvey"
     "org.opencontainers.image.licenses" = "MIT"
     "org.opencontainers.image.source"   = "https://gitlab.com/coex2/clover2"
-    "org.opencontainers.image.version"  = "${CLOVER2_VERSION}"
+    "org.opencontainers.image.version"  = CLOVER2_VERSION
+    "org.opencontainers.image.revision" = CLOVER2_GIT_HASH
   }
 }
 
@@ -20,56 +21,42 @@ variable "LABELS" {
 variable "PLATFORMS" {
   default = [
     "linux/amd64",
-    // "linux/arm64",
+    "linux/arm64",
   ]
 }
 
 # Image tags generator
 function "tagged" {
   params = [name]
-  result = [
+  result = compact([
     "${REGISTRY}${name}:${CLOVER2_GIT_HASH}",
 
     # For master build have dirty version and latest tag
-    equal("master", BUILD_MODE) ? "${REGISTRY}${name}:latest" : "",
+    equal("master", BUILD_MODE) ? "${REGISTRY}${name}:latest" : null,
 
     # For develop build have dirty version tag
     # Only version tag
 
     # Releases have version and stable tags
-    equal("release", BUILD_MODE) ? "${REGISTRY}${name}:stable" : "",
-    equal("release", BUILD_MODE) ? "${REGISTRY}${name}:${CLOVER2_VERSION}" : "",
-  ]
+    equal("release", BUILD_MODE) ? "${REGISTRY}${name}:stable" : null,
+    equal("release", BUILD_MODE) ? "${REGISTRY}${name}:${CLOVER2_VERSION}" : null,
+  ])
 }
 
 function "outputs" {
-  params = [name]
-  result = [
-    "type=registry",
-    "type=oci,dest=${DOCKER_OUTPUT_DIR}/${name}.tar"
-  ]
+  params = [name, save-tar]
+  result = compact([
+    REGISTRY_POLICY == "push" ? "type=registry" : null,
+    save-tar ? "type=oci,dest=${DOCKER_OUTPUT_DIR}/${name}.tar" : null,
+  ])
 }
 
-#      ___       _ __   __  _____
-#     / _ )__ __(_) /__/ / / ___/______  __ _____  ___
-#    / _  / // / / / _  / / (_ / __/ _ \/ // / _ \(_-<
-#   /____/\_,_/_/_/\_,_/  \___/_/  \___/\_,_/ .__/___/
-#                                          /_/
+target "base" {
+  context = "."
+  labels = LABELS
 
-group "all" {
-  targets = ["web", "tooling", "ros"]
-}
-
-group "tooling" {
-  targets = ["builder"]
-}
-
-group "web" {
-  targets = ["clover2-docs", "clover2-gui", "mirror-wetty"]
-}
-
-group "ros" {
-  targets = ["clover2-ros"]
+  cache-from = ["type=local,src=/tmp/.buildx-cache"]
+  cache-to   = ["type=local,dest=/tmp/.buildx-cache,mode=max"]
 }
 
 #      ____           ___           __                         __
@@ -80,13 +67,12 @@ group "ros" {
 
 target "project-deploy" {
   dockerfile = item.dockerfile
-  name = "${item.tgt}"
+  name = item.tgt
   tags = tagged(item.tgt)
-  output = outputs(item.tgt)
+  output = outputs(item.tgt, true)
 
-  context = "."
-  labels = LABELS
-  platforms = "${PLATFORMS}"
+  inherits = ["base"]
+  platforms = PLATFORMS
 
   matrix = {
     item = [
@@ -106,12 +92,30 @@ target "project-deploy" {
   }
 }
 
-target "mirror-wetty" {
-  tags = tagged("clover2-wetty")
-  output = outputs("clover2-wetty")
+target "ros" {
+  dockerfile = "docker/ros/Dockerfile"
+  name = item.tgt
+  tags = tagged(item.tgt)
+  output = outputs(item.tgt, true)
+  target = item.tgt
 
-  context = "."
-  platforms = "${PLATFORMS}"
+  inherits = ["base"]
+  platforms = PLATFORMS
+
+  matrix = {
+    item = [
+      { tgt = "clover2-ros-dev" },
+      { tgt = "clover2-ros" }
+    ]
+  }
+}
+
+target "mirror" {
+  tags = tagged("clover2-wetty")
+  output = outputs("clover2-wetty", true)
+
+  inherits = ["base"]
+  platforms = PLATFORMS
 
   dockerfile-inline = <<EOF
   FROM wettyoss/wetty
@@ -126,12 +130,11 @@ target "mirror-wetty" {
 
 target "builder" {
   dockerfile = item.dockerfile
-  name = "${item.tgt}"
+  name = item.tgt
   tags = tagged(item.tgt)
-  output = ["type=registry"]
+  output = outputs("clover2-wetty", false)
 
-  context = "."
-  labels = LABELS
+  inherits = ["base"]
 
   matrix = {
     item = [
@@ -145,4 +148,27 @@ target "builder" {
       }
     ]
   }
+}
+
+
+#      ___       _ __   __  _____
+#     / _ )__ __(_) /__/ / / ___/______  __ _____  ___
+#    / _  / // / / / _  / / (_ / __/ _ \/ // / _ \(_-<
+#   /____/\_,_/_/_/\_,_/  \___/_/  \___/\_,_/ .__/___/
+#                                          /_/
+
+group "all" {
+  targets = ["web", "tooling", "ros"]
+}
+
+group "tooling" {
+  targets = ["builder"]
+}
+
+group "web" {
+  targets = ["clover2-docs", "clover2-gui", "mirror"]
+}
+
+group "ros" {
+  targets = ["clover2-ros"]
 }
