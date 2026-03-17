@@ -18,7 +18,6 @@
   <depend>diagnostic_updater</depend>
   <depend>eigen</depend>
   <depend>geometry_msgs</depend>
-  <depend>g2o</depend>
   <depend>image_geometry</depend>
   <depend>rcl_interfaces</depend>
   <depend>rclcpp_components</depend>
