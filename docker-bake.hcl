@@ -47,6 +47,7 @@ function "outputs" {
   params = [name, save-tar]
   result = compact([
     REGISTRY_POLICY == "push" ? "type=registry" : null,
+    REGISTRY_POLICY == "load" ? "type=docker" : null,
     save-tar ? "type=oci,dest=${DOCKER_OUTPUT_DIR}/${name}.tar" : null,
   ])
 }
