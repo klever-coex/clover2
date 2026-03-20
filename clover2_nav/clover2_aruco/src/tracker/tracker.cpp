@@ -16,7 +16,6 @@
 
 // STL
 #include <chrono>
-#include <fstream>
 
 namespace clover2::aruco {
 
