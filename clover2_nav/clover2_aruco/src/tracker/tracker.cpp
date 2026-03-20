@@ -21,15 +21,17 @@ namespace clover2::aruco {
 
 tracker::tracker(const rclcpp::NodeOptions& options)
     : clover2::common::lifecycle_node("tracker", options) {
-    enable_watch_parameters();
+    m_parameter_watcher =
+        std::make_shared<clover2::common::parameter_watcher>(*this);
+
     enable_diagnostic_updater();
 
-    declare_and_watch_parameter<std::string>(
+    m_parameter_watcher->declare_and_watch_parameter<std::string>(
         "tracking", "base_link",
         [this](const rclcpp::Parameter& p) { m_tracking_id = p.as_string(); },
         "Tracking result");
 
-    declare_and_watch_parameter<std::string>(
+    m_parameter_watcher->declare_and_watch_parameter<std::string>(
         "optimizer", "simple_mean",
         [this](const rclcpp::Parameter& p) {
             auto optimizer_name = p.as_string();
@@ -188,7 +190,7 @@ void tracker::markers_callback(
     auto timestamp =
         std::chrono::nanoseconds(rclcpp::Time(msg->header.stamp).nanoseconds());
     m_optimizer->push_measurements(msg->header.frame_id, timestamp,
-                                  measurements);
+                                   measurements);
 
     m_optimizer->optimize();
 
