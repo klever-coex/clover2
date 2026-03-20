@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 
 import os
+
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     LaunchConfiguration,
     PathJoinSubstitution,
     TextSubstitution,
 )
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-
-from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
@@ -44,14 +44,14 @@ def generate_launch_description():
 
     fcu_conn_declare = DeclareLaunchArgument(
         "fcu_conn",
-        default_value="uart",
+        default_value="udp",
         description="Flight controller unit connection type: usb, uart, tcp or udp",
     )
 
     aruco_declare = DeclareLaunchArgument(
         "aruco", default_value="true", description="Enable aruco navigation"
     )
-    
+
     optical_flow_declare = DeclareLaunchArgument(
         "optical_flow", default_value="true", description="Enable optical flow"
     )
