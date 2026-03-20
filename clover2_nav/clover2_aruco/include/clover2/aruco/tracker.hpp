@@ -1,16 +1,17 @@
 #pragma once
 
+// Clover2 includes
+#include <clover2/aruco/map_client.hpp>
+#include <clover2/aruco/optimizer/base_optimizer.hpp>
+#include <clover2/common/lifecycle_node.hpp>
+#include <clover2/common/parameter_watcher.hpp>
+
 // ROS2 includes
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
 // Eigen includes
 #include <Eigen/Geometry>
-
-// Clover2 includes
-#include <clover2/aruco/map_client.hpp>
-#include <clover2/aruco/optimizer/base_optimizer.hpp>
-#include <clover2/common/lifecycle_node.hpp>
 
 // TF2 includes
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -69,6 +70,9 @@ private:
     std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
     std::shared_ptr<tf2_ros::Buffer> m_tf_buffer;
     std::shared_ptr<tf2_ros::TransformListener> m_tf_listener;
+
+    // Parameter watcher
+    std::shared_ptr<clover2::common::parameter_watcher> m_parameter_watcher;
 
     // Publishers and subscribers
     rclcpp::Subscription<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr

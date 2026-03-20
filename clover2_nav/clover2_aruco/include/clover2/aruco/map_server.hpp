@@ -2,6 +2,7 @@
 
 // clover2
 #include <clover2/common/lifecycle_node.hpp>
+#include <clover2/common/parameter_watcher.hpp>
 
 // ROS2
 #include <rclcpp/rclcpp.hpp>
@@ -111,6 +112,9 @@ private:
         m_tf_static_broadcaster;  ///< TF static broadcaster
 
     rclcpp::TimerBase::SharedPtr m_map_notify_timer;
+
+    // Parameter watcher
+    clover2::common::parameter_watcher::SharedPtr m_parameter_watcher;
 
     rclcpp::Service<clover2_aruco_msgs::srv::GetMap>::SharedPtr
         m_map_server;  ///< ROS2 service server
