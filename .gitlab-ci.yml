@@ -35,17 +35,24 @@ stages:
 
 .docker-bake: &docker-bake
   <<: *docker-task
-  stage: docker
   script:
     - make docker-bake-$BAKE_TARGET
 
-.docker-build-deploy: &docker-build-deploy
+.docker-build-web: &docker-build-web
   <<: *docker-bake
+  stage: docker
   variables:
-    BAKE_TARGET: "deploy"
+    BAKE_TARGET: "web"
+
+.docker-build-ros: &docker-build-ros
+  <<: *docker-bake
+  stage: image
+  variables:
+    BAKE_TARGET: "ros"
 
 .docker-build-tooling: &docker-build-tooling
   <<: *docker-bake
+  stage: docker
   variables:
     BAKE_TARGET: "tooling"
 
@@ -57,26 +64,36 @@ stages:
     - make builder-download-in-docker
     - make builder-build-in-docker
   artifacts:
-    paths:
-      - ${IMAGE_ARTIFACT_PATTERN}
-  artifacts:
     name: "clover2-image-${CI_COMMIT_SHORT_SHA}"
     paths:
       - ${IMAGE_ARTIFACT_PATTERN}
     expire_in: 1 week
     when: on_success
 
-docker-build-deploy-master:
+docker-build-web-master:
   <<: *job-master
-  <<: *docker-build-deploy
+  <<: *docker-build-web
 
-docker-build-deploy-mr:
+docker-build-web-mr:
   <<: *job-mr
-  <<: *docker-build-deploy
+  <<: *docker-build-web
 
-docker-build-deploy-release:
+docker-build-web-release:
   <<: *job-release
-  <<: *docker-build-deploy
+  <<: *docker-build-web
+
+docker-build-ros-master:
+  <<: *job-master
+  <<: *docker-build-ros
+
+docker-build-ros-mr:
+  when: manual
+  <<: *job-mr
+  <<: *docker-build-ros
+
+docker-build-ros-release:
+  <<: *job-release
+  <<: *docker-build-ros
 
 docker-build-tooling-master:
   <<: *job-master
@@ -95,18 +112,18 @@ image-build-master:
   <<: *image-builder-in-docker
   needs:
     - docker-build-tooling-master
-    - docker-build-deploy-master
+    - docker-build-web-master
 
 image-build-mr:
   <<: *job-mr
   <<: *image-builder-in-docker
   needs:
     - docker-build-tooling-mr
-    - docker-build-deploy-mr
+    - docker-build-web-mr
 
 image-build-release:
   <<: *job-release
   <<: *image-builder-in-docker
   needs:
     - docker-build-tooling-release
-    - docker-build-deploy-release
+    - docker-build-web-release

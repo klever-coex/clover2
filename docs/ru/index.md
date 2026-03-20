@@ -2,8 +2,11 @@
 
 ```{toctree}
 :titlesonly:
-:maxdepth: 1
+:maxdepth: 2
 :hidden:
 
 Overview
+Assembly
+Setup
 Programming
+```
