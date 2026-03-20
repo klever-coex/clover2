@@ -21,22 +21,24 @@ optical_flow::optical_flow(const rclcpp::NodeOptions& options)
     , m_local_frame_id("map")
     , m_prev_stamp(rclcpp::Time(0))
     , m_last_vpe_time(rclcpp::Time(0)) {
-    enable_watch_parameters();
+
+    m_parameter_watcher = std::make_shared<clover2::common::parameter_watcher>(*this);
+
     enable_diagnostic_updater();
     m_diagnostic_updater = get_diagnostic_updater();
 
     // Declare parameters
-    declare_and_watch_parameter<int>(
+    m_parameter_watcher->declare_and_watch_parameter<int>(
         "roi", 256,
         [this](const rclcpp::Parameter& p) { m_roi_px = p.as_int(); },
         "ROI size in pixels");
 
-    declare_and_watch_parameter<bool>(
+    m_parameter_watcher->declare_and_watch_parameter<bool>(
         "calc_flow_gyro", false,
         [this](const rclcpp::Parameter& p) { m_calc_flow_gyro = p.as_bool(); },
         "Calculate flow gyro from TF transforms");
 
-    declare_and_watch_parameter<double>(
+    m_parameter_watcher->declare_and_watch_parameter<double>(
         "flow_gyro_default", NAN,
         [this](const rclcpp::Parameter& p) {
             m_flow_gyro_default = static_cast<float>(p.as_double());

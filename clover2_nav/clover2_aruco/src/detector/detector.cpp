@@ -9,6 +9,7 @@
 #include <opencv2/calib3d.hpp>
 
 // STL
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -49,12 +50,13 @@ namespace clover2::aruco {
 
 detector::detector(const rclcpp::NodeOptions& options)
     : clover2::common::lifecycle_node("aruco_detector", options) {
-    enable_watch_parameters();
-    enable_diagnostic_updater();
+    m_parameter_watcher =
+        std::make_shared<clover2::common::parameter_watcher>(*this);
 
+    enable_diagnostic_updater();
     m_diagnostic_updater = get_diagnostic_updater();
 
-    declare_and_watch_parameter<std::string>(
+    m_parameter_watcher->declare_and_watch_parameter<std::string>(
         "marker_dict", "4X4_250",
         [this](const rclcpp::Parameter& p) {
             auto dictionary_id = marker_dictionary_map.find(p.as_string());
@@ -66,14 +68,14 @@ detector::detector(const rclcpp::NodeOptions& options)
         },
         "Used marker dictionary");
 
-    declare_and_watch_parameter<std::string>(
+    m_parameter_watcher->declare_and_watch_parameter<std::string>(
         "marker_frame_id", "aruco_",
         [this](const rclcpp::Parameter& p) {
             m_aruco_frame_id = p.as_string();
         },
         "Single marker frame_id prefix");
 
-    declare_and_watch_parameter<bool>(
+    m_parameter_watcher->declare_and_watch_parameter<bool>(
         "tf_publish", true,
         [this](const rclcpp::Parameter& p) { m_tf_publish = p.as_bool(); },
         "Enable map markers transform pub.");
@@ -318,13 +320,13 @@ void detector::compute_pose_covariance(cv::Mat& pose_cov) {
     pose_cov.create(6, 6, CV_64F);
     pose_cov.setTo(0);
 
-    pose_cov.at<double>(0,0) = 0.05f;
-    pose_cov.at<double>(1,1) = 0.05f;
-    pose_cov.at<double>(2,2) = 0.1f;
+    pose_cov.at<double>(0, 0) = 0.05f;
+    pose_cov.at<double>(1, 1) = 0.05f;
+    pose_cov.at<double>(2, 2) = 0.1f;
 
-    pose_cov.at<double>(3,3) = 0.01f;
-    pose_cov.at<double>(4,4) = 0.01f;
-    pose_cov.at<double>(5,5) = 0.05f;
+    pose_cov.at<double>(3, 3) = 0.01f;
+    pose_cov.at<double>(4, 4) = 0.01f;
+    pose_cov.at<double>(5, 5) = 0.05f;
 }
 
 void detector::fill_corners(clover2_aruco_msgs::msg::Marker& marker,
