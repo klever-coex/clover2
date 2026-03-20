@@ -1,4 +1,4 @@
-sphinx>=5.0
+sphinx>=9.1
 sphinx-rtd-theme
 sphinx-intl
 myst-parser
