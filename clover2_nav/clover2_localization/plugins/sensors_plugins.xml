@@ -1,0 +1,7 @@
+<library path="clover2_localization_sensors">
+  <class type="clover2::localization::sensor::camera_sensor"
+         base_class_type="clover2::localization::sensor::base_sensor"
+         name="camera_sensor">
+    <description>Camera sensor for visual localization.</description>
+  </class>
+</library>
