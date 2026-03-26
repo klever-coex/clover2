@@ -1,40 +1,37 @@
+#include "clover2/common/parameter_watcher.hpp"
 #include <clover2/localization/localization.hpp>
-
 #include <pluginlib/class_loader.hpp>
-
 #include <rclcpp/rclcpp.hpp>
 #include <tf2_eigen/tf2_eigen.hpp>
 
 #include <chrono>
+#include <memory>
 
 namespace clover2::localization {
 
 localization::localization(const rclcpp::NodeOptions& options)
     : clover2::common::lifecycle_node("localization", options) {
-    enable_watch_parameters();
+    m_parameter_watcher =
+        std::make_shared<clover2::common::parameter_watcher>(*this);
 
-    declare_and_watch_parameter<std::string>(
+    m_parameter_watcher->declare_and_watch_parameter<std::string>(
         "sensor", "camera_sensor",
         [this](const rclcpp::Parameter& p) { m_sensor_type = p.as_string(); },
         "Sensor plugin type");
 
-    declare_and_watch_parameter<std::string>(
+    m_parameter_watcher->declare_and_watch_parameter<std::string>(
         "handler", "aruco",
         [this](const rclcpp::Parameter& p) { m_handler_type = p.as_string(); },
         "Handler type: aruco");
 
-    declare_and_watch_parameter<double>(
+    m_parameter_watcher->declare_and_watch_parameter<double>(
         "optimization_frequency", 30.0,
-        [this](const rclcpp::Parameter& p) {
-            m_opt_frequency = p.as_double();
-        },
+        [this](const rclcpp::Parameter& p) { m_opt_frequency = p.as_double(); },
         "Graph optimization frequency (Hz)");
 
-    declare_and_watch_parameter<int>(
+    m_parameter_watcher->declare_and_watch_parameter<int>(
         "optimization_iterations", 10,
-        [this](const rclcpp::Parameter& p) {
-            m_opt_iterations = p.as_int();
-        },
+        [this](const rclcpp::Parameter& p) { m_opt_iterations = p.as_int(); },
         "Optimization iterations per run");
 
     declare_parameter<std::string>("image_topic", "~/image_raw");
@@ -47,8 +44,7 @@ localization::localization(const rclcpp::NodeOptions& options)
     register_on_activate(
         std::bind(&localization::on_activate, this, std::placeholders::_1));
     register_on_deactivate(
-        std::bind(&localization::on_deactivate, this,
-                  std::placeholders::_1));
+        std::bind(&localization::on_deactivate, this, std::placeholders::_1));
     register_on_cleanup(
         std::bind(&localization::on_cleanup, this, std::placeholders::_1));
     register_on_shutdown(
@@ -69,8 +65,7 @@ localization::CallbackReturn localization::on_configure(
 
     if (m_handler_type == "aruco") {
         handler::aruco_handler::config cfg;
-        cfg.dictionary =
-            get_parameter("aruco.dictionary").as_string();
+        cfg.dictionary = get_parameter("aruco.dictionary").as_string();
         cfg.default_marker_size =
             get_parameter("aruco.marker_size").as_double();
 
@@ -93,13 +88,13 @@ localization::CallbackReturn localization::on_configure(
 
 localization::CallbackReturn localization::on_activate(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
-    m_pose_pub =
-        create_publisher<geometry_msgs::msg::PoseStamped>(
-            "~/pose", rclcpp::SystemDefaultsQoS());
+    m_pose_pub = create_publisher<geometry_msgs::msg::PoseStamped>(
+        "~/pose", rclcpp::SystemDefaultsQoS());
 
     try {
         pluginlib::ClassLoader<sensor::base_sensor> loader(
-            "clover2_localization", "clover2::localization::sensor::base_sensor");
+            "clover2_localization",
+            "clover2::localization::sensor::base_sensor");
         m_sensor = loader.createSharedInstance(m_sensor_type);
 
         sensor::sensor_params params;
@@ -121,8 +116,7 @@ localization::CallbackReturn localization::on_activate(
     }
 
     m_running = true;
-    m_graph_thread =
-        std::thread(&localization::graph_thread_func, this);
+    m_graph_thread = std::thread(&localization::graph_thread_func, this);
 
     return CallbackReturn::SUCCESS;
 }
@@ -175,8 +169,7 @@ void localization::sensor_callback(const data::sensor_data& data) {
 }
 
 void localization::graph_thread_func() {
-    auto period =
-        std::chrono::duration<double>(1.0 / m_opt_frequency);
+    auto period = std::chrono::duration<double>(1.0 / m_opt_frequency);
     auto last_opt = std::chrono::steady_clock::now();
 
     while (m_running) {

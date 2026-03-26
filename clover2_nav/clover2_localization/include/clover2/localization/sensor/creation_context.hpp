@@ -1,9 +1,15 @@
 #pragma once
 
+#include <clover2/localization/data/sensor_data.hpp>
+
 #include <rclcpp/rclcpp.hpp>
+
+#include <string>
 
 namespace clover2::localization::sensor {
 struct creation_context {
+    using sensor_callback = std::function<void(const data::sensor_data&)>;
+
     template <typename NodeT>
     explicit creation_context(NodeT node)
         : node_base(node.get_node_base_interface())
