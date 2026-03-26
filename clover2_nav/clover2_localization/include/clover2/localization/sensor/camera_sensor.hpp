@@ -14,10 +14,11 @@ namespace clover2::localization::sensor {
 
 class camera_sensor : public base_sensor {
 public:
-    camera_sensor() = default;
+    RCLCPP_SMART_PTR_DEFINITIONS_NOT_COPYABLE(camera_sensor)
 
-    void init(rclcpp::Node::SharedPtr node, sensor_callback callback,
-              const sensor_params& params) override;
+    explicit camera_sensor(creation_context& ctx, const std::string& subnode);
+    ~camera_sensor();
+
     void start() override;
     void stop() override;
 
@@ -26,7 +27,6 @@ private:
     void camera_info_callback(
         const sensor_msgs::msg::CameraInfo::ConstSharedPtr msg);
 
-    rclcpp::Node::SharedPtr m_node;
     int32_t m_sensor_id = 0;
     sensor_callback m_callback;
     std::string m_image_topic;

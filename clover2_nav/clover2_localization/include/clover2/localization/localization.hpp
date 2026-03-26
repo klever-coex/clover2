@@ -5,6 +5,7 @@
 #include <clover2/localization/handler/aruco_handler.hpp>
 #include <clover2/localization/queue/frame_queue.hpp>
 #include <clover2/localization/sensor/base_sensor.hpp>
+#include <clover2/common/parameter_watcher.hpp>
 
 #include <clover2/common/lifecycle_node.hpp>
 
@@ -52,6 +53,7 @@ private:
     std::shared_ptr<graph::graph_manager> m_graph_manager;
 
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr m_pose_pub;
+    std::shared_ptr<clover2::common::parameter_watcher> m_parameter_watcher;
 
     std::thread m_graph_thread;
     std::atomic<bool> m_running{false};

@@ -1,3 +1,4 @@
+#include "clover2/localization/sensor/base_sensor.hpp"
 #include <clover2/localization/sensor/camera_sensor.hpp>
 
 #include <pluginlib/class_list_macros.hpp>
@@ -6,22 +7,19 @@
 
 namespace clover2::localization::sensor {
 
-void camera_sensor::init(rclcpp::Node::SharedPtr node, sensor_callback callback,
-                         const sensor_params& params) {
-    m_node = node;
-    m_sensor_id = params.sensor_id;
-    m_callback = std::move(callback);
-    m_image_topic = params.image_topic;
-    m_camera_info_topic = params.camera_info_topic;
+camera_sensor::camera_sensor(creation_context& ctx, const std::string& subnode) :
+    base_sensor(ctx, subnode) {
+
+    declare_and_watch_parameter(get_node()->get_name() + "");
 }
 
 void camera_sensor::start() {
-    m_image_sub = m_node->create_subscription<sensor_msgs::msg::Image>(
-        m_image_topic, rclcpp::SensorDataQoS(),
+    m_image_sub = get_node()->create_subscription<sensor_msgs::msg::Image>(
+        "~/image_raw", rclcpp::SensorDataQoS(),
         std::bind(&camera_sensor::image_callback, this, std::placeholders::_1));
     m_camera_info_sub =
-        m_node->create_subscription<sensor_msgs::msg::CameraInfo>(
-            m_camera_info_topic, rclcpp::SensorDataQoS(),
+        get_node()->create_subscription<sensor_msgs::msg::CameraInfo>(
+            "~/camera_info", rclcpp::SensorDataQoS(),
             std::bind(&camera_sensor::camera_info_callback, this,
                       std::placeholders::_1));
 }
