@@ -10,7 +10,6 @@
 #include <rclcpp/rclcpp.hpp>
 
 // STL
-#include <functional>
 #include <string>
 
 namespace clover2::localization::sensor {
