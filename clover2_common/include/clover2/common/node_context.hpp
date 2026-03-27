@@ -8,7 +8,7 @@ namespace clover2::common {
 
 struct node_context {
     template <typename NodeT>
-    explicit node_context(NodeT node)
+    explicit node_context(NodeT& node)
         : node_base(node.get_node_base_interface())
         , node_logging(node.get_node_logging_interface())
         , node_parameters(node.get_node_parameters_interface())

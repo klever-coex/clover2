@@ -1,14 +1,19 @@
 #include <clover2_cam_feature/cam_feature.hpp>
-
 #include <cv_bridge/cv_bridge.hpp>
 
+#include <sensor_msgs/image_encodings.hpp>
+
 #include <functional>
+
+namespace {
+constexpr const char* cam_feature_diagnostic_name = "Cam feature status";
+}
 
 namespace clover2_cam_feature {
 
 cam_feature::cam_feature(const rclcpp::NodeOptions& options)
-    : clover2::common::lifecycle_node("cam_feature", options),
-      m_last_pose_count(0) {
+    : clover2::common::lifecycle_node("cam_feature", options)
+    , m_last_pose_count(0) {
     m_parameter_watcher =
         std::make_shared<clover2::common::parameter_watcher>(*this);
 
@@ -19,7 +24,7 @@ cam_feature::cam_feature(const rclcpp::NodeOptions& options)
         "plugins", std::vector<std::string>{"aruco"});
     declare_parameter<std::vector<std::string>>(
         "plugin_types",
-        std::vector<std::string>{"clover2_cam_feature::plugins::aruco"});
+        std::vector<std::string>{"aruco"});
 
     register_on_configure(
         std::bind(&cam_feature::on_configure, this, std::placeholders::_1));
@@ -41,10 +46,9 @@ cam_feature::CallbackReturn cam_feature::on_configure(
     m_plugin_types = get_parameter("plugin_types").as_string_array();
 
     if (m_plugin_ids.size() != m_plugin_types.size()) {
-        RCLCPP_ERROR(
-            get_logger(),
-            "plugins and plugin_types must have the same length "
-            "(Nav2-style parallel arrays)");
+        RCLCPP_ERROR(get_logger(),
+                     "plugins and plugin_types must have the same length "
+                     "(Nav2-style parallel arrays)");
         return CallbackReturn::FAILURE;
     }
 
@@ -53,7 +57,7 @@ cam_feature::CallbackReturn cam_feature::on_configure(
         return CallbackReturn::FAILURE;
     }
 
-    m_diagnostic_updater->add("Cam feature status", this,
+    m_diagnostic_updater->add(cam_feature_diagnostic_name, this,
                               &cam_feature::produce_diagnostics);
 
     return CallbackReturn::SUCCESS;
@@ -74,6 +78,9 @@ cam_feature::CallbackReturn cam_feature::load_plugins() {
             ctx.map_client = m_map_client;
             plugin->init_plugin(m_plugin_ids[i], ctx);
             m_plugins.push_back(std::move(plugin));
+
+            RCLCPP_INFO(get_logger(), "Loaded plugin %s",
+                        m_plugin_types[i].c_str());
         } catch (const pluginlib::PluginlibException& e) {
             RCLCPP_ERROR(get_logger(), "Failed to load plugin %s: %s",
                          m_plugin_types[i].c_str(), e.what());
@@ -88,8 +95,8 @@ cam_feature::CallbackReturn cam_feature::load_plugins() {
 
 cam_feature::CallbackReturn cam_feature::on_activate(
     const rclcpp_lifecycle::State& /* state */) {
-    m_map_client = std::make_shared<clover2::aruco::map_client>(
-        shared_from_this());
+    m_map_client =
+        std::make_shared<clover2::aruco::map_client>(shared_from_this());
 
     const auto load_rc = load_plugins();
     if (load_rc != CallbackReturn::SUCCESS) {
@@ -99,6 +106,9 @@ cam_feature::CallbackReturn cam_feature::on_activate(
     m_poses_pub =
         create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
             "~/poses", rclcpp::SensorDataQoS());
+
+    m_image_debug_pub = create_publisher<sensor_msgs::msg::Image>(
+        "~/debug", rclcpp::SystemDefaultsQoS());
 
     m_camera_info_sub = create_subscription<sensor_msgs::msg::CameraInfo>(
         "~/camera_info", rclcpp::SensorDataQoS(),
@@ -118,6 +128,7 @@ cam_feature::CallbackReturn cam_feature::on_deactivate(
     m_image_sub.reset();
     m_camera_info_sub.reset();
     m_poses_pub.reset();
+    m_image_debug_pub.reset();
 
     m_plugins.clear();
     m_plugin_loader.reset();
@@ -128,7 +139,7 @@ cam_feature::CallbackReturn cam_feature::on_deactivate(
 
 cam_feature::CallbackReturn cam_feature::on_cleanup(
     const rclcpp_lifecycle::State& /* state */) {
-    m_diagnostic_updater->removeByName("Cam feature status");
+    m_diagnostic_updater->removeByName(cam_feature_diagnostic_name);
     m_plugin_ids.clear();
     m_plugin_types.clear();
     return CallbackReturn::SUCCESS;
@@ -139,6 +150,7 @@ cam_feature::CallbackReturn cam_feature::on_shutdown(
     m_image_sub.reset();
     m_camera_info_sub.reset();
     m_poses_pub.reset();
+    m_image_debug_pub.reset();
     m_plugins.clear();
     m_plugin_loader.reset();
     m_map_client.reset();
@@ -156,21 +168,17 @@ void cam_feature::image_callback(
 
     cv::Mat image = cv_bridge::toCvShare(msg, "bgr8")->image;
 
-    const cv::Mat& km = m_camera_model.fullIntrinsicMatrix();
-    cv::Matx33d K;
-    for (int r = 0; r < 3; ++r) {
-        for (int c = 0; c < 3; ++c) {
-            K(r, c) = km.at<double>(r, c);
-        }
-    }
+    const cv::Matx33d& km = m_camera_model.fullIntrinsicMatrix();
+    cv::Mat_<double> distortion = m_camera_model.distortionCoeffs();
 
-    cv::Mat_<double> distortion;
-    m_camera_model.distortionCoeffs().convertTo(distortion, CV_64F);
+    std::shared_ptr<cv::Mat> debug;
+    if (m_image_debug_pub->get_subscription_count() != 0) {
+        debug = std::make_shared<cv::Mat>(image.clone());
+    }
 
     size_t pose_count = 0;
     for (const auto& plugin : m_plugins) {
-        auto poses =
-            plugin->process(image, K, distortion, nullptr);
+        auto poses = plugin->process(image, km, distortion, debug);
         for (auto& pose : poses) {
             pose.header.frame_id = m_camera_model.tfFrame();
             pose.header.stamp = msg->header.stamp;
@@ -178,7 +186,17 @@ void cam_feature::image_callback(
             ++pose_count;
         }
     }
+
     m_last_pose_count = pose_count;
+
+    if (debug && m_image_debug_pub->get_subscription_count() != 0) {
+        cv_bridge::CvImage cv_out;
+        cv_out.header.frame_id = msg->header.frame_id;
+        cv_out.header.stamp = msg->header.stamp;
+        cv_out.encoding = sensor_msgs::image_encodings::BGR8;
+        cv_out.image = *debug;
+        m_image_debug_pub->publish(*cv_out.toImageMsg());
+    }
 }
 
 void cam_feature::camera_info_callback(
