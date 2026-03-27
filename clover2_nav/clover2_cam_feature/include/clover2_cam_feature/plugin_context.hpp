@@ -9,7 +9,7 @@ namespace clover2_cam_feature {
 
 struct plugin_context : public clover2::common::node_context {
     template <typename NodeT>
-    explicit plugin_context(NodeT node)
+    explicit plugin_context(NodeT& node)
         : clover2::common::node_context(node) {}
 
     std::shared_ptr<clover2::aruco::map_client> map_client;

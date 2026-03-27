@@ -1,0 +1,8 @@
+/**/cam_feature:
+  ros__parameters:
+    tracking: "base_link"
+    optimizer: "simple_mean"
+    graph_linearizer:
+      history_sec: 1.0
+    simple_mean:
+      history_sec: 0.2

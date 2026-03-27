@@ -25,19 +25,6 @@
 
 namespace clover2_cam_feature {
 
-/**
- * @class cam_feature
- * @brief Lifecycle-узел: камера → цепочка плагинов извлечения признаков (pluginlib).
- *
- * Схема параметров как в Nav2: два параллельных массива одинаковой длины — идентификаторы
- * экземпляров (имена под-узлов) и полные имена классов для pluginlib.
- *
- * @code{.yaml}
- * ros__parameters:
- *   plugins: ["aruco_front"]
- *   plugin_types: ["clover2_cam_feature::plugins::aruco"]
- * @endcode
- */
 class cam_feature : public clover2::common::lifecycle_node {
 public:
     using SharedPtr = std::shared_ptr<cam_feature>;
@@ -110,6 +97,7 @@ private:
 
     rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr
         m_poses_pub;
+    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr m_image_debug_pub;
     rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr m_camera_info_sub;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr m_image_sub;
 };

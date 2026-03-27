@@ -63,12 +63,24 @@ clover2_add_component_library(
     COMPONENT_CLASS "clover2_cam_feature::cam_feature"
 )
 
+clover2_add_executable(
+  TARGET cam_feature
+  SOURCES src/main.cpp
+  LINK_LIBS clover2_cam_feature_component opencv_aruco
+  DEPENDENCIES ${dependencies}
+)
+
 install(
     TARGETS cam_feature_plugins clover2_cam_feature_component
     EXPORT export_${PROJECT_NAME}
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin)
+
+install(
+  TARGETS cam_feature
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 install(
     DIRECTORY include/

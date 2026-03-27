@@ -1,8 +1,9 @@
 <library path="cam_feature_plugins">
   <class
-      type="clover2_cam_feature::plugins::aruco"
-      base_class_type="clover2_cam_feature::base_plugin"
-      name="aruco">
+        type="clover2_cam_feature::plugins::aruco"
+        base_class_type="clover2_cam_feature::base_plugin"
+        name="aruco"
+    >
     <description>ArUco marker poses</description>
   </class>
 </library>
