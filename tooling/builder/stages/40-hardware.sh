@@ -15,6 +15,7 @@ echo 'dtparam=fan_temp2=80000,fan_temp2_hyst=3000,fan_temp2_speed=255' | sudo te
 echo 'dtoverlay=uart0-pi5' | sudo tee -a /boot/firmware/config.txt
 
 # ================= RPI CM5 section =====================
+echo '[cm5]' | sudo tee -a /boot/firmware/config.txt
 
 # Enable camera detection
 echo 'camera_auto_detect=0' | sudo tee -a /boot/firmware/config.txt
