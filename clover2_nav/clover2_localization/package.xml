@@ -1,9 +1,10 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>clover2_localization</name>
   <version>0.0.0</version>
-  <description>Modular visual localization system using ROS2 and g2o</description>
+  <description
+    >Modular visual localization system using ROS2 and g2o</description>
   <maintainer email="2663161@mail.ru">l_motya</maintainer>
   <license>Apache-2.0</license>
 
@@ -14,7 +15,6 @@
   <depend>cv_bridge</depend>
   <depend>geometry_msgs</depend>
   <depend>lifecycle_msgs</depend>
-  <depend>g2o</depend>
   <depend>image_geometry</depend>
   <depend>rclcpp</depend>
   <depend>pluginlib</depend>
