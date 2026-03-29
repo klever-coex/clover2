@@ -10,14 +10,14 @@ g2o_install() {
         ninja-build
 
     log_info "Clone g2o project (ver: $G2O_VERSION)"
-    G2O_SOURCE_DIR=$(mktemp -d --suffix="-libcamera")
+    G2O_SOURCE_DIR=$(mktemp -d --suffix="-g2o")
     git clone https://github.com/RainerKuemmerle/g2o.git $G2O_SOURCE_DIR
     cd $G2O_SOURCE_DIR
     git checkout --detach $G2O_VERSION
 
     log_info "Build g2o"
     cmake -DG2O_USE_OPENGL=OFF -DG2O_BUILD_SLAM3D_TYPES=ON -DG2O_BUILD_BENCHMARKS=OFF -DG2O_BUILD_EXAMPLES=OFF -DG2O_BUILD_APPS=OFF -DG2O_INSTALL_CMAKE_CONFIG=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr .
-    make -j$(nproc)
+    make -j$(( $(nproc) / 2 ))
 
     log_info "Create .deb package"
     DESTDIR=$(pwd)/g2o make install
