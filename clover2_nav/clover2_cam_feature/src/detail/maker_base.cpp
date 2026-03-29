@@ -45,40 +45,40 @@ void maker_base::compute_pose_covariance(cv::Mat& pose_cov) {
 }
 
 void maker_base::fill_pose_stamped(
-    geometry_msgs::msg::PoseWithCovarianceStamped& out, const cv::Vec3d& rvec,
+    geometry_msgs::msg::PoseWithCovariance& out, const cv::Vec3d& rvec,
     const cv::Vec3d& tvec, const cv::Mat& cov) {
-    out.pose.pose.position.x = tvec[0];
-    out.pose.pose.position.y = tvec[1];
-    out.pose.pose.position.z = tvec[2];
+    out.pose.position.x = tvec[0];
+    out.pose.position.y = tvec[1];
+    out.pose.position.z = tvec[2];
 
     double angle = cv::norm(rvec);
     auto axis = rvec / angle;
 
     tf2::Quaternion q(tf2::Vector3(axis[0], axis[1], axis[2]), angle);
-    out.pose.pose.orientation.x = q.x();
-    out.pose.pose.orientation.y = q.y();
-    out.pose.pose.orientation.z = q.z();
-    out.pose.pose.orientation.w = q.w();
+    out.pose.orientation.x = q.x();
+    out.pose.orientation.y = q.y();
+    out.pose.orientation.z = q.z();
+    out.pose.orientation.w = q.w();
 
-    out.pose.covariance.fill(0.0);
+    out.covariance.fill(0.0);
     for (int r = 0; r < 6; r++) {
         for (int c = 0; c < 6; c++) {
-            out.pose.covariance[r * 6 + c] = cov.at<double>(r, c);
+            out.covariance[r * 6 + c] = cov.at<double>(r, c);
         }
     }
 }
 
-std::vector<geometry_msgs::msg::PoseWithCovarianceStamped> maker_base::process(
+std::list<clover2_localization_msgs::msg::Feature3> maker_base::process(
     const cv::Mat& image, const cv::Matx33d& matrix,
     const cv::Mat_<double>& distortion, std::shared_ptr<cv::Mat> debug) {
-    std::vector<geometry_msgs::msg::PoseWithCovarianceStamped> result;
+    std::list<clover2_localization_msgs::msg::Feature3> result;
 
     if (!m_map_client) {
         RCLCPP_ERROR(get_logger(), "map_client is null");
         return result;
     }
 
-    std::lock_guard<clover2::aruco::map_client> map_guard(*m_map_client);
+    std::lock_guard<clover2::map_server::map_client> map_guard(*m_map_client);
 
     if (!m_map_client->valid()) {
         RCLCPP_ERROR(get_logger(), "Invalid map");
@@ -95,8 +95,6 @@ std::vector<geometry_msgs::msg::PoseWithCovarianceStamped> maker_base::process(
     std::vector<bool> pose_estimated(ids.size(), false);
     std::vector<cv::Mat> marker_cov(ids.size());
     std::vector<cv::Vec3d> marker_rot(ids.size()), marker_pose(ids.size());
-
-    result.reserve(ids.size());
 
     if (!ids.empty()) {
         auto estimate_parameters = cv::makePtr<cv::aruco::EstimateParameters>();
@@ -129,11 +127,15 @@ std::vector<geometry_msgs::msg::PoseWithCovarianceStamped> maker_base::process(
                 continue;
             }
 
-            geometry_msgs::msg::PoseWithCovarianceStamped pose_stamped;
-            pose_stamped.header.stamp = get_clock()->now();
-            fill_pose_stamped(pose_stamped, marker_rot[i], marker_pose[i],
+            clover2_localization_msgs::helpers::feature_info info;
+            info.type = feature_type();
+            info.marker_id = ids[i];
+
+            clover2_localization_msgs::msg::Feature3 feature3;
+            clover2_localization_msgs::helpers::toMsg(info, feature3.info);
+            fill_pose_stamped(feature3.pose, marker_rot[i], marker_pose[i],
                               marker_cov[i]);
-            result.push_back(std::move(pose_stamped));
+            result.push_back(std::move(feature3));
         }
     }
 

@@ -1,7 +1,7 @@
 #pragma once
 
 // clover2
-#include <clover2/aruco/map_client.hpp>
+#include <clover2/map_server/map_client.hpp>
 #include <clover2/common/lifecycle_node.hpp>
 #include <clover2/common/parameter_watcher.hpp>
 #include <clover2_cam_feature/base_plugin.hpp>
@@ -15,7 +15,7 @@
 #include <sensor_msgs/msg/image.hpp>
 
 // msgs
-#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <clover2_localization_msgs/msg/feature_array.hpp>
 
 // STL
 #include <memory>
@@ -28,11 +28,12 @@ namespace clover2_cam_feature {
 class cam_feature : public clover2::common::lifecycle_node {
 public:
     using SharedPtr = std::shared_ptr<cam_feature>;
-    using CallbackReturn =
-        rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+    using CallbackReturn = rclcpp_lifecycle::node_interfaces::
+        LifecycleNodeInterface::CallbackReturn;
     using SetParametersResult = rcl_interfaces::msg::SetParametersResult;
 
-    explicit cam_feature(const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
+    explicit cam_feature(
+        const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
     ~cam_feature() override;
 
     /**
@@ -71,7 +72,8 @@ private:
      * @brief Callback for camera info topic subscription.
      * @param msg Incoming camera info message
      */
-    void camera_info_callback(const sensor_msgs::msg::CameraInfo::ConstSharedPtr msg);
+    void camera_info_callback(
+        const sensor_msgs::msg::CameraInfo::ConstSharedPtr msg);
 
     /**
      * @brief Produce diagnostics information for the node.
@@ -89,16 +91,17 @@ private:
     std::unique_ptr<pluginlib::ClassLoader<base_plugin>> m_plugin_loader;
     std::vector<base_plugin::SharedPtr> m_plugins;
 
-    std::shared_ptr<clover2::aruco::map_client> m_map_client;
+    std::shared_ptr<clover2::map_server::map_client> m_map_client;
 
     size_t m_last_pose_count;
     clover2::common::parameter_watcher::SharedPtr m_parameter_watcher;
     std::shared_ptr<diagnostic_updater::Updater> m_diagnostic_updater;
 
-    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr
-        m_poses_pub;
+    rclcpp::Publisher<clover2_localization_msgs::msg::FeatureArray>::SharedPtr
+        m_features_pub;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr m_image_debug_pub;
-    rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr m_camera_info_sub;
+    rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr
+        m_camera_info_sub;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr m_image_sub;
 };
 

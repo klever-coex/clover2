@@ -44,8 +44,8 @@ public:
     ~aruco() override = default;
 
 protected:
-    void init(const clover2_cam_feature::plugin_context& ctx) override {
-        bind_map_resources(ctx);
+    void init([[maybe_unused]] const clover2_cam_feature::plugin_context& ctx)
+        override {
         m_detector_parameters = cv::aruco::DetectorParameters::create();
 
         declare_and_watch_parameter<std::string>(

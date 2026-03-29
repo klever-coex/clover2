@@ -1,6 +1,5 @@
 #include <clover2_cam_feature/cam_feature.hpp>
 #include <cv_bridge/cv_bridge.hpp>
-
 #include <sensor_msgs/image_encodings.hpp>
 
 #include <functional>
@@ -23,8 +22,7 @@ cam_feature::cam_feature(const rclcpp::NodeOptions& options)
     declare_parameter<std::vector<std::string>>(
         "plugins", std::vector<std::string>{"aruco"});
     declare_parameter<std::vector<std::string>>(
-        "plugin_types",
-        std::vector<std::string>{"aruco"});
+        "plugin_types", std::vector<std::string>{"aruco"});
 
     register_on_configure(
         std::bind(&cam_feature::on_configure, this, std::placeholders::_1));
@@ -96,15 +94,15 @@ cam_feature::CallbackReturn cam_feature::load_plugins() {
 cam_feature::CallbackReturn cam_feature::on_activate(
     const rclcpp_lifecycle::State& /* state */) {
     m_map_client =
-        std::make_shared<clover2::aruco::map_client>(shared_from_this());
+        std::make_shared<clover2::map_server::map_client>(shared_from_this());
 
     const auto load_rc = load_plugins();
     if (load_rc != CallbackReturn::SUCCESS) {
         return load_rc;
     }
 
-    m_poses_pub =
-        create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
+    m_features_pub =
+        create_publisher<clover2_localization_msgs::msg::FeatureArray>(
             "~/poses", rclcpp::SensorDataQoS());
 
     m_image_debug_pub = create_publisher<sensor_msgs::msg::Image>(
@@ -127,7 +125,7 @@ cam_feature::CallbackReturn cam_feature::on_deactivate(
     const rclcpp_lifecycle::State& /* state */) {
     m_image_sub.reset();
     m_camera_info_sub.reset();
-    m_poses_pub.reset();
+    m_features_pub.reset();
     m_image_debug_pub.reset();
 
     m_plugins.clear();
@@ -149,7 +147,7 @@ cam_feature::CallbackReturn cam_feature::on_shutdown(
     const rclcpp_lifecycle::State& /* state */) {
     m_image_sub.reset();
     m_camera_info_sub.reset();
-    m_poses_pub.reset();
+    m_features_pub.reset();
     m_image_debug_pub.reset();
     m_plugins.clear();
     m_plugin_loader.reset();
@@ -176,18 +174,25 @@ void cam_feature::image_callback(
         debug = std::make_shared<cv::Mat>(image.clone());
     }
 
-    size_t pose_count = 0;
+    clover2_localization_msgs::msg::FeatureArray features;
+    features.header.frame_id = m_camera_model.tfFrame();
+    features.header.stamp = msg->header.stamp;
+
+    std::list<clover2_localization_msgs::msg::Feature3> feature_list;
     for (const auto& plugin : m_plugins) {
         auto poses = plugin->process(image, km, distortion, debug);
-        for (auto& pose : poses) {
-            pose.header.frame_id = m_camera_model.tfFrame();
-            pose.header.stamp = msg->header.stamp;
-            m_poses_pub->publish(pose);
-            ++pose_count;
-        }
+        features.features_3d.reserve(features.features_3d.size() +
+                                     poses.size());
+        feature_list.insert(feature_list.end(), poses.begin(), poses.end());
     }
 
-    m_last_pose_count = pose_count;
+    m_last_pose_count = feature_list.size();
+
+    features.features_3d.reserve(m_last_pose_count);
+    features.features_3d.insert(features.features_3d.begin(),
+                                feature_list.begin(), feature_list.end());
+
+    m_features_pub->publish(features);
 
     if (debug && m_image_debug_pub->get_subscription_count() != 0) {
         cv_bridge::CvImage cv_out;

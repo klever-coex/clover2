@@ -1,10 +1,17 @@
 #pragma once
 
-#include <clover2/aruco/map_client.hpp>
+// clover2
 #include <clover2_cam_feature/base_plugin.hpp>
+#include <clover2_localization_msgs/helpers.hpp>
 
+// OpenCV
 #include <opencv2/aruco.hpp>
 
+// msgs
+#include <clover2_localization_msgs/msg/feature3.hpp>
+#include <geometry_msgs/msg/pose_with_covariance.hpp>
+
+// STL
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -15,18 +22,16 @@ class maker_base : public clover2_cam_feature::base_plugin {
 public:
     maker_base() = default;
 
-    std::vector<geometry_msgs::msg::PoseWithCovarianceStamped> process(
+    std::list<clover2_localization_msgs::msg::Feature3> process(
         const cv::Mat& image, const cv::Matx33d& matrix,
         const cv::Mat_<double>& distortion,
         std::shared_ptr<cv::Mat> debug = nullptr) override;
 
 protected:
-    void bind_map_resources(const clover2_cam_feature::plugin_context& ctx) {
-        m_map_client = ctx.map_client;
-    }
-
     virtual void detect_markers(const cv::Mat& image, std::vector<int>& ids,
                                 std::vector<std::vector<cv::Point2f>>& corners) = 0;
+
+    virtual clover2_localization_msgs::helpers::feature_type feature_type() const;
 
 private:
     const std::vector<cv::Point3d>& get_marker_obj_points(
@@ -36,10 +41,9 @@ private:
     static void compute_pose_covariance(cv::Mat& pose_cov);
 
     static void fill_pose_stamped(
-        geometry_msgs::msg::PoseWithCovarianceStamped& out,
+        geometry_msgs::msg::PoseWithCovariance& out,
         const cv::Vec3d& rvec, const cv::Vec3d& tvec, const cv::Mat& cov);
 
-    std::shared_ptr<clover2::aruco::map_client> m_map_client;
     std::unordered_map<int, std::vector<cv::Point3d>> m_marker_obj_cache;
 };
 
