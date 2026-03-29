@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 
-import re
-import pathlib
 import argparse
-import logging
 import asyncio
-
-from components.chroot import ChrootConfig, Chroot
-from components.qemu import QemuConfig, Qemu
+import logging
+import pathlib
+import re
 
 import config
+from components.chroot import Chroot, ChrootConfig
+from components.qemu import Qemu, QemuConfig
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format='[%(levelname)s][%(asctime)s]: %(name)s: %(message)s',
+    format="[%(levelname)s][%(asctime)s]: %(name)s: %(message)s",
 )
 
 logger = logging.getLogger(__name__)
@@ -26,16 +25,18 @@ async def chroot_state(args, image: pathlib.Path):
             1: "",  # mount to /
             0: "boot",  # mount to /boot
         },
-        with_sudo=args.sudo
+        with_sudo=args.sudo,
     )
 
     async with Chroot(cfg) as chroot:
         await chroot.copy_to(
-            config.PROJECT_DIR / "tooling/builder/assets/01-nopasswd", "etc/sudoers.d")
+            config.PROJECT_DIR / "tooling/builder/assets/01-nopasswd", "etc/sudoers.d"
+        )
 
-        await chroot.copy_to(config.PROJECT_DIR /
-                             "tooling/builder/assets/user-data", "boot")
-        
+        await chroot.copy_to(
+            config.PROJECT_DIR / "tooling/builder/assets/user-data", "boot"
+        )
+
         if config.DOCKER_OUTPUT_DIR.is_dir():
             for image in config.DOCKER_OUTPUT_DIR.glob("*.tar"):
                 await chroot.copy_to(image, "root/")
@@ -48,9 +49,11 @@ async def qemu_state(args, image: pathlib.Path):
         ssh_password="raspberry",
         smp=16,
         extra_args=[
-            "-append", '"console=ttyAMA0,115200 root=/dev/vda2 rw"',
-            "-kernel", f"{config.PROJECT_DIR}/tooling/builder/assets/kernel-qemu-raspi4"
-        ]
+            "-append",
+            '"console=ttyAMA0,115200 root=/dev/vda2 rw"',
+            "-kernel",
+            f"{config.PROJECT_DIR}/tooling/builder/assets/kernel-qemu-raspi4",
+        ],
     )
 
     async with Qemu(cfg) as qemu:
@@ -64,17 +67,21 @@ async def qemu_state(args, image: pathlib.Path):
         await qemu.execute("sudo apt-get update && sudo apt-get install -y make")
 
         logger.info("Cleanup git project")
-        await qemu.execute("cd /home/pi/clover2_ws/src/clover2 && git reset --hard HEAD && git clean -fdx")
+        await qemu.execute(
+            "cd /home/pi/clover2_ws/src/clover2 && git reset --hard HEAD && git clean -fdx"
+        )
 
         logger.info("Run image setup script")
-        await qemu.execute(f"cd /home/pi/clover2_ws/src/clover2 && make builder-image-setup")
+        await qemu.execute(
+            "cd /home/pi/clover2_ws/src/clover2 && make builder-image-setup"
+        )
 
 
 def parse_args():
     args = argparse.ArgumentParser()
 
     args.add_argument("--output", "-o", type=pathlib.Path, required=True)
-    args.add_argument("--sudo", "-S", action='store_true')
+    args.add_argument("--sudo", "-S", action="store_true")
 
     return args.parse_args()
 
