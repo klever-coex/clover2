@@ -21,7 +21,7 @@ class QemuConfig:
     machine: str = field(default="virt")
     smp: int = field(default=8)
     cpu: str = field(default="cortex-a57")
-    ram_size: str = field(default="8G")
+    ram_size: str = field(default="16G")
     extra_args: list[str] = field(default_factory=[])
 
 
