@@ -1,6 +1,7 @@
 #pragma once
 
 // clover2
+#include <clover2/map_server/map_client.hpp>
 #include <clover2/common/parameter_watcher.hpp>
 #include <clover2_cam_feature/plugin_context.hpp>
 
@@ -14,7 +15,7 @@
 #include <opencv2/core.hpp>
 
 // msgs
-#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <clover2_localization_msgs/msg/feature3.hpp>
 
 // STL
 #include <memory>
@@ -38,11 +39,12 @@ public:
         m_node = std::make_shared<rclcpp::Node>(
             subnode, ctx.node_base->get_fully_qualified_name());
         m_parameter_watcher.enable_watch_parameters(*m_node);
+        m_map_client = ctx.map_client;
 
         init(ctx);
     }
 
-    virtual std::vector<geometry_msgs::msg::PoseWithCovarianceStamped> process(
+    virtual std::list<clover2_localization_msgs::msg::Feature3> process(
         const cv::Mat& image, const cv::Matx33d& matrix,
         const cv::Mat_<double>& distortion,
         std::shared_ptr<cv::Mat> debug = nullptr) = 0;
@@ -69,6 +71,8 @@ protected:
 
     rclcpp::Node::SharedPtr m_node;
     clover2::common::parameter_watcher m_parameter_watcher;
+
+    std::shared_ptr<clover2::map_server::map_client> m_map_client;
 };
 
 }  // namespace clover2_cam_feature
