@@ -88,7 +88,7 @@ builder-%-in-docker:
 		-v /dev:/dev \
 		-v $(PROJECT_DIR):/builder \
 		-w /builder \
-		$(REGISTRY)clover2-builder:$(CLOVER2_VERSION) \
+		$(REGISTRY)clover2-builder:$(CLOVER2_GIT_HASH) \
 		sh -c "make builder-$*"
 
 clover2-devtool-install-repos:
