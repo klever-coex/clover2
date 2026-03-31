@@ -1,9 +1,9 @@
 #pragma once
 
 // clover2
-#include <clover2/map_server/map_client.hpp>
 #include <clover2/common/lifecycle_node.hpp>
 #include <clover2/common/parameter_watcher.hpp>
+#include <clover2/map_server/map_client.hpp>
 #include <clover2_cam_feature/base_plugin.hpp>
 
 // ROS 2
@@ -39,27 +39,32 @@ public:
     /**
      * @brief Lifecycle callback: configure the node.
      */
-    CallbackReturn on_configure(const rclcpp_lifecycle::State& /* state */);
+    CallbackReturn on_configure(
+        const rclcpp_lifecycle::State& /* state */) override;
 
     /**
      * @brief Lifecycle callback: activate the node.
      */
-    CallbackReturn on_activate(const rclcpp_lifecycle::State& /* state */);
+    CallbackReturn on_activate(
+        const rclcpp_lifecycle::State& /* state */) override;
 
     /**
      * @brief Lifecycle callback: deactivate the node.
      */
-    CallbackReturn on_deactivate(const rclcpp_lifecycle::State& /* state */);
+    CallbackReturn on_deactivate(
+        const rclcpp_lifecycle::State& /* state */) override;
 
     /**
      * @brief Lifecycle callback: cleanup resources.
      */
-    CallbackReturn on_cleanup(const rclcpp_lifecycle::State& /* state */);
+    CallbackReturn on_cleanup(
+        const rclcpp_lifecycle::State& /* state */) override;
 
     /**
      * @brief Lifecycle callback: shutdown resources.
      */
-    CallbackReturn on_shutdown(const rclcpp_lifecycle::State& /* state */);
+    CallbackReturn on_shutdown(
+        const rclcpp_lifecycle::State& /* state */) override;
 
 private:
     /**

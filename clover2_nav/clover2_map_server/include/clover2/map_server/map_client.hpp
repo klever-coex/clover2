@@ -1,23 +1,22 @@
 #pragma once
 
-// ROS2
+#include <Eigen/Geometry>
 #include <rclcpp/rclcpp.hpp>
 #include <tf2/LinearMath/Transform.hpp>
 #include <tf2_eigen/tf2_eigen.hpp>
 
-// msgs
+#include <clover2_aruco_msgs/msg/marker.hpp>
 #include <clover2_aruco_msgs/msg/marker_map.hpp>
 #include <std_msgs/msg/empty.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
-// srvs
 #include <clover2_aruco_msgs/srv/get_map.hpp>
 
-// STL
+#include <mutex>
 #include <unordered_map>
 #include <vector>
 
-namespace clover2::aruco {
+namespace clover2::map_server {
 
 class map_client {
 public:
@@ -71,11 +70,11 @@ public:
                           std::placeholders::_1));
 
         if (cb_group) {
-            m_map_client =
+            m_get_map_client =
                 node->template create_client<clover2_aruco_msgs::srv::GetMap>(
                     "~/get_map", rclcpp::ServicesQoS(), cb_group);
         } else {
-            m_map_client =
+            m_get_map_client =
                 node->template create_client<clover2_aruco_msgs::srv::GetMap>(
                     "~/get_map", rclcpp::ServicesQoS());
         }
@@ -91,7 +90,7 @@ public:
 
     double get_marker_size(int id) const { return m_markers.at(id).size; }
 
-    int get_count() const { return m_markers.size(); }
+    int get_count() const { return static_cast<int>(m_markers.size()); }
 
     const Eigen::Affine3d& get_transform(int id) const {
         return m_markers.at(id).transform;
@@ -104,10 +103,6 @@ public:
     bool has_marker(int id) const {
         return m_markers.find(id) != m_markers.end();
     }
-
-    // for lock guard
-    void lock() { m_map_mtx.lock(); }
-    void unlock() { m_map_mtx.unlock(); }
 
 private:
     void map_update_callback(const std_msgs::msg::Empty::SharedPtr /* msg */) {
@@ -130,15 +125,15 @@ private:
     }
 
     void update_map() {
-        if (!m_map_client->wait_for_service(std::chrono::milliseconds(1000))) {
+        if (!m_get_map_client->wait_for_service(std::chrono::milliseconds(1000))) {
             throw std::runtime_error(
-                std::string(m_map_client->get_service_name()) +
+                std::string(m_get_map_client->get_service_name()) +
                 " service is not available!");
         }
 
         auto map_request =
             std::make_shared<clover2_aruco_msgs::srv::GetMap::Request>();
-        m_map_client->async_send_request(
+        m_get_map_client->async_send_request(
             map_request,
             [this](rclcpp::Client<clover2_aruco_msgs::srv::GetMap>::SharedFuture
                        future) {
@@ -159,7 +154,7 @@ private:
 
     rclcpp::Logger m_logger;
     rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr m_map_update_sub;
-    rclcpp::Client<clover2_aruco_msgs::srv::GetMap>::SharedPtr m_map_client;
+    rclcpp::Client<clover2_aruco_msgs::srv::GetMap>::SharedPtr m_get_map_client;
 
     std::recursive_mutex m_map_mtx;
 
@@ -169,4 +164,4 @@ private:
     std::unordered_map<int, marker> m_markers;
 };
 
-}  // namespace clover2::aruco
+}  // namespace clover2::map_server

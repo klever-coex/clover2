@@ -1,7 +1,7 @@
 #pragma once
 
 // clover2
-#include <clover2/aruco/map_client.hpp>
+#include <clover2/map_server/map_client.hpp>
 #include <clover2/common/lifecycle_node.hpp>
 #include <clover2/common/parameter_watcher.hpp>
 
@@ -155,7 +155,7 @@ private:
     size_t m_last_marker_count;     ///< Last detected marker count
     bool m_tf_publish;              ///< Flag to enable TF publishing
     std::string m_dictionary_name;  ///< OpenCV ArUco dictionary ID
-    std::shared_ptr<map_client>
+    std::shared_ptr<clover2::map_server::map_client>
         m_map_client;  ///< Map client for marker metadata
     cv::Ptr<cv::aruco::Dictionary> m_dictionary;  ///< ArUco dictionary object
     cv::Ptr<cv::aruco::DetectorParameters>

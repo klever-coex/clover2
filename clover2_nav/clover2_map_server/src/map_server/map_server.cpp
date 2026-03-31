@@ -1,20 +1,13 @@
-// clover2
-#include <clover2/aruco/map_server.hpp>
-#include <clover2/aruco/util/map_io.hpp>
+#include <clover2/map_server/map_server.hpp>
+#include <clover2/map_server/util/map_io.hpp>
 
-// ROS2
 #include <lifecycle_msgs/msg/state.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2/LinearMath/Transform.hpp>
 
-// msgs
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#include <tf2_msgs/msg/tf_message.hpp>
 
-// STL
-#include <fstream>
-
-namespace clover2::aruco {
+namespace clover2::map_server {
 
 map_server::map_server(const rclcpp::NodeOptions& options)
     : clover2::common::lifecycle_node("map_server", options)
@@ -66,7 +59,7 @@ map_server::CallbackReturn map_server::on_activate(
     m_tf_static_broadcaster =
         std::make_shared<tf2_ros::StaticTransformBroadcaster>(*this);
 
-    m_map_server = this->create_service<clover2_aruco_msgs::srv::GetMap>(
+    m_map_service = this->create_service<clover2_aruco_msgs::srv::GetMap>(
         "~/get_map", std::bind(&map_server::map_callback, this,
                                std::placeholders::_1, std::placeholders::_2));
 
@@ -89,7 +82,7 @@ map_server::CallbackReturn map_server::on_activate(
 map_server::CallbackReturn map_server::on_deactivate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     m_tf_static_broadcaster.reset();
-    m_map_server.reset();
+    m_map_service.reset();
     m_map_update_pub.reset();
 
     return map_server::CallbackReturn::SUCCESS;
@@ -105,7 +98,7 @@ map_server::CallbackReturn map_server::on_cleanup(
 map_server::CallbackReturn map_server::on_shutdown(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     m_tf_static_broadcaster.reset();
-    m_map_server.reset();
+    m_map_service.reset();
     m_map_update_pub.reset();
 
     return map_server::CallbackReturn::SUCCESS;
@@ -121,20 +114,9 @@ void map_server::map_callback(
 
 clover2_aruco_msgs::msg::MarkerMap::SharedPtr map_server::parse_map(
     const std::filesystem::path& filename) const {
-    std::string extension = filename.extension().string();
-
     auto map = std::make_shared<clover2_aruco_msgs::msg::MarkerMap>();
-
-    if (extension == ".txt") {
-        RCLCPP_DEBUG(get_logger(), "Detect legacy map format");
-        clover2::aruco::util::load_from_txt(filename, *map);
-    } else if (extension == ".yaml" || extension == ".yml") {
-        RCLCPP_DEBUG(get_logger(), "Detect new map format");
-        clover2::aruco::util::load_from_yaml(filename, *map);
-    } else {
-        throw std::runtime_error("Unexpected map format: " + extension);
-    }
-
+    util::map_io io{get_logger()};
+    io.load(filename, *map);
     return map;
 }
 
@@ -175,8 +157,8 @@ void map_server::update_map(
     m_map_update_pub->publish(std_msgs::msg::Empty());
 }
 
-}  // namespace clover2::aruco
+}  // namespace clover2::map_server
 
 #include "rclcpp_components/register_node_macro.hpp"
 
-RCLCPP_COMPONENTS_REGISTER_NODE(clover2::aruco::map_server)
+RCLCPP_COMPONENTS_REGISTER_NODE(clover2::map_server::map_server)

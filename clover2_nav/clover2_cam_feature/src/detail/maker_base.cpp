@@ -35,6 +35,7 @@ void maker_base::compute_pose_covariance(cv::Mat& pose_cov) {
     pose_cov.create(6, 6, CV_64F);
     pose_cov.setTo(0);
 
+    // TODO: https://www.youtube.com/shorts/PLbQuKxKaIs
     pose_cov.at<double>(0, 0) = 0.05f;
     pose_cov.at<double>(1, 1) = 0.05f;
     pose_cov.at<double>(2, 2) = 0.1f;
@@ -89,9 +90,6 @@ std::list<clover2_localization_msgs::msg::Feature3> maker_base::process(
     std::vector<std::vector<cv::Point2f>> corners;
     detect_markers(image, ids, corners);
 
-    const cv::Mat camera_matrix(matrix);
-    const cv::Mat dist_coeffs(distortion);
-
     std::vector<bool> pose_estimated(ids.size(), false);
     std::vector<cv::Mat> marker_cov(ids.size());
     std::vector<cv::Vec3d> marker_rot(ids.size()), marker_pose(ids.size());
@@ -111,8 +109,8 @@ std::list<clover2_localization_msgs::msg::Feature3> maker_base::process(
                                   estimate_parameters);
 
                               cv::solvePnP(
-                                  obj_pts, cv::Mat(corners[i]), camera_matrix,
-                                  dist_coeffs, marker_rot[i], marker_pose[i],
+                                  obj_pts, cv::Mat(corners[i]), matrix,
+                                  distortion, marker_rot[i], marker_pose[i],
                                   estimate_parameters->useExtrinsicGuess,
                                   estimate_parameters->solvePnPMethod);
 

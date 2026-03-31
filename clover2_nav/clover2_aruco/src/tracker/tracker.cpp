@@ -74,7 +74,8 @@ tracker::CallbackReturn tracker::on_activate(
     m_tf_buffer = std::make_shared<tf2_ros::Buffer>(this->get_clock());
     m_tf_listener = std::make_shared<tf2_ros::TransformListener>(*m_tf_buffer);
 
-    m_map_client = std::make_shared<map_client>(shared_from_this());
+    m_map_client =
+        std::make_shared<clover2::map_server::map_client>(shared_from_this());
 
     m_pose_pub = create_publisher<geometry_msgs::msg::PoseStamped>(
         "~/pose", rclcpp::SystemDefaultsQoS());
@@ -130,7 +131,7 @@ tracker::CallbackReturn tracker::on_shutdown(
 
 void tracker::markers_callback(
     const clover2_aruco_msgs::msg::MarkerArray::SharedPtr msg) {
-    std::lock_guard<map_client> map_guard(*m_map_client);
+    std::lock_guard<clover2::map_server::map_client> map_guard(*m_map_client);
 
     if (msg->markers.size() == 0) {
         return;
