@@ -16,9 +16,9 @@ class NodeParametersInterface;
 class NodeTimersInterface;
 }  // namespace rclcpp::node_interfaces
 
-namespace clover2::aruco {
+namespace clover2::map_server {
 class map_client;
-}  // namespace clover2::aruco
+}  // namespace clover2::map_server
 
 namespace clover2::aruco::optimizer {
 
@@ -35,7 +35,7 @@ struct context {
         node_parameters;
     std::shared_ptr<rclcpp::node_interfaces::NodeTimersInterface> node_timers;
 
-    std::shared_ptr<clover2::aruco::map_client> map_client;
+    std::shared_ptr<clover2::map_server::map_client> map_client;
 };
 
 class base_optimizer {

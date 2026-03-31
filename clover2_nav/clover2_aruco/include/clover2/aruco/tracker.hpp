@@ -1,7 +1,7 @@
 #pragma once
 
 // Clover2 includes
-#include <clover2/aruco/map_client.hpp>
+#include <clover2/map_server/map_client.hpp>
 #include <clover2/aruco/optimizer/base_optimizer.hpp>
 #include <clover2/common/lifecycle_node.hpp>
 #include <clover2/common/parameter_watcher.hpp>
@@ -63,7 +63,7 @@ private:
     std::string m_tracking_id;
 
     // Detection parameters
-    std::shared_ptr<map_client> m_map_client;
+    std::shared_ptr<clover2::map_server::map_client> m_map_client;
     std::shared_ptr<optimizer::base_optimizer> m_optimizer;
 
     // TF

@@ -1,4 +1,4 @@
-name: test
+name: example-1
 frame_id: map
 version: 0
 default_size: 0.15

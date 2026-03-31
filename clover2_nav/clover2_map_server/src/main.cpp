@@ -1,10 +1,7 @@
-// clover2
-#include <clover2/aruco/map_server.hpp>
+#include <clover2/map_server/map_server.hpp>
 
-// ROS2
 #include <rclcpp/rclcpp.hpp>
 
-// STL
 #include <memory>
 
 int main(int argc, char* argv[]) {
@@ -14,10 +11,10 @@ int main(int argc, char* argv[]) {
         rclcpp::executors::SingleThreadedExecutor executor;
 
         auto options = rclcpp::NodeOptions();
-        clover2::aruco::map_server::SharedPtr map_server =
-            std::make_shared<clover2::aruco::map_server>(options);
+        clover2::map_server::map_server::SharedPtr srv =
+            std::make_shared<clover2::map_server::map_server>(options);
 
-        executor.add_node(map_server->get_node_base_interface());
+        executor.add_node(srv->get_node_base_interface());
         executor.spin();
 
     } catch (const std::runtime_error& e) {

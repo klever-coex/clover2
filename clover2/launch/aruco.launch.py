@@ -11,7 +11,7 @@ from launch_ros.actions import Node
 
 def launch_setup(context, *args, **kwargs):
 
-    pkg_clover2_aruco = get_package_share_directory("clover2_aruco")
+    pkg_clover2_map_server = get_package_share_directory("clover2_map_server")
 
     # Reading arguments
     use_sim_time = LaunchConfiguration("use_sim_time")
@@ -22,7 +22,7 @@ def launch_setup(context, *args, **kwargs):
     # Resolve map file path
     map_dirs = [
         CLOVER2_RESOURCE_DIR / "map",
-        Path(pkg_clover2_aruco) / "map",
+        Path(pkg_clover2_map_server) / "map",
     ]
 
     map_filename = find_file(map.perform(context), map_dirs)
@@ -35,7 +35,7 @@ def launch_setup(context, *args, **kwargs):
 
     # Aruco map server
     aruco_map_server_cmd = Node(
-        package="clover2_aruco",
+        package="clover2_map_server",
         executable="map_server",
         name="map_server",
         parameters=[

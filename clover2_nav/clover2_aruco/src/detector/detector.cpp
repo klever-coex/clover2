@@ -109,7 +109,8 @@ detector::CallbackReturn detector::on_activate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
 
-    m_map_client = std::make_shared<map_client>(shared_from_this());
+    m_map_client =
+        std::make_shared<clover2::map_server::map_client>(shared_from_this());
 
     m_markers_pub =
         this->create_publisher<clover2_aruco_msgs::msg::MarkerArray>(
@@ -200,7 +201,7 @@ const std::vector<cv::Point3d>& detector::get_marker_obj_points(
 void detector::image_callback(
     const sensor_msgs::msg::Image::ConstSharedPtr msg) {
     std::lock_guard<std::mutex> camera_info_guard(m_camera_info_mtx);
-    std::lock_guard<map_client> map_guard(*m_map_client);
+    std::lock_guard<clover2::map_server::map_client> map_guard(*m_map_client);
 
     if (!m_map_client->valid()) {
         RCLCPP_ERROR(get_logger(), "Invalid map");
