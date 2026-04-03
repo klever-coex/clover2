@@ -56,8 +56,8 @@ target "base" {
   context = "."
   labels = LABELS
 
-  cache-from = ["type=local,src=/tmp/.buildx-cache"]
-  cache-to   = ["type=local,dest=/tmp/.buildx-cache,mode=max"]
+  cache-from = ["type=local,src=.cache/docker"]
+  cache-to   = ["type=local,dest=.cache/docker,mode=max"]
 }
 
 #      ____           ___           __                         __

@@ -35,7 +35,7 @@ WORKDIR /build/PX4-Autopilot
 RUN git switch --detach v1.16.1 && \
     git submodule update --init --recursive
 
-RUN pip3 install --no-cache-dir -r ./Tools/setup/requirements.txt
+RUN pip3 install -r ./Tools/setup/requirements.txt --no-cache-dir --break-system-packages
 
 RUN --mount=type=cache,target=/root/.ccache \
     make px4_sitl_default
