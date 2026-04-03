@@ -37,8 +37,7 @@ RUN git switch --detach v1.16.1 && \
 
 RUN pip3 install -r ./Tools/setup/requirements.txt --no-cache-dir --break-system-packages
 
-RUN --mount=type=cache,target=/root/.ccache \
-    make px4_sitl_default
+RUN make px4_sitl_default
 
 FROM debian:bookworm-slim
 
