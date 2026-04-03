@@ -1,4 +1,5 @@
 .env
+/.cache
 
 /.venv
 /.vscode/
@@ -28,5 +29,3 @@ dist-ssr
 *.local
 
 /build-*
-
-**/apt-depends.txt

@@ -55,7 +55,7 @@ help:
 ## clover2-bake-%: Build docker images using buildx bake
 clover2-bake-%:
 	@mkdir -p $(DOCKER_OUTPUT_DIR)
-	docker buildx bake --allow=fs=/tmp/.buildx-cache --progress=plain $*
+	docker buildx bake $*
 
 ## clover2-bake-print-%: Print buildx bake configuration
 clover2-bake-print-%:
