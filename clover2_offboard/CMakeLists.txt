@@ -34,24 +34,18 @@ set(dependencies
   tf2_ros
 )
 
-# Common helper macros from clover2_common (loaded via find_package).
-
-# ============================================================================
-# Build backend library (fabric, MAVROS backend)
-# ============================================================================
 clover2_add_library(
   TARGET clover2_offboard
   SOURCES
     src/backend/base_backend.cpp
     src/backend/fabric.cpp
     src/backend/mavros.cpp
+    src/data/mode.cpp
     src/helper.cpp
-  DEPENDENCIES rclcpp clover2_common mavros_msgs tf2_ros
+  DEPENDENCIES rclcpp clover2_common mavros_msgs rclcpp_lifecycle
+               tf2_geometry_msgs tf2_ros
 )
 
-# ============================================================================
-# Build offboard server lifecycle component
-# ============================================================================
 clover2_add_component_library(
   TARGET clover2_offboard_server_component
   SOURCES src/server.cpp
@@ -60,9 +54,6 @@ clover2_add_component_library(
   COMPONENT_CLASS "clover2_offboard::server"
 )
 
-# ============================================================================
-# Build offboard_server executable (main application)
-# ============================================================================
 clover2_add_executable(
   TARGET offboard_server
   SOURCES src/main.cpp
@@ -70,9 +61,6 @@ clover2_add_executable(
   DEPENDENCIES ${dependencies}
 )
 
-# ============================================================================
-# Installation configuration
-# ============================================================================
 
 install(
   DIRECTORY include/
@@ -92,10 +80,6 @@ install(
   RUNTIME DESTINATION bin
 )
 
-# ============================================================================
-# Export configuration for other packages
-# ============================================================================
-
 ament_export_dependencies(${dependencies})
 
 ament_export_include_directories(
@@ -111,9 +95,6 @@ ament_export_targets(
   export_${PROJECT_NAME}
 )
 
-# ============================================================================
-# Testing configuration (only if BUILD_TESTING is enabled)
-# ============================================================================
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   set(ament_cmake_copyright_FOUND TRUE)
