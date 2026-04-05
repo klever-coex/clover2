@@ -1,3 +1,4 @@
+#include "clover2_offboard_msgs/srv/navigate.hpp"
 #include <clover2_offboard/backend/context.hpp>
 #include <clover2_offboard/backend/fabric.hpp>
 #include <clover2_offboard/helper.hpp>
@@ -10,6 +11,7 @@
 #include <algorithm>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 
@@ -35,7 +37,7 @@ void ensure_backend_registered(const std::string& name) {
 }  // namespace
 
 server::server(const rclcpp::NodeOptions& options)
-    : clover2::common::lifecycle_node("clover2_offboard_server", options)
+    : clover2::common::lifecycle_node("offboard_server", options)
     , m_backend_name("mavros") {
     m_parameter_watcher =
         std::make_shared<clover2::common::parameter_watcher>(*this);
@@ -75,9 +77,8 @@ server::CallbackReturn server::on_configure(
 server::CallbackReturn server::on_activate(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
     try {
-        rclcpp::NodeOptions options;
-        m_helper = clover2_offboard::helper::make_shared(*this, m_backend_name,
-                                                         options);
+        m_helper = clover2_offboard::helper::make_shared(
+            this->shared_from_this(), m_backend_name);
     } catch (const std::runtime_error& e) {
         RCLCPP_ERROR(get_logger(), "Failed to create backend '%s': %s",
                      m_backend_name.c_str(), e.what());
@@ -91,12 +92,19 @@ server::CallbackReturn server::on_activate(
                       std::placeholders::_2),
             rclcpp::ServicesQoS(), m_service_callback_group);
 
+    m_navigate_srv = create_service<clover2_offboard_msgs::srv::Navigate>(
+        "~/navigate",
+        std::bind(&server::handle_navigation, this, std::placeholders::_1,
+                  std::placeholders::_2),
+        rclcpp::ServicesQoS(), m_service_callback_group);
+
     RCLCPP_INFO(get_logger(), "activate");
     return CallbackReturn::SUCCESS;
 }
 
 server::CallbackReturn server::on_deactivate(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
+    m_navigate_srv.reset();
     m_set_position_srv.reset();
     m_helper.reset();
     RCLCPP_INFO(get_logger(), "deactivate");
@@ -120,17 +128,92 @@ void server::handle_set_position(
         request,
     std::shared_ptr<clover2_offboard_msgs::srv::SetPosition::Response>
         response) {
-
     const auto& p = request->pose.position;
-    const float yaw =
+    const float value_yaw =
         static_cast<float>(tf2::getYaw(request->pose.orientation));
     RCLCPP_DEBUG(get_logger(),
                  "set_position frame=%s x=%.3f y=%.3f z=%.3f yaw=%.3f",
-                 request->header.frame_id.c_str(), p.x, p.y, p.z, yaw);
+                 request->header.frame_id.c_str(), p.x, p.y, p.z, value_yaw);
 
-    // m_helper->set_position_setpoint(static_cast<float>(p.x),
-    //                                  static_cast<float>(p.y),
-    //                                  static_cast<float>(p.z), yaw);
+    std::optional<double> x = std::nullopt;
+    std::optional<double> y = std::nullopt;
+    std::optional<double> z = std::nullopt;
+    std::optional<double> yaw = std::nullopt;
+
+    if (!std::isnan(p.x)) {
+        x = p.x;
+    }
+
+    if (!std::isnan(p.y)) {
+        y = p.y;
+    }
+
+    if (!std::isnan(p.z)) {
+        z = p.z;
+    }
+
+    if (!std::isnan(value_yaw)) {
+        yaw = value_yaw;
+    }
+
+    try {
+        m_helper->set_position(request->header.frame_id, x, y, z, yaw);
+    } catch (const std::runtime_error& e) {
+        RCLCPP_WARN(get_logger(), "set position failed: %s", e.what());
+        response->success = false;
+        response->message = e.what();
+        return;
+    }
+
+    response->success = true;
+    response->message = "ok";
+}
+
+void server::handle_navigation(
+    const std::shared_ptr<clover2_offboard_msgs::srv::Navigate::Request>
+        request,
+    std::shared_ptr<clover2_offboard_msgs::srv::Navigate::Response> response) {
+    const auto& p = request->pose.position;
+    const float value_yaw =
+        static_cast<float>(tf2::getYaw(request->pose.orientation));
+    RCLCPP_DEBUG(get_logger(),
+                 "navigation frame=%s speed=%.3f x=%.3f y=%.3f z=%.3f yaw=%.3f",
+                 request->header.frame_id.c_str(), request->speed, p.x, p.y,
+                 p.z, value_yaw);
+
+    std::optional<double> x = std::nullopt;
+    std::optional<double> y = std::nullopt;
+    std::optional<double> z = std::nullopt;
+    std::optional<double> yaw = std::nullopt;
+
+    if (!std::isnan(p.x)) {
+        x = p.x;
+    }
+
+    if (!std::isnan(p.y)) {
+        y = p.y;
+    }
+
+    if (!std::isnan(p.z)) {
+        z = p.z;
+    }
+
+    if (!std::isnan(value_yaw)) {
+        yaw = value_yaw;
+    }
+
+    const double speed =
+        std::isnan(request->speed) ? 0.3 : static_cast<double>(request->speed);
+
+    try {
+        m_helper->navigate(request->header.frame_id, x, y, z, yaw, speed);
+    } catch (const std::runtime_error& e) {
+        RCLCPP_WARN(get_logger(), "navigation failed: %s", e.what());
+        response->success = false;
+        response->message = e.what();
+        return;
+    }
+
     response->success = true;
     response->message = "ok";
 }
