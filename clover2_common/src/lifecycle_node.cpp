@@ -4,6 +4,8 @@
 // msgs
 #include <lifecycle_msgs/msg/state.hpp>
 
+#include <memory>
+
 namespace clover2::common {
 
 lifecycle_node::lifecycle_node(const std::string& node_name,
@@ -39,9 +41,18 @@ void lifecycle_node::enable_diagnostic_updater() {
                   std::placeholders::_1));
 }
 
+void lifecycle_node::enable_parameter_watcher() {
+    m_parameter_watcher = std::make_shared<parameter_watcher>(*this);
+}
+
 std::shared_ptr<diagnostic_updater::Updater>
-lifecycle_node::get_diagnostic_updater() {
+lifecycle_node::get_diagnostic_updater() const {
     return m_diagnostic_updater;
+}
+
+std::shared_ptr<parameter_watcher> lifecycle_node::get_parameter_watcher()
+    const {
+    return m_parameter_watcher;
 }
 
 void lifecycle_node::produce_lifecycle_diagnostics(
