@@ -48,8 +48,8 @@ public:
     virtual ~base_plugin() = default;
 
     virtual std::list<clover2_pose_msgs::msg::Marker> process(
-        const cv::Mat& image, const cv::Matx33d& matrix,
-        const cv::Mat_<double>& distortion,
+        const std_msgs::msg::Header& header, const cv::Mat& image,
+        const cv::Matx33d& matrix, const cv::Mat_<double>& distortion,
         std::shared_ptr<cv::Mat> debug = nullptr) = 0;
 
     rclcpp::Node::SharedPtr get_node() const { return m_node; }

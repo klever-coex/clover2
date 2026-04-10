@@ -1,7 +1,8 @@
 #pragma once
 
 // clover2
-#include <clover2_pose_msgs/msg/marker.hpp>
+#include "geometry_msgs/msg/pose_array.hpp"
+#include "std_msgs/msg/header.hpp"
 #include <clover2/cam_feature/base_plugin.hpp>
 
 // OpenCV
@@ -9,8 +10,10 @@
 
 // ROS2
 #include <clover2_pose_msgs/msg/marker.hpp>
+#include <geometry_msgs/msg/pose_array.hpp>
 #include <geometry_msgs/msg/pose_with_covariance.hpp>
-#include <clover2_pose_msgs/msg/marker.hpp>
+#include <rclcpp/publisher.hpp>
+#include <rclcpp/subscription.hpp>
 
 // STL
 #include <memory>
@@ -26,9 +29,9 @@ public:
                const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
 
     std::list<clover2_pose_msgs::msg::Marker> process(
-        const cv::Mat& image, const cv::Matx33d& matrix,
-        const cv::Mat_<double>& distortion,
-        std::shared_ptr<cv::Mat> debug = nullptr) override;
+        const std_msgs::msg::Header& header, const cv::Mat& image,
+        const cv::Matx33d& matrix, const cv::Mat_<double>& distortion,
+        std::shared_ptr<cv::Mat> debug = nullptr) override final;
 
 protected:
     virtual void detect_markers(
@@ -48,6 +51,9 @@ private:
 
     std::shared_ptr<clover2::map::client> m_map_client;
     std::unordered_map<int, std::vector<cv::Point3d>> m_marker_obj_cache;
+
+    rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr
+        m_pose_array_debug_pub;
 };
 
 }  // namespace clover2::cam_feature::detail

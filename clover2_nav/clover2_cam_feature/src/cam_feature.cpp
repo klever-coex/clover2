@@ -146,7 +146,7 @@ void cam_feature::image_callback(
 
     std::list<clover2_pose_msgs::msg::Marker> marker_list;
     for (const auto& plugin : m_plugins) {
-        auto poses = plugin->process(image, km, distortion, debug);
+        auto poses = plugin->process(msg->header, image, km, distortion, debug);
         markers.markers.reserve(markers.markers.size() + poses.size());
         marker_list.insert(marker_list.end(), poses.begin(), poses.end());
     }
