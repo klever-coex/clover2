@@ -1,3 +1,0 @@
-uint32_t landmark_id
-
-geometry_msgs/PoseWithCovariance pose
