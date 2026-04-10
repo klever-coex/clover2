@@ -247,7 +247,7 @@ void cam_feature::load_plugins() {
     m_plugins.reserve(m_plugin_types.size());
 
     plugin_context ctx(*this);
-    ctx.node = shared_from_this();
+    ctx.node = this;
     ctx.map_client = m_map_client;
 
     for (const auto& type : m_plugin_types) {

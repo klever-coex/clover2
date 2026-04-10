@@ -13,7 +13,7 @@ public:
     explicit plugin_context(NodeT& node)
         : clover2::common::node_context(node) {}
 
-    rclcpp::Node::SharedPtr node;
+    rclcpp::Node* node;
 
     std::shared_ptr<clover2::map::client> map_client;
 };
