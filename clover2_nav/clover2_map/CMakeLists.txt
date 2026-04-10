@@ -53,7 +53,7 @@ clover2_add_component_library(
 )
 
 clover2_add_executable(
-  TARGET map_server
+  TARGET server
   SOURCES src/main.cpp
   LINK_LIBS clover2_map_server
   DEPENDENCIES ${dependencies}
@@ -70,7 +70,7 @@ install(
 )
 
 install(
-  TARGETS map_server
+  TARGETS server
   DESTINATION lib/${PROJECT_NAME}
 )
 

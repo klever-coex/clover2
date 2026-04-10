@@ -126,7 +126,7 @@ def generate_launch_description():
             description_cmd,
             navigation_cmd,
             main_camera_cmd,
-            fcu_bridge_cmd,
+            # fcu_bridge_cmd,
             web_support_cmd,
         ]
     )

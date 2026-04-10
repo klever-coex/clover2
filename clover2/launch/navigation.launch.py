@@ -11,7 +11,7 @@ from launch_ros.actions import Node
 
 def launch_setup(context, *args, **kwargs):
 
-    pkg_clover2_map_server = get_package_share_directory("clover2_map_server")
+    pkg_clover2_map = get_package_share_directory("clover2_map")
 
     # Reading arguments
     use_sim_time = LaunchConfiguration("use_sim_time")
@@ -22,7 +22,7 @@ def launch_setup(context, *args, **kwargs):
     # Resolve map file path
     map_dirs = [
         CLOVER2_RESOURCE_DIR / "map",
-        Path(pkg_clover2_map_server) / "map",
+        Path(pkg_clover2_map) / "map",
     ]
 
     map_filename = find_file(map.perform(context), map_dirs)

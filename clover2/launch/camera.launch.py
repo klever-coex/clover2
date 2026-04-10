@@ -86,7 +86,7 @@ def launch_setup(context, *args, **kwargs):
         OnProcessStart(
             target_action=camera_container,
             on_start=[
-                camera_component,
+                # camera_component,
                 feature_detector_component,
                 optical_flow_component,
             ],

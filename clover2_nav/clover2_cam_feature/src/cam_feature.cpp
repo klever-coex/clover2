@@ -37,6 +37,8 @@ cam_feature::cam_feature(const rclcpp::NodeOptions& options)
                     throw std::runtime_error("Unknown plugin `" + type + "`");
                 }
             }
+
+            m_plugin_types = new_list;
         });
 
     register_on_configure(
@@ -55,13 +57,6 @@ cam_feature::~cam_feature() = default;
 
 cam_feature::CallbackReturn cam_feature::on_configure(
     const rclcpp_lifecycle::State& /* state */) {
-    m_plugin_types = get_parameter("plugin_types").as_string_array();
-
-    if (m_plugin_types.empty()) {
-        RCLCPP_ERROR(get_logger(), "plugins list is empty");
-        return CallbackReturn::FAILURE;
-    }
-
     m_diagnostic_updater->add(cam_feature_diagnostic_name, this,
                               &cam_feature::produce_diagnostics);
 

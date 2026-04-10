@@ -13,6 +13,7 @@ lifecycle_node::lifecycle_node(const std::string& node_name,
     : rclcpp_lifecycle::LifecycleNode(node_name, options)
     , m_diagnostic_updater(nullptr) {
     declare_parameter("autostart", true);
+    enable_parameter_watcher();
 
     if (get_parameter("autostart").as_bool()) {
         m_init_timer =
