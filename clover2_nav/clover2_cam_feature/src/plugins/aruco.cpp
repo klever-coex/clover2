@@ -1,5 +1,5 @@
 
-#include <clover2_cam_feature/detail/maker_base.hpp>
+#include <clover2/cam_feature/detail/maker_base.hpp>
 #include <opencv2/aruco.hpp>
 
 namespace {
@@ -35,17 +35,12 @@ const static std::unordered_map<std::string, int> marker_dictionary_map = {
 
 }
 
-namespace clover2_cam_feature::plugins {
+namespace clover2::cam_feature::plugins {
 
-class aruco : public clover2_cam_feature::detail::maker_base {
+class aruco : public clover2::cam_feature::detail::maker_base {
 public:
-    aruco() = default;
-
-    ~aruco() override = default;
-
-protected:
-    void init([[maybe_unused]] const clover2_cam_feature::plugin_context& ctx)
-        override {
+    explicit aruco(clover2::cam_feature::plugin_context& ctx)
+        : clover2::cam_feature::detail::maker_base(ctx, "aruco") {
         m_detector_parameters = cv::aruco::DetectorParameters::create();
 
         declare_and_watch_parameter<std::string>(
@@ -63,6 +58,9 @@ protected:
             "Used marker dictionary");
     }
 
+    virtual ~aruco() = default;
+
+protected:
     void detect_markers(
         const cv::Mat& image, std::vector<int>& ids,
         std::vector<std::vector<cv::Point2f>>& corners) override {
@@ -76,8 +74,8 @@ private:
     cv::Ptr<cv::aruco::DetectorParameters> m_detector_parameters;
 };
 
-}  // namespace clover2_cam_feature::plugins
+}  // namespace clover2::cam_feature::plugins
 
 #include <pluginlib/class_list_macros.hpp>
-PLUGINLIB_EXPORT_CLASS(clover2_cam_feature::plugins::aruco,
-                       clover2_cam_feature::base_plugin)
+
+CAM_FEATURE_PLUGIN_REGISTER(clover2::cam_feature::plugins::aruco)

@@ -1,28 +1,43 @@
-#include <clover2_cam_feature/cam_feature.hpp>
+// clover2
+#include <clover2/cam_feature/cam_feature.hpp>
+
+// opencv
 #include <cv_bridge/cv_bridge.hpp>
+
+// ROS2
+#include <rclcpp/executor.hpp>
+#include <rclcpp/logging.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 
+// STL
+#include <exception>
 #include <functional>
+#include <memory>
+#include <stdexcept>
 
 namespace {
 constexpr const char* cam_feature_diagnostic_name = "Cam feature status";
 }
 
-namespace clover2_cam_feature {
+namespace clover2::cam_feature {
 
 cam_feature::cam_feature(const rclcpp::NodeOptions& options)
     : clover2::common::lifecycle_node("cam_feature", options)
-    , m_last_pose_count(0) {
-    m_parameter_watcher =
-        std::make_shared<clover2::common::parameter_watcher>(*this);
-
-    enable_diagnostic_updater();
+    , m_plugin_loader("clover2_cam_feature",
+                      "clover2::cam_feature::plugin_factory")
+    , m_executor(rclcpp::ExecutorOptions()) {
     m_diagnostic_updater = get_diagnostic_updater();
 
-    declare_parameter<std::vector<std::string>>(
-        "plugins", std::vector<std::string>{"aruco"});
-    declare_parameter<std::vector<std::string>>(
-        "plugin_types", std::vector<std::string>{"aruco"});
+    declare_and_watch_parameter<std::vector<std::string>>(
+        "plugins", {"aruco"}, [this](const rclcpp::Parameter& p) {
+            auto new_list = p.as_string_array();
+
+            for (const auto& type : new_list) {
+                if (!m_plugin_loader.isClassAvailable(type)) {
+                    throw std::runtime_error("Unknown plugin `" + type + "`");
+                }
+            }
+        });
 
     register_on_configure(
         std::bind(&cam_feature::on_configure, this, std::placeholders::_1));
@@ -40,17 +55,9 @@ cam_feature::~cam_feature() = default;
 
 cam_feature::CallbackReturn cam_feature::on_configure(
     const rclcpp_lifecycle::State& /* state */) {
-    m_plugin_ids = get_parameter("plugins").as_string_array();
     m_plugin_types = get_parameter("plugin_types").as_string_array();
 
-    if (m_plugin_ids.size() != m_plugin_types.size()) {
-        RCLCPP_ERROR(get_logger(),
-                     "plugins and plugin_types must have the same length "
-                     "(Nav2-style parallel arrays)");
-        return CallbackReturn::FAILURE;
-    }
-
-    if (m_plugin_ids.empty()) {
+    if (m_plugin_types.empty()) {
         RCLCPP_ERROR(get_logger(), "plugins list is empty");
         return CallbackReturn::FAILURE;
     }
@@ -58,52 +65,16 @@ cam_feature::CallbackReturn cam_feature::on_configure(
     m_diagnostic_updater->add(cam_feature_diagnostic_name, this,
                               &cam_feature::produce_diagnostics);
 
-    return CallbackReturn::SUCCESS;
-}
-
-cam_feature::CallbackReturn cam_feature::load_plugins() {
-    m_plugin_loader = std::make_unique<pluginlib::ClassLoader<base_plugin>>(
-        "clover2_cam_feature", "clover2_cam_feature::base_plugin");
-
-    m_plugins.clear();
-    m_plugins.reserve(m_plugin_ids.size());
-
-    for (size_t i = 0; i < m_plugin_ids.size(); ++i) {
-        try {
-            base_plugin::SharedPtr plugin =
-                m_plugin_loader->createSharedInstance(m_plugin_types[i]);
-            plugin_context ctx(*this);
-            ctx.map_client = m_map_client;
-            plugin->init_plugin(m_plugin_ids[i], ctx);
-            m_plugins.push_back(std::move(plugin));
-
-            RCLCPP_INFO(get_logger(), "Loaded plugin %s",
-                        m_plugin_types[i].c_str());
-        } catch (const pluginlib::PluginlibException& e) {
-            RCLCPP_ERROR(get_logger(), "Failed to load plugin %s: %s",
-                         m_plugin_types[i].c_str(), e.what());
-            m_plugins.clear();
-            m_plugin_loader.reset();
-            return CallbackReturn::FAILURE;
-        }
-    }
+    m_map_client = std::make_shared<clover2::map::client>(shared_from_this());
+    load_plugins();
 
     return CallbackReturn::SUCCESS;
 }
 
 cam_feature::CallbackReturn cam_feature::on_activate(
     const rclcpp_lifecycle::State& /* state */) {
-    m_map_client =
-        std::make_shared<clover2::map_server::map_client>(shared_from_this());
-
-    const auto load_rc = load_plugins();
-    if (load_rc != CallbackReturn::SUCCESS) {
-        return load_rc;
-    }
-
-    m_features_pub =
-        create_publisher<clover2_localization_msgs::msg::FeatureArray>(
-            "~/poses", rclcpp::SensorDataQoS());
+    m_markers_pub = create_publisher<clover2_pose_msgs::msg::MarkerArray>(
+        "~/markers", rclcpp::SensorDataQoS());
 
     m_image_debug_pub = create_publisher<sensor_msgs::msg::Image>(
         "~/debug", rclcpp::SystemDefaultsQoS());
@@ -125,11 +96,9 @@ cam_feature::CallbackReturn cam_feature::on_deactivate(
     const rclcpp_lifecycle::State& /* state */) {
     m_image_sub.reset();
     m_camera_info_sub.reset();
-    m_features_pub.reset();
+    m_markers_pub.reset();
     m_image_debug_pub.reset();
 
-    m_plugins.clear();
-    m_plugin_loader.reset();
     m_map_client.reset();
 
     return CallbackReturn::SUCCESS;
@@ -138,8 +107,9 @@ cam_feature::CallbackReturn cam_feature::on_deactivate(
 cam_feature::CallbackReturn cam_feature::on_cleanup(
     const rclcpp_lifecycle::State& /* state */) {
     m_diagnostic_updater->removeByName(cam_feature_diagnostic_name);
-    m_plugin_ids.clear();
-    m_plugin_types.clear();
+
+    unload_plugins();
+
     return CallbackReturn::SUCCESS;
 }
 
@@ -147,11 +117,12 @@ cam_feature::CallbackReturn cam_feature::on_shutdown(
     const rclcpp_lifecycle::State& /* state */) {
     m_image_sub.reset();
     m_camera_info_sub.reset();
-    m_features_pub.reset();
+    m_markers_pub.reset();
     m_image_debug_pub.reset();
-    m_plugins.clear();
-    m_plugin_loader.reset();
     m_map_client.reset();
+
+    unload_plugins();
+
     return CallbackReturn::SUCCESS;
 }
 
@@ -174,25 +145,24 @@ void cam_feature::image_callback(
         debug = std::make_shared<cv::Mat>(image.clone());
     }
 
-    clover2_localization_msgs::msg::FeatureArray features;
-    features.header.frame_id = m_camera_model.tfFrame();
-    features.header.stamp = msg->header.stamp;
+    clover2_pose_msgs::msg::MarkerArray markers;
+    markers.header.frame_id = m_camera_model.tfFrame();
+    markers.header.stamp = msg->header.stamp;
 
-    std::list<clover2_localization_msgs::msg::Feature3> feature_list;
+    std::list<clover2_pose_msgs::msg::Marker> marker_list;
     for (const auto& plugin : m_plugins) {
         auto poses = plugin->process(image, km, distortion, debug);
-        features.features_3d.reserve(features.features_3d.size() +
-                                     poses.size());
-        feature_list.insert(feature_list.end(), poses.begin(), poses.end());
+        markers.markers.reserve(markers.markers.size() + poses.size());
+        marker_list.insert(marker_list.end(), poses.begin(), poses.end());
     }
 
-    m_last_pose_count = feature_list.size();
+    m_last_pose_count = marker_list.size();
 
-    features.features_3d.reserve(m_last_pose_count);
-    features.features_3d.insert(features.features_3d.begin(),
-                                feature_list.begin(), feature_list.end());
+    markers.markers.reserve(m_last_pose_count);
+    markers.markers.insert(markers.markers.begin(), marker_list.begin(),
+                           marker_list.end());
 
-    m_features_pub->publish(features);
+    m_markers_pub->publish(markers);
 
     if (debug && m_image_debug_pub->get_subscription_count() != 0) {
         cv_bridge::CvImage cv_out;
@@ -231,7 +201,50 @@ void cam_feature::produce_diagnostics(
     }
 }
 
-}  // namespace clover2_cam_feature
+base_plugin::SharedPtr cam_feature::create_plugin(const std::string& type,
+                                                  plugin_context& ctx) {
+    auto plugin_factory = m_plugin_loader.createSharedInstance(type);
+
+    return plugin_factory->create_plugin_instance(ctx);
+}
+
+void cam_feature::add_plugin(const std::string& type, plugin_context& ctx) {
+    try {
+        base_plugin::SharedPtr plugin = create_plugin(type, ctx);
+
+        RCLCPP_INFO(get_logger(), "Plugin `%s` created", type.c_str());
+
+        m_executor.add_node(plugin->get_node());
+
+        m_plugins.push_back(std::move(plugin));
+    } catch (const std::exception& e) {
+        RCLCPP_ERROR(get_logger(), "Failed to load plugin %s: %s", type.c_str(),
+                     e.what());
+    }
+}
+
+void cam_feature::load_plugins() {
+    m_plugins.clear();
+    m_plugins.reserve(m_plugin_types.size());
+
+    plugin_context ctx(*this);
+    ctx.map_client = m_map_client;
+
+    for (const auto& type : m_plugin_types) {
+        add_plugin(type, ctx);
+    }
+}
+
+void cam_feature::unload_plugins() {
+    for (auto plugin : m_plugins) {
+        m_executor.remove_node(plugin->get_node());
+    }
+
+    m_plugins.clear();
+}
+
+}  // namespace clover2::cam_feature
 
 #include <rclcpp_components/register_node_macro.hpp>
-RCLCPP_COMPONENTS_REGISTER_NODE(clover2_cam_feature::cam_feature)
+
+RCLCPP_COMPONENTS_REGISTER_NODE(clover2::cam_feature::cam_feature)
