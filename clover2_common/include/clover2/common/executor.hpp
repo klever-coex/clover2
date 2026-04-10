@@ -10,6 +10,9 @@ public:
         const rclcpp::ExecutorOptions& options = rclcpp::ExecutorOptions());
 
     ~executor() = default;
+
+protected:
+    void run(size_t thread_id);
 };
 
 }  // namespace clover2::common

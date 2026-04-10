@@ -39,10 +39,7 @@ public:
     explicit base_plugin(
         clover2::cam_feature::plugin_context& ctx, const std::string& subnode,
         const rclcpp::NodeOptions& options = rclcpp::NodeOptions())
-        : m_node(std::make_shared<rclcpp::Node>(
-              subnode,
-              ctx.get_node_base_interface()->get_fully_qualified_name(),
-              options))
+        : m_node(std::move(ctx.node))
         , m_parameter_watcher(*m_node) {}
 
     virtual ~base_plugin() = default;

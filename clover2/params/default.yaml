@@ -59,6 +59,13 @@
     prefix_frame_id: "aruco_"
     tf_publish: true
 
+/**/main_camera_feat_detector:
+  ros__parameters:
+    autostart: false
+    plugins: ["aruco"]
+    aruco:
+      marker_dict: 4X4_250
+
 /**/web_video_server:
   ros__parameters:
     port: 8081
