@@ -6,29 +6,15 @@
 // ROS2
 #include <diagnostic_updater/diagnostic_updater.hpp>
 #include <rclcpp/rclcpp.hpp>
-#include <rclcpp_lifecycle/lifecycle_node.hpp>
-
-// STL
-#include <memory>
-#include <stdexcept>
-#include <string>
 
 namespace clover2::common {
 
-using CallbackReturn =
-    rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
-
-class lifecycle_node : public rclcpp_lifecycle::LifecycleNode {
+class node : public rclcpp::Node {
 public:
-    RCLCPP_SMART_PTR_DEFINITIONS(lifecycle_node)
+    node(const std::string& node_name,
+         const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
 
-    using SetParametersResult = rcl_interfaces::msg::SetParametersResult;
-    using ParameterFunctorT = std::function<void(const rclcpp::Parameter& p)>;
-
-    lifecycle_node(const std::string& node_name,
-                   const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
-
-    virtual ~lifecycle_node();
+    virtual ~node() = default;
 
     template <typename ParameterT>
     void declare_and_watch_parameter(

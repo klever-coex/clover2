@@ -3,7 +3,7 @@
 // clover2
 #include <clover2/cam_feature/base_plugin.hpp>
 #include <clover2/common/executor.hpp>
-#include <clover2/common/lifecycle_node.hpp>
+#include <clover2/common/node.hpp>
 #include <clover2/common/parameter_watcher.hpp>
 #include <clover2/map/client.hpp>
 
@@ -27,22 +27,22 @@
 
 namespace clover2::cam_feature {
 
-class cam_feature : public clover2::common::lifecycle_node {
+class cam_feature : public clover2::common::node {
 public:
     using SharedPtr = std::shared_ptr<cam_feature>;
-    using CallbackReturn = rclcpp_lifecycle::node_interfaces::
-        LifecycleNodeInterface::CallbackReturn;
+    // using CallbackReturn = rclcpp_lifecycle::node_interfaces::
+    //     LifecycleNodeInterface::CallbackReturn;
     using SetParametersResult = rcl_interfaces::msg::SetParametersResult;
 
     explicit cam_feature(
         const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
     virtual ~cam_feature();
 
-    CallbackReturn on_configure(const rclcpp_lifecycle::State& /* state */);
-    CallbackReturn on_activate(const rclcpp_lifecycle::State& /* state */);
-    CallbackReturn on_deactivate(const rclcpp_lifecycle::State& /* state */);
-    CallbackReturn on_cleanup(const rclcpp_lifecycle::State& /* state */);
-    CallbackReturn on_shutdown(const rclcpp_lifecycle::State& /* state */);
+    // CallbackReturn on_configure(const rclcpp_lifecycle::State& /* state */);
+    // CallbackReturn on_activate(const rclcpp_lifecycle::State& /* state */);
+    // CallbackReturn on_deactivate(const rclcpp_lifecycle::State& /* state */);
+    // CallbackReturn on_cleanup(const rclcpp_lifecycle::State& /* state */);
+    // CallbackReturn on_shutdown(const rclcpp_lifecycle::State& /* state */);
 
 private:
     /**

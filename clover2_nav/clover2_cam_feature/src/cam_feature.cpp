@@ -22,7 +22,7 @@ constexpr const char* cam_feature_diagnostic_name = "Cam feature status";
 namespace clover2::cam_feature {
 
 cam_feature::cam_feature(const rclcpp::NodeOptions& options)
-    : clover2::common::lifecycle_node("cam_feature", options)
+    : clover2::common::node("cam_feature", options)
     , m_plugin_loader("clover2_cam_feature",
                       "clover2::cam_feature::plugin_factory") {
     m_diagnostic_updater = get_diagnostic_updater();
@@ -40,37 +40,12 @@ cam_feature::cam_feature(const rclcpp::NodeOptions& options)
             m_plugin_types = new_list;
         });
 
-    register_on_configure(
-        std::bind(&cam_feature::on_configure, this, std::placeholders::_1));
-    register_on_activate(
-        std::bind(&cam_feature::on_activate, this, std::placeholders::_1));
-    register_on_deactivate(
-        std::bind(&cam_feature::on_deactivate, this, std::placeholders::_1));
-    register_on_cleanup(
-        std::bind(&cam_feature::on_cleanup, this, std::placeholders::_1));
-    register_on_shutdown(
-        std::bind(&cam_feature::on_shutdown, this, std::placeholders::_1));
-
-    rclcpp::ExecutorOptions exec_options;
-    exec_options.context = get_node_base_interface()->get_context();
-    m_executor = std::make_shared<clover2::common::executor>(exec_options);
-}
-
-cam_feature::~cam_feature() = default;
-
-cam_feature::CallbackReturn cam_feature::on_configure(
-    const rclcpp_lifecycle::State& /* state */) {
     m_diagnostic_updater->add(cam_feature_diagnostic_name, this,
                               &cam_feature::produce_diagnostics);
 
     m_map_client = std::make_shared<clover2::map::client>(this);
     load_plugins();
 
-    return CallbackReturn::SUCCESS;
-}
-
-cam_feature::CallbackReturn cam_feature::on_activate(
-    const rclcpp_lifecycle::State& /* state */) {
     m_markers_pub = create_publisher<clover2_pose_msgs::msg::MarkerArray>(
         "~/markers", rclcpp::SensorDataQoS());
 
@@ -86,43 +61,89 @@ cam_feature::CallbackReturn cam_feature::on_activate(
         "~/image_raw", rclcpp::SensorDataQoS(),
         std::bind(&cam_feature::image_callback, this, std::placeholders::_1));
 
-    RCLCPP_INFO(get_logger(), "Activated with %zu plugins.", m_plugins.size());
-    return CallbackReturn::SUCCESS;
+    // register_on_configure(
+    //     std::bind(&cam_feature::on_configure, this, std::placeholders::_1));
+    // register_on_activate(
+    //     std::bind(&cam_feature::on_activate, this, std::placeholders::_1));
+    // register_on_deactivate(
+    //     std::bind(&cam_feature::on_deactivate, this, std::placeholders::_1));
+    // register_on_cleanup(
+    //     std::bind(&cam_feature::on_cleanup, this, std::placeholders::_1));
+    // register_on_shutdown(
+    //     std::bind(&cam_feature::on_shutdown, this, std::placeholders::_1));
+
+    // rclcpp::ExecutorOptions exec_options;
+    // exec_options.context = get_node_base_interface()->get_context();
+    // m_executor = std::make_shared<clover2::common::executor>(exec_options);
 }
 
-cam_feature::CallbackReturn cam_feature::on_deactivate(
-    const rclcpp_lifecycle::State& /* state */) {
-    m_image_sub.reset();
-    m_camera_info_sub.reset();
-    m_markers_pub.reset();
-    m_image_debug_pub.reset();
+cam_feature::~cam_feature() = default;
 
-    m_map_client.reset();
+// cam_feature::CallbackReturn cam_feature::on_configure(
+//     const rclcpp_lifecycle::State& /* state */) {
+//     m_diagnostic_updater->add(cam_feature_diagnostic_name, this,
+//                               &cam_feature::produce_diagnostics);
 
-    return CallbackReturn::SUCCESS;
-}
+//     m_map_client = std::make_shared<clover2::map::client>(this);
+//     load_plugins();
 
-cam_feature::CallbackReturn cam_feature::on_cleanup(
-    const rclcpp_lifecycle::State& /* state */) {
-    m_diagnostic_updater->removeByName(cam_feature_diagnostic_name);
+//     return CallbackReturn::SUCCESS;
+// }
 
-    unload_plugins();
+// cam_feature::CallbackReturn cam_feature::on_activate(
+//     const rclcpp_lifecycle::State& /* state */) {
+//     m_markers_pub = create_publisher<clover2_pose_msgs::msg::MarkerArray>(
+//         "~/markers", rclcpp::SensorDataQoS());
 
-    return CallbackReturn::SUCCESS;
-}
+//     m_image_debug_pub = create_publisher<sensor_msgs::msg::Image>(
+//         "~/debug", rclcpp::SystemDefaultsQoS());
 
-cam_feature::CallbackReturn cam_feature::on_shutdown(
-    const rclcpp_lifecycle::State& /* state */) {
-    m_image_sub.reset();
-    m_camera_info_sub.reset();
-    m_markers_pub.reset();
-    m_image_debug_pub.reset();
-    m_map_client.reset();
+//     m_camera_info_sub = create_subscription<sensor_msgs::msg::CameraInfo>(
+//         "~/camera_info", rclcpp::SensorDataQoS(),
+//         std::bind(&cam_feature::camera_info_callback, this,
+//                   std::placeholders::_1));
 
-    unload_plugins();
+//     m_image_sub = create_subscription<sensor_msgs::msg::Image>(
+//         "~/image_raw", rclcpp::SensorDataQoS(),
+//         std::bind(&cam_feature::image_callback, this, std::placeholders::_1));
 
-    return CallbackReturn::SUCCESS;
-}
+//     RCLCPP_INFO(get_logger(), "Activated with %zu plugins.", m_plugins.size());
+//     return CallbackReturn::SUCCESS;
+// }
+
+// cam_feature::CallbackReturn cam_feature::on_deactivate(
+//     const rclcpp_lifecycle::State& /* state */) {
+//     m_image_sub.reset();
+//     m_camera_info_sub.reset();
+//     m_markers_pub.reset();
+//     m_image_debug_pub.reset();
+
+//     m_map_client.reset();
+
+//     return CallbackReturn::SUCCESS;
+// }
+
+// cam_feature::CallbackReturn cam_feature::on_cleanup(
+//     const rclcpp_lifecycle::State& /* state */) {
+//     m_diagnostic_updater->removeByName(cam_feature_diagnostic_name);
+
+//     unload_plugins();
+
+//     return CallbackReturn::SUCCESS;
+// }
+
+// cam_feature::CallbackReturn cam_feature::on_shutdown(
+//     const rclcpp_lifecycle::State& /* state */) {
+//     m_image_sub.reset();
+//     m_camera_info_sub.reset();
+//     m_markers_pub.reset();
+//     m_image_debug_pub.reset();
+//     m_map_client.reset();
+
+//     unload_plugins();
+
+//     return CallbackReturn::SUCCESS;
+// }
 
 void cam_feature::image_callback(
     const sensor_msgs::msg::Image::ConstSharedPtr msg) {
@@ -226,7 +247,7 @@ void cam_feature::load_plugins() {
     m_plugins.reserve(m_plugin_types.size());
 
     plugin_context ctx(*this);
-    ctx.node = std::shared_ptr<rclcpp::Node>(new rclcpp::Node(*this, "aruco"));
+    ctx.node = shared_from_this();
     ctx.map_client = m_map_client;
 
     for (const auto& type : m_plugin_types) {
