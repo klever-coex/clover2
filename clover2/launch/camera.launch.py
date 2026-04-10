@@ -8,7 +8,7 @@ from launch.actions import DeclareLaunchArgument, OpaqueFunction, RegisterEventH
 from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessStart
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import ComposableNodeContainer, LoadComposableNodes
+from launch_ros.actions import ComposableNodeContainer, LoadComposableNodes, Node
 from launch_ros.descriptions import ComposableNode
 
 
@@ -35,7 +35,7 @@ def launch_setup(context, *args, **kwargs):
         name=camera_name.perform(context) + "_container",
         namespace="",
         package="rclcpp_components",
-        executable="component_container",
+        executable="component_container_mt",
         respawn=True,
         respawn_delay=1.0,
         output="screen",
@@ -54,18 +54,30 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
-    feature_detector_component = LoadComposableNodes(
-        condition=IfCondition(feature_detector),
-        target_container=camera_container,
-        composable_node_descriptions=[
-            ComposableNode(
-                package="clover2_cam_feature",
-                plugin="clover2::cam_feature::cam_feature",
-                name=camera_name.perform(context) + "_feat_detector",
-                parameters=[params_file, {"use_sim_time": use_sim_time}],
-                remappings=camera_remappings + map_server_remappings,
-            )
-        ],
+    # feature_detector_component = LoadComposableNodes(
+    #     condition=IfCondition(feature_detector),
+    #     target_container=camera_container,
+    #     composable_node_descriptions=[
+    #         ComposableNode(
+    #             package="clover2_cam_feature",
+    #             plugin="clover2::cam_feature::cam_feature",
+    #             name=camera_name.perform(context) + "_feat_detector",
+    #             parameters=[params_file, {"use_sim_time": use_sim_time}],
+    #             remappings=camera_remappings + map_server_remappings,
+    #         )
+    #     ],
+    # )
+    
+    feature_detector_component = Node(
+        package="clover2_cam_feature",
+        executable="cam_feature",
+        name=camera_name.perform(context) + "_feat_detector",
+        parameters=[params_file, {"use_sim_time": use_sim_time}],
+        remappings=camera_remappings + map_server_remappings,
+        respawn=True,
+        respawn_delay=5.0,
+        output="screen",
+        arguments=["--ros-args", "--log-level", log_level],
     )
 
     optical_flow_component = LoadComposableNodes(
@@ -82,20 +94,22 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
-    load_composible = RegisterEventHandler(
-        OnProcessStart(
-            target_action=camera_container,
-            on_start=[
-                # camera_component,
-                feature_detector_component,
-                optical_flow_component,
-            ],
-        )
-    )
+    # load_composible = RegisterEventHandler(
+    #     OnProcessStart(
+    #         target_action=camera_container,
+    #         on_start=[
+    #             camera_component,
+    #             feature_detector_component,
+    #             optical_flow_component,
+    #         ],
+    #     )
+    # )
 
     return [
         camera_container,
-        load_composible,
+        camera_component,
+        feature_detector_component,
+        # optical_flow_component,
     ]
 
 

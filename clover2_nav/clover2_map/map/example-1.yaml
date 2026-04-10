@@ -4,5 +4,5 @@ version: 0
 default_size: 0.15
 
 markers:
-  - id: 21
+  - id: 26
     size: 0.35

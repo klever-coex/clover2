@@ -83,7 +83,7 @@ private:
     std::shared_ptr<clover2::map::client> m_map_client;
     std::shared_ptr<diagnostic_updater::Updater> m_diagnostic_updater;
 
-    clover2::common::executor m_executor;
+    std::shared_ptr<clover2::common::executor> m_executor;
 
     rclcpp::Publisher<clover2_pose_msgs::msg::MarkerArray>::SharedPtr
         m_markers_pub;

@@ -24,8 +24,7 @@ namespace clover2::cam_feature {
 cam_feature::cam_feature(const rclcpp::NodeOptions& options)
     : clover2::common::lifecycle_node("cam_feature", options)
     , m_plugin_loader("clover2_cam_feature",
-                      "clover2::cam_feature::plugin_factory")
-    , m_executor(rclcpp::ExecutorOptions()) {
+                      "clover2::cam_feature::plugin_factory") {
     m_diagnostic_updater = get_diagnostic_updater();
 
     declare_and_watch_parameter<std::vector<std::string>>(
@@ -51,6 +50,10 @@ cam_feature::cam_feature(const rclcpp::NodeOptions& options)
         std::bind(&cam_feature::on_cleanup, this, std::placeholders::_1));
     register_on_shutdown(
         std::bind(&cam_feature::on_shutdown, this, std::placeholders::_1));
+
+    rclcpp::ExecutorOptions exec_options;
+    exec_options.context = get_node_base_interface()->get_context();
+    m_executor = std::make_shared<clover2::common::executor>(exec_options);
 }
 
 cam_feature::~cam_feature() = default;
@@ -60,7 +63,7 @@ cam_feature::CallbackReturn cam_feature::on_configure(
     m_diagnostic_updater->add(cam_feature_diagnostic_name, this,
                               &cam_feature::produce_diagnostics);
 
-    m_map_client = std::make_shared<clover2::map::client>(shared_from_this());
+    m_map_client = std::make_shared<clover2::map::client>(this);
     load_plugins();
 
     return CallbackReturn::SUCCESS;
@@ -209,7 +212,7 @@ void cam_feature::add_plugin(const std::string& type, plugin_context& ctx) {
 
         RCLCPP_INFO(get_logger(), "Plugin `%s` created", type.c_str());
 
-        m_executor.add_node(plugin->get_node());
+        // m_executor->add_node(plugin->get_node());
 
         m_plugins.push_back(std::move(plugin));
     } catch (const std::exception& e) {
@@ -223,6 +226,7 @@ void cam_feature::load_plugins() {
     m_plugins.reserve(m_plugin_types.size());
 
     plugin_context ctx(*this);
+    ctx.node = std::shared_ptr<rclcpp::Node>(new rclcpp::Node(*this, "aruco"));
     ctx.map_client = m_map_client;
 
     for (const auto& type : m_plugin_types) {
@@ -232,7 +236,7 @@ void cam_feature::load_plugins() {
 
 void cam_feature::unload_plugins() {
     for (auto plugin : m_plugins) {
-        m_executor.remove_node(plugin->get_node());
+        // m_executor->remove_node(plugin->get_node());
     }
 
     m_plugins.clear();
