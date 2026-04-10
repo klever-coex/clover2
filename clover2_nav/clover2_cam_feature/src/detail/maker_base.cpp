@@ -1,5 +1,6 @@
 
 // clover2
+#include "geometry_msgs/msg/pose_array.hpp"
 #include <clover2/cam_feature/detail/maker_base.hpp>
 
 // opencv
@@ -15,7 +16,11 @@ maker_base::maker_base(clover2::cam_feature::plugin_context& ctx,
                        const std::string& subnode,
                        const rclcpp::NodeOptions& options)
     : clover2::cam_feature::base_plugin(ctx, subnode, options)
-    , m_map_client(ctx.map_client) {}
+    , m_map_client(ctx.map_client) {
+    m_pose_array_debug_pub =
+        get_node()->create_publisher<geometry_msgs::msg::PoseArray>(
+            "~/debug", rclcpp::QoS(10));
+}
 
 const std::vector<cv::Point3d>& maker_base::get_marker_obj_points(
     int id, double length,
@@ -82,8 +87,9 @@ void maker_base::fill_pose_stamped(geometry_msgs::msg::PoseWithCovariance& out,
 }
 
 std::list<clover2_pose_msgs::msg::Marker> maker_base::process(
-    const cv::Mat& image, const cv::Matx33d& matrix,
-    const cv::Mat_<double>& distortion, std::shared_ptr<cv::Mat> debug) {
+    const std_msgs::msg::Header& header, const cv::Mat& image,
+    const cv::Matx33d& matrix, const cv::Mat_<double>& distortion,
+    std::shared_ptr<cv::Mat> debug) {
     std::list<clover2_pose_msgs::msg::Marker> result;
 
     if (!m_map_client) {
@@ -95,6 +101,9 @@ std::list<clover2_pose_msgs::msg::Marker> maker_base::process(
         RCLCPP_ERROR(get_logger(), "Invalid map");
         return result;
     }
+
+    geometry_msgs::msg::PoseArray debug_msg;
+    debug_msg.header = header;
 
     std::vector<int> ids;
     std::vector<std::vector<cv::Point2f>> corners;
@@ -142,7 +151,13 @@ std::list<clover2_pose_msgs::msg::Marker> maker_base::process(
             fill_pose_stamped(marker.pose, marker_rot[i], marker_pose[i],
                               marker_cov[i]);
             result.push_back(std::move(marker));
+
+            debug_msg.poses.push_back(marker.pose.pose);
         }
+    }
+
+    if (m_pose_array_debug_pub->get_subscription_count()) {
+        m_pose_array_debug_pub->publish(debug_msg);
     }
 
     if (debug) {
