@@ -1,24 +1,39 @@
 #pragma once
 
+#include <rclcpp/node_interfaces/node_base_interface.hpp>
+#include <rclcpp/node_interfaces/node_clock_interface.hpp>
+#include <rclcpp/node_interfaces/node_graph_interface.hpp>
+#include <rclcpp/node_interfaces/node_interfaces.hpp>
+#include <rclcpp/node_interfaces/node_logging_interface.hpp>
+#include <rclcpp/node_interfaces/node_parameters_interface.hpp>
+#include <rclcpp/node_interfaces/node_services_interface.hpp>
+#include <rclcpp/node_interfaces/node_time_source_interface.hpp>
+#include <rclcpp/node_interfaces/node_timers_interface.hpp>
+#include <rclcpp/node_interfaces/node_topics_interface.hpp>
+#include <rclcpp/node_interfaces/node_type_descriptions_interface.hpp>
+#include <rclcpp/node_interfaces/node_waitables_interface.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <string>
 
 namespace clover2::common {
 
-struct node_context {
+using namespace rclcpp::node_interfaces;
+class node_context : public NodeInterfaces<NodeBaseInterface,              //
+                                           NodeClockInterface,             //
+                                           NodeGraphInterface,             //
+                                           NodeLoggingInterface,           //
+                                           NodeParametersInterface,        //
+                                           NodeServicesInterface,          //
+                                           NodeTimeSourceInterface,        //
+                                           NodeTimersInterface,            //
+                                           NodeTopicsInterface,            //
+                                           NodeTypeDescriptionsInterface,  //
+                                           NodeWaitablesInterface> {
+public:
     template <typename NodeT>
     explicit node_context(NodeT& node)
-        : node_base(node.get_node_base_interface())
-        , node_logging(node.get_node_logging_interface())
-        , node_parameters(node.get_node_parameters_interface())
-        , node_timers(node.get_node_timers_interface()) {}
-
-    std::shared_ptr<rclcpp::node_interfaces::NodeBaseInterface> node_base;
-    std::shared_ptr<rclcpp::node_interfaces::NodeLoggingInterface> node_logging;
-    std::shared_ptr<rclcpp::node_interfaces::NodeParametersInterface>
-        node_parameters;
-    std::shared_ptr<rclcpp::node_interfaces::NodeTimersInterface> node_timers;
+        : NodeInterfaces(node) {}
 };
 
 }  // namespace clover2::common
