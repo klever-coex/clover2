@@ -1,5 +1,5 @@
 // clover2
-#include <clover2_cam_feature/cam_feature.hpp>
+#include <clover2/cam_feature/cam_feature.hpp>
 
 // ROS2
 #include <rclcpp/rclcpp.hpp>
@@ -14,8 +14,8 @@ int main(int argc, char* argv[]) {
         rclcpp::executors::SingleThreadedExecutor executor;
 
         auto options = rclcpp::NodeOptions();
-        clover2_cam_feature::cam_feature::SharedPtr cam_feature =
-            std::make_shared<clover2_cam_feature::cam_feature>(options);
+        clover2::cam_feature::cam_feature::SharedPtr cam_feature =
+            std::make_shared<clover2::cam_feature::cam_feature>(options);
 
         executor.add_node(cam_feature->get_node_base_interface());
         executor.spin();

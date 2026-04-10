@@ -82,10 +82,10 @@ install(
   RUNTIME DESTINATION bin
 )
 
-ament_export_dependencies(${dependencies})
 ament_export_include_directories("include/${PROJECT_NAME}")
 ament_export_libraries(clover2_map_server clover2_map_server_io)
 ament_export_targets(export_${PROJECT_NAME})
+ament_export_dependencies(${dependencies})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

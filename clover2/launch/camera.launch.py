@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 
 import os
-from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration
-from launch.event_handlers import OnProcessStart
-from launch.actions import RegisterEventHandler
-from launch_ros.actions import ComposableNodeContainer, LoadComposableNodes
-from launch_ros.descriptions import ComposableNode
 
 from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, RegisterEventHandler
+from launch.conditions import IfCondition
+from launch.event_handlers import OnProcessStart
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import ComposableNodeContainer, LoadComposableNodes
+from launch_ros.descriptions import ComposableNode
 
 
 def launch_setup(context, *args, **kwargs):
@@ -19,7 +18,7 @@ def launch_setup(context, *args, **kwargs):
     log_level = LaunchConfiguration("log_level")
     params_file = LaunchConfiguration("params_file")
     camera_name = LaunchConfiguration("camera_name")
-    aruco_detector = LaunchConfiguration("aruco_detector")
+    feature_detector = LaunchConfiguration("feature_detector")
     optical_flow = LaunchConfiguration("optical_flow")
 
     camera_remappings = [
@@ -55,14 +54,14 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
-    aruco_detector_component = LoadComposableNodes(
-        condition=IfCondition(aruco_detector),
+    feature_detector_component = LoadComposableNodes(
+        condition=IfCondition(feature_detector),
         target_container=camera_container,
         composable_node_descriptions=[
             ComposableNode(
-                package="clover2_aruco",
-                plugin="clover2::aruco::detector",
-                name=camera_name.perform(context) + "_aruco_detector",
+                package="clover2_cam_feature",
+                plugin="clover2::cam_feature::cam_feature",
+                name=camera_name.perform(context) + "_feat_detector",
                 parameters=[params_file, {"use_sim_time": use_sim_time}],
                 remappings=camera_remappings + map_server_remappings,
             )
@@ -86,7 +85,11 @@ def launch_setup(context, *args, **kwargs):
     load_composible = RegisterEventHandler(
         OnProcessStart(
             target_action=camera_container,
-            on_start=[camera_component, aruco_detector_component, optical_flow_component],
+            on_start=[
+                camera_component,
+                feature_detector_component,
+                optical_flow_component,
+            ],
         )
     )
 
@@ -117,10 +120,10 @@ def generate_launch_description():
         "camera_name", description="Camera name"
     )
 
-    aruco_detector_declare = DeclareLaunchArgument(
-        "aruco_detector",
+    feature_detector_declare = DeclareLaunchArgument(
+        "feature_detector",
         default_value="false",
-        description="Enable aruco detection on this camera",
+        description="Enable feature detection on this camera",
     )
 
     optical_flow_declare = DeclareLaunchArgument(
@@ -135,7 +138,7 @@ def generate_launch_description():
             log_level_declare,
             params_file_declare,
             camera_name_declare,
-            aruco_detector_declare,
+            feature_detector_declare,
             optical_flow_declare,
             OpaqueFunction(function=launch_setup),
         ]

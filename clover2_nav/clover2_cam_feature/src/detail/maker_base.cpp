@@ -1,9 +1,21 @@
-#include <clover2_cam_feature/detail/maker_base.hpp>
+
+// clover2
+#include <clover2/cam_feature/detail/maker_base.hpp>
+
+// opencv
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core/utility.hpp>
+
+// tf2
 #include <tf2/LinearMath/Quaternion.h>
 
-namespace clover2_cam_feature::detail {
+namespace clover2::cam_feature::detail {
+
+maker_base::maker_base(clover2::cam_feature::plugin_context& ctx,
+                       const std::string& subnode,
+                       const rclcpp::NodeOptions& options)
+    : clover2::cam_feature::base_plugin(ctx, subnode, options)
+    , m_map_client(ctx.map_client) {}
 
 const std::vector<cv::Point3d>& maker_base::get_marker_obj_points(
     int id, double length,
@@ -45,9 +57,9 @@ void maker_base::compute_pose_covariance(cv::Mat& pose_cov) {
     pose_cov.at<double>(5, 5) = 0.05f;
 }
 
-void maker_base::fill_pose_stamped(
-    geometry_msgs::msg::PoseWithCovariance& out, const cv::Vec3d& rvec,
-    const cv::Vec3d& tvec, const cv::Mat& cov) {
+void maker_base::fill_pose_stamped(geometry_msgs::msg::PoseWithCovariance& out,
+                                   const cv::Vec3d& rvec, const cv::Vec3d& tvec,
+                                   const cv::Mat& cov) {
     out.pose.position.x = tvec[0];
     out.pose.position.y = tvec[1];
     out.pose.position.z = tvec[2];
@@ -69,17 +81,15 @@ void maker_base::fill_pose_stamped(
     }
 }
 
-std::list<clover2_localization_msgs::msg::Feature3> maker_base::process(
+std::list<clover2_pose_msgs::msg::Marker> maker_base::process(
     const cv::Mat& image, const cv::Matx33d& matrix,
     const cv::Mat_<double>& distortion, std::shared_ptr<cv::Mat> debug) {
-    std::list<clover2_localization_msgs::msg::Feature3> result;
+    std::list<clover2_pose_msgs::msg::Marker> result;
 
     if (!m_map_client) {
         RCLCPP_ERROR(get_logger(), "map_client is null");
         return result;
     }
-
-    std::lock_guard<clover2::map_server::map_client> map_guard(*m_map_client);
 
     if (!m_map_client->valid()) {
         RCLCPP_ERROR(get_logger(), "Invalid map");
@@ -125,15 +135,13 @@ std::list<clover2_localization_msgs::msg::Feature3> maker_base::process(
                 continue;
             }
 
-            clover2_localization_msgs::helpers::feature_info info;
-            info.type = feature_type();
-            info.marker_id = ids[i];
-
-            clover2_localization_msgs::msg::Feature3 feature3;
-            clover2_localization_msgs::helpers::toMsg(info, feature3.info);
-            fill_pose_stamped(feature3.pose, marker_rot[i], marker_pose[i],
+            clover2_pose_msgs::msg::Marker marker;
+            marker.id = ids[i];
+            marker.size = m_map_client->get_marker_size(ids[i]);
+            marker.marker_frame_id = m_map_client->get_marker_frame_id(ids[i]);
+            fill_pose_stamped(marker.pose, marker_rot[i], marker_pose[i],
                               marker_cov[i]);
-            result.push_back(std::move(feature3));
+            result.push_back(std::move(marker));
         }
     }
 
@@ -144,4 +152,4 @@ std::list<clover2_localization_msgs::msg::Feature3> maker_base::process(
     return result;
 }
 
-}  // namespace clover2_cam_feature::detail
+}  // namespace clover2::cam_feature::detail
