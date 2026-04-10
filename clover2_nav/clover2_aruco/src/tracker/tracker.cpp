@@ -24,8 +24,6 @@ tracker::tracker(const rclcpp::NodeOptions& options)
     m_parameter_watcher =
         std::make_shared<clover2::common::parameter_watcher>(*this);
 
-    enable_diagnostic_updater();
-
     m_parameter_watcher->declare_and_watch_parameter<std::string>(
         "tracking", "base_link",
         [this](const rclcpp::Parameter& p) { m_tracking_id = p.as_string(); },

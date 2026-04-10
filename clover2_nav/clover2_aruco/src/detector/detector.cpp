@@ -53,7 +53,6 @@ detector::detector(const rclcpp::NodeOptions& options)
     m_parameter_watcher =
         std::make_shared<clover2::common::parameter_watcher>(*this);
 
-    enable_diagnostic_updater();
     m_diagnostic_updater = get_diagnostic_updater();
 
     m_parameter_watcher->declare_and_watch_parameter<std::string>(
