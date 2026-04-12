@@ -1,6 +1,5 @@
 
 // clover2
-#include "geometry_msgs/msg/pose_array.hpp"
 #include <clover2/cam_feature/detail/maker_base.hpp>
 
 // opencv
@@ -8,18 +7,35 @@
 #include <opencv2/core/utility.hpp>
 
 // tf2
+#include <rclcpp/create_publisher.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 
 namespace clover2::cam_feature::detail {
 
-maker_base::maker_base(clover2::cam_feature::plugin_context& ctx,
-                       const std::string& subnode,
-                       const rclcpp::NodeOptions& options)
-    : clover2::cam_feature::base_plugin(ctx, subnode, options)
-    , m_map_client(ctx.map_client) {
+maker_base::maker_base()
+    : m_map_client(nullptr)
+    , m_pose_array_debug_pub(nullptr) {}
+
+void maker_base::_configure(
+    [[maybe_unused]] const std::string& name,
+    [[maybe_unused]] const rclcpp_lifecycle::LifecycleNode::WeakPtr& node,
+    const std::shared_ptr<clover2::map::client>& map_client) {
+    m_map_client = map_client;
+}
+
+void maker_base::_activate() {
     m_pose_array_debug_pub =
-        get_node()->create_publisher<geometry_msgs::msg::PoseArray>(
-            "~/debug", rclcpp::QoS(10));
+        rclcpp::create_publisher<geometry_msgs::msg::PoseArray>(
+            m_node_context, "~/output/" + get_name() + "/debug",
+            rclcpp::QoS(10));
+}
+
+void maker_base::_deactivate() {  //
+    m_pose_array_debug_pub.reset();
+}
+
+void maker_base::_cleanup() {  //
+    m_map_client.reset();
 }
 
 const std::vector<cv::Point3d>& maker_base::get_marker_obj_points(
