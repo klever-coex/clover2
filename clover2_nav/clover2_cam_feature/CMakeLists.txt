@@ -55,7 +55,7 @@ pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)
 
 clover2_add_component_library(
   TARGET clover2_cam_feature_component
-  SOURCES src/cam_feature.cpp
+  SOURCES src/cam_feature.cpp src/base_plugin.cpp
   LINK_LIBS cam_feature_plugins ${OpenCV_LIBRARIES}
   DEPENDENCIES ${dependencies}
   COMPONENT_CLASS "clover2::cam_feature::cam_feature"

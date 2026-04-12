@@ -6,6 +6,7 @@
 #include <clover2/cam_feature/base_plugin.hpp>
 
 // OpenCV
+#include <clover2/common/node_context.hpp>
 #include <opencv2/aruco.hpp>
 
 // ROS2
@@ -24,9 +25,8 @@ namespace clover2::cam_feature::detail {
 
 class maker_base : public clover2::cam_feature::base_plugin {
 public:
-    maker_base(clover2::cam_feature::plugin_context& ctx,
-               const std::string& subnode,
-               const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
+    explicit maker_base();
+    virtual ~maker_base() = default;
 
     std::list<clover2_pose_msgs::msg::Marker> process(
         const std_msgs::msg::Header& header, const cv::Mat& image,
@@ -34,6 +34,13 @@ public:
         std::shared_ptr<cv::Mat> debug = nullptr) override final;
 
 protected:
+    void _configure(const std::string& name,
+                    const rclcpp_lifecycle::LifecycleNode::WeakPtr& node,
+                    const std::shared_ptr<clover2::map::client>& map_client);
+    void _activate();
+    void _deactivate();
+    void _cleanup();
+
     virtual void detect_markers(
         const cv::Mat& image, std::vector<int>& ids,
         std::vector<std::vector<cv::Point2f>>& corners) = 0;
@@ -50,10 +57,10 @@ private:
                                   const cv::Mat& cov);
 
     std::shared_ptr<clover2::map::client> m_map_client;
-    std::unordered_map<int, std::vector<cv::Point3d>> m_marker_obj_cache;
-
     rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr
         m_pose_array_debug_pub;
+
+    std::unordered_map<int, std::vector<cv::Point3d>> m_marker_obj_cache;
 };
 
 }  // namespace clover2::cam_feature::detail

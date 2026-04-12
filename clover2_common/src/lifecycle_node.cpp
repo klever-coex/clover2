@@ -10,8 +10,7 @@ namespace clover2::common {
 
 lifecycle_node::lifecycle_node(const std::string& node_name,
                                const rclcpp::NodeOptions& options)
-    : rclcpp_lifecycle::LifecycleNode(node_name, options)
-    , m_diagnostic_updater(nullptr) {
+    : rclcpp_lifecycle::LifecycleNode(node_name, options) {
     declare_parameter("autostart", true);
     enable_diagnostic_updater();
     enable_parameter_watcher();
