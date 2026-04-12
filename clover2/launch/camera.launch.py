@@ -96,7 +96,7 @@ def launch_setup(context, *args, **kwargs):
             target_action=camera_container,
             on_start=[
                 PushRosNamespace(camera_name.perform(context)),
-                camera_component,
+                # camera_component,
                 feature_detector_component,
                 optical_flow_component,
             ],
