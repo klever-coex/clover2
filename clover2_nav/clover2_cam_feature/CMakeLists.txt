@@ -38,25 +38,29 @@ set(dependencies
   tf2
 )
 
-add_library(cam_feature_plugins SHARED
-  src/detail/maker_base.cpp
-  src/plugins/aruco.cpp
+clover2_add_library(
+  TARGET cam_feature_base
+  SOURCES src/base_plugin.cpp
+  DEPENDENCIES clover2_common clover2_map
+  LINK_LIBS ${OpenCV_LIBRARIES}
 )
 
-target_include_directories(cam_feature_plugins PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
-
-ament_target_dependencies(cam_feature_plugins ${dependencies})
-
-target_link_libraries(cam_feature_plugins ${OpenCV_LIBRARIES})
+clover2_add_library(
+  TARGET cam_feature_plugins
+  SOURCES
+    src/detail/maker_base.cpp
+    src/plugins/aruco.cpp
+  DEPENDENCIES ${dependencies}
+  LINK_LIBS cam_feature_base ${OpenCV_LIBRARIES}
+)
 
 pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)
 
 clover2_add_component_library(
   TARGET clover2_cam_feature_component
-  SOURCES src/cam_feature.cpp src/base_plugin.cpp
-  LINK_LIBS cam_feature_plugins ${OpenCV_LIBRARIES}
+  SOURCES
+    src/cam_feature.cpp
+  LINK_LIBS cam_feature_plugins cam_feature_base ${OpenCV_LIBRARIES}
   DEPENDENCIES ${dependencies}
   COMPONENT_CLASS "clover2::cam_feature::cam_feature"
 )
@@ -69,7 +73,7 @@ clover2_add_executable(
 )
 
 install(
-  TARGETS cam_feature_plugins clover2_cam_feature_component
+  TARGETS cam_feature_base cam_feature_plugins clover2_cam_feature_component
   EXPORT export_${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
@@ -87,7 +91,8 @@ install(
 )
 
 ament_export_include_directories(include)
-ament_export_libraries(cam_feature_plugins clover2_cam_feature_component)
+ament_export_libraries(
+  cam_feature_base cam_feature_plugins clover2_cam_feature_component)
 ament_export_targets(export_${PROJECT_NAME})
 ament_export_dependencies(${dependencies})
 
