@@ -1,0 +1,49 @@
+/**:
+  ros__parameters:
+    use_intra_process_comms: true
+
+/**/aruco_tracker:
+  ros__parameters:
+    tracking: "base_link"
+    optimizer: "simple_mean"
+    graph_linearizer:
+      history_sec: 1.0
+    simple_mean:
+      history_sec: 0.2
+
+/**/main_camera/camera:
+  ros__parameters:
+    camera: 0
+    width: 800
+    height: 600
+    frame_id: "main_camera_link"
+    format: "RGB888"
+    AeEnable: false
+    AeFlickerMode: 0
+    AnalogueGain: 2.0
+    AnalogueGainMode: 1
+    AwbEnable: false
+    AwbMode: 0
+    Brightness: 0.0
+    Contrast: 1.0
+    ExposureTime: 8000
+    ExposureTimeMode: 1
+    FrameDurationLimits: [33333, 33333]
+    HdrMode: 0
+    Sharpness: 0.0
+
+/**/main_camera/feat_detector:
+  ros__parameters:
+    feature_plugins: ["aruco"]
+    aruco:
+      plugin: "clover2::cam_feature::plugins::aruco"
+      cornerRefinementMethod: 2
+      minMarkerPerimeterRate: 0.075
+
+/**/main_camera/optical_flow:
+  ros__parameters:
+    roi: 256
+
+/**/web_video_server:
+  ros__parameters:
+    port: 8081
