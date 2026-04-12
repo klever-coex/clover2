@@ -79,7 +79,7 @@ private:
 
     size_t m_last_pose_count{0};
     std::vector<std::string> m_plugin_ids{"aruco"};
-    std::vector<std::string> m_plugin_types;
+    std::vector<std::string> m_plugin_types{"clover2::cam_feature::plugins::aruco"};
     pluginlib::ClassLoader<base_plugin> m_plugin_loader{"clover2_cam_feature",
                       "clover2::cam_feature::base_plugin"};
     std::unordered_map<std::string, base_plugin::SharedPtr> m_plugins;

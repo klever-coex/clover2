@@ -32,6 +32,14 @@
     StatsOutputEnable: false
     width: 640
 
+/**/feat_detector:
+  ros__parameters:
+    feature_plugins: [aruco]
+    aruco:
+      plugin: clover2::cam_feature::plugins::aruco
+      cornerRefinementMethod: 2
+      minMarkerPerimeterRate: 0.075
+
 # /**/main_camera:
 #   ros__parameters:
 #     camera: "/base/axi/pcie@120000/rp1/i2c@88000/imx219@10"
@@ -52,19 +60,6 @@
 #     Saturation: 1.0
 #     Brightness: 0.0
 #     AeFlickerMode: 0
-
-/**/main_camera_aruco_detector:
-  ros__parameters:
-    marker_dict: "4X4_250"
-    prefix_frame_id: "aruco_"
-    tf_publish: true
-
-/**/main_camera_feat_detector:
-  ros__parameters:
-    autostart: false
-    plugins: ["aruco"]
-    aruco:
-      marker_dict: 4X4_250
 
 /**/web_video_server:
   ros__parameters:
