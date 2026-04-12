@@ -56,22 +56,26 @@ cam_feature::CallbackReturn cam_feature::on_configure(
     }
 
     get_parameter("feature_plugins", m_plugin_ids);
-    for (auto id : m_plugin_ids) {
-        if (!has_parameter(id + ".plugin")) {
-            declare_parameter<std::string>(id + ".plugin");
+
+    m_plugin_types.clear();
+    m_plugin_types.reserve(m_plugin_types.size());
+
+    for (size_t i = 0; m_plugin_ids.size(); i++) {
+        if (!has_parameter(m_plugin_ids[i] + ".plugin")) {
+            declare_parameter<std::string>(m_plugin_ids[i] + ".plugin");
         }
 
         try {
-            std::string plugin_type;
-            get_parameter(id + ".plugin", plugin_type);
+            get_parameter(m_plugin_ids[i] + ".plugin", m_plugin_types[i]);
 
-            auto plugin = m_plugin_loader.createSharedInstance(plugin_type);
+            auto plugin =
+                m_plugin_loader.createSharedInstance(m_plugin_types[i]);
             RCLCPP_INFO(get_logger(), "Created plugin %s with type %s",
-                        id.c_str(), plugin_type.c_str());
+                        m_plugin_ids[i].c_str(), m_plugin_types[i].c_str());
 
-            plugin->configure(id, node, m_map_client);
+            plugin->configure(m_plugin_ids[i], node, m_map_client);
 
-            m_plugins.insert({id, plugin});
+            m_plugins.insert({m_plugin_ids[i], plugin});
         } catch (const std::exception& e) {
             RCLCPP_ERROR(get_logger(), "Fail to load plugin. Exception: %s",
                          e.what());
@@ -232,7 +236,6 @@ void cam_feature::produce_diagnostics(
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "Running");
         stat.add("Camera frame", m_camera_model.tfFrame());
         stat.add("Plugins loaded", std::to_string(m_plugins.size()));
-        stat.add("Last frame pose count", std::to_string(m_last_pose_count));
     }
 }
 
