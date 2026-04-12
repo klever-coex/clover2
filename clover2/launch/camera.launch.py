@@ -4,11 +4,20 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, RegisterEventHandler
+from launch.actions import (
+    DeclareLaunchArgument,
+    GroupAction,
+    OpaqueFunction,
+    RegisterEventHandler,
+)
 from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessStart
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import ComposableNodeContainer, LoadComposableNodes, Node
+from launch_ros.actions import (
+    ComposableNodeContainer,
+    LoadComposableNodes,
+    PushRosNamespace,
+)
 from launch_ros.descriptions import ComposableNode
 
 
@@ -22,8 +31,8 @@ def launch_setup(context, *args, **kwargs):
     optical_flow = LaunchConfiguration("optical_flow")
 
     camera_remappings = [
-        ("~/image_raw", f"/{camera_name.perform(context)}/image_raw"),
-        ("~/camera_info", f"/{camera_name.perform(context)}/camera_info"),
+        ("~/image_raw", f"/{camera_name.perform(context)}/camera/image_raw"),
+        ("~/camera_info", f"/{camera_name.perform(context)}/camera/camera_info"),
     ]
 
     map_server_remappings = [
@@ -32,7 +41,7 @@ def launch_setup(context, *args, **kwargs):
     ]
 
     camera_container = ComposableNodeContainer(
-        name=camera_name.perform(context) + "_container",
+        name="container",
         namespace="",
         package="rclcpp_components",
         executable="component_container_mt",
@@ -48,36 +57,24 @@ def launch_setup(context, *args, **kwargs):
             ComposableNode(
                 package="camera_ros",
                 plugin="camera::CameraNode",
-                name=camera_name.perform(context),
+                name="camera",
                 parameters=[params_file, {"use_sim_time": use_sim_time}],
             )
         ],
     )
 
-    # feature_detector_component = LoadComposableNodes(
-    #     condition=IfCondition(feature_detector),
-    #     target_container=camera_container,
-    #     composable_node_descriptions=[
-    #         ComposableNode(
-    #             package="clover2_cam_feature",
-    #             plugin="clover2::cam_feature::cam_feature",
-    #             name=camera_name.perform(context) + "_feat_detector",
-    #             parameters=[params_file, {"use_sim_time": use_sim_time}],
-    #             remappings=camera_remappings + map_server_remappings,
-    #         )
-    #     ],
-    # )
-    
-    feature_detector_component = Node(
-        package="clover2_cam_feature",
-        executable="cam_feature",
-        name=camera_name.perform(context) + "_feat_detector",
-        parameters=[params_file, {"use_sim_time": use_sim_time}],
-        remappings=camera_remappings + map_server_remappings,
-        respawn=True,
-        respawn_delay=5.0,
-        output="screen",
-        arguments=["--ros-args", "--log-level", log_level],
+    feature_detector_component = LoadComposableNodes(
+        condition=IfCondition(feature_detector),
+        target_container=camera_container,
+        composable_node_descriptions=[
+            ComposableNode(
+                package="clover2_cam_feature",
+                plugin="clover2::cam_feature::cam_feature",
+                name="feat_detector",
+                parameters=[params_file, {"use_sim_time": use_sim_time}],
+                remappings=camera_remappings + map_server_remappings,
+            )
+        ],
     )
 
     optical_flow_component = LoadComposableNodes(
@@ -87,29 +84,33 @@ def launch_setup(context, *args, **kwargs):
             ComposableNode(
                 package="clover2_optical_flow",
                 plugin="clover2::optical_flow::optical_flow",
-                name=camera_name.perform(context) + "_of",
+                name="optical_flow",
                 parameters=[params_file, {"use_sim_time": use_sim_time}],
                 remappings=camera_remappings,
             )
         ],
     )
 
-    # load_composible = RegisterEventHandler(
-    #     OnProcessStart(
-    #         target_action=camera_container,
-    #         on_start=[
-    #             camera_component,
-    #             feature_detector_component,
-    #             optical_flow_component,
-    #         ],
-    #     )
-    # )
+    load_composable = RegisterEventHandler(
+        OnProcessStart(
+            target_action=camera_container,
+            on_start=[
+                camera_component,
+                feature_detector_component,
+                optical_flow_component,
+            ],
+        )
+    )
 
+    camera_group = GroupAction(
+        actions=[
+            PushRosNamespace(camera_name.perform(context)),
+            camera_container,
+            load_composable,
+        ]
+    )
     return [
-        camera_container,
-        camera_component,
-        feature_detector_component,
-        # optical_flow_component,
+        camera_group,
     ]
 
 
