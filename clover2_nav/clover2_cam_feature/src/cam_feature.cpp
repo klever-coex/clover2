@@ -1,8 +1,9 @@
 // clover2
 #include <clover2/cam_feature/cam_feature.hpp>
+#include <clover2/common/lifecycle_node.hpp>
+#include <clover2/common/util/parameter.hpp>
 
 // opencv
-#include <clover2/common/lifecycle_node.hpp>
 #include <cv_bridge/cv_bridge.hpp>
 
 // ROS2
@@ -15,16 +16,27 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace {
+
 constexpr const char* cam_feature_diagnostic_name = "Cam feature status";
-}
+const std::vector<std::string> default_plugin_ids = {"aruco"};
+const std::vector<std::string> default_plugin_types = {
+    "clover2::cam_feature::plugins::aruco"};
+
+}  // namespace
 
 namespace clover2::cam_feature {
 
 cam_feature::cam_feature(const rclcpp::NodeOptions& options)
     : clover2::common::lifecycle_node("cam_feature", options) {
-    declare_parameter("feature_plugins", m_plugin_ids);
+    declare_parameter("feature_plugins", default_plugin_ids);
+
+    for (size_t i = 0; i < default_plugin_ids.size(); i++) {
+        declare_parameter(default_plugin_ids[i] + ".plugin",
+                          default_plugin_types[i]);
+    }
 
     register_on_configure(
         std::bind(&cam_feature::on_configure, this, std::placeholders::_1));
@@ -56,26 +68,34 @@ cam_feature::CallbackReturn cam_feature::on_configure(
     }
 
     get_parameter("feature_plugins", m_plugin_ids);
+    if (m_plugin_ids == default_plugin_ids) {
+        for (size_t i = 0; i < m_plugin_ids.size(); i++) {
+            std::string param_name = default_plugin_ids[i] + ".plugin";
+            clover2::common::util::declare_parameter_if_not_declared(
+                node, param_name, default_plugin_types[i]);
+        }
+    }
 
-    m_plugin_types.clear();
-    m_plugin_types.reserve(m_plugin_types.size());
+    for (const auto& id : m_plugin_ids) {
+        std::string param_name = id + ".plugin";
+        if (!has_parameter(param_name)) {
+            declare_parameter<std::string>(param_name);
+        }
 
-    for (size_t i = 0; m_plugin_ids.size(); i++) {
-        if (!has_parameter(m_plugin_ids[i] + ".plugin")) {
-            declare_parameter<std::string>(m_plugin_ids[i] + ".plugin");
+        std::string plugin_type;
+        if (!get_parameter(param_name, plugin_type)) {
+            RCLCPP_ERROR(get_logger(), "Plugin type for %s not set.",
+                         id.c_str());
         }
 
         try {
-            get_parameter(m_plugin_ids[i] + ".plugin", m_plugin_types[i]);
-
-            auto plugin =
-                m_plugin_loader.createSharedInstance(m_plugin_types[i]);
+            auto plugin = m_plugin_loader.createSharedInstance(plugin_type);
             RCLCPP_INFO(get_logger(), "Created plugin %s with type %s",
-                        m_plugin_ids[i].c_str(), m_plugin_types[i].c_str());
+                        id.c_str(), plugin_type.c_str());
 
-            plugin->configure(m_plugin_ids[i], node, m_map_client);
+            plugin->configure(id, node, m_map_client);
 
-            m_plugins.insert({m_plugin_ids[i], plugin});
+            m_plugins.insert({id, plugin});
         } catch (const std::exception& e) {
             RCLCPP_ERROR(get_logger(), "Fail to load plugin. Exception: %s",
                          e.what());

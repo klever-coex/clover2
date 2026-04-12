@@ -2,7 +2,6 @@
 
 // clover2
 #include <clover2/cam_feature/base_plugin.hpp>
-#include <clover2/common/executor.hpp>
 #include <clover2/common/lifecycle_node.hpp>
 #include <clover2/common/node.hpp>
 #include <clover2/common/parameter_watcher.hpp>
@@ -66,27 +65,17 @@ private:
      */
     void produce_diagnostics(diagnostic_updater::DiagnosticStatusWrapper& stat);
 
-    // base_plugin::SharedPtr create_plugin(const std::string& type,
-    //                                      plugin_context& ctx);
-    // void add_plugin(const std::string& type, plugin_context& ctx);
-
-    // void load_plugins();
-    // void unload_plugins();
-
     std::mutex m_camera_info_mtx;
     image_geometry::PinholeCameraModel m_camera_model;
 
-
     size_t m_last_pose_count{0};
-    std::vector<std::string> m_plugin_ids{"aruco"};
-    std::vector<std::string> m_plugin_types{"clover2::cam_feature::plugins::aruco"};
-    pluginlib::ClassLoader<base_plugin> m_plugin_loader{"clover2_cam_feature",
-                      "clover2::cam_feature::base_plugin"};
+    std::vector<std::string> m_plugin_ids;
+    std::vector<std::string> m_default_plugin_ids{"aruco"};
+    pluginlib::ClassLoader<base_plugin> m_plugin_loader{
+        "clover2_cam_feature", "clover2::cam_feature::base_plugin"};
     std::unordered_map<std::string, base_plugin::SharedPtr> m_plugins;
 
     std::shared_ptr<clover2::map::client> m_map_client;
-
-    std::shared_ptr<clover2::common::executor> m_executor;
 
     rclcpp::Publisher<clover2_pose_msgs::msg::MarkerArray>::SharedPtr
         m_markers_pub;
