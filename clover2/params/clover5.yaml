@@ -18,19 +18,19 @@
     height: 600
     frame_id: "main_camera_link"
     format: "RGB888"
-    AeEnable: false
-    AeFlickerMode: 0
-    AnalogueGain: 2.0
-    AnalogueGainMode: 1
-    AwbEnable: false
-    AwbMode: 0
-    Brightness: 0.0
-    Contrast: 1.0
-    ExposureTime: 8000
+      #AeEnable: false
+      #AeFlickerMode: 0
+      #AnalogueGain: 2.0
+      #AnalogueGainMode: 1
+      #AwbEnable: false
+      #AwbMode: 0
+      #Brightness: 0.0
+      #Contrast: 1.0
+    ExposureTime: 1500
     ExposureTimeMode: 1
     FrameDurationLimits: [33333, 33333]
     HdrMode: 0
-    Sharpness: 0.0
+      #Sharpness: 0.0
 
 /**/main_camera/feat_detector:
   ros__parameters:
@@ -39,6 +39,7 @@
       plugin: "clover2::cam_feature::plugins::aruco"
       cornerRefinementMethod: 2
       minMarkerPerimeterRate: 0.075
+      adaptiveThreshConstant: 14.0
 
 /**/main_camera/optical_flow:
   ros__parameters:

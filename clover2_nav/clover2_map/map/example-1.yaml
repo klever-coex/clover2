@@ -1,8 +1,52 @@
-name: example-1
+name: test
 frame_id: map
 version: 0
-default_size: 0.15
+default_size: 0.30
 
 markers:
+  - id: 34
+    pose:
+      x: 0.0
+  - id: 35
+    pose:
+      x: 0.6
+  - id: 36
+    pose:
+      x: 1.2
+  - id: 37
+    pose:
+      x: 1.8
+
+  - id: 30
+    pose:
+      y: 0.6
+      x: 0.0
+  - id: 31
+    pose:
+      y: 0.6
+      x: 0.6
+  - id: 32
+    pose:
+      y: 0.6
+      x: 1.2
+  - id: 33
+    pose:
+      y: 0.6
+      x: 1.8
+
   - id: 26
-    size: 0.35
+    pose:
+      y: 1.2
+      x: 0.0
+  - id: 27
+    pose:
+      y: 1.2
+      x: 0.6
+  - id: 28
+    pose:
+      y: 1.2
+      x: 1.2
+  - id: 29
+    pose:
+      y: 1.2
+      x: 1.8
