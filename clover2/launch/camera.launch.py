@@ -31,8 +31,8 @@ def launch_setup(context, *args, **kwargs):
     optical_flow = LaunchConfiguration("optical_flow")
 
     camera_remappings = [
-        ("~/image_raw", f"/{camera_name.perform(context)}/camera/image_raw"),
-        ("~/camera_info", f"/{camera_name.perform(context)}/camera/camera_info"),
+        ("~/input/image_raw", f"/{camera_name.perform(context)}/camera/image_raw"),
+        ("~/input/camera_info", f"/{camera_name.perform(context)}/camera/camera_info"),
     ]
 
     map_server_remappings = [
