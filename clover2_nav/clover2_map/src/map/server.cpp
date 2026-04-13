@@ -33,8 +33,9 @@ server::server(const rclcpp::NodeOptions& options)
         },
         "Path to map file whit .txt/.yaml/.yml extension.");
 
-    m_map_update_pub = create_publisher<std_msgs::msg::Empty>(
-        "~/map_update", rclcpp::SensorDataQoS());
+    rclcpp::QoS qos_notification = rclcpp::QoS(1).transient_local().reliable();
+    m_map_update_pub = create_publisher<std_msgs::msg::Empty>("~/map_update",
+                                                              qos_notification);
     m_tf_static_broadcaster =
         std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
 

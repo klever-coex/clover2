@@ -28,13 +28,13 @@ class client {
 public:
     template <typename NodeT>
     explicit client(const NodeT& node,
-                        rclcpp::CallbackGroup::SharedPtr cb_group = nullptr)
+                    rclcpp::CallbackGroup::SharedPtr cb_group = nullptr)
         : m_logger(node->get_logger().get_child("map_client"))
         , m_map_valid(false)
         , m_name("") {
         m_map_update_sub =
             node->template create_subscription<std_msgs::msg::Empty>(
-                "~/map_update", rclcpp::SensorDataQoS(),
+                "~/map_update", rclcpp::QoS(1).transient_local().reliable(),
                 std::bind(&client::map_update_callback, this,
                           std::placeholders::_1));
 
@@ -94,7 +94,8 @@ private:
     }
 
     void update_map() {
-        if (!m_get_map_client->wait_for_service(std::chrono::milliseconds(1000))) {
+        if (!m_get_map_client->wait_for_service(
+                std::chrono::milliseconds(1000))) {
             throw std::runtime_error(
                 std::string(m_get_map_client->get_service_name()) +
                 " service is not available!");
