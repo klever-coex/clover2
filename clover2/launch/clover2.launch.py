@@ -44,7 +44,7 @@ def generate_launch_description():
 
     fcu_conn_declare = DeclareLaunchArgument(
         "fcu_conn",
-        default_value="udp",
+        default_value="uart",
         description="Flight controller unit connection type: usb, uart, tcp or udp",
     )
 
@@ -126,7 +126,7 @@ def generate_launch_description():
             description_cmd,
             navigation_cmd,
             main_camera_cmd,
-            # fcu_bridge_cmd,
+            fcu_bridge_cmd,
             web_support_cmd,
         ]
     )

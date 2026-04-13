@@ -47,6 +47,7 @@ tracker::CallbackReturn tracker::on_configure(
         return CallbackReturn::FAILURE;
     }
 
+    RCLCPP_INFO(get_logger(), "Configured");
     return tracker::CallbackReturn::SUCCESS;
 }
 
@@ -74,6 +75,7 @@ tracker::CallbackReturn tracker::on_activate(
         std::bind(&tracker::markers_callback, this, std::placeholders::_1),
         options);
 
+    RCLCPP_INFO(get_logger(), "Activated");
     return tracker::CallbackReturn::SUCCESS;
 }
 
@@ -88,6 +90,7 @@ tracker::CallbackReturn tracker::on_deactivate(
     m_tf_buffer.reset();
     m_tf_broadcaster.reset();
 
+    RCLCPP_INFO(get_logger(), "Deactivated");
     return tracker::CallbackReturn::SUCCESS;
 }
 
@@ -95,6 +98,7 @@ tracker::CallbackReturn tracker::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     m_map_client.reset();
 
+    RCLCPP_INFO(get_logger(), "Cleaned up");
     return tracker::CallbackReturn::SUCCESS;
 }
 
