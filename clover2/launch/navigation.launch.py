@@ -52,30 +52,30 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Aruco tracker
-    # tracker_cmd = Node(
-    #     package="clover2_aruco",
-    #     executable="tracker",
-    #     name="aruco_tracker",
-    #     parameters=[
-    #         params_file,
-    #         {
-    #             "use_sim_time": use_sim_time,
-    #         },
-    #     ],
-    #     respawn=True,
-    #     respawn_delay=5.0,
-    #     output="screen",
-    #     arguments=["--ros-args", "--log-level", log_level],
-    #     remappings=[
-    #         # TODO: remove hardcode
-    #         ("~/markers", "/main_camera_aruco_detector/markers"),
-    #         ("~/pose_cov", "/mavros/vision_pose/pose_cov"),
-    #         ("~/map_update", "/map_server/map_update"),
-    #         ("~/get_map", "/map_server/get_map"),
-    #     ],
-    # )
+    tracker_cmd = Node(
+        package="clover2_aruco",
+        executable="tracker",
+        name="aruco_tracker",
+        parameters=[
+            params_file,
+            {
+                "use_sim_time": use_sim_time,
+            },
+        ],
+        respawn=True,
+        respawn_delay=5.0,
+        output="screen",
+        arguments=["--ros-args", "--log-level", log_level],
+        remappings=[
+            # TODO: remove hardcode
+            ("~/markers", "/main_camera/feat_detector/markers"),
+            ("~/pose_cov", "/mavros/vision_pose/pose_cov"),
+            ("~/map_update", "/map_server/map_update"),
+            ("~/get_map", "/map_server/get_map"),
+        ],
+    )
 
-    return [aruco_map_server_cmd]
+    return [aruco_map_server_cmd, tracker_cmd]
 
 
 def generate_launch_description():
