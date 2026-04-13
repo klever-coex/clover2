@@ -68,7 +68,7 @@ def launch_setup(context, *args, **kwargs):
         arguments=["--ros-args", "--log-level", log_level],
         remappings=[
             # TODO: remove hardcode
-            ("~/markers", "/main_camera/feat_detector/markers"),
+            ("~/markers", "/main_camera/feat_detector/output/markers"),
             ("~/pose_cov", "/mavros/vision_pose/pose_cov"),
             ("~/map_update", "/map_server/map_update"),
             ("~/get_map", "/map_server/get_map"),
