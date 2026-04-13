@@ -33,7 +33,8 @@ server::server(const rclcpp::NodeOptions& options)
         },
         "Path to map file whit .txt/.yaml/.yml extension.");
 
-    rclcpp::QoS qos_notification = rclcpp::QoS(1).transient_local().reliable();
+    rclcpp::QoS qos_notification =
+        rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable();
     m_map_update_pub = create_publisher<std_msgs::msg::Empty>("~/map_update",
                                                               qos_notification);
     m_tf_static_broadcaster =
