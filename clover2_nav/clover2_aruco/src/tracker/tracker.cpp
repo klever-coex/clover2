@@ -35,7 +35,7 @@ tracker::~tracker() {}
 tracker::CallbackReturn tracker::on_configure(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
     m_callback_group = create_callback_group(
-        rclcpp::CallbackGroupType::MutuallyExclusive, false);
+        rclcpp::CallbackGroupType::MutuallyExclusive);
 
     try {
         m_map_client =
@@ -176,13 +176,13 @@ void tracker::markers_callback(
 
     estimated_pose.pose = tf2::toMsg(result_pose);
     estimated_pose_cov.pose.pose = estimated_pose.pose;
-    estimated_pose_cov.pose.covariance[0] = 0.1;
-    estimated_pose_cov.pose.covariance[7] = 0.1;
-    estimated_pose_cov.pose.covariance[14] = 0.1;
+    estimated_pose_cov.pose.covariance[0] = 0.3;
+    estimated_pose_cov.pose.covariance[7] = 0.3;
+    estimated_pose_cov.pose.covariance[14] = 0.5;
 
-    estimated_pose_cov.pose.covariance[21] = 0.05;
-    estimated_pose_cov.pose.covariance[28] = 0.05;
-    estimated_pose_cov.pose.covariance[35] = 0.05;
+    estimated_pose_cov.pose.covariance[21] = 0.3;
+    estimated_pose_cov.pose.covariance[28] = 0.3;
+    estimated_pose_cov.pose.covariance[35] = 0.1;
 
     // publish estimated pose
     m_pose_pub->publish(estimated_pose);
