@@ -20,6 +20,7 @@ echo "---> Setting hostname to $CLOVER2_HOSTNAME <---"
 hostnamectl set-hostname $CLOVER2_HOSTNAME
 
 echo "---> Generate /opt/clover2/docker-compose.yaml <---"
+source /usr/lib/os-release
 envsubst < $REPO_DIR/tooling/builder/assets/docker-compose.yaml.in > /opt/clover2/docker-compose.yaml
 chown pi /opt/clover2/docker-compose.yaml
 

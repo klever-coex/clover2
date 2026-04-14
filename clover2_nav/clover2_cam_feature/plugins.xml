@@ -1,0 +1,10 @@
+<class_libraries>
+    <library path="cam_feature_plugins">
+    <class
+            type="clover2::cam_feature::plugins::aruco"
+            base_class_type="clover2::cam_feature::base_plugin"
+        >
+        <description>Basic opencv ArUco or AprilTag marker poses</description>
+    </class>
+    </library>
+</class_libraries>
