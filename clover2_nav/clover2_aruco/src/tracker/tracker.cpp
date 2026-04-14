@@ -12,7 +12,6 @@ namespace clover2::aruco {
 
 tracker::tracker(const rclcpp::NodeOptions& options)
     : clover2::common::lifecycle_node("tracker", options) {
-
     declare_and_watch_parameter<std::string>(
         "tracking", "base_link",
         [this](const rclcpp::Parameter& p) { m_tracking_id = p.as_string(); },
@@ -34,12 +33,12 @@ tracker::~tracker() {}
 
 tracker::CallbackReturn tracker::on_configure(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
-    m_callback_group = create_callback_group(
-        rclcpp::CallbackGroupType::MutuallyExclusive, false);
+    m_callback_group =
+        create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
     try {
-        m_map_client =
-            std::make_shared<clover2::map::client>(shared_from_this(), m_callback_group);
+        m_map_client = std::make_shared<clover2::map::client>(
+            shared_from_this(), m_callback_group);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map client. Exception: %s",
                      e.what());
@@ -146,6 +145,9 @@ void tracker::markers_callback(
     Eigen::Quaterniond avg_quat = Eigen::Quaterniond::Identity();
     Eigen::Vector4d cumulative_q = Eigen::Vector4d::Zero();
 
+    Eigen::Matrix3d info_sum = Eigen::Matrix3d::Zero();
+    Eigen::Vector3d weighted_sum = Eigen::Vector3d::Zero();
+
     for (const auto& marker : msg->markers) {
         Eigen::Affine3d marker_pose;
         tf2::fromMsg(marker.pose.pose, marker_pose);
@@ -154,6 +156,20 @@ void tracker::markers_callback(
             m_map_client->get_transform(marker.id) * marker_pose.inverse();
 
         Eigen::Affine3d drone_in_map = camera_in_map * camera_transform;
+
+        auto marker_cov = extract_msg_covariance(marker);
+        Eigen::Matrix3d cov_pos = marker_cov.block<3, 3>(0, 0);
+
+        Eigen::Matrix3d R = drone_in_map.rotation();
+        Eigen::Matrix3d cov_map = R * cov_pos * R.transpose();
+
+        cov_map += 1e-6 * Eigen::Matrix3d::Identity();
+
+        Eigen::Matrix3d info = cov_map.inverse();
+        Eigen::Vector3d pos = drone_in_map.translation();
+
+        info_sum += info;
+        weighted_sum += info * pos;
 
         // add debug transform
         poses_debug.poses.push_back(tf2::toMsg(drone_in_map));
@@ -174,24 +190,62 @@ void tracker::markers_callback(
     result_pose.translate(avg_translation);
     result_pose.rotate(avg_quat);
 
-    estimated_pose.pose = tf2::toMsg(result_pose);
-    estimated_pose_cov.pose.pose = estimated_pose.pose;
-    estimated_pose_cov.pose.covariance[0] = 0.1;
-    estimated_pose_cov.pose.covariance[7] = 0.1;
-    estimated_pose_cov.pose.covariance[14] = 0.1;
+    Eigen::Vector3d pos_final;
+    Eigen::Matrix3d cov_final;
 
-    estimated_pose_cov.pose.covariance[21] = 0.05;
-    estimated_pose_cov.pose.covariance[28] = 0.05;
-    estimated_pose_cov.pose.covariance[35] = 0.05;
+    if (info_sum.determinant() > 1e-12) {
+        cov_final = info_sum.inverse();
+        pos_final = cov_final * weighted_sum;
+    } else {
+        pos_final = weighted_sum;
+        cov_final = Eigen::Matrix3d::Identity() * 1e3;
+    }
+
+    Eigen::Matrix<double, 6, 6> cov6_final =
+        Eigen::Matrix<double, 6, 6>::Zero();
+    cov6_final.block<3, 3>(0, 0) = cov_final;
+
+    double rot_var = 0.02;
+    cov6_final(3, 3) = rot_var;
+    cov6_final(4, 4) = rot_var;
+    cov6_final(5, 5) = rot_var;
+
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) {
+            estimated_pose_cov.pose.covariance[i * 6 + j] = cov6_final(i, j);
+        }
+    }
+
+    estimated_pose_cov.pose.pose = tf2::toMsg(result_pose);
+    // estimated_pose_cov.pose.covariance[0] = 0.1;
+    // estimated_pose_cov.pose.covariance[7] = 0.1;
+    // estimated_pose_cov.pose.covariance[14] = 0.1;
+
+    // estimated_pose_cov.pose.covariance[21] = 0.05;
+    // estimated_pose_cov.pose.covariance[28] = 0.05;
+    // estimated_pose_cov.pose.covariance[35] = 0.05;
 
     // publish estimated pose
-    m_pose_pub->publish(estimated_pose);
+    m_pose_pub->publish(estimated_pose_cov.pose.pose);
     m_pose_cov_pub->publish(estimated_pose_cov);
 
     // publish tracker id poses form each marker
     if (m_poses_debug_pub->get_subscription_count() != 0) {
         m_poses_debug_pub->publish(poses_debug);
     }
+}
+
+Eigen::Matrix<double, 6, 6> tracker::extract_msg_covariance(
+    const clover2_pose_msgs::msg::Marker& marker) {
+    Eigen::Matrix<double, 6, 6> ret = Eigen::Matrix<double, 6, 6>::Zero();
+
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) {
+            ret(i, j) = marker.pose.covariance[i * 6 + j];
+        }
+    }
+
+    return ret;
 }
 
 }  // namespace clover2::aruco

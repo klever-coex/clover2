@@ -5,8 +5,8 @@
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
 // Clover2 includes
-#include <clover2/map/client.hpp>
 #include <clover2/common/lifecycle_node.hpp>
+#include <clover2/map/client.hpp>
 
 // TF2 includes
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -42,6 +42,9 @@ private:
     void markers_callback(
         const clover2_pose_msgs::msg::MarkerArray::SharedPtr msg);
 
+    static Eigen::Matrix<double, 6, 6> extract_msg_covariance(
+        const clover2_pose_msgs::msg::Marker& marker);
+
     // Camera parameters
     std::string m_tracking_id;
 
@@ -58,7 +61,8 @@ private:
     rclcpp::Subscription<clover2_pose_msgs::msg::MarkerArray>::SharedPtr
         m_markers_sub;
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr m_pose_pub;
-    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr m_pose_cov_pub;
+    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr
+        m_pose_cov_pub;
     rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr
         m_poses_debug_pub;
 };

@@ -32,15 +32,15 @@ public:
         : m_logger(node->get_logger().get_child("map_client"))
         , m_map_valid(false)
         , m_name("") {
-        // TODO:
-        // rclcpp::SubscriptionOptions options;
-        // options.callback_group = cb_group;
+        rclcpp::SubscriptionOptions options;
+        options.callback_group = cb_group;
 
         m_map_update_sub =
             node->template create_subscription<std_msgs::msg::Empty>(
                 "~/map_update", rclcpp::QoS(1).transient_local().reliable(),
                 std::bind(&client::map_update_callback, this,
-                          std::placeholders::_1));
+                          std::placeholders::_1),
+                options);
 
         m_get_map_client =
             node->template create_client<clover2_pose_msgs::srv::GetMap>(
