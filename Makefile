@@ -16,7 +16,7 @@ UID ?= $(shell id -u)
 GID ?= $(shell id -g)
 
 # Calculate CLOVER2_VERSION based on BUILD_MODE
-CLOVER2_BASE_VERSION := $(shell cat $(PROJECT_DIR)/VERSION 2>/dev/null)
+CLOVER2_BASE_VERSION := $(shell cat $(PROJECT_DIR)/tooling/VERSION 2>/dev/null)
 CLOVER2_GIT_HASH := $(shell git -C $(PROJECT_DIR) rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 ifeq ($(BUILD_MODE),release)
@@ -54,7 +54,7 @@ help:
 ## docker-bake-%: Build docker images using docker buildx bake
 docker-bake-%:
 	@mkdir -p $(DOCKER_OUTPUT_DIR)
-	docker buildx bake --progress=plain $*
+	docker buildx bake -f tooling/docker-bake.hcl --progress=plain $*
 
 ## docker-print: Print docker buildx bake configuration
 docker-print-%:
@@ -88,8 +88,11 @@ builder-%-in-docker:
 		-v /dev:/dev \
 		-v $(PROJECT_DIR):/builder \
 		-w /builder \
-		$(REGISTRY)clover2-builder:$(CLOVER2_VERSION) \
+		$(REGISTRY)clover2-builder:$(CLOVER2_GIT_HASH) \
 		sh -c "make builder-$*"
+
+clover2-devtool-install-repos:
+	vcs import third_party < third_party/clover2.repos
 
 ## clean: Cleanup build artifacts
 clean:
