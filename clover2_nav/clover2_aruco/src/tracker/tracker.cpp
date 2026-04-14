@@ -216,7 +216,8 @@ void tracker::markers_callback(
         }
     }
 
-    estimated_pose_cov.pose.pose = tf2::toMsg(result_pose);
+    estimated_pose.pose = tf2::toMsg(result_pose);
+    estimated_pose_cov.pose.pose = estimated_pose.pose;
     // estimated_pose_cov.pose.covariance[0] = 0.1;
     // estimated_pose_cov.pose.covariance[7] = 0.1;
     // estimated_pose_cov.pose.covariance[14] = 0.1;
@@ -226,7 +227,7 @@ void tracker::markers_callback(
     // estimated_pose_cov.pose.covariance[35] = 0.05;
 
     // publish estimated pose
-    m_pose_pub->publish(estimated_pose_cov.pose.pose);
+    m_pose_pub->publish(estimated_pose);
     m_pose_cov_pub->publish(estimated_pose_cov);
 
     // publish tracker id poses form each marker
