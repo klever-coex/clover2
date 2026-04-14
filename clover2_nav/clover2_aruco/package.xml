@@ -12,18 +12,14 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
-  <depend>clover2_aruco_msgs</depend>
   <depend>clover2_common</depend>
-  <depend>cv_bridge</depend>
+  <depend>clover2_map</depend>
+  <depend>clover2_pose_msgs</depend>
   <depend>diagnostic_updater</depend>
-  <depend>eigen</depend>
   <depend>geometry_msgs</depend>
-  <depend>image_geometry</depend>
-  <depend>rcl_interfaces</depend>
   <depend>rclcpp_components</depend>
   <depend>rclcpp_lifecycle</depend>
   <depend>rclcpp</depend>
-  <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
   <depend>tf2_eigen</depend>
   <depend>tf2_geometry_msgs</depend>

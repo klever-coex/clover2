@@ -21,8 +21,7 @@ optical_flow::optical_flow(const rclcpp::NodeOptions& options)
     , m_local_frame_id("map")
     , m_prev_stamp(rclcpp::Time(0))
     , m_last_vpe_time(rclcpp::Time(0)) {
-    enable_watch_parameters();
-    enable_diagnostic_updater();
+
     m_diagnostic_updater = get_diagnostic_updater();
 
     // Declare parameters
@@ -88,12 +87,12 @@ optical_flow::CallbackReturn optical_flow::on_activate(
 
     // Create subscribers
     m_camera_info_sub = this->create_subscription<sensor_msgs::msg::CameraInfo>(
-        "~/camera_info", rclcpp::SensorDataQoS(),
+        "~/input/camera_info", rclcpp::SensorDataQoS(),
         std::bind(&optical_flow::camera_info_callback, this,
                   std::placeholders::_1));
 
     m_image_sub = this->create_subscription<sensor_msgs::msg::Image>(
-        "~/image_raw", rclcpp::SensorDataQoS(),
+        "~/input/image_raw", rclcpp::SensorDataQoS(),
         std::bind(&optical_flow::flow_callback, this, std::placeholders::_1));
 
     RCLCPP_INFO(get_logger(), "Optical Flow activated");

@@ -2,6 +2,7 @@
 
 // clover2
 #include <clover2/common/lifecycle_node.hpp>
+#include <clover2/common/parameter_watcher.hpp>
 
 // ROS2
 #include <diagnostic_updater/diagnostic_updater.hpp>
