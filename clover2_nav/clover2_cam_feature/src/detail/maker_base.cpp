@@ -64,14 +64,18 @@ const std::vector<cv::Point3d>& maker_base::get_marker_obj_points(
     return m_marker_obj_cache.emplace(id, std::move(pts)).first->second;
 }
 
-void maker_base::compute_pose_covariance(cv::Mat& pose_cov) {
+void maker_base::compute_pose_covariance([[maybe_unused]] const cv::Vec3d& rvec,
+                                         const cv::Vec3d& tvec,
+                                         cv::Mat& pose_cov) {
     pose_cov.create(6, 6, CV_64F);
     pose_cov.setTo(0);
 
+    auto distance = cv::norm(tvec);
+
     // TODO: https://www.youtube.com/shorts/PLbQuKxKaIs
-    pose_cov.at<double>(0, 0) = 0.05f;
-    pose_cov.at<double>(1, 1) = 0.05f;
-    pose_cov.at<double>(2, 2) = 0.1f;
+    pose_cov.at<double>(0, 0) = 0.05f * distance;
+    pose_cov.at<double>(1, 1) = 0.05f * distance;
+    pose_cov.at<double>(2, 2) = 0.1f * distance;
 
     pose_cov.at<double>(3, 3) = 0.01f;
     pose_cov.at<double>(4, 4) = 0.01f;
@@ -149,7 +153,8 @@ std::list<clover2_pose_msgs::msg::Marker> maker_base::process(
                                   estimate_parameters->useExtrinsicGuess,
                                   estimate_parameters->solvePnPMethod);
 
-                              compute_pose_covariance(marker_cov[i]);
+                              compute_pose_covariance(
+                                  marker_rot[i], marker_pose[i], marker_cov[i]);
 
                               pose_estimated[i] = true;
                           }

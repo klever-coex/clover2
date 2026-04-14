@@ -50,7 +50,9 @@ private:
         int id, double length,
         const cv::Ptr<cv::aruco::EstimateParameters>& params);
 
-    static void compute_pose_covariance(cv::Mat& pose_cov);
+    static void compute_pose_covariance(const cv::Vec3d& rvec,
+                                        const cv::Vec3d& tvec,
+                                        cv::Mat& pose_cov);
 
     static void fill_pose_stamped(geometry_msgs::msg::PoseWithCovariance& out,
                                   const cv::Vec3d& rvec, const cv::Vec3d& tvec,
