@@ -42,6 +42,8 @@ RUN make px4_sitl_default
 FROM debian:bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV CCACHE_DIR=/root/.ccache
+COPY tooling/docker/* /clover2/
 
 RUN apt-get update && \
 	apt-get install -y --no-install-recommends \
@@ -52,8 +54,10 @@ RUN apt-get update && \
 
 WORKDIR /px4
 
-COPY --from=builder /build/PX4-Autopilot/build/px4_sitl_default/bin/px4 .
+COPY --from=builder /build/PX4-Autopilot/build/px4_sitl_default/bin ./bin
 COPY --from=builder /build/PX4-Autopilot/build/px4_sitl_default/etc ./etc
 COPY --from=builder /build/PX4-Autopilot/ROMFS ./ROMFS
 
-ENTRYPOINT ["./px4", "ROMFS/px4fmu_common"]
+WORKDIR /workdir
+
+ENTRYPOINT ["/px4/bin/px4", "ROMFS/px4fmu_common", "-d", "/px4/etc"]
