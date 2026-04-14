@@ -1,8 +1,0 @@
-name: test
-frame_id: map
-version: 0
-default_size: 0.15
-
-markers:
-  - id: 21
-    size: 0.35

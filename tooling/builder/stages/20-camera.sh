@@ -1,7 +1,6 @@
-LIBCAMERA_VERSION="bfd68f786964636b09f8122e6c09c230367390e7"
-CAMERA_ROS_VERSION="0.5.1"
+LIBCAMERA_VERSION="9f4754cbc6f9ae2276c9e2f42db9302e64c723b5"
 
-camera_libcamera() {
+libcamera_install() {
     log_info "Install libcamera deps"
     sudo apt-get install -y \
         abi-compliance-checker \
@@ -41,36 +40,26 @@ camera_libcamera() {
     git checkout $LIBCAMERA_VERSION
 
     log_info "Build libcamera"
-    meson setup build --buildtype=release -Dpipelines=rpi/vc4,rpi/pisp -Dipas=rpi/vc4,rpi/pisp -Dv4l2=enabled -Dgstreamer=enabled -Dtest=false -Dlc-compliance=disabled -Dcam=enabled -Dqcam=disabled -Ddocumentation=disabled -Dpycamera=enabled
-    yes | sudo ninja -C build install
+    meson setup build --prefix=/usr --buildtype=release -Dpipelines=rpi/vc4,rpi/pisp -Dipas=rpi/vc4,rpi/pisp -Dv4l2=enabled -Dgstreamer=enabled -Dtest=false -Dlc-compliance=disabled -Dcam=enabled -Dqcam=disabled -Ddocumentation=disabled -Dpycamera=enabled
     sudo usermod -aG video $USER
+
+    log_info "Create .deb package"
+    DESTDIR=$(pwd)/libcamera ninja -C build install
+    mkdir -p libcamera/DEBIAN
+    cat <<EOF > libcamera/DEBIAN/control
+Package: libcamera
+Version: $(git describe --tags --exact-match | sed 's/^[^0-9]*//')
+Section: libs
+Priority: optional
+Architecture: arm64
+Maintainer: Lapin Matvey
+Description: libcamera driver
+EOF
+    dpkg-deb --build libcamera
+
+    log_info "Install .deb package"
+    sudo apt install ./libcamera.deb -y
+    cp ./libcamera.deb /home/$USER/.clover2_backup/deb
 }
 
-camera_ros_support() {
-    set +u
-    log_info "Build ROS camera driver"
-
-    if ! [ -v ROS_DISTRO ]; then
-        log_error "ROS_DISTRO is not set"
-    fi
-
-    log_info "Clone ROS2 libcamera project"
-    LIBCAMERA_ROS_WS=$(mktemp -d --suffix="-libcamera_ros")
-    cd $LIBCAMERA_ROS_WS && mkdir src && cd src
-    git clone --branch $CAMERA_ROS_VERSION --depth 1 https://github.com/christianrauch/camera_ros.git
-    cd $LIBCAMERA_ROS_WS
-
-    log_info "Install ROS2 libcamera deps"
-    source /opt/ros/$ROS_DISTRO/setup.bash
-    rosdep install -y --from-paths src --ignore-src --skip-keys=libcamera
-
-    log_info "Build ROS2 libcamera packages"
-    sudo su -c "source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --install-base /opt/ros/$ROS_DISTRO/ --merge-install"
-}
-
-if ! command -v cam >/dev/null 2>&1; then
-    log_info "Libcamera not installed"
-    camera_libcamera
-fi
-
-camera_ros_support
+libcamera_install

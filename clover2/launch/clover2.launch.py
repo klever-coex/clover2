@@ -22,7 +22,7 @@ def generate_launch_description():
     log_level = LaunchConfiguration("log_level")
     params_file = LaunchConfiguration("params_file")
     fcu_conn = LaunchConfiguration("fcu_conn")
-    aruco = LaunchConfiguration("aruco")
+    navigation = LaunchConfiguration("navigation")
     optical_flow = LaunchConfiguration("optical_flow")
 
     # Declare arguments
@@ -38,18 +38,18 @@ def generate_launch_description():
 
     params_file_declare = DeclareLaunchArgument(
         "params_file",
-        default_value=PathJoinSubstitution([pkg_clover2, "params", "default.yaml"]),
+        default_value=PathJoinSubstitution([pkg_clover2, "params", "clover5.yaml"]),
         description="Log level for all nodes",
     )
 
     fcu_conn_declare = DeclareLaunchArgument(
         "fcu_conn",
-        default_value="udp",
+        default_value="uart",
         description="Flight controller unit connection type: usb, uart, tcp or udp",
     )
 
-    aruco_declare = DeclareLaunchArgument(
-        "aruco", default_value="true", description="Enable aruco navigation"
+    navigation_declare = DeclareLaunchArgument(
+        "navigation", default_value="true", description="Enable navigation"
     )
 
     optical_flow_declare = DeclareLaunchArgument(
@@ -63,11 +63,11 @@ def generate_launch_description():
         )
     )
 
-    aruco_cmd = IncludeLaunchDescription(
+    navigation_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [PathJoinSubstitution([pkg_clover2, "launch", "aruco.launch.py"])]
+            [PathJoinSubstitution([pkg_clover2, "launch", "navigation.launch.py"])]
         ),
-        condition=IfCondition(aruco),
+        condition=IfCondition(navigation),
         launch_arguments={
             "use_sim_time": use_sim_time,
             "log_level": log_level,
@@ -85,7 +85,7 @@ def generate_launch_description():
             "log_level": log_level,
             "params_file": params_file,
             "camera_name": TextSubstitution(text="main_camera"),
-            "aruco_detector": aruco,
+            "feature_detector": navigation,
             "optical_flow": optical_flow,
         }.items(),
     )
@@ -120,11 +120,11 @@ def generate_launch_description():
             log_level_declare,
             params_file_declare,
             fcu_conn_declare,
-            aruco_declare,
+            navigation_declare,
             optical_flow_declare,
             # Launch nodes
             description_cmd,
-            aruco_cmd,
+            navigation_cmd,
             main_camera_cmd,
             fcu_bridge_cmd,
             web_support_cmd,

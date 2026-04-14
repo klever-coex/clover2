@@ -1,17 +1,12 @@
 #pragma once
 
-// Clover2 includes
-#include <clover2/aruco/map_client.hpp>
-#include <clover2/aruco/optimizer/base_optimizer.hpp>
-#include <clover2/common/lifecycle_node.hpp>
-#include <clover2/common/parameter_watcher.hpp>
-
 // ROS2 includes
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
-// Eigen includes
-#include <Eigen/Geometry>
+// Clover2 includes
+#include <clover2/map/client.hpp>
+#include <clover2/common/lifecycle_node.hpp>
 
 // TF2 includes
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -20,8 +15,7 @@
 #include <tf2_ros/transform_listener.h>
 
 // Msgs includes
-#include <clover2_aruco_msgs/msg/marker.hpp>
-#include <clover2_aruco_msgs/msg/marker_array.hpp>
+#include <clover2_pose_msgs/msg/marker_array.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 
@@ -38,48 +32,33 @@ public:
         const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
     virtual ~tracker();
 
-    CallbackReturn on_configure(const rclcpp_lifecycle::State& /* state */);
-
-    CallbackReturn on_activate(const rclcpp_lifecycle::State& /* state */);
-
-    CallbackReturn on_deactivate(const rclcpp_lifecycle::State& /* state */);
-
-    CallbackReturn on_cleanup(const rclcpp_lifecycle::State& /* state */);
-
-    CallbackReturn on_shutdown(const rclcpp_lifecycle::State& /* state */);
+    CallbackReturn on_configure(const rclcpp_lifecycle::State& state);
+    CallbackReturn on_activate(const rclcpp_lifecycle::State& state);
+    CallbackReturn on_deactivate(const rclcpp_lifecycle::State& state);
+    CallbackReturn on_cleanup(const rclcpp_lifecycle::State& state);
+    CallbackReturn on_shutdown(const rclcpp_lifecycle::State& state);
 
 private:
     void markers_callback(
-        const clover2_aruco_msgs::msg::MarkerArray::SharedPtr msg);
-
-    void initialize_optimizer();
-    void publish_pose(const optimizer::marker& pose,
-                      std::chrono::nanoseconds timestamp);
-
-    // Optimization parameters
-    std::string m_optimizer_type;
+        const clover2_pose_msgs::msg::MarkerArray::SharedPtr msg);
 
     // Camera parameters
     std::string m_tracking_id;
 
     // Detection parameters
-    std::shared_ptr<map_client> m_map_client;
-    std::shared_ptr<optimizer::base_optimizer> m_optimizer;
+    std::shared_ptr<clover2::map::client> m_map_client;
 
     // TF
     std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
     std::shared_ptr<tf2_ros::Buffer> m_tf_buffer;
     std::shared_ptr<tf2_ros::TransformListener> m_tf_listener;
 
-    // Parameter watcher
-    std::shared_ptr<clover2::common::parameter_watcher> m_parameter_watcher;
-
     // Publishers and subscribers
-    rclcpp::Subscription<clover2_aruco_msgs::msg::MarkerArray>::SharedPtr
+    rclcpp::CallbackGroup::SharedPtr m_callback_group;
+    rclcpp::Subscription<clover2_pose_msgs::msg::MarkerArray>::SharedPtr
         m_markers_sub;
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr m_pose_pub;
-    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr
-        m_pose_cov_pub;
+    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr m_pose_cov_pub;
     rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr
         m_poses_debug_pub;
 };
