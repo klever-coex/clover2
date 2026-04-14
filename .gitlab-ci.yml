@@ -14,6 +14,9 @@ stages:
   after_script:
     - echo "Fixing permissions for cleanup..."
     - sudo chown -R $(id -u):$(id -g) . 2>/dev/null || true
+  cache:
+    paths:
+      - .cache/
 
 .job-master: &job-master
   variables:
