@@ -1,5 +1,6 @@
 // clover2
 #include <clover2/fcu_bridge/backend/mavros.hpp>
+#include <clover2/common/rclcpp_trails.hpp>
 #include <rclcpp/logging.hpp>
 
 // STL
