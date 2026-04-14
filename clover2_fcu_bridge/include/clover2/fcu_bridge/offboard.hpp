@@ -138,6 +138,7 @@ private:
     std::string m_setpoint_frame{"setpoint"};
     process_callback m_process_callback{nullptr};
 
+    bool m_check_fcu{false};
     double m_speed{0.3};
     double m_speed_limit{2.0};
     double m_yaw_speed{0.1};

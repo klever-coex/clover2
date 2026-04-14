@@ -217,6 +217,8 @@ void offboard::check_fcu(state& process_state) {
         process_state = state::idle;
         return;
     }
+
+    m_check_fcu = false;
 }
 
 void offboard::publish_offboard() {
@@ -229,7 +231,7 @@ void offboard::publish_offboard() {
     m_pose_setpoint.header.stamp = get_clock()->now();
     geometry_msgs::msg::PoseStamped target_pose;
 
-    if (m_state != state::idle) {
+    if (m_state != state::idle && m_check_fcu) {
         check_fcu(process_state);
     }
 
@@ -336,6 +338,10 @@ void offboard::change_state(const state new_state) {
     RCLCPP_INFO(get_logger(), "Change state from %s to %s",
                 state_set_map(m_state), state_set_map(new_state));
     m_state = new_state;
+
+    if (new_state != offboard::state::idle) {
+        m_check_fcu = true;
+    }
 }
 
 }  // namespace clover2::fcu_bridge
