@@ -56,12 +56,14 @@ tracker::CallbackReturn tracker::on_activate(
     m_tf_buffer = std::make_shared<tf2_ros::Buffer>(this->get_clock());
     m_tf_listener = std::make_shared<tf2_ros::TransformListener>(*m_tf_buffer);
 
-    m_pose_pub = create_publisher<geometry_msgs::msg::PoseStamped>(
-        "~/pose", rclcpp::SystemDefaultsQoS());
+    auto pose_qos = rclcpp::QoS(5).reliable().durability_volatile();
+
+    m_pose_pub =
+        create_publisher<geometry_msgs::msg::PoseStamped>("~/pose", pose_qos);
 
     m_pose_cov_pub =
         create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
-            "~/pose_cov", rclcpp::SystemDefaultsQoS());
+            "~/pose_cov", pose_qos);
 
     m_poses_debug_pub = create_publisher<geometry_msgs::msg::PoseArray>(
         "~/poses_debug", rclcpp::SystemDefaultsQoS());
@@ -162,14 +164,11 @@ void tracker::markers_callback(
 
         Eigen::Matrix3d R = drone_in_map.rotation();
         Eigen::Matrix3d cov_map = R * cov_pos * R.transpose();
-
         cov_map += 1e-6 * Eigen::Matrix3d::Identity();
 
-        Eigen::Matrix3d info = cov_map.inverse();
-        Eigen::Vector3d pos = drone_in_map.translation();
-
-        info_sum += info;
-        weighted_sum += info * pos;
+        Eigen::Matrix3d cov_map_pos = cov_map.inverse();
+        info_sum += cov_map_pos;
+        weighted_sum += cov_map_pos * drone_in_map.translation();
 
         // add debug transform
         poses_debug.poses.push_back(tf2::toMsg(drone_in_map));
@@ -198,7 +197,7 @@ void tracker::markers_callback(
         pos_final = cov_final * weighted_sum;
     } else {
         pos_final = weighted_sum;
-        cov_final = Eigen::Matrix3d::Identity() * 1e3;
+        cov_final = Eigen::Matrix3d::Identity() * 0.05;
     }
 
     Eigen::Matrix<double, 6, 6> cov6_final =
