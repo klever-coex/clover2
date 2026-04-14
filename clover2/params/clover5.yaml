@@ -9,8 +9,8 @@
 /**/main_camera/camera:
   ros__parameters:
     camera: 0
-    width: 800
-    height: 600
+    width: 640
+    height: 480
     frame_id: "main_camera_link"
     format:
       "RGB888"
