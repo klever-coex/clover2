@@ -12,7 +12,8 @@
     width: 800
     height: 600
     frame_id: "main_camera_link"
-    format: "RGB888"
+    format:
+      "RGB888"
       #AeEnable: false
       #AeFlickerMode: 0
       #AnalogueGain: 2.0
@@ -24,8 +25,22 @@
     ExposureTime: 1500
     ExposureTimeMode: 1
     FrameDurationLimits: [33333, 33333]
-    HdrMode: 0
+    HdrMode:
+      0
       #Sharpness: 0.0
+
+# IMX219
+# /**/main_camera/camera:
+#   ros__parameters:
+#     camera: 0
+#     width: 640
+#     height: 480
+#     frame_id: "main_camera_link"
+#     format: "RGB888"
+#     AeEnable: false
+#     AnalogueGain: 8.0
+#     ExposureTime: 1000
+#     FrameDurationLimits: [33333, 33333]
 
 /**/main_camera/feat_detector:
   ros__parameters:
