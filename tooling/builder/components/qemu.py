@@ -1,18 +1,16 @@
-import logging
-import subprocess
-import pathlib
-import asyncssh
 import asyncio
+import logging
+import pathlib
 import random
+import subprocess
 from dataclasses import dataclass, field
+
+import asyncssh
 
 from .component_base import ComponentBase
 
 logger = logging.getLogger(__name__)
 
-def serialize_dict(d: dict):
-    envs_map = [f'{k}="{v}"' for k, v in d.items()]
-    return ' '.join(envs_map)
 
 @dataclass
 class QemuConfig:
@@ -23,7 +21,7 @@ class QemuConfig:
     machine: str = field(default="virt")
     smp: int = field(default=8)
     cpu: str = field(default="cortex-a57")
-    ram_size: str = field(default="8G")
+    ram_size: str = field(default="16G")
     extra_args: list[str] = field(default_factory=[])
 
 
@@ -41,14 +39,25 @@ class Qemu(ComponentBase):
         self.qemu_args += self.cfg.extra_args
 
     async def copy_to(self, src, dest):
-        async with asyncssh.connect('localhost', username=self.cfg.ssh_user, password=self.cfg.ssh_password, port=self.cfg.ssh_port, known_hosts=None) as conn:
+        async with asyncssh.connect(
+            "localhost",
+            username=self.cfg.ssh_user,
+            password=self.cfg.ssh_password,
+            port=self.cfg.ssh_port,
+            known_hosts=None,
+        ) as conn:
             async with conn.start_sftp_client() as sftp:
                 await sftp.put(src, dest, recurse=True)
 
-    async def execute(self, cmd, secrets = {}):
-        async with asyncssh.connect('localhost', username=self.cfg.ssh_user, password=self.cfg.ssh_password, port=self.cfg.ssh_port, known_hosts=None) as conn:
-            final_cmd = f'{serialize_dict(secrets)} {cmd}'
-            async with conn.create_process(final_cmd) as process:
+    async def execute(self, cmd, secrets={}):
+        async with asyncssh.connect(
+            "localhost",
+            username=self.cfg.ssh_user,
+            password=self.cfg.ssh_password,
+            port=self.cfg.ssh_port,
+            known_hosts=None,
+        ) as conn:
+            async with conn.create_process(cmd) as process:
                 async for stdout_data in process.stdout:
                     logger.getChild("ssh").info(stdout_data.rstrip())
 
@@ -77,12 +86,14 @@ class Qemu(ComponentBase):
         logger.debug(f"Configure net...")
 
         self.qemu_args += ["-device", "virtio-net-device,netdev=net0"]
-        self.qemu_args += ["-netdev", f"user,id=net0,hostfwd=tcp::{self.cfg.ssh_port}-:22"]
+        self.qemu_args += [
+            "-netdev",
+            f"user,id=net0,hostfwd=tcp::{self.cfg.ssh_port}-:22",
+        ]
 
     def configure_drives(self):
         logger.debug(f"Configure drives...")
-        self.qemu_args += ["-drive",
-                           f"file={self.cfg.image},if=virtio,format=raw"]
+        self.qemu_args += ["-drive", f"file={self.cfg.image},if=virtio,format=raw"]
 
     def configure_system(self):
         logger.debug(f"Configure system...")
@@ -95,8 +106,7 @@ class Qemu(ComponentBase):
 
     def resize_image(self, image: pathlib.Path, new_size: str):
         logger.info(f"Resize image `{image}` to size {new_size}")
-        subprocess.run(
-            ["qemu-img", "resize", f"{image}", f"{new_size}"], check=True)
+        subprocess.run(["qemu-img", "resize", f"{image}", f"{new_size}"], check=True)
 
     async def run_qemu(self):
         logger.getChild("QEMU").debug(f"Run qemu {self.qemu_args}")
@@ -105,7 +115,7 @@ class Qemu(ComponentBase):
             " ".join(self.qemu_args),
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            stderr=asyncio.subprocess.PIPE,
         )
 
         async for stdout_data in self.qemu_process.stdout:

@@ -1,6 +1,0 @@
-clover2_aruco_msgs/Marker marker
-
-clover2_aruco_msgs/Point2D c1
-clover2_aruco_msgs/Point2D c2
-clover2_aruco_msgs/Point2D c3
-clover2_aruco_msgs/Point2D c4

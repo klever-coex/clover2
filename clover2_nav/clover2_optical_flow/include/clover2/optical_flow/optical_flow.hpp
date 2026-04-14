@@ -120,9 +120,6 @@ private:
     // Diagnostics
     std::shared_ptr<diagnostic_updater::Updater> m_diagnostic_updater;
 
-    // Parameter watcher
-    clover2::common::parameter_watcher::SharedPtr m_parameter_watcher;
-
     // Publishers and subscribers
     rclcpp::Publisher<mavros_msgs::msg::OpticalFlowRad>::SharedPtr
         m_flow_pub;  ///< Flow publisher
