@@ -87,12 +87,12 @@ optical_flow::CallbackReturn optical_flow::on_activate(
 
     // Create subscribers
     m_camera_info_sub = this->create_subscription<sensor_msgs::msg::CameraInfo>(
-        "~/camera_info", rclcpp::SensorDataQoS(),
+        "~/input/camera_info", rclcpp::SensorDataQoS(),
         std::bind(&optical_flow::camera_info_callback, this,
                   std::placeholders::_1));
 
     m_image_sub = this->create_subscription<sensor_msgs::msg::Image>(
-        "~/image_raw", rclcpp::SensorDataQoS(),
+        "~/input/image_raw", rclcpp::SensorDataQoS(),
         std::bind(&optical_flow::flow_callback, this, std::placeholders::_1));
 
     RCLCPP_INFO(get_logger(), "Optical Flow activated");
