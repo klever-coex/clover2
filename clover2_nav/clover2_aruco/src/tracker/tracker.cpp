@@ -143,7 +143,9 @@ void tracker::markers_callback(
     poses_debug.poses.reserve(msg->markers.size());
 
     // temp variables for estimating
+    bool first = true;
     Eigen::Vector3d avg_translation = Eigen::Vector3d::Zero();
+    Eigen::Quaterniond q_ref = Eigen::Quaterniond::Identity();
     Eigen::Quaterniond avg_quat = Eigen::Quaterniond::Identity();
     Eigen::Vector4d cumulative_q = Eigen::Vector4d::Zero();
 
@@ -176,7 +178,16 @@ void tracker::markers_callback(
         // estimate position
         avg_translation += drone_in_map.translation();
         Eigen::Quaterniond q(drone_in_map.rotation());
-        cumulative_q += q.coeffs();
+
+        if (first) {
+            q_ref = q;
+            first = false;
+        }
+
+        if (q.dot(q_ref) < 0.0) q.coeffs() *= -1.0;
+
+        double sigma = (1.0 / (1.0 + avg_translation.norm()));
+        cumulative_q += sigma * q.coeffs();
     }
 
     // finalize pose estimation
