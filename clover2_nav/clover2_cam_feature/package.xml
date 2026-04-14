@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/XMLSchema"?>
+<package format="3">
+  <name>clover2_cam_feature</name>
+  <version>0.0.0</version>
+  <description>Camera feature plugins (markers, etc.)</description>
+  <maintainer email="2663161@mail.ru">l_motya</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_ros</buildtool_depend>
+
+  <depend>clover2_map</depend>
+  <depend>clover2_common</depend>
+  <depend>clover2_pose_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>diagnostic_updater</depend>
+  <depend>geometry_msgs</depend>
+  <depend>image_geometry</depend>
+  <depend>libopencv-dev</depend>
+  <depend>pluginlib</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_components</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>sensor_msgs</depend>
+  <depend>tf2</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
