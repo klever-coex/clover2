@@ -70,10 +70,10 @@ void maker_base::compute_pose_covariance([[maybe_unused]] const cv::Vec3d& rvec,
     pose_cov.create(6, 6, CV_64F);
     pose_cov.setTo(0);
 
-    auto d2 = tvec.dot(tvec);
+    auto dist = cv::norm(tvec);
 
-    double sigma_xy = 0.05 + 0.05 * d2;
-    double sigma_z = 0.1 + 0.1 * d2;
+    double sigma_xy = 0.05 + 0.05 * dist;
+    double sigma_z = 0.1 + 0.1 * dist;
 
     double var_xy = sigma_xy * sigma_xy;
     double var_z = sigma_z * sigma_z;
