@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -55,27 +56,22 @@ def generate_launch_description():
     world = LaunchConfiguration("world")
     gui = LaunchConfiguration("gui")
 
-    set_env_gazebo_resource = SetEnvironmentVariable(
-        name="IGN_GAZEBO_RESOURCE_PATH",
-        value=[
-            EnvironmentVariable("IGN_GAZEBO_RESOURCE_PATH", default_value=""),
-            os.pathsep,
-            PathJoinSubstitution([pkg_clover2_gz_sim, "worlds"]),
-        ],
+    gz_resource_path = SetEnvironmentVariable(
+        name="GZ_SIM_RESOURCE_PATH",
+        value=":".join(
+            [
+                os.path.join(pkg_clover2_gz_sim, "worlds"),
+                os.path.join(pkg_clover2_gz_sim, "models"),
+            ]
+        ),
     )
 
     gz_args = [
         os.path.join(pkg_clover2_gz_sim, "worlds/"),
         world,
         ".sdf",
-        " ",
-        # log level : 1
-        "-v 1",
-        " ",
-        # autostart
-        "-r",
-        " ",
-        # headless
+        " -v 1",
+        " -r",
         __headless_rendering(gui),
     ]
 
@@ -92,6 +88,26 @@ def generate_launch_description():
         }.items(),
     )
 
+    spawn_cmd = Node(
+        package="ros_gz_sim",
+        executable="create",
+        output="screen",
+        arguments=[
+            "-world",
+            "x500",
+            "-name",
+            "px4",
+            "-x",
+            "0",
+            "-y",
+            "0",
+            "-z",
+            "0.3",
+            "-topic",
+            "robot_description",
+        ],
+    )
+
     return LaunchDescription(
         [
             use_sim_time_declare,
@@ -99,8 +115,9 @@ def generate_launch_description():
             # params_file_declare,
             world_declare,
             gui_declare,
-            set_env_gazebo_resource,
+            gz_resource_path,
             gazebo_cmd,
+            spawn_cmd,
         ]
     )
 
