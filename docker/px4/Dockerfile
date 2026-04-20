@@ -4,6 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 COPY tooling/docker/* /clover2/
 COPY tooling/scripts/* /clover2/
 
+# Install dependencies
 RUN apt-get update && \
 	apt-get install -y --no-install-recommends \
 		build-essential \
@@ -23,10 +24,13 @@ RUN apt-get update && \
 		zip \
 		unzip \
 		wget \
-		lsb-release \
+		gnupg \
+        lsb-release \
+		libeigen3-dev \
         ca-certificates && \
 	/clover2/cleanup-apt.sh
 
+# Install gazebo
 RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg\
     && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" | tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
 
@@ -57,30 +61,10 @@ RUN /clover2/apply_patches.py /build/PX4-Autopilot /patches --verbose --recursiv
     make px4_sitl_default
 
 
-FROM clover2-px4-dev AS clover2-px4-sitl
+FROM clover2-px4-deps AS clover2-px4-sitl
 
 ENV DEBIAN_FRONTEND=noninteractive
 COPY tooling/docker/* /clover2/
-
-RUN apt-get update && \
-	apt-get install -y --no-install-recommends \
-		libstdc++6 \
-		python3 \
-		curl \
-        wget \
-		gnupg \
-        lsb-release \
-        libeigen3-dev \
-        ca-certificates && \
-	/clover2/cleanup-apt.sh
-
-RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg\
-    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" | tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
-
-RUN apt-get update -qq \
-    && apt-get install -y \
-        gz-harmonic && \
-		/clover2/cleanup-apt.sh
 
 WORKDIR /px4
 

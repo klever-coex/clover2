@@ -1,37 +1,9 @@
 services:
-  # px4:
-  #   image: registry.gitlab.com/coex2/clover2/clover2-px4:1cd4a48
-  #   container_name: px4
-  #   init: true
-  #   ipc: host
-  #   network_mode: host
-  #   volumes:
-  #     - ./px4-workdir:/workdir
-
-  isaac-sim:
-    image: nvcr.io/nvidia/isaac-sim:5.1.0 # Replace with your desired version
-    container_name: isaac-sim
-    entrypoint: bash
-    stdin_open: true
-    tty: true
+  px4:
+    image: registry.gitlab.com/coex2/clover2/clover2-px4:1cd4a48
+    container_name: px4
+    init: true
+    ipc: host
     network_mode: host
-    environment:
-      - ACCEPT_EULA=Y
-      - PRIVACY_CONSENT=Y
     volumes:
-      # Persistent storage for logs and cache to speed up subsequent boots
-      - ./tmp/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw
-      - ./tmp/isaac-sim/cache/ov:/root/.cache/ov:rw
-      - ./tmp/isaac-sim/cache/pip:/root/.cache/pip:rw
-      - ./tmp/isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw
-      - ./tmp/isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw
-      - ./tmp/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw
-      - ./tmp/isaac-sim/data:/root/.local/share/ov/data:rw
-      - ./tmp/isaac-sim/documents:/root/Documents:rw
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+      - ./px4-workdir:/workdir

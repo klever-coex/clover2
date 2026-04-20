@@ -57,6 +57,10 @@ clover2-bake-%:
 	@mkdir -p $(DOCKER_OUTPUT_DIR)
 	docker buildx bake -f tooling/docker-bake.hcl $*
 
+## clover2-bake-push-%: Push docker images
+clover2-bake-push-%:
+	docker buildx bake --set *.output=type=registry -f tooling/docker-bake.hcl $*
+
 ## clover2-bake-print-%: Print buildx bake configuration
 clover2-bake-print-%:
 	docker buildx bake -f tooling/docker-bake.hcl --print $*
