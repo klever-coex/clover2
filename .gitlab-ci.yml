@@ -17,6 +17,8 @@ stages:
         export BUILD_MODE=release
       elif [ -n "$CI_MERGE_REQUEST_ID" ]; then
         export BUILD_MODE=develop
+      elif [ "$CI_PIPELINE_SOURCE" = "push" ]; then
+        export BUILD_MODE=develop
       else
         echo "Unexpected BUILD_MODE. Check rules"
         exit -1
@@ -36,6 +38,7 @@ stages:
   <<: *docker-task
   script:
     - make clover2-bake-$BAKE_TARGET
+    - make clover2-bake-push-$BAKE_TARGET
 
 docker-build-px4:
   <<: *docker-bake
