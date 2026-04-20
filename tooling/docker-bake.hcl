@@ -83,7 +83,7 @@ target "project-deploy" {
       },
       {
         dockerfile = "docker/frontend/Dockerfile"
-        tgt = "clover2-gui"
+        tgt = "clover2-frontend"
       },
       {
         dockerfile = "docker/ros/Dockerfile"
@@ -93,7 +93,7 @@ target "project-deploy" {
   }
 }
 
-target "mirror" {
+target "clover2-wetty" {
   tags = tagged("clover2-wetty")
   output = outputs("clover2-wetty", true)
 
@@ -164,6 +164,10 @@ target "_clover2-px4" {
     REGISTRY_POLICY == "load" ? "type=docker" : null,
   ])
 
+  args = {
+    PX4_VERSION = "v1.16.1"
+  }
+
   inherits = ["base"]
 }
 
@@ -208,5 +212,5 @@ group "tooling" {
 }
 
 group "web" {
-  targets = ["clover2-docs", "clover2-gui", "mirror"]
+  targets = ["clover2-docs", "clover2-frontend", "clover2-wetty"]
 }
