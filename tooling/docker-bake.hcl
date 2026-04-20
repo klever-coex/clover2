@@ -195,18 +195,18 @@ group "all" {
   targets = ["web", "tooling", "ros", "px4"]
 }
 
-group "tooling" {
-  targets = ["builder"]
-}
-
-group "web" {
-  targets = ["clover2-docs", "clover2-gui", "mirror"]
+group "px4" {
+  targets = ["clover2-px4-deps", "clover2-px4-dev", "clover2-px4-sitl"]
 }
 
 group "ros" {
   targets = ["clover2-ros"]
 }
 
-group "px4" {
-  targets = ["clover2-px4-deps", "clover2-px4-dev", "clover2-px4-sitl"]
+group "tooling" {
+  targets = ["builder"]
+}
+
+group "web" {
+  targets = ["clover2-docs", "clover2-gui", "mirror"]
 }
