@@ -10,6 +10,20 @@ stages:
   services:
     - docker:dind
   before_script:
+    - |
+      if [ "$CI_COMMIT_REF_NAME" = "master" ]; then
+        export BUILD_MODE=master
+      elif [ -n "$CI_COMMIT_TAG" ]; then
+        export BUILD_MODE=release
+      elif [ -n "$CI_MERGE_REQUEST_ID" ]; then
+        export BUILD_MODE=develop
+      else
+        echo "Unexpected BUILD_MODE. Check rules"
+        exit -1
+      fi
+
+    - echo "BUILD_MODE=$BUILD_MODE"
+
     - echo "$DOCKER_REGISTRY_PASSWORD" | docker login registry.gitlab.com --username $DOCKER_REGISTRY_USER --password-stdin
   after_script:
     - echo "Fixing permissions for cleanup..."
@@ -18,115 +32,31 @@ stages:
     paths:
       - .cache/
 
-.job-master: &job-master
-  variables:
-    BUILD_MODE: master
-  rules:
-    - if: $CI_COMMIT_REF_NAME == "master"
-
-.job-mr: &job-mr
-  variables:
-    BUILD_MODE: develop
-  only:
-    - merge_request
-
-.job-release: &job-release
-  variables:
-    BUILD_MODE: release
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^master$/
-
 .docker-bake: &docker-bake
   <<: *docker-task
   script:
-    - make docker-bake-$BAKE_TARGET
+    - make clover2-bake-$BAKE_TARGET
 
-.docker-build-web: &docker-build-web
+docker-build-px4:
   <<: *docker-bake
   stage: docker
   variables:
-    BAKE_TARGET: "web"
+    BAKE_TARGET: "px4"
 
-.docker-build-ros: &docker-build-ros
+docker-build-ros:
   <<: *docker-bake
   stage: image
   variables:
     BAKE_TARGET: "ros"
 
-.docker-build-tooling: &docker-build-tooling
+docker-build-tooling:
   <<: *docker-bake
   stage: docker
   variables:
     BAKE_TARGET: "tooling"
 
-.image-builder-in-docker: &image-builder-in-docker
-  <<: *docker-task
-  stage: image
-  when: manual
-  script:
-    - make builder-download-in-docker
-    - make builder-build-in-docker
-  artifacts:
-    name: "clover2-image-${CI_COMMIT_SHORT_SHA}"
-    paths:
-      - ${IMAGE_ARTIFACT_PATTERN}
-    expire_in: 1 week
-    when: on_success
-
-docker-build-web-master:
-  <<: *job-master
-  <<: *docker-build-web
-
-docker-build-web-mr:
-  <<: *job-mr
-  <<: *docker-build-web
-
-docker-build-web-release:
-  <<: *job-release
-  <<: *docker-build-web
-
-docker-build-ros-master:
-  <<: *job-master
-  <<: *docker-build-ros
-
-docker-build-ros-mr:
-  when: manual
-  <<: *job-mr
-  <<: *docker-build-ros
-
-docker-build-ros-release:
-  <<: *job-release
-  <<: *docker-build-ros
-
-docker-build-tooling-master:
-  <<: *job-master
-  <<: *docker-build-tooling
-
-docker-build-tooling-mr:
-  <<: *job-mr
-  <<: *docker-build-tooling
-
-docker-build-tooling-release:
-  <<: *job-release
-  <<: *docker-build-tooling
-
-image-build-master:
-  <<: *job-master
-  <<: *image-builder-in-docker
-  needs:
-    - docker-build-tooling-master
-    - docker-build-web-master
-
-image-build-mr:
-  <<: *job-mr
-  <<: *image-builder-in-docker
-  needs:
-    - docker-build-tooling-mr
-    - docker-build-web-mr
-
-image-build-release:
-  <<: *job-release
-  <<: *image-builder-in-docker
-  needs:
-    - docker-build-tooling-release
-    - docker-build-web-release
+docker-build-web:
+  <<: *docker-bake
+  stage: docker
+  variables:
+    BAKE_TARGET: "web"
