@@ -62,39 +62,62 @@ def collect_patches(patches_path: str, recursive: bool = True) -> List[str]:
     return patch_files
 
 
-def apply_patch(repo_path: str, patch_file: str) -> None:
-    logger.info(f"Applying patch: {patch_file}")
+def patches_unwind(repo_path: str, applied_patch_list: list):
+    logger.info("Attempting to remove applied patches in order...")
 
-    apply_cmd = ["git", "apply"]
+    for patch in applied_patch_list:
+        command = [
+            "git",
+            "apply",
+            "--unsafe-paths",
+            "-R",
+            patch,
+            "--directory=",
+            repo_path,
+        ]
 
-    check_cmd = apply_cmd + ["--check", patch_file]
-    check_result = subprocess.run(check_cmd, cwd=repo_path)
+        logger.info(f"Attempting to revert patch: {patch}")
 
-    if check_result.returncode == 0:
-        run_command(apply_cmd + [patch_file], cwd=repo_path)
-        logger.debug("Applied via git apply")
-        return
+        return_code = subprocess.run(command)
+        logger.info(f"Return code: {return_code}")
 
-    logger.warning("git apply failed, trying git am")
-
-    try:
-        run_command(["git", "am", patch_file], cwd=repo_path)
-        logger.debug("Applied via git am")
-    except RuntimeError:
-        logger.error("git am failed, aborting sequence")
-        subprocess.run(["git", "am", "--abort"], cwd=repo_path)
-        raise
+        if return_code != 0:
+            logger.error("FAILED TO REVERT PATCH!")
+            logger.error("The destination repo is probably now in a bad state.")
+            logger.error("It may require some manual cleanup.")
+            patches_unwind(repo_path, applied_patch_list)
+            sys.exit(255)
+        else:
+            applied_patch_list.append(patch)
 
 
-def apply_all_patches(repo_path: str, patches: List[str]) -> None:
-    if not patches:
-        logger.warning("No patches found")
-        return
+def apply_patches(repo_path: str, patch_list: list):
+    applied_patch_list = []
 
-    for patch in patches:
-        apply_patch(repo_path, patch)
+    for patch in patch_list:
+        command = [
+            "git",
+            "apply",
+            "--unsafe-paths",
+            patch,
+            "--directory=" + repo_path,
+        ]
 
-    logger.info("All patches applied successfully")
+        logger.info("Attempting to apply patch: " + patch)
+
+        return_code = -1
+
+        try:
+            return_code = subprocess.run(command)
+        except subprocess.CalledProcessError as grepexc:
+            logger.info("error code", grepexc.returncode, grepexc.output)
+
+            if return_code != 0:
+                logger.info("FAILED TO APPLY PATCH!")
+                patches_unwind(repo_path, applied_patch_list)
+                sys.exit(255)
+
+        applied_patch_list.insert(0, patch)
 
 
 def parse_args() -> argparse.Namespace:
@@ -135,7 +158,7 @@ def main():
 
         patches = collect_patches(patches_path, recursive=args.recursive)
 
-        apply_all_patches(repo_path, patches)
+        apply_patches(repo_path, patches)
 
     except Exception as e:
         logger.exception(f"Execution failed: {e}")

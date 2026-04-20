@@ -4,7 +4,6 @@ FROM ubuntu:24.04 AS clover2-px4-deps
 
 ENV DEBIAN_FRONTEND=noninteractive
 COPY tooling/docker/* /clover2/
-COPY tooling/scripts/* /clover2/
 
 # Install dependencies
 RUN apt-get update && \
@@ -38,15 +37,16 @@ RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pk
 
 RUN apt-get update -qq \
     && apt-get install -y \
-        gz-harmonic && \
-		/clover2/cleanup-apt.sh
+        libgz-transport13-dev \
+        libgz-msgs10-dev \
+        libgz-tools2-dev \
+        libgz-utils2-dev && \
+	/clover2/cleanup-apt.sh
 
 
 FROM clover2-px4-deps AS clover2-px4-dev
 
 ENV DEBIAN_FRONTEND=noninteractive
-COPY tooling/docker/* /clover2/
-COPY tooling/scripts/* /clover2/
 
 WORKDIR /build
 
@@ -59,6 +59,7 @@ RUN pip3 install -r ./Tools/setup/requirements.txt --no-cache-dir --break-system
 
 # Build
 COPY docker/px4/patches/* /patches/
+COPY tooling/scripts/* /clover2/
 RUN /clover2/apply_patches.py /build/PX4-Autopilot /patches --verbose --recursive && \
     make px4_sitl_default
 
@@ -78,4 +79,4 @@ ENV PX4_GZ_STANDALONE=1
 ENV PX4_GZ_MODEL_NAME=px4
 ENV PX4_SYS_AUTOSTART=4001
 
-ENTRYPOINT ["/px4/bin/px4", "ROMFS/px4fmu_common", "-d", "/px4/etc"]
+ENTRYPOINT ["/px4/bin/px4", "ROMFS/px4fmu_common", "/px4/etc"]

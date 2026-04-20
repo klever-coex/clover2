@@ -55,7 +55,7 @@ help:
 ## clover2-bake-%: Build docker images using buildx bake
 clover2-bake-%:
 	@mkdir -p $(DOCKER_OUTPUT_DIR)
-	docker buildx bake -f tooling/docker-bake.hcl $*
+	docker buildx bake -f tooling/docker-bake.hcl --progress plain $*
 
 ## clover2-bake-push-%: Push docker images
 clover2-bake-push-%:
