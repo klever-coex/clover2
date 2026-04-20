@@ -1,3 +1,5 @@
+ARG PX4_VERSION
+
 FROM ubuntu:24.04 AS clover2-px4-deps
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -51,7 +53,7 @@ WORKDIR /build
 # Clone PX4
 RUN git clone https://github.com/PX4/PX4-Autopilot.git
 WORKDIR /build/PX4-Autopilot
-RUN git switch --detach v1.16.1 && \
+RUN git switch --detach ${PX4_VERSION} && \
     git submodule update --init --recursive
 RUN pip3 install -r ./Tools/setup/requirements.txt --no-cache-dir --break-system-packages
 

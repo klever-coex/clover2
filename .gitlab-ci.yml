@@ -31,6 +31,7 @@ stages:
     - echo "Fixing permissions for cleanup..."
     - sudo chown -R $(id -u):$(id -g) . 2>/dev/null || true
   cache:
+    key: "global"
     paths:
       - .cache/
 
@@ -58,8 +59,20 @@ docker-build-tooling:
   variables:
     BAKE_TARGET: "tooling"
 
-docker-build-web:
+docker-build-docs:
   <<: *docker-bake
   stage: docker
   variables:
-    BAKE_TARGET: "web"
+    BAKE_TARGET: "docs"
+
+docker-build-frontend:
+  <<: *docker-bake
+  stage: docker
+  variables:
+    BAKE_TARGET: "frontend"
+
+docker-build-wetty:
+  <<: *docker-bake
+  stage: docker
+  variables:
+    BAKE_TARGET: "wetty"
