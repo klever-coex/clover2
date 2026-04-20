@@ -8,7 +8,7 @@ export
 BUILD_MODE ?= develop
 REGISTRY ?= $(REGISTRY_HOST)/coex2/clover2/
 REGISTRY_HOST ?= registry.gitlab.com
-REGISTRY_POLICY ?= push
+REGISTRY_POLICY ?= load
 PROJECT_DIR ?= $(shell pwd)
 DOCKER_OUTPUT_DIR ?= $(PROJECT_DIR)/build-docker
 
@@ -55,11 +55,11 @@ help:
 ## clover2-bake-%: Build docker images using buildx bake
 clover2-bake-%:
 	@mkdir -p $(DOCKER_OUTPUT_DIR)
-	docker buildx bake -f tooling/docker-bake.hcl --progress=plain $*
+	docker buildx bake -f tooling/docker-bake.hcl $*
 
 ## clover2-bake-print-%: Print buildx bake configuration
 clover2-bake-print-%:
-	docker buildx bake --print $*
+	docker buildx bake -f tooling/docker-bake.hcl --print $*
 
 ## builder-download: Download base disk image for builder
 builder-download:
