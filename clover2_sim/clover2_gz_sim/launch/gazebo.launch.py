@@ -66,11 +66,16 @@ def generate_launch_description():
         ),
     )
 
+    gz_server_config_path = SetEnvironmentVariable(
+        name="GZ_SIM_SERVER_CONFIG_PATH",
+        value=os.path.join(pkg_clover2_gz_sim, "config", "server.config.xml"),
+    )
+
     gz_args = [
         os.path.join(pkg_clover2_gz_sim, "worlds/"),
         world,
         ".sdf",
-        " -v 1",
+        " -v 2",
         " -r",
         __headless_rendering(gui),
     ]
@@ -94,7 +99,7 @@ def generate_launch_description():
         output="screen",
         arguments=[
             "-world",
-            "x500",
+            "aruco",
             "-name",
             "px4",
             "-x",
@@ -103,8 +108,8 @@ def generate_launch_description():
             "0",
             "-z",
             "0.3",
-            "-topic",
-            "robot_description",
+            "-file",
+            "/home/motya/projects/coex/clover2_ws/src/clover2/clover2_sim/clover2_gz_sim/models/x500/model.sdf",
         ],
     )
 
@@ -115,7 +120,8 @@ def generate_launch_description():
             # params_file_declare,
             world_declare,
             gui_declare,
-            gz_resource_path,
+            # gz_resource_path,
+            # gz_server_config_path,
             gazebo_cmd,
             spawn_cmd,
         ]

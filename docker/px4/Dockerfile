@@ -1,8 +1,8 @@
-FROM debian:bookworm-slim AS builder
+FROM ubuntu:24.04 AS clover2-px4-deps
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV CCACHE_DIR=/root/.ccache
 COPY tooling/docker/* /clover2/
+COPY tooling/scripts/* /clover2/
 
 RUN apt-get update && \
 	apt-get install -y --no-install-recommends \
@@ -23,41 +23,73 @@ RUN apt-get update && \
 		zip \
 		unzip \
 		wget \
-		ca-certificates && \
+		lsb-release \
+        ca-certificates && \
 	/clover2/cleanup-apt.sh
+
+RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg\
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" | tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+
+RUN apt-get update -qq \
+    && apt-get install -y \
+        gz-harmonic && \
+		/clover2/cleanup-apt.sh
+
+
+FROM clover2-px4-deps AS clover2-px4-dev
+
+ENV DEBIAN_FRONTEND=noninteractive
+COPY tooling/docker/* /clover2/
+COPY tooling/scripts/* /clover2/
 
 WORKDIR /build
 
+# Clone PX4
 RUN git clone https://github.com/PX4/PX4-Autopilot.git
-
 WORKDIR /build/PX4-Autopilot
-
 RUN git switch --detach v1.16.1 && \
     git submodule update --init --recursive
-
 RUN pip3 install -r ./Tools/setup/requirements.txt --no-cache-dir --break-system-packages
 
-RUN make px4_sitl_default
+# Build
+COPY docker/px4/patches/* /patches/
+RUN /clover2/apply_patches.py /build/PX4-Autopilot /patches --verbose --recursive && \
+    make px4_sitl_default
 
-FROM debian:bookworm-slim
+
+FROM clover2-px4-dev AS clover2-px4-sitl
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV CCACHE_DIR=/root/.ccache
 COPY tooling/docker/* /clover2/
 
 RUN apt-get update && \
 	apt-get install -y --no-install-recommends \
 		libstdc++6 \
 		python3 \
-		libeigen3-dev && \
+		curl \
+        wget \
+		gnupg \
+        lsb-release \
+        libeigen3-dev \
+        ca-certificates && \
 	/clover2/cleanup-apt.sh
+
+RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg\
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" | tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+
+RUN apt-get update -qq \
+    && apt-get install -y \
+        gz-harmonic && \
+		/clover2/cleanup-apt.sh
 
 WORKDIR /px4
 
-COPY --from=builder /build/PX4-Autopilot/build/px4_sitl_default/bin ./bin
-COPY --from=builder /build/PX4-Autopilot/build/px4_sitl_default/etc ./etc
-COPY --from=builder /build/PX4-Autopilot/ROMFS ./ROMFS
+COPY --from=clover2-px4-dev /build/PX4-Autopilot/build/px4_sitl_default/bin ./bin
+COPY --from=clover2-px4-dev /build/PX4-Autopilot/build/px4_sitl_default/etc ./etc
+COPY --from=clover2-px4-dev /build/PX4-Autopilot/ROMFS ./ROMFS
 
-WORKDIR /workdir
+ENV PX4_GZ_STANDALONE=1
+ENV PX4_GZ_MODEL_NAME=px4
+ENV PX4_SYS_AUTOSTART=4001
 
 ENTRYPOINT ["/px4/bin/px4", "ROMFS/px4fmu_common", "-d", "/px4/etc"]
