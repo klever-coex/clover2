@@ -26,6 +26,8 @@ stages:
 
     - echo "BUILD_MODE=$BUILD_MODE"
 
+    - apk add --no-cache make
+
     - echo "$DOCKER_REGISTRY_PASSWORD" | docker login registry.gitlab.com --username $DOCKER_REGISTRY_USER --password-stdin
   after_script:
     - echo "Fixing permissions for cleanup..."
