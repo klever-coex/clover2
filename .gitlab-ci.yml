@@ -63,16 +63,16 @@ docker-build-docs:
   <<: *docker-bake
   stage: docker
   variables:
-    BAKE_TARGET: "docs"
+    BAKE_TARGET: "clover2-docs"
 
 docker-build-frontend:
   <<: *docker-bake
   stage: docker
   variables:
-    BAKE_TARGET: "frontend"
+    BAKE_TARGET: "clover2-frontend"
 
 docker-build-wetty:
   <<: *docker-bake
   stage: docker
   variables:
-    BAKE_TARGET: "wetty"
+    BAKE_TARGET: "clover2-wetty"
