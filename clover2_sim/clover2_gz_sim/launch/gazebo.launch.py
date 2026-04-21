@@ -109,7 +109,7 @@ def generate_launch_description():
             "-z",
             "0.3",
             "-file",
-            "/home/motya/projects/coex/clover2_ws/src/clover2/clover2_sim/clover2_gz_sim/models/x500/model.sdf",
+            "/home/motya/projects/coex/clover2_ws/src/clover2/clover2_sim/clover2_gz_sim/models/x500_mono_cam_down/model.sdf",
         ],
     )
 
