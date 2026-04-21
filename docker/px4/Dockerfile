@@ -1,5 +1,3 @@
-ARG PX4_VERSION
-
 FROM ubuntu:24.04 AS clover2-px4-deps
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -45,6 +43,7 @@ RUN apt-get update -qq \
 
 
 FROM clover2-px4-deps AS clover2-px4-dev
+ARG PX4_VERSION
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -53,7 +52,8 @@ WORKDIR /build
 # Clone PX4
 RUN git clone https://github.com/PX4/PX4-Autopilot.git
 WORKDIR /build/PX4-Autopilot
-RUN git switch --detach ${PX4_VERSION} && \
+RUN echo "Checkout PX4-Autopilot version: ${PX4_VERSION}" && \
+    git switch --detach ${PX4_VERSION} && \
     git submodule update --init --recursive
 RUN pip3 install -r ./Tools/setup/requirements.txt --no-cache-dir --break-system-packages
 
@@ -79,4 +79,4 @@ ENV PX4_GZ_STANDALONE=1
 ENV PX4_GZ_MODEL_NAME=px4
 ENV PX4_SYS_AUTOSTART=4001
 
-ENTRYPOINT ["/px4/bin/px4", "ROMFS/px4fmu_common", "/px4/etc"]
+ENTRYPOINT ["/px4/bin/px4", "ROMFS/px4fmu_common", "-d", "/px4/etc"]

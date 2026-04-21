@@ -1,8 +1,8 @@
 diff --git a/ROMFS/px4fmu_common/init.d-posix/px4-rc.gzsim b/ROMFS/px4fmu_common/init.d-posix/px4-rc.gzsim
-index 43563ea606..cdcdfd9974 100644
+index 43563ea606..e4859981b1 100644
 --- a/ROMFS/px4fmu_common/init.d-posix/px4-rc.gzsim
 +++ b/ROMFS/px4fmu_common/init.d-posix/px4-rc.gzsim
-@@ -12,22 +12,6 @@ if [ -z "$GZ_SIM_VERSION" ]; then
+@@ -12,21 +12,8 @@ if [ -z "$GZ_SIM_VERSION" ]; then
      exit 1
  fi
  
@@ -21,7 +21,8 @@ index 43563ea606..cdcdfd9974 100644
 -    echo "ERROR [init] Gazebo gz sim version is too old ($GZ_SIM_VERSION). Minimum required version is $MIN_GZ_VERSION"
 -    exit 1
 -fi
--
++gz_command="gz"
++gz_sub_command="sim"
+ 
  # Look for an already running world
  get_gz_world() {
- 	gz_world=$( ${gz_command} topic -l | grep -m 1 -e "^/world/.*/clock" | sed 's/\/world\///g; s/\/clock//g' )

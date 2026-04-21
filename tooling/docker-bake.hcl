@@ -165,7 +165,7 @@ target "_clover2-px4" {
   ])
 
   args = {
-    PX4_VERSION = "v1.16.1"
+    PX4_VERSION = "94cb201" # v1.16.1
   }
 
   inherits = ["base"]
