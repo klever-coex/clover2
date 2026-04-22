@@ -22,6 +22,14 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     pkg_clover2_gz_sim = get_package_share_directory("clover2_gz_sim")
 
+    # Reading arguments
+    use_sim_time = LaunchConfiguration("use_sim_time")
+    log_level = LaunchConfiguration("log_level")
+    params_file = LaunchConfiguration("params_file")
+    world = LaunchConfiguration("world")
+    gui = LaunchConfiguration("gui")
+
+    # Declare arguments
     use_sim_time_declare = DeclareLaunchArgument(
         "use_sim_time",
         default_value="true",
@@ -50,32 +58,11 @@ def generate_launch_description():
         description='Set to "false" to run headless.',
     )
 
-    use_sim_time = LaunchConfiguration("use_sim_time")
-    log_level = LaunchConfiguration("log_level")
-    params_file = LaunchConfiguration("params_file")
-    world = LaunchConfiguration("world")
-    gui = LaunchConfiguration("gui")
-
-    gz_resource_path = SetEnvironmentVariable(
-        name="GZ_SIM_RESOURCE_PATH",
-        value=":".join(
-            [
-                os.path.join(pkg_clover2_gz_sim, "worlds"),
-                os.path.join(pkg_clover2_gz_sim, "models"),
-            ]
-        ),
-    )
-
-    gz_server_config_path = SetEnvironmentVariable(
-        name="GZ_SIM_SERVER_CONFIG_PATH",
-        value=os.path.join(pkg_clover2_gz_sim, "config", "server.config.xml"),
-    )
-
     gz_args = [
         os.path.join(pkg_clover2_gz_sim, "worlds/"),
         world,
         ".sdf",
-        " -v 2",
+        " -v 1",
         " -r",
         __headless_rendering(gui),
     ]
@@ -93,26 +80,6 @@ def generate_launch_description():
         }.items(),
     )
 
-    spawn_cmd = Node(
-        package="ros_gz_sim",
-        executable="create",
-        output="screen",
-        arguments=[
-            "-world",
-            "aruco",
-            "-name",
-            "px4",
-            "-x",
-            "0",
-            "-y",
-            "0",
-            "-z",
-            "0.3",
-            "-file",
-            "/home/motya/projects/coex/clover2_ws/src/clover2/clover2_sim/clover2_gz_sim/models/x500_mono_cam_down/model.sdf",
-        ],
-    )
-
     return LaunchDescription(
         [
             use_sim_time_declare,
@@ -120,10 +87,7 @@ def generate_launch_description():
             # params_file_declare,
             world_declare,
             gui_declare,
-            # gz_resource_path,
-            # gz_server_config_path,
             gazebo_cmd,
-            spawn_cmd,
         ]
     )
 

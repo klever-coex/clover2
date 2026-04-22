@@ -6,7 +6,6 @@ from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
     IncludeLaunchDescription,
-    OpaqueFunction,
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
@@ -15,39 +14,16 @@ from launch.substitutions import (
 )
 
 
-def launch_setup(context, *args, **kwargs):
+def generate_launch_description():
+    pkg_clover2_sim = get_package_share_directory("clover2_sim")
+
     # Reading arguments
     use_sim_time = LaunchConfiguration("use_sim_time")
     log_level = LaunchConfiguration("log_level")
     params_file = LaunchConfiguration("params_file")
     sim_type = LaunchConfiguration("sim_type")
     world = LaunchConfiguration("world")
-
-    sim_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [
-                    get_package_share_directory(
-                        "clover2_" + sim_type.perform(context) + "_sim"
-                    ),
-                    "launch",
-                    "sim.launch.py",
-                ]
-            )
-        ),
-        launch_arguments={
-            "use_sim_time": use_sim_time,
-            "log_level": log_level,
-            "params_file": params_file,
-            "world": world,
-        }.items(),
-    )
-
-    return [sim_cmd]
-
-
-def generate_launch_description():
-    pkg_clover2_sim = get_package_share_directory("clover2_sim")
+    model = LaunchConfiguration("model")
 
     # Declare arguments
     use_sim_time_declare = DeclareLaunchArgument(
@@ -79,6 +55,39 @@ def generate_launch_description():
         description="Gazebo world.",
     )
 
+    model_declare = DeclareLaunchArgument(
+        "model",
+        default_value="x500_mono_cam_down",
+        description="Select sim model.",
+    )
+
+    sim_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([pkg_clover2_sim, "launch", "sim.launch.py"])
+        ),
+        launch_arguments={
+            "use_sim_time": use_sim_time,
+            "log_level": log_level,
+            "params_file": params_file,
+            "sim_type": sim_type,
+            "world": world,
+        }.items(),
+    )
+
+    spawn_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([pkg_clover2_sim, "launch", "spawn.launch.py"])
+        ),
+        launch_arguments={
+            "use_sim_time": use_sim_time,
+            "log_level": log_level,
+            "params_file": params_file,
+            "sim_type": sim_type,
+            "world": world,
+            "model": model,
+        }.items(),
+    )
+
     return LaunchDescription(
         [
             use_sim_time_declare,
@@ -86,6 +95,8 @@ def generate_launch_description():
             params_file_declare,
             sim_type_declare,
             world_declare,
-            OpaqueFunction(function=launch_setup),
+            model_declare,
+            sim_cmd,
+            spawn_cmd,
         ]
     )
