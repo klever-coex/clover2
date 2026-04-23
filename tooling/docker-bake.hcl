@@ -84,10 +84,6 @@ target "project-deploy" {
       {
         dockerfile = "docker/frontend/Dockerfile"
         tgt = "clover2-frontend"
-      },
-      {
-        dockerfile = "docker/ros/Dockerfile"
-        tgt = "clover2-ros"
       }
     ]
   }
@@ -113,16 +109,35 @@ target "clover2-wetty" {
 
 target "ros" {
   dockerfile = "docker/ros/Dockerfile"
-  name = tgt
-  tags = tagged(tgt)
-  output = outputs(tgt, true)
+  name = "${tgt}-${base.short-name}"
+  tags = tagged("${tgt}-${base.short-name}")
+  output = outputs("${tgt}-${base.short-name}", true)
   target = tgt
 
   inherits = ["base"]
-  platforms = PLATFORMS
+  # platforms = PLATFORMS
+
+  args = {
+    ROS_DISTRO = "jazzy"
+    BASE_IMAGE = base.image
+  }
 
   matrix = {
-    tgt = [ "clover2-ros-dev", "clover2-ros" ]
+    tgt = [ "clover2-ros" ]
+    base = [
+      {
+        image = "ros:jazzy-ros-base"
+        short-name = "base"
+      },
+      {
+        image = "osrf/ros:jazzy-simulation"
+        short-name = "sim"
+      },
+      {
+        image = "osrf/ros:jazzy-desktop"
+        short-name = "desktop"
+      }
+    ]
   }
 }
 
@@ -203,9 +218,9 @@ group "px4" {
   targets = ["clover2-px4-deps", "clover2-px4-dev", "clover2-px4-sitl"]
 }
 
-group "ros" {
-  targets = ["clover2-ros"]
-}
+// group "ros" {
+//   targets = ["clover2-ros"]
+// }
 
 group "tooling" {
   targets = ["builder"]
