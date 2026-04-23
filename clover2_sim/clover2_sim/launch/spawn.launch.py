@@ -38,8 +38,10 @@ def launch_setup(context, *args, **kwargs):
             )
         ),
         launch_arguments={
-            "params_file": params_file,
+            # "params_file": params_file,
+            "name": name,
             "world": world,
+            "model": model,
         }.items(),
     )
 

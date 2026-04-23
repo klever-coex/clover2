@@ -3,7 +3,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 
 
@@ -47,7 +47,7 @@ def generate_launch_description():
             "-z",
             "0.3",
             "-file",
-            os.path.join(pkg_clover2_gz_sim, model, "model.sdf"),
+            PathJoinSubstitution([pkg_clover2_gz_sim, "models", model, "model.sdf"]),
         ],
     )
 
