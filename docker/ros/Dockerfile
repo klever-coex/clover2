@@ -1,6 +1,7 @@
+ARG BASE_IMAGE
 ARG ROS_DISTRO=jazzy
 
-FROM ros:${ROS_DISTRO}-ros-base AS rosdep-depend
+FROM ${BASE_IMAGE} AS rosdep-depend
 ARG ROS_DISTRO
 COPY tooling/docker/* /clover2/
 
@@ -23,7 +24,7 @@ COPY clover2_fcu_bridge/package.xml /ws/src/clover2_fcu_bridge/package.xml
 RUN /clover2/rosdep-parse.sh /ws/src $ROS_DISTRO --dependency-types=exec > /clover2/apt-depends.txt && \
     cat /clover2/apt-depends.txt
 
-FROM ros:${ROS_DISTRO}-ros-base AS core
+FROM ${BASE_IMAGE} AS core
 ARG ROS_DISTRO
 COPY tooling/docker/* /clover2/
 
@@ -55,7 +56,7 @@ RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=lo
     cat /tmp/apt-depends.txt | xargs apt-get install -y --no-install-recommends && \
     /clover2/cleanup-apt.sh
 
-FROM core AS clover2-ros-dev
+FROM core AS clover2-ros
 ARG ROS_DISTRO
 ENV CCACHE_DIR="/root/.ccache"
 
@@ -71,29 +72,6 @@ COPY . /clover2_ws/src/clover2
 RUN --mount=type=cache,id=ccache-${TARGETPLATFORM},target=${CCACHE_DIR} \
     --mount=type=cache,id=ros-install-${TARGETPLATFORM},target=/opt/clover2 \
     --mount=type=cache,id=ros-build-${TARGETPLATFORM},target=/clover2_ws/build \
-    src/clover2/docker/ros/build.sh ${CCACHE_DIR} /opt/clover2 /clover2_ws/build
-
-COPY docker/ros/entrypoint.sh /
-
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["bash"]
-
-FROM core AS clover2-ros
-ARG ROS_DISTRO
-ENV CCACHE_DIR="/root/.ccache"
-
-RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
-    apt-get update -y && \
-    apt-get install -y \
-        ccache && \
-    /clover2/cleanup-apt.sh
-
-WORKDIR /clover2_ws
-COPY . /clover2_ws/src/clover2
-
-RUN --mount=type=cache,target=${CCACHE_DIR} \
-    --mount=type=cache,target=/opt/clover2 \
-    --mount=type=cache,target=/clover2_ws/build \
     src/clover2/docker/ros/build.sh ${CCACHE_DIR} /opt/clover2 /clover2_ws/build
 
 COPY docker/ros/entrypoint.sh /

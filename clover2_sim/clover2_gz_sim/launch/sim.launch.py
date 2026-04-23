@@ -62,7 +62,7 @@ def generate_launch_description():
         os.path.join(pkg_clover2_gz_sim, "worlds/"),
         world,
         ".sdf",
-        " -v 1",
+        " -v 2",
         " -r",
         __headless_rendering(gui),
     ]

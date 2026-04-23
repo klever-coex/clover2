@@ -88,7 +88,7 @@ def generate_launch_description():
 
     name_declare = DeclareLaunchArgument(
         "name",
-        default_value="clover2",
+        default_value="px4",
         description="Model name.",
     )
 

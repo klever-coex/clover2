@@ -49,7 +49,7 @@ docker-build-px4:
 
 docker-build-ros:
   <<: *docker-bake
-  stage: image
+  stage: docker
   variables:
     BAKE_TARGET: "ros"
 
