@@ -8,7 +8,7 @@ GROUP_NAME=${LOCAL_GROUP}
 
 if [[ -z $USER_ID || -z $USER_NAME || -z $GROUP_ID || -z $GROUP_NAME ]]; then
     source "/opt/ros/$ROS_DISTRO/setup.bash"
-    # source /opt/clover2/install/setup.bash
+    source /opt/clover2/install/setup.bash
     exec ros2 launch clover2 clover2.launch.py "$@"
 else
     echo "Starting with user: $USER_NAME >> UID $USER_ID, GID: $GROUP_ID"
@@ -19,7 +19,7 @@ else
     echo "$USER_NAME ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers
 
     source "/opt/ros/$ROS_DISTRO/setup.bash"
-    # source /opt/clover2/install/setup.bash
+    source /opt/clover2/install/setup.bash
 
     exec /usr/sbin/gosu "$USER_NAME" "$@"
 fi

@@ -21,7 +21,7 @@ variable "LABELS" {
 variable "PLATFORMS" {
   default = [
     "linux/amd64",
-    // "linux/arm64",
+    "linux/arm64",
   ]
 }
 
@@ -109,35 +109,20 @@ target "clover2-wetty" {
 
 target "ros" {
   dockerfile = "docker/ros/Dockerfile"
-  name = "${tgt}-${base.short-name}"
-  tags = tagged("${tgt}-${base.short-name}")
-  output = outputs("${tgt}-${base.short-name}", true)
+  name = tgt
+  tags = tagged(tgt)
+  output = outputs(tgt, true)
   target = tgt
 
   inherits = ["base"]
-  # platforms = PLATFORMS
+  platforms = PLATFORMS
 
   args = {
     ROS_DISTRO = "jazzy"
-    BASE_IMAGE = base.image
   }
 
   matrix = {
-    tgt = [ "clover2-ros" ]
-    base = [
-      {
-        image = "ros:jazzy-ros-base"
-        short-name = "base"
-      },
-      {
-        image = "osrf/ros:jazzy-simulation"
-        short-name = "sim"
-      },
-      {
-        image = "osrf/ros:jazzy-desktop"
-        short-name = "desktop"
-      }
-    ]
+    tgt = [ "clover2-ros", "clover2-sim" ]
   }
 }
 
