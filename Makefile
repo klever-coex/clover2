@@ -55,15 +55,15 @@ help:
 ## clover2-bake-%: Build docker images using buildx bake
 clover2-bake-%:
 	@mkdir -p $(DOCKER_OUTPUT_DIR)
-	docker buildx bake -f tooling/docker-bake.hcl --progress plain $*
+	docker buildx bake -f docker/docker-bake.hcl --progress plain $*
 
 ## clover2-bake-push-%: Push docker images
 clover2-bake-push-%:
-	docker buildx bake --set *.output=type=registry -f tooling/docker-bake.hcl $*
+	docker buildx bake --set *.output=type=registry -f docker/docker-bake.hcl $*
 
 ## clover2-bake-print-%: Print buildx bake configuration
 clover2-bake-print-%:
-	docker buildx bake -f tooling/docker-bake.hcl --print $*
+	docker buildx bake -f docker/docker-bake.hcl --print $*
 
 ## builder-download: Download base disk image for builder
 builder-download:
