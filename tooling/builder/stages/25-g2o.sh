@@ -12,7 +12,7 @@ g2o_install() {
     log_info "Clone g2o project (ver: $G2O_VERSION)"
     G2O_SOURCE_DIR=$(mktemp -d --suffix="-g2o")
     git clone https://github.com/RainerKuemmerle/g2o.git $G2O_SOURCE_DIR
-    cd $G2O_SOURCE_DIR
+    pushd $G2O_SOURCE_DIR
     git checkout --detach $G2O_VERSION
 
     G2O_DEB="g2o-git+$(git -C $G2O_SOURCE_DIR rev-parse --short HEAD)"
@@ -38,6 +38,9 @@ EOF
     log_info "Install .deb package"
     sudo apt install ./$G2O_DEB.deb -y
     cp ./$G2O_DEB.deb /home/$USER/.clover2_backup/deb
+
+    popd
+    rm -rf $G2O_SOURCE_DIR
 }
 
 g2o_install

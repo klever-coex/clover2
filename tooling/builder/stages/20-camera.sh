@@ -36,7 +36,7 @@ libcamera_install() {
     log_info "Clone libcamera project (ver: $LIBCAMERA_VERSION)"
     LIBCAMERA_SOURCE_DIR=$(mktemp -d --suffix="-libcamera")
     git clone https://github.com/raspberrypi/libcamera.git $LIBCAMERA_SOURCE_DIR
-    cd $LIBCAMERA_SOURCE_DIR
+    pushd $LIBCAMERA_SOURCE_DIR
     git checkout $LIBCAMERA_VERSION
 
     LIBCAMERA_DEB="libcamera-git+$(git -C $LIBCAMERA_SOURCE_DIR rev-parse --short HEAD)"
@@ -62,6 +62,12 @@ EOF
     log_info "Install .deb package"
     sudo apt install ./$LIBCAMERA_DEB.deb -y
     cp ./$LIBCAMERA_DEB.deb /home/$USER/.clover2_backup/deb
+
+    popd
+    rm -rf $LIBCAMERA_SOURCE_DIR
 }
 
 libcamera_install
+
+sudo apt-get autoclean
+sudo apt-get clean
