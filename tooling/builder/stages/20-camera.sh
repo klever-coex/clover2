@@ -39,14 +39,16 @@ libcamera_install() {
     cd $LIBCAMERA_SOURCE_DIR
     git checkout $LIBCAMERA_VERSION
 
+    LIBCAMERA_DEB="libcamera-git+$(git -C $LIBCAMERA_SOURCE_DIR rev-parse --short HEAD)"
+
     log_info "Build libcamera"
     meson setup build --prefix=/usr --buildtype=release -Dpipelines=rpi/vc4,rpi/pisp -Dipas=rpi/vc4,rpi/pisp -Dv4l2=enabled -Dgstreamer=enabled -Dtest=false -Dlc-compliance=disabled -Dcam=enabled -Dqcam=disabled -Ddocumentation=disabled -Dpycamera=enabled
     sudo usermod -aG video $USER
 
     log_info "Create .deb package"
-    DESTDIR=$(pwd)/libcamera ninja -C build install
-    mkdir -p libcamera/DEBIAN
-    cat <<EOF > libcamera/DEBIAN/control
+    DESTDIR=$LIBCAMERA_SOURCE_DIR/$LIBCAMERA_DEB ninja -C build install
+    mkdir -p $LIBCAMERA_DEB/DEBIAN
+    cat <<EOF > $LIBCAMERA_DEB/DEBIAN/control
 Package: libcamera
 Version: $(git describe --tags --exact-match | sed 's/^[^0-9]*//')
 Section: libs
@@ -55,11 +57,11 @@ Architecture: arm64
 Maintainer: Lapin Matvey
 Description: libcamera driver
 EOF
-    dpkg-deb --build libcamera
+    dpkg-deb --build $LIBCAMERA_DEB
 
     log_info "Install .deb package"
-    sudo apt install ./libcamera.deb -y
-    cp ./libcamera.deb /home/$USER/.clover2_backup/deb
+    sudo apt install ./$LIBCAMERA_DEB.deb -y
+    cp ./$LIBCAMERA_DEB.deb /home/$USER/.clover2_backup/deb
 }
 
 libcamera_install

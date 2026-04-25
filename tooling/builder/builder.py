@@ -60,7 +60,11 @@ async def qemu_state(args, image: pathlib.Path):
         await qemu.execute("mkdir -p /home/pi/clover2_ws/src/clover2")
 
         for item in config.PROJECT_DIR.iterdir():
-            if not re.match(r"^build.*$", item.name) and not item.name == ".venv":
+            if (
+                not re.match(r"^build.*$", item.name)
+                and not item.name == ".cache"
+                and not item.name == ".venv"
+            ):
                 await qemu.copy_to(item, ("/home/pi/clover2_ws/src/clover2"))
 
         logger.info("Install make")

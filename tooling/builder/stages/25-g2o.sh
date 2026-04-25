@@ -15,27 +15,29 @@ g2o_install() {
     cd $G2O_SOURCE_DIR
     git checkout --detach $G2O_VERSION
 
+    G2O_DEB="g2o-git+$(git -C $G2O_SOURCE_DIR rev-parse --short HEAD)"
+
     log_info "Build g2o"
     cmake -DG2O_USE_OPENGL=OFF -DG2O_BUILD_SLAM3D_TYPES=ON -DG2O_BUILD_BENCHMARKS=OFF -DG2O_BUILD_EXAMPLES=OFF -DG2O_BUILD_APPS=OFF -DG2O_INSTALL_CMAKE_CONFIG=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr .
     make -j$(( $(nproc) / 2 ))
 
     log_info "Create .deb package"
-    DESTDIR=$(pwd)/g2o make install
-    mkdir -p g2o/DEBIAN
-    cat <<EOF > g2o/DEBIAN/control
-Package: g2o
+    DESTDIR=$G2O_SOURCE_DIR/$G2O_DEB make install
+    mkdir -p $G2O_DEB/DEBIAN
+    cat <<EOF > $G2O_DEB/DEBIAN/control
+Package: $G2O_DEB
 Version: 0.1
 Section: libs
 Priority: optional
 Architecture: arm64
 Maintainer: RainerKuemmerle
-Description: g2o library build
+Description: g2o library build (https://github.com/RainerKuemmerle)
 EOF
-    dpkg-deb --build g2o
+    dpkg-deb --build $G2O_DEB
 
     log_info "Install .deb package"
-    sudo apt install ./g2o.deb -y
-    cp ./g2o.deb /home/$USER/.clover2_backup/deb
+    sudo apt install ./$G2O_DEB.deb -y
+    cp ./$G2O_DEB.deb /home/$USER/.clover2_backup/deb
 }
 
 g2o_install
