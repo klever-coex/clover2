@@ -36,8 +36,7 @@ EOF
     dpkg-deb --build $G2O_DEB
 
     log_info "Install .deb package"
-    sudo apt install ./$G2O_DEB.deb -y
-    cp ./$G2O_DEB.deb /home/$USER/.clover2_backup/deb
+    sudo dpkg -i ./$G2O_DEB.deb
 
     popd
     rm -rf $G2O_SOURCE_DIR

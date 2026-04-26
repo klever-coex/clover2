@@ -60,8 +60,7 @@ EOF
     dpkg-deb --build $LIBCAMERA_DEB
 
     log_info "Install .deb package"
-    sudo apt install ./$LIBCAMERA_DEB.deb -y
-    cp ./$LIBCAMERA_DEB.deb /home/$USER/.clover2_backup/deb
+    sudo dpkg -i ./$LIBCAMERA_DEB.deb
 
     popd
     rm -rf $LIBCAMERA_SOURCE_DIR
