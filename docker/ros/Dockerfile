@@ -99,7 +99,7 @@ RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=lo
     apt-get update -y && \
     apt-get install -y --no-install-recommends \
         ros-${ROS_DISTRO}-desktop=0.11.0-1* \
-        ros-${ROS_DISTRO}-simulation=0.11.0-1* \
+        ros-${ROS_DISTRO}-simulation=0.11.0-1* && \
     /clover2/cleanup-apt.sh
 
 WORKDIR /clover2_ws
@@ -109,4 +109,3 @@ COPY docker/ros/entrypoint.sh  /
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["bash"]
-
