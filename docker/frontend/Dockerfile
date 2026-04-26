@@ -6,12 +6,15 @@ COPY frontend .
 RUN npm ci
 RUN npm run build
 
-FROM nginx:1.29.3-alpine-slim
+FROM node:20-alpine AS runner
 
-COPY --from=builder /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-COPY docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/.next/standalone ./
 
-EXPOSE 80
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
 
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 3000
+
+CMD ["node", "server.js"]
