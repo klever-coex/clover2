@@ -77,7 +77,6 @@ RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=lo
     /clover2/cleanup-apt.sh
 
 RUN --mount=type=cache,id=ccache-${SHORT_NAME}-${TARGETPLATFORM},target=${CCACHE_DIR} \
-    --mount=type=cache,id=ros-install-${SHORT_NAME}-${TARGETPLATFORM},target=/opt/clover2 \
     --mount=type=cache,id=ros-build-${SHORT_NAME}-${TARGETPLATFORM},target=/clover2_ws/build \
     src/clover2/docker/ros/build.sh ${CCACHE_DIR} /opt/clover2 /clover2_ws/build
 
@@ -91,7 +90,7 @@ COPY docker/ros/entrypoint.sh  /
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["bash"]
 
-FROM source AS clover2-sim
+FROM core AS clover2-sim
 ARG ROS_DISTRO
 ARG TARGETPLATFORM
 
