@@ -91,7 +91,7 @@ COPY docker/ros/entrypoint.sh  /
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["bash"]
 
-FROM core AS clover2-sim
+FROM source AS clover2-sim
 ARG ROS_DISTRO
 ARG TARGETPLATFORM
 
