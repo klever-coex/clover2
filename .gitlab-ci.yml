@@ -10,103 +10,69 @@ stages:
   services:
     - docker:dind
   before_script:
+    - |
+      if [ "$CI_COMMIT_REF_NAME" = "master" ]; then
+        export BUILD_MODE=master
+      elif [ -n "$CI_COMMIT_TAG" ]; then
+        export BUILD_MODE=release
+      elif [ -n "$CI_MERGE_REQUEST_ID" ]; then
+        export BUILD_MODE=develop
+      elif [ "$CI_PIPELINE_SOURCE" = "push" ]; then
+        export BUILD_MODE=develop
+      else
+        echo "Unexpected BUILD_MODE. Check rules"
+        exit -1
+      fi
+
+    - echo "BUILD_MODE=$BUILD_MODE"
+
     - echo "$DOCKER_REGISTRY_PASSWORD" | docker login registry.gitlab.com --username $DOCKER_REGISTRY_USER --password-stdin
   after_script:
     - echo "Fixing permissions for cleanup..."
     - sudo chown -R $(id -u):$(id -g) . 2>/dev/null || true
-
-.job-master: &job-master
-  variables:
-    BUILD_MODE: master
-  rules:
-    - if: $CI_COMMIT_REF_NAME == "master"
-
-.job-mr: &job-mr
-  variables:
-    BUILD_MODE: develop
-  only:
-    - merge_request
-
-.job-release: &job-release
-  variables:
-    BUILD_MODE: release
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^master$/
+  cache:
+    key: "global"
+    paths:
+      - .cache/
 
 .docker-bake: &docker-bake
   <<: *docker-task
+  script:
+    - make clover2-bake-$BAKE_TARGET
+    - make clover2-bake-push-$BAKE_TARGET
+
+docker-build-px4:
+  <<: *docker-bake
   stage: docker
-  script:
-    - make docker-bake-$BAKE_TARGET
-
-.docker-build-deploy: &docker-build-deploy
-  <<: *docker-bake
   variables:
-    BAKE_GROUP: "deploy"
+    BAKE_TARGET: "px4"
 
-.docker-build-tooling: &docker-build-tooling
+docker-build-ros:
   <<: *docker-bake
+  stage: docker
   variables:
-    BAKE_GROUP: "tooling"
+    BAKE_TARGET: "ros"
 
-.image-builder-in-docker: &image-builder-in-docker
-  <<: *docker-task
-  stage: image
-  when: manual
-  script:
-    - make builder-download-in-docker
-    - make builder-build-in-docker
-  artifacts:
-    paths:
-      - ${IMAGE_ARTIFACT_PATTERN}
-  artifacts:
-    name: "clover2-image-${CI_COMMIT_SHORT_SHA}"
-    paths:
-      - ${IMAGE_ARTIFACT_PATTERN}
-    expire_in: 1 week
-    when: on_success
+docker-build-tooling:
+  <<: *docker-bake
+  stage: docker
+  variables:
+    BAKE_TARGET: "tooling"
 
-docker-build-deploy-master:
-  <<: *job-master
-  <<: *docker-build-deploy
+docker-build-docs:
+  <<: *docker-bake
+  stage: docker
+  variables:
+    BAKE_TARGET: "clover2-docs"
 
-docker-build-deploy-mr:
-  <<: *job-mr
-  <<: *docker-build-deploy
+docker-build-frontend:
+  <<: *docker-bake
+  stage: docker
+  variables:
+    BAKE_TARGET: "clover2-frontend"
 
-docker-build-deploy-release:
-  <<: *job-release
-  <<: *docker-build-deploy
-
-docker-build-tooling-master:
-  <<: *job-master
-  <<: *docker-build-tooling
-
-docker-build-tooling-mr:
-  <<: *job-mr
-  <<: *docker-build-tooling
-
-docker-build-tooling-release:
-  <<: *job-release
-  <<: *docker-build-tooling
-
-image-build-master:
-  <<: *job-master
-  <<: *image-builder-in-docker
-  needs:
-    - docker-build-tooling-master
-    - docker-build-deploy-master
-
-image-build-mr:
-  <<: *job-mr
-  <<: *image-builder-in-docker
-  needs:
-    - docker-build-tooling-mr
-    - docker-build-deploy-mr
-
-image-build-release:
-  <<: *job-release
-  <<: *image-builder-in-docker
-  needs:
-    - docker-build-tooling-release
-    - docker-build-deploy-release
+docker-build-wetty:
+  <<: *docker-bake
+  stage: docker
+  variables:
+    BAKE_TARGET: "clover2-wetty"

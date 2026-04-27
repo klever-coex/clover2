@@ -1,6 +1,10 @@
-#include <clover2_optical_flow/optical_flow.hpp>
+// clover2
+#include <clover2/optical_flow/optical_flow.hpp>
+
+// ROS2
 #include <rclcpp/rclcpp.hpp>
 
+// STL
 #include <memory>
 
 int main(int argc, char* argv[]) {
@@ -10,8 +14,8 @@ int main(int argc, char* argv[]) {
         rclcpp::executors::SingleThreadedExecutor executor;
 
         auto options = rclcpp::NodeOptions();
-        clover2_optical_flow::optical_flow::SharedPtr optical_flow_node =
-            std::make_shared<clover2_optical_flow::optical_flow>(options);
+        clover2::optical_flow::optical_flow::SharedPtr optical_flow_node =
+            std::make_shared<clover2::optical_flow::optical_flow>(options);
 
         executor.add_node(optical_flow_node->get_node_base_interface());
         executor.spin();
@@ -23,4 +27,3 @@ int main(int argc, char* argv[]) {
     rclcpp::shutdown();
     return 0;
 }
-
