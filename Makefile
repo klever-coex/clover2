@@ -6,8 +6,9 @@ export
 
 # Configuration
 BUILD_MODE ?= develop
-REGISTRY_HOST ?= registry.gitlab.com
 REGISTRY ?= $(REGISTRY_HOST)/coex2/clover2/
+REGISTRY_HOST ?= registry.gitlab.com
+REGISTRY_POLICY ?= load
 PROJECT_DIR ?= $(shell pwd)
 DOCKER_OUTPUT_DIR ?= $(PROJECT_DIR)/build-docker
 
@@ -38,7 +39,7 @@ export DOCKER_OUTPUT_DIR
 ## help: Show this help message
 help:
 	@printf "Available targets:\n\n"
-	@awk '/^[a-zA-Z\-\_0-9%:\\]+/ { \
+	@awk '/^[a-zA-Z\-_0-9%:\\]+/ { \
 		helpMessage = match(lastLine, /^## (.*)/); \
 		if (helpMessage) { \
 		helpCommand = $$1; \
@@ -51,14 +52,18 @@ help:
 	{ lastLine = $$0 }' $(MAKEFILE_LIST) | sort -u
 	@printf "\n"
 
-## docker-bake-%: Build docker images using docker buildx bake
-docker-bake-%:
+## clover2-bake-%: Build docker images using buildx bake
+clover2-bake-%:
 	@mkdir -p $(DOCKER_OUTPUT_DIR)
-	docker buildx bake -f tooling/docker-bake.hcl --progress=plain $*
+	docker buildx bake -f docker/docker-bake.hcl --progress plain $*
 
-## docker-print: Print docker buildx bake configuration
-docker-print-%:
-	docker buildx bake --print $*
+## clover2-bake-push-%: Push docker images
+clover2-bake-push-%:
+	docker buildx bake --set *.output=type=registry -f docker/docker-bake.hcl $*
+
+## clover2-bake-print-%: Print buildx bake configuration
+clover2-bake-print-%:
+	docker buildx bake -f docker/docker-bake.hcl --print $*
 
 ## builder-download: Download base disk image for builder
 builder-download:
