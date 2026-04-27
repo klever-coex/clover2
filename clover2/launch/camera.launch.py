@@ -10,7 +10,7 @@ from launch.actions import (
     OpaqueFunction,
     RegisterEventHandler,
 )
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnProcessStart
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import (
@@ -21,6 +21,32 @@ from launch_ros.actions import (
 from launch_ros.descriptions import ComposableNode
 
 
+def make_gz_bridge_topics(camera_name: str):
+    cam_image = f"{camera_name}_camera_image"
+    cam_info = f"{camera_name}_camera_info"
+    return [
+        {"bridge_names": [cam_image, cam_info]},
+        # Camera image
+        {f"bridges.{cam_image}.ros_topic_name": "~/image_raw"},
+        {
+            f"bridges.{cam_image}.gz_topic_name": "/world/aruco/model/px4/link/camera_link/sensor/imager/image"
+        },
+        {f"bridges.{cam_image}.ros_type_name": "sensor_msgs/msg/Image"},
+        {f"bridges.{cam_image}.gz_type_name": "gz.msgs.Image"},
+        {f"bridges.{cam_image}.direction": "GZ_TO_ROS"},
+        {f"bridges.{cam_image}.frame_id": camera_name},
+        # Camera info
+        {f"bridges.{cam_info}.ros_topic_name": "~/camera_info"},
+        {
+            f"bridges.{cam_info}.gz_topic_name": "/world/aruco/model/px4/link/camera_link/sensor/imager/camera_info"
+        },
+        {f"bridges.{cam_info}.ros_type_name": "sensor_msgs/msg/CameraInfo"},
+        {f"bridges.{cam_info}.gz_type_name": "gz.msgs.CameraInfo"},
+        {f"bridges.{cam_info}.direction": "GZ_TO_ROS"},
+        {f"bridges.{cam_info}.frame_id": camera_name},
+    ]
+
+
 def launch_setup(context, *args, **kwargs):
 
     use_sim_time = LaunchConfiguration("use_sim_time")
@@ -29,6 +55,7 @@ def launch_setup(context, *args, **kwargs):
     camera_name = LaunchConfiguration("camera_name")
     feature_detector = LaunchConfiguration("feature_detector")
     optical_flow = LaunchConfiguration("optical_flow")
+    simulation = LaunchConfiguration("simulation")
 
     camera_remappings = [
         ("~/input/image_raw", f"/{camera_name.perform(context)}/camera/image_raw"),
@@ -52,13 +79,35 @@ def launch_setup(context, *args, **kwargs):
     )
 
     camera_component = LoadComposableNodes(
+        condition=UnlessCondition(simulation),
         target_container=camera_container,
         composable_node_descriptions=[
             ComposableNode(
                 package="camera_ros",
                 plugin="camera::CameraNode",
                 name="camera",
-                parameters=[params_file, {"use_sim_time": use_sim_time}],
+                parameters=[
+                    params_file,
+                    {"use_sim_time": use_sim_time},
+                    {"frame_id": camera_name.perform(context)},
+                ],
+            )
+        ],
+    )
+
+    sim_camera_component = LoadComposableNodes(
+        condition=IfCondition(simulation),
+        target_container=camera_container,
+        composable_node_descriptions=[
+            ComposableNode(
+                package="ros_gz_bridge",
+                plugin="ros_gz_bridge::RosGzBridge",
+                name="camera",
+                parameters=[
+                    params_file,
+                    {"use_sim_time": use_sim_time},
+                ]
+                + make_gz_bridge_topics(camera_name.perform(context)),
             )
         ],
     )
@@ -97,6 +146,7 @@ def launch_setup(context, *args, **kwargs):
             on_start=[
                 PushRosNamespace(camera_name.perform(context)),
                 camera_component,
+                sim_camera_component,
                 feature_detector_component,
                 optical_flow_component,
             ],
@@ -148,6 +198,12 @@ def generate_launch_description():
         description="Enable optical flow calculation on this camera",
     )
 
+    simulation_declare = DeclareLaunchArgument(
+        "simulation",
+        default_value="false",
+        description="Start simulation mode",
+    )
+
     return LaunchDescription(
         [
             use_sim_time_declare,
@@ -156,6 +212,7 @@ def generate_launch_description():
             camera_name_declare,
             feature_detector_declare,
             optical_flow_declare,
+            simulation_declare,
             OpaqueFunction(function=launch_setup),
         ]
     )
