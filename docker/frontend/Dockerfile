@@ -15,6 +15,6 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-EXPOSE 3000
+EXPOSE 80
 
-CMD ["node", "server.js"]
+CMD ["node", "server.js", "--hostname", "0.0.0.0", "--port", "80"]
