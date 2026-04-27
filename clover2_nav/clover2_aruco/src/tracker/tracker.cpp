@@ -1,4 +1,4 @@
-#include <clover2_aruco/tracker.hpp>
+#include <clover2/aruco/tracker.hpp>
 #include <lifecycle_msgs/msg/state.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2/LinearMath/Transform.hpp>
@@ -8,12 +8,10 @@
 
 #include <fstream>
 
-namespace clover2_aruco {
+namespace clover2::aruco {
 
 tracker::tracker(const rclcpp::NodeOptions& options)
-    : clover2_common::lifecycle_node("tracker", options) {
-    enable_watch_parameters();
-    enable_diagnostic_updater();
+    : clover2::common::lifecycle_node("tracker", options) {
 
     declare_and_watch_parameter<std::string>(
         "tracking", "base_link",
@@ -35,7 +33,21 @@ tracker::tracker(const rclcpp::NodeOptions& options)
 tracker::~tracker() {}
 
 tracker::CallbackReturn tracker::on_configure(
-    [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
+    [[maybe_unused]] const rclcpp_lifecycle::State& state) {
+    m_callback_group = create_callback_group(
+        rclcpp::CallbackGroupType::MutuallyExclusive);
+
+    try {
+        m_map_client =
+            std::make_shared<clover2::map::client>(shared_from_this(), m_callback_group);
+    } catch (const std::exception& e) {
+        RCLCPP_ERROR(get_logger(), "Fail to create map client. Exception: %s",
+                     e.what());
+        on_cleanup(state);
+        return CallbackReturn::FAILURE;
+    }
+
+    RCLCPP_INFO(get_logger(), "Configured");
     return tracker::CallbackReturn::SUCCESS;
 }
 
@@ -45,21 +57,25 @@ tracker::CallbackReturn tracker::on_activate(
     m_tf_buffer = std::make_shared<tf2_ros::Buffer>(this->get_clock());
     m_tf_listener = std::make_shared<tf2_ros::TransformListener>(*m_tf_buffer);
 
-    m_map_client = std::make_shared<map_client>(shared_from_this());
-
     m_pose_pub = create_publisher<geometry_msgs::msg::PoseStamped>(
         "~/pose", rclcpp::SystemDefaultsQoS());
 
-    m_pose_cov_pub = create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
-        "~/pose_cov", rclcpp::SystemDefaultsQoS());
+    m_pose_cov_pub =
+        create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
+            "~/pose_cov", rclcpp::SystemDefaultsQoS());
 
     m_poses_debug_pub = create_publisher<geometry_msgs::msg::PoseArray>(
         "~/poses_debug", rclcpp::SystemDefaultsQoS());
 
-    m_markers_sub = create_subscription<clover2_aruco_msgs::msg::MarkerArray>(
-        "~/markers", rclcpp::SensorDataQoS(),
-        std::bind(&tracker::markers_callback, this, std::placeholders::_1));
+    rclcpp::SubscriptionOptions options;
+    options.callback_group = m_callback_group;
 
+    m_markers_sub = create_subscription<clover2_pose_msgs::msg::MarkerArray>(
+        "~/markers", rclcpp::SensorDataQoS(),
+        std::bind(&tracker::markers_callback, this, std::placeholders::_1),
+        options);
+
+    RCLCPP_INFO(get_logger(), "Activated");
     return tracker::CallbackReturn::SUCCESS;
 }
 
@@ -70,17 +86,19 @@ tracker::CallbackReturn tracker::on_deactivate(
     m_pose_cov_pub.reset();
     m_poses_debug_pub.reset();
 
-    m_map_client.reset();
-
     m_tf_listener.reset();
     m_tf_buffer.reset();
     m_tf_broadcaster.reset();
 
+    RCLCPP_INFO(get_logger(), "Deactivated");
     return tracker::CallbackReturn::SUCCESS;
 }
 
 tracker::CallbackReturn tracker::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
+    m_map_client.reset();
+
+    RCLCPP_INFO(get_logger(), "Cleaned up");
     return tracker::CallbackReturn::SUCCESS;
 }
 
@@ -90,9 +108,7 @@ tracker::CallbackReturn tracker::on_shutdown(
 }
 
 void tracker::markers_callback(
-    const clover2_aruco_msgs::msg::MarkerArray::SharedPtr msg) {
-    std::lock_guard<map_client> map_guard(*m_map_client);
-
+    const clover2_pose_msgs::msg::MarkerArray::SharedPtr msg) {
     if (msg->markers.size() == 0) {
         return;
     }
@@ -132,7 +148,7 @@ void tracker::markers_callback(
 
     for (const auto& marker : msg->markers) {
         Eigen::Affine3d marker_pose;
-        tf2::fromMsg(marker.pose, marker_pose);
+        tf2::fromMsg(marker.pose.pose, marker_pose);
 
         Eigen::Affine3d camera_in_map =
             m_map_client->get_transform(marker.id) * marker_pose.inverse();
@@ -152,22 +168,21 @@ void tracker::markers_callback(
     avg_translation /= static_cast<double>(msg->markers.size());
     cumulative_q /= static_cast<double>(msg->markers.size());
     avg_quat.coeffs() = cumulative_q.normalized();
-    
 
     // fill pose msg
     Eigen::Affine3d result_pose = Eigen::Affine3d::Identity();
     result_pose.translate(avg_translation);
     result_pose.rotate(avg_quat);
-    
+
     estimated_pose.pose = tf2::toMsg(result_pose);
     estimated_pose_cov.pose.pose = estimated_pose.pose;
-    estimated_pose_cov.pose.covariance[0] = 0.1;
-    estimated_pose_cov.pose.covariance[7] = 0.1;
-    estimated_pose_cov.pose.covariance[14] = 0.1;
+    estimated_pose_cov.pose.covariance[0] = 0.3;
+    estimated_pose_cov.pose.covariance[7] = 0.3;
+    estimated_pose_cov.pose.covariance[14] = 0.5;
 
-    estimated_pose_cov.pose.covariance[21] = 0.05;
-    estimated_pose_cov.pose.covariance[28] = 0.05;
-    estimated_pose_cov.pose.covariance[35] = 0.05;
+    estimated_pose_cov.pose.covariance[21] = 0.3;
+    estimated_pose_cov.pose.covariance[28] = 0.3;
+    estimated_pose_cov.pose.covariance[35] = 0.1;
 
     // publish estimated pose
     m_pose_pub->publish(estimated_pose);
@@ -179,8 +194,8 @@ void tracker::markers_callback(
     }
 }
 
-}  // namespace clover2_aruco
+}  // namespace clover2::aruco
 
 #include "rclcpp_components/register_node_macro.hpp"
 
-RCLCPP_COMPONENTS_REGISTER_NODE(clover2_aruco::tracker)
+RCLCPP_COMPONENTS_REGISTER_NODE(clover2::aruco::tracker)

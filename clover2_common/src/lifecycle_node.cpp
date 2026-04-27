@@ -1,13 +1,19 @@
-#include <clover2_common/lifecycle_node.hpp>
+// clover2
+#include <clover2/common/lifecycle_node.hpp>
+
+// msgs
 #include <lifecycle_msgs/msg/state.hpp>
 
-namespace clover2_common {
+#include <memory>
+
+namespace clover2::common {
 
 lifecycle_node::lifecycle_node(const std::string& node_name,
                                const rclcpp::NodeOptions& options)
-    : rclcpp_lifecycle::LifecycleNode(node_name, options)
-    , m_diagnostic_updater(nullptr) {
+    : rclcpp_lifecycle::LifecycleNode(node_name, options) {
     declare_parameter("autostart", true);
+    enable_diagnostic_updater();
+    enable_parameter_watcher();
 
     if (get_parameter("autostart").as_bool()) {
         m_init_timer =
@@ -26,34 +32,6 @@ lifecycle_node::lifecycle_node(const std::string& node_name,
 
 lifecycle_node::~lifecycle_node() { RCLCPP_INFO(get_logger(), "Destroying"); }
 
-lifecycle_node::SetParametersResult lifecycle_node::on_set_parameters_cb(
-    const std::vector<rclcpp::Parameter>& parameters) {
-    SetParametersResult result;
-    result.successful = true;
-
-    for (auto& p : parameters) {
-        auto it = m_watch_parameters.find(p.get_name());
-        if (it != m_watch_parameters.end()) {
-            try {
-                it->second(p);
-            } catch (std::exception& ex) {
-                result.successful = false;
-                result.reason = ex.what();
-                RCLCPP_ERROR(get_logger(), "Fail set parameter `%s` with: %s",
-                             p.get_name().c_str(), ex.what());
-                break;
-            }
-        }
-    }
-
-    return result;
-}
-
-void lifecycle_node::enable_watch_parameters() {
-    m_set_parameters_handle_ptr = add_on_set_parameters_callback(std::bind(
-        &lifecycle_node::on_set_parameters_cb, this, std::placeholders::_1));
-}
-
 void lifecycle_node::enable_diagnostic_updater() {
     m_diagnostic_updater = std::make_shared<diagnostic_updater::Updater>(this);
     m_diagnostic_updater->setHardwareID(this->get_name());
@@ -64,9 +42,18 @@ void lifecycle_node::enable_diagnostic_updater() {
                   std::placeholders::_1));
 }
 
+void lifecycle_node::enable_parameter_watcher() {
+    m_parameter_watcher = std::make_shared<parameter_watcher>(*this);
+}
+
 std::shared_ptr<diagnostic_updater::Updater>
-lifecycle_node::get_diagnostic_updater() {
+lifecycle_node::get_diagnostic_updater() const {
     return m_diagnostic_updater;
+}
+
+std::shared_ptr<parameter_watcher> lifecycle_node::get_parameter_watcher()
+    const {
+    return m_parameter_watcher;
 }
 
 void lifecycle_node::produce_lifecycle_diagnostics(
@@ -102,4 +89,4 @@ void lifecycle_node::produce_lifecycle_diagnostics(
     status.summaryf(level, "Lifecycle State: %s", state.label().c_str());
 }
 
-}  // namespace clover2_common
+}  // namespace clover2::common

@@ -1,5 +1,7 @@
 FROM python:3.11-slim AS builder
 
+ARG DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update && \
     apt-get install -y make && \
     rm -rf /var/lib/apt/lists/*
@@ -16,7 +18,5 @@ FROM nginx:1.29.3-alpine-slim
 COPY --from=builder /app/build/html /usr/share/nginx/html
 
 COPY docker/docs/nginx.conf /etc/nginx/nginx.conf
-
-EXPOSE 81
 
 CMD ["nginx", "-g", "daemon off;"]

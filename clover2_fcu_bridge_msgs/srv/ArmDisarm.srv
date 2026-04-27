@@ -1,0 +1,4 @@
+bool arm
+---
+bool success true
+string message ok
