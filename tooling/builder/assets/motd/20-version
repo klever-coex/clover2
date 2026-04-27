@@ -1,7 +1,11 @@
 #!/bin/sh
+
+GREEN='\e[0;32m'
+NC='\e[0m'
+
 echo
 
 . /etc/os-release
-echo "Project version: $CLOVER2_VERSION"
+echo "Project version: $GREEN $CLOVER2_VERSION $NC"
 
 echo
