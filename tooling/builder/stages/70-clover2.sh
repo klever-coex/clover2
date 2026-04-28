@@ -1,7 +1,8 @@
 log_info "Build clover2 workspace"
 
 cd /home/$USER/clover2_ws
-/bin/bash -c "cd /home/$USER/clover2_ws && source /opt/ros/$ROS_DISTRO/setup.bash && rosdep install -y --from-paths src --ignore-src"
+/bin/bash -c "cd /home/$USER/clover2_ws/src/clover2 && make clover2-devtool-install-repos"
+/bin/bash -c "cd /home/$USER/clover2_ws && source /opt/ros/$ROS_DISTRO/setup.bash && rosdep install -y --from-paths src --ignore-src --skip-keys=libcamera"
 /bin/bash -c "cd /home/$USER/clover2_ws && source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --symlink-install"
 
 log_info "Add clover2 project to bashrc"

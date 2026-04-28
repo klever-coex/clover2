@@ -34,3 +34,6 @@ rosdep update
 
 log_info "Add ROS2 source to bashrc"
 echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
+
+sudo apt-get autoclean
+sudo apt-get clean

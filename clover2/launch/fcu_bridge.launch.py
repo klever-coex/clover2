@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch_ros.actions import Node
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
-
-from ament_index_python.packages import get_package_share_directory
+from launch_ros.actions import Node
 
 # Set FCU URL based on connection type
 fcu_url_mappings = {
@@ -46,7 +45,15 @@ def launch_setup(context, *args, **kwargs):
         arguments=["--ros-args", "--log-level", log_level],
     )
 
-    return [mavros_node]
+    offboard_server_node = Node(
+        package="clover2_fcu_bridge",
+        executable="fcu_bridge",
+        parameters=[params_file],
+        output="screen",
+        arguments=["--ros-args", "--log-level", log_level],
+    )
+
+    return [mavros_node, offboard_server_node]
 
 
 def generate_launch_description():
@@ -81,7 +88,7 @@ def generate_launch_description():
 
     fcu_conn_declare = DeclareLaunchArgument(
         "fcu_conn",
-        default_value="uart",
+        default_value="udp",
         choices=["usb", "uart", "tcp", "udp"],
         description="Flight controller unit connection type: usb, uart, tcp or udp",
     )

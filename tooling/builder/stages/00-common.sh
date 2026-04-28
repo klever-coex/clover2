@@ -23,3 +23,9 @@ CLOVER2_ENV_FILE="/root/.clover2-env"
 echo "export REGISTRY=\"$REGISTRY\"" | sudo tee -a "$CLOVER2_ENV_FILE"
 echo "export REGISTRY_HOST=\"$REGISTRY_HOST\"" | sudo tee -a "$CLOVER2_ENV_FILE"
 echo "export CLOVER2_VERSION=\"$CLOVER2_VERSION\"" | sudo tee -a "$CLOVER2_ENV_FILE"
+echo "export CLOVER2_GIT_HASH=\"$CLOVER2_GIT_HASH\"" | sudo tee -a "$CLOVER2_ENV_FILE"
+
+# backup folder for builded packages and etc.
+log_info "Create /home/$USER/.clover2_backup"
+mkdir -p /home/$USER/.clover2_backup
+mkdir -p /home/$USER/.clover2_backup/deb
