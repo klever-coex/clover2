@@ -6,10 +6,19 @@ COPY frontend .
 RUN npm ci
 RUN npm run build
 
-FROM nginx:1.29.3-alpine-slim
+FROM node:20-alpine AS runner
 
-COPY --from=builder /app/dist /usr/share/nginx/html
+ENV HOSTNAME=0.0.0.0
+ENV PORT=80
 
-COPY docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
+WORKDIR /app
 
-CMD ["nginx", "-g", "daemon off;"]
+COPY --from=builder /app/.next/standalone ./
+
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+
+COPY docker/frontend/entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
+CMD ["./entrypoint.sh"]

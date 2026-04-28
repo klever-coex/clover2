@@ -7,6 +7,8 @@ services:
   clover2-frontend:
     image: ${REGISTRY}clover2-frontend:${CLOVER2_GIT_HASH}
     restart: unless-stopped
+    environment:
+        HOSTNAME: ${CLOVER2_HOSTNAME}
     ports:
     - 80:80
   clover2-wetty:
