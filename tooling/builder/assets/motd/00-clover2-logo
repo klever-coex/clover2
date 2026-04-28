@@ -1,4 +1,8 @@
 #!/bin/sh
 
+CYAN='\e[0;36m'
+NC='\e[0m' # No Color
+
+echo $CYAN
 figlet -f slant clover2
-echo ""
+echo $NC

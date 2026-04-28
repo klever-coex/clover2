@@ -1,0 +1,28 @@
+diff --git a/ROMFS/px4fmu_common/init.d-posix/px4-rc.gzsim b/ROMFS/px4fmu_common/init.d-posix/px4-rc.gzsim
+index 43563ea606..e4859981b1 100644
+--- a/ROMFS/px4fmu_common/init.d-posix/px4-rc.gzsim
++++ b/ROMFS/px4fmu_common/init.d-posix/px4-rc.gzsim
+@@ -12,21 +12,8 @@ if [ -z "$GZ_SIM_VERSION" ]; then
+     exit 1
+ fi
+ 
+-# Use sort compare, check that MIN_GZ_VERSION is ordered last
+-if [ "$(printf '%s\n' "$GZ_SIM_VERSION" "$MIN_GZ_VERSION" | sort -V | head -n1)" = "$MIN_GZ_VERSION" ]; then
+-	gz_command="gz"
+-	gz_sub_command="sim"
+-
+-	# Specify render engine if `GZ_SIM_RENDER_ENGINE` is set
+-	# (for example, if you want to use Ogre 1.x instead of Ogre 2.x):
+-	if [ -n "${PX4_GZ_SIM_RENDER_ENGINE}" ]; then
+-		echo "INFO  [init] Setting Gazebo render engine to '${PX4_GZ_SIM_RENDER_ENGINE}'!"
+-		gz_sub_command="${gz_sub_command} --render-engine ${PX4_GZ_SIM_RENDER_ENGINE}"
+-	fi
+-else
+-    echo "ERROR [init] Gazebo gz sim version is too old ($GZ_SIM_VERSION). Minimum required version is $MIN_GZ_VERSION"
+-    exit 1
+-fi
++gz_command="gz"
++gz_sub_command="sim"
+ 
+ # Look for an already running world
+ get_gz_world() {
