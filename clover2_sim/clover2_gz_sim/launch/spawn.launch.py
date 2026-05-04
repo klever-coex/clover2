@@ -1,34 +1,29 @@
-import os
-
-from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 
 
-def generate_launch_description():
-    pkg_clover2_gz_sim = get_package_share_directory("clover2_gz_sim")
+def _urdf_basename(model_str: str) -> str:
+    if model_str.endswith(".urdf"):
+        return model_str
+    legacy = {
+        "x500": "x500.urdf",
+        "x500_mono_cam_down": "x500.urdf",
+        "clover5": "clover5.urdf",
+    }
+    return legacy.get(model_str, "x500.urdf")
 
-    # Reading arguments
+
+def launch_setup(context, *args, **kwargs):
     world = LaunchConfiguration("world")
-    model = LaunchConfiguration("model")
     name = LaunchConfiguration("name")
+    model = LaunchConfiguration("model")
 
-    # Declare arguments
-    world_declare = DeclareLaunchArgument(
-        "world",
-        description="Gazebo world.",
-    )
-
-    model_declare = DeclareLaunchArgument(
-        "model",
-        description="Select sim model.",
-    )
-
-    name_declare = DeclareLaunchArgument(
-        "name",
-        description="Model name.",
+    urdf_name = _urdf_basename(model.perform(context))
+    urdf_file = PathJoinSubstitution(
+        [FindPackageShare("clover2_description"), "urdf", urdf_name]
     )
 
     spawn_cmd = Node(
@@ -46,9 +41,29 @@ def generate_launch_description():
             "0",
             "-z",
             "0.3",
-            "-file",
-            PathJoinSubstitution([pkg_clover2_gz_sim, "models", model, "model.sdf"]),
+            "-topic",
+            "/robot_description",
         ],
+    )
+    return [spawn_cmd]
+
+
+def generate_launch_description():
+    world_declare = DeclareLaunchArgument(
+        "world",
+        description="Gazebo world.",
+    )
+
+    model_declare = DeclareLaunchArgument(
+        "model",
+        default_value="x500",
+        description=("Name of model."),
+    )
+
+    name_declare = DeclareLaunchArgument(
+        "name",
+        default_value="x500",
+        description="Model name in simulation.",
     )
 
     return LaunchDescription(
@@ -56,6 +71,6 @@ def generate_launch_description():
             world_declare,
             model_declare,
             name_declare,
-            spawn_cmd,
+            OpaqueFunction(function=launch_setup),
         ]
     )

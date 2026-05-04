@@ -1,0 +1,84 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:include
+        filename="$(find clover2_description)/xacro/macros/inertial.xacro"
+    />
+
+  <xacro:macro
+        name="camera_module"
+        params="name parent xyz rpy
+                       width height depth mass
+                       image_w image_h hfov update_rate
+                       topic_rgb topic_info
+                       frame_optical
+                       depth_min:=0.1 depth_max:=10.0
+                       mesh_file:=''"
+    >
+
+    <link name="${name}_link">
+      <visual>
+        <xacro:if value="${mesh_file == ''}">
+          <geometry>
+            <box size="${width} ${height} ${depth}" />
+          </geometry>
+        </xacro:if>
+        <xacro:unless value="${mesh_file == ''}">
+          <geometry>
+            <mesh filename="${mesh_file}" />
+          </geometry>
+        </xacro:unless>
+        <material name="dark_grey" />
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${width} ${height} ${depth}" />
+        </geometry>
+      </collision>
+      <xacro:box_inertial
+                mass="${mass}"
+                width="${width}"
+                height="${height}"
+                depth="${depth}"
+            >
+        <origin xyz="0 0 0" rpy="0 0 0" />
+      </xacro:box_inertial>
+    </link>
+
+    <link name="${frame_optical}" />
+
+    <joint name="${name}_joint" type="fixed">
+      <parent link="${parent}" />
+      <child link="${name}_link" />
+      <origin xyz="${xyz}" rpy="${rpy}" />
+    </joint>
+
+    <joint name="${name}_optical_joint" type="fixed">
+      <parent link="${name}_link" />
+      <child link="${frame_optical}" />
+      <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}" />
+    </joint>
+
+    <gazebo reference="${name}_link">
+      <sensor name="${name}_rgb" type="camera">
+        <camera>
+          <horizontal_fov>${hfov}</horizontal_fov>
+          <image>
+            <width>${image_w}</width>
+            <height>${image_h}</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.02</near>
+            <far>3000</far>
+          </clip>
+        </camera>
+        <always_on>true</always_on>
+        <update_rate>${update_rate}</update_rate>
+        <visualize>true</visualize>
+      </sensor>
+    </gazebo>
+
+  </xacro:macro>
+
+</robot>
