@@ -1,0 +1,122 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:include
+        filename="$(find clover2_description)/xacro/macros/inertial.xacro"
+    />
+
+  <xacro:macro
+        name="imu_module"
+        params="name parent xyz rpy
+                       mass:=0.01
+                       size:='0.03 0.03 0.01'
+                       update_rate:=250
+                       topic:='/imu/data'
+                       frame_name:=''
+                       gyro_noise_stddev:=0.0008726646
+                       accel_xy_noise_stddev:=0.00637
+                       accel_z_noise_stddev:=0.00686
+                       visualize:=true
+                       mesh_file:=''"
+    >
+
+    <xacro:property name="size_parts" value="${size.split(' ')}" />
+    <xacro:property name="imu_w" value="${float(size_parts[0])}" />
+    <xacro:property name="imu_h" value="${float(size_parts[1])}" />
+    <xacro:property name="imu_d" value="${float(size_parts[2])}" />
+
+    <xacro:property
+            name="imu_frame"
+            value="${frame_name if frame_name else name + '_link'}"
+        />
+
+    <link name="${name}_link">
+      <visual>
+        <xacro:if value="${mesh_file == ''}">
+          <geometry>
+            <box size="${imu_w} ${imu_h} ${imu_d}" />
+          </geometry>
+          <material name="dark_grey" />
+        </xacro:if>
+        <xacro:unless value="${mesh_file == ''}">
+          <geometry>
+            <mesh filename="${mesh_file}" />
+          </geometry>
+        </xacro:unless>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${imu_w} ${imu_h} ${imu_d}" />
+        </geometry>
+      </collision>
+      <xacro:box_inertial
+                mass="${mass}"
+                width="${imu_w}"
+                height="${imu_h}"
+                depth="${imu_d}"
+            >
+        <origin xyz="0 0 0" rpy="0 0 0" />
+      </xacro:box_inertial>
+    </link>
+
+    <joint name="${name}_joint" type="fixed">
+      <parent link="${parent}" />
+      <child link="${name}_link" />
+      <origin xyz="${xyz}" rpy="${rpy}" />
+    </joint>
+
+    <gazebo reference="${name}_link">
+      <sensor name="${name}_sensor" type="imu">
+        <always_on>1</always_on>
+        <update_rate>${update_rate}</update_rate>
+        <visualize>${'true' if visualize else 'false'}</visualize>
+
+        <imu>
+          <angular_velocity>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>${gyro_noise_stddev}</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>${gyro_noise_stddev}</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>${gyro_noise_stddev}</stddev>
+              </noise>
+            </z>
+          </angular_velocity>
+
+          <linear_acceleration>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>${accel_xy_noise_stddev}</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>${accel_xy_noise_stddev}</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>${accel_z_noise_stddev}</stddev>
+              </noise>
+            </z>
+          </linear_acceleration>
+        </imu>
+      </sensor>
+    </gazebo>
+
+  </xacro:macro>
+
+</robot>
