@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>clover2_mavros</name>
+  <version>0.0.0</version>
+  <description>Clover2 MAVROS plugins (VIO pose to MAVLink ODOMETRY)</description>
+  <maintainer email="2663161@main.com">l_motya</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>eigen3_cmake_module</buildtool_depend>
+
+  <build_depend>eigen</build_depend>
+  <build_depend>mavlink</build_depend>
+
+  <depend>diagnostic_msgs</depend>
+  <depend>diagnostic_updater</depend>
+  <depend>geometry_msgs</depend>
+  <depend>mavros_msgs</depend>
+  <depend>rcpputils</depend>
+  <depend>sensor_msgs</depend>
+  <depend>mavros</depend>
+  <depend>pluginlib</depend>
+  <depend>rclcpp</depend>
+  <depend>tf2_eigen</depend>
+  <depend>tf2_ros</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+    <mavros plugin="${prefix}/mavros_plugins.xml"/>
+  </export>
+</package>
