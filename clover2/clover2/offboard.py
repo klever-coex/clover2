@@ -1,8 +1,8 @@
 import threading
 
-from clover2_fcu_bridge_msgs.action import NavigateAsync
-from clover2_fcu_bridge_msgs.msg import State
-from clover2_fcu_bridge_msgs.srv import ArmDisarm, Land, Navigate, SetPosition
+from clover2_nav_msgs.action import NavigateAsync
+from clover2_nav_msgs.msg import State
+from clover2_nav_msgs.srv import ArmDisarm, Land, Navigate, SetPosition
 from geometry_msgs.msg import Pose
 from rclpy.action import ActionClient
 from rclpy.node import Node
