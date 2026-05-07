@@ -20,10 +20,16 @@
     />
 
   <xacro:include
-        filename="$(find clover2_description)/robots/xacro/x500/x500_base.xacro"
+        filename="$(find clover2_description)/xacro/robots/x500/x500_base.xacro"
     />
-  <!-- <xacro:include filename="../snippets/x500_quad_rotors.xacro" /> -->
+  <xacro:include
+        filename="$(find clover2_description)/xacro/sensors/camera_macro.xacro"
+    />
 
   <xacro:x500_base_link />
-  <!-- <xacro:x500_quad_rotors /> -->
+
+  <xacro:camera_module name="main_camera" parent="base_link">
+    <origin xyz="0 0 1" rpy="0 0 0" />
+  </xacro:camera_module>
+
 </robot>

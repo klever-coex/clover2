@@ -63,41 +63,34 @@
         num_motors="4"
     /> -->
 
-  <xacro:if value="${config['sensors']['imu']['enabled']}">
     <xacro:imu_module
-            name="imu"
-            parent="base_link"
-            xyz="${config['sensors']['imu']['position'][0]}
-             ${config['sensors']['imu']['position'][1]}
-             ${config['sensors']['imu']['position'][2]}"
-            rpy="0 0 0"
-            mass="0.01"
-            topic="/imu/data"
-        />
-  </xacro:if>
+        name="imu"
+        parent="base_link"
+        mass="0.01"
+        topic="/imu/data"
+    >
+        <origin xyz="0 0 0" rpy="0 0 0" />
+    </xacro:imu_module>
 
-  <xacro:if value="${config['sensors']['bottom_camera']['enabled']}">
+
+  <xacro:if value="${config['sensors']['main_camera']['enabled']}">
     <xacro:camera_module
-            name="bottom_camera"
+            name="main_camera"
             parent="base_link"
-            xyz="${config['sensors']['bottom_camera']['position'][0]}
-             ${config['sensors']['bottom_camera']['position'][1]}
-             ${config['sensors']['bottom_camera']['position'][2]}"
-            rpy="${config['sensors']['bottom_camera']['orientation'][0]}
-             ${config['sensors']['bottom_camera']['orientation'][1]}
-             ${config['sensors']['bottom_camera']['orientation'][2]}"
-            width="0.03"
-            height="0.03"
-            depth="0.02"
-            mass="0.01"
             image_w="640"
             image_h="480"
             hfov="1.22"
             update_rate="30"
-            topic_rgb="/bottom_camera/image_raw"
-            topic_info="/bottom_camera/camera_info"
-            frame_optical="bottom_camera_optical_frame"
-        />
+        >
+            <origin
+                xyz="${config['sensors']['main_camera']['position'][0]}
+                     ${config['sensors']['main_camera']['position'][1]}
+                     ${config['sensors']['main_camera']['position'][2]}"
+                rpy="${config['sensors']['main_camera']['orientation'][0]}
+                     ${config['sensors']['main_camera']['orientation'][1]}
+                     ${config['sensors']['main_camera']['orientation'][2]}"
+            />
+        </xacro:camera_module>
   </xacro:if>
 
 </robot>
