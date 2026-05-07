@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:include
+        filename="$(find clover2_description)/xacro/components/motor.xacro"
+    />
+
+  <xacro:macro name="x500_rotor" params="parent motor_number direction">
+    <xacro:motor
+            parent="${parent}"
+            motor_number="${motor_number}"
+            mass_rotor="0.016076923076923075"
+            radius_rotor="0.14"
+            mesh_package="${x500_mesh_package}"
+            mesh_file="${mesh_root}/1345_prop_ccw.stl"
+            direction="${direction}"
+            visual_xyz="${x500_prop_visual_xyz}"
+            visual_rpy="0 0 0"
+            collision_length="0.005"
+        >
+        <origin
+                xyz="${x500_arm_half} -${x500_arm_half} ${x500_rotor_z}"
+                rpy="0 0 0"
+            />
+        <inertia
+                ixx="${x500_rotor_ixx}"
+                ixy="0"
+                ixz="0"
+                iyy="${x500_rotor_iyy}"
+                iyz="0"
+                izz="${x500_rotor_izz}"
+            />
+    </xacro:motor>
+  </xacro:macro>
+</robot>

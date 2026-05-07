@@ -1,0 +1,12 @@
+pi: 3.14159265359
+g: 9.80665
+
+materials:
+  carbon_fiber:
+    color: [0.1, 0.1, 0.1, 1.0]
+  aluminum:
+    color: [0.7, 0.7, 0.7, 1.0]
+  plastic:
+    color: [0.2, 0.2, 0.8, 0.8]
+
+air_density: 1.225

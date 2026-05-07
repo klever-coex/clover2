@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="x500">
+  <xacro:property name="x500_mesh_package" value="clover2_description" />
+  <xacro:property name="x500_mesh_root" value="models/x500_base/meshes" />
+  <xacro:property name="x500_base_mass" value="2.0" />
+  <xacro:property name="x500_rotor_mass" value="0.016076923076923075" />
+  <xacro:property name="x500_arm_half" value="0.174" />
+  <xacro:property name="x500_rotor_z" value="0.06" />
+  <xacro:property name="x500_prop_scale" value="0.8461538461538461" />
+  <xacro:property name="x500_rotor_ixx" value="3.8464910483993325e-07" />
+  <xacro:property name="x500_rotor_iyy" value="2.6115851691700804e-05" />
+  <xacro:property name="x500_rotor_izz" value="2.649858234714004e-05" />
+  <xacro:property
+        name="x500_collision_box"
+        value="0.2792307692307692 0.016923076923076923 0.0008461538461538462"
+    />
+  <xacro:property
+        name="x500_prop_visual_xyz"
+        value="-0.022 -0.14638461538461536 -0.016"
+    />
+
+  <xacro:include
+        filename="$(find clover2_description)/xacro/robots/x500/x500_base.xacro"
+    />
+  <xacro:include
+        filename="$(find clover2_description)/xacro/sensors/camera_macro.xacro"
+    />
+
+  <xacro:x500_base_link />
+
+  <xacro:camera_module name="main_camera" parent="base_link">
+    <origin xyz="0 0 1" rpy="0 0 0" />
+  </xacro:camera_module>
+
+</robot>

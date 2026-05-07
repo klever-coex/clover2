@@ -1,0 +1,26 @@
+model_name: "clover5"
+frame:
+  body_length: 0.22
+  body_width: 0.22
+  body_height: 0.04
+  body_mass: 0.8
+  arm_length: 0.25
+  arm_diameter: 0.015
+
+motors:
+  num_motors: 4
+  motor_mass: 0.055
+  prop_diameter: 0.254
+  prop_mass: 0.01
+  max_thrust: 12.0
+  motor_kv: 900
+
+landing_gear:
+  height: 0.12
+  leg_diameter: 0.008
+
+sensors:
+  main_camera:
+    enabled: true
+    position: [0.0, 0.0, -0.05]
+    orientation: [0.0, 1.5707963267948966, 0.0]

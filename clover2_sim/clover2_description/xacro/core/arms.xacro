@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="quad_arms"
+               params="parent arm_length arm_diameter mass
+                       motor_mount_size motor_mount_mass">
+
+    <xacro:property name="angles" value="${[pi/4, 3*pi/4, 5*pi/4, 7*pi/4]}"/>
+    <xacro:property name="prefixes" value="${['front_right', 'front_left', 'rear_left', 'rear_right']}"/>
+
+    <xacro:for var="i" range="${range(4)}">
+      <xacro:property name="angle" value="${angles[i]}"/>
+      <xacro:property name="prefix" value="${prefixes[i]}"/>
+      <xacro:property name="x" value="${arm_length * cos(angle)}"/>
+      <xacro:property name="y" value="${arm_length * sin(angle)}"/>
+
+      <link name="${prefix}_arm">
+        <visual>
+          <origin xyz="${x/2} ${y/2} 0" rpy="0 0 ${angle}"/>
+          <geometry>
+            <cylinder radius="${arm_diameter/2}" length="${arm_length}"/>
+          </geometry>
+          <material name="carbon_fiber"/>
+        </visual>
+        <collision>
+          <origin xyz="${x/2} ${y/2} 0" rpy="0 0 ${angle}"/>
+          <geometry>
+            <cylinder radius="${arm_diameter/2}" length="${arm_length}"/>
+          </geometry>
+        </collision>
+        <xacro:cylinder_inertial mass="${mass}" radius="${arm_diameter/2}" length="${arm_length}">
+          <origin xyz="${x/2} ${y/2} 0" rpy="0 0 ${angle}"/>
+        </xacro:cylinder_inertial>
+      </link>
+
+      <joint name="${prefix}_arm_joint" type="fixed">
+        <parent link="${parent}"/>
+        <child link="${prefix}_arm"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </joint>
+
+      <link name="${prefix}_motor_mount">
+        <visual>
+          <geometry>
+            <box size="${motor_mount_size} ${motor_mount_size} ${motor_mount_size/2}"/>
+          </geometry>
+          <material name="aluminum"/>
+        </visual>
+        <collision>
+          <geometry>
+            <box size="${motor_mount_size} ${motor_mount_size} ${motor_mount_size/2}"/>
+          </geometry>
+        </collision>
+        <xacro:box_inertial mass="${motor_mount_mass}"
+                          width="${motor_mount_size}"
+                          height="${motor_mount_size}"
+                          depth="${motor_mount_size/2}">
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+        </xacro:box_inertial>
+      </link>
+
+      <joint name="${prefix}_motor_mount_joint" type="fixed">
+        <parent link="${prefix}_arm"/>
+        <child link="${prefix}_motor_mount"/>
+        <origin xyz="${x} ${y} 0" rpy="0 0 0"/>
+      </joint>
+
+    </xacro:for>
+
+  </xacro:macro>
+
+</robot>
