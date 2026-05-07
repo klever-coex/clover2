@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="quad_frame"
+               params="name mass body_l body_w body_h
+                       arm_length arm_diameter
+                       *origin">
+
+    <link name="${name}">
+      <visual>
+        <geometry>
+          <box size="${body_l} ${body_w} ${body_h}"/>
+        </geometry>
+        <material name="carbon_fiber"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${body_l} ${body_w} ${body_h}"/>
+        </geometry>
+      </collision>
+      <xacro:box_inertial mass="${mass}" width="${body_l}" height="${body_w}" depth="${body_h}">
+        <xacro:insert_block name="origin"/>
+      </xacro:box_inertial>
+    </link>
+
+  </xacro:macro>
+
+</robot>

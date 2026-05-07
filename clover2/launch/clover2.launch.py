@@ -24,6 +24,7 @@ def generate_launch_description():
     fcu_conn = LaunchConfiguration("fcu_conn")
     navigation = LaunchConfiguration("navigation")
     optical_flow = LaunchConfiguration("optical_flow")
+    simulation = LaunchConfiguration("simulation")
 
     # Declare arguments
     use_sim_time_declare = DeclareLaunchArgument(
@@ -54,6 +55,12 @@ def generate_launch_description():
 
     optical_flow_declare = DeclareLaunchArgument(
         "optical_flow", default_value="true", description="Enable optical flow"
+    )
+
+    simulation_declare = DeclareLaunchArgument(
+        "simulation",
+        default_value="false",
+        description="Start simulation mode",
     )
 
     # Start additional launch files
@@ -87,6 +94,7 @@ def generate_launch_description():
             "camera_name": TextSubstitution(text="main_camera"),
             "feature_detector": navigation,
             "optical_flow": optical_flow,
+            "simulation": simulation,
         }.items(),
     )
 
@@ -122,6 +130,7 @@ def generate_launch_description():
             fcu_conn_declare,
             navigation_declare,
             optical_flow_declare,
+            simulation_declare,
             # Launch nodes
             description_cmd,
             navigation_cmd,

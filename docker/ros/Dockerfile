@@ -10,9 +10,6 @@ COPY tooling/docker/* /clover2/
 # WORKDIR /clover2_ws
 # COPY . /clover2_ws/src/clover2
 WORKDIR /ws
-COPY clover2_sim/clover2_gz_sim/package.xml /ws/src/clover2_sim/clover2_gz_sim/package.xml
-COPY clover2_sim/clover2_sim/package.xml /ws/src/clover2_sim/clover2_sim/package.xml
-COPY clover2_sim/clover2_description/package.xml /ws/src/clover2_sim/clover2_description/package.xml
 COPY clover2/package.xml /ws/src/clover2/package.xml
 COPY clover2_common/package.xml /ws/src/clover2_common/package.xml
 COPY clover2_nav/clover2_cam_feature/package.xml /ws/src/clover2_nav/clover2_cam_feature/package.xml
