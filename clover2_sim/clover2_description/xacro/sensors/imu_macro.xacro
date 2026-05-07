@@ -7,17 +7,21 @@
 
   <xacro:macro
         name="imu_module"
-        params="name parent xyz rpy
-                       mass:=0.01
-                       size:='0.03 0.03 0.01'
-                       update_rate:=250
-                       topic:='/imu/data'
-                       frame_name:=''
-                       gyro_noise_stddev:=0.0008726646
-                       accel_xy_noise_stddev:=0.00637
-                       accel_z_noise_stddev:=0.00686
-                       visualize:=true
-                       mesh_file:=''"
+        params="
+            name
+            parent
+            mass:=0.01
+            size:='0.03 0.03 0.01'
+            update_rate:=250
+            topic:='/imu/data'
+            frame_name:=''
+            gyro_noise_stddev:=0.0008726646
+            accel_xy_noise_stddev:=0.00637
+            accel_z_noise_stddev:=0.00686
+            visualize:=true
+            mesh_file:=''
+            *origin
+        "
     >
 
     <xacro:property name="size_parts" value="${size.split(' ')}" />
@@ -62,7 +66,7 @@
     <joint name="${name}_joint" type="fixed">
       <parent link="${parent}" />
       <child link="${name}_link" />
-      <origin xyz="${xyz}" rpy="${rpy}" />
+      <xacro:insert_block name="origin" />
     </joint>
 
     <gazebo reference="${name}_link">

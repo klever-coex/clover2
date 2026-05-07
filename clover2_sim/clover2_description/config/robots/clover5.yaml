@@ -20,11 +20,7 @@ landing_gear:
   leg_diameter: 0.008
 
 sensors:
-  imu:
+  main_camera:
     enabled: true
-    position: [0.0, 0.0, 0.0]
-  bottom_camera:
-    enabled: true
-    type: "generic_rgb"
     position: [0.0, 0.0, -0.05]
     orientation: [0.0, 1.5707963267948966, 0.0]
