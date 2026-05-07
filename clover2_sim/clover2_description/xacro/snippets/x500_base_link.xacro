@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="x500_base_link">
+    <link name="base_link">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="${x500_base_mass}"/>
+        <inertia ixx="0.02166666666666667" ixy="0" ixz="0" iyy="0.02166666666666667" iyz="0" izz="0.04000000000000001"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0.025" rpy="0 0 3.141592654"/>
+        <geometry>
+          <mesh filename="package://${x500_mesh_package}/${x500_mesh_root}/NXP-HGD-CF.dae" scale="1 1 1"/>
+        </geometry>
+      </visual>
+      <visual>
+        <origin xyz="0.174 0.174 0.032" rpy="0 0 -0.45"/>
+        <geometry>
+          <mesh filename="package://${x500_mesh_package}/${x500_mesh_root}/5010Base.dae" scale="1 1 1"/>
+        </geometry>
+      </visual>
+      <visual>
+        <origin xyz="-0.174 0.174 0.032" rpy="0 0 -0.45"/>
+        <geometry>
+          <mesh filename="package://${x500_mesh_package}/${x500_mesh_root}/5010Base.dae" scale="1 1 1"/>
+        </geometry>
+      </visual>
+      <visual>
+        <origin xyz="0.174 -0.174 0.032" rpy="0 0 -0.45"/>
+        <geometry>
+          <mesh filename="package://${x500_mesh_package}/${x500_mesh_root}/5010Base.dae" scale="1 1 1"/>
+        </geometry>
+      </visual>
+      <visual>
+        <origin xyz="-0.174 -0.174 0.032" rpy="0 0 -0.45"/>
+        <geometry>
+          <mesh filename="package://${x500_mesh_package}/${x500_mesh_root}/5010Base.dae" scale="1 1 1"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0.007" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.35355339059327373 0.35355339059327373 0.05"/>
+        </geometry>
+      </collision>
+      <collision>
+        <origin xyz="0 -0.098 -0.123" rpy="-0.35 0 0"/>
+        <geometry>
+          <box size="0.015 0.015 0.21"/>
+        </geometry>
+      </collision>
+      <collision>
+        <origin xyz="0 0.098 -0.123" rpy="0.35 0 0"/>
+        <geometry>
+          <box size="0.015 0.015 0.21"/>
+        </geometry>
+      </collision>
+      <collision>
+        <origin xyz="0 -0.132 -0.2195" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.25 0.015 0.015"/>
+        </geometry>
+      </collision>
+      <collision>
+        <origin xyz="0 0.132 -0.2195" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.25 0.015 0.015"/>
+        </geometry>
+      </collision>
+    </link>
+  </xacro:macro>
+</robot>

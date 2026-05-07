@@ -1,0 +1,194 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <material name="carbon_fiber">
+    <color rgba="0.08 0.08 0.08 1.0" />
+  </material>
+
+  <material name="carbon_fiber_matte">
+    <color rgba="0.12 0.12 0.12 1.0" />
+  </material>
+
+  <material name="aluminum">
+    <color rgba="0.75 0.75 0.78 1.0" />
+  </material>
+
+  <material name="aluminum_red">
+    <color rgba="0.85 0.15 0.15 1.0" />
+  </material>
+
+  <material name="aluminum_blue">
+    <color rgba="0.15 0.35 0.85 1.0" />
+  </material>
+
+  <material name="aluminum_gold">
+    <color rgba="0.85 0.70 0.20 1.0" />
+  </material>
+
+  <material name="titanium">
+    <color rgba="0.60 0.62 0.65 1.0" />
+  </material>
+
+  <material name="steel">
+    <color rgba="0.55 0.55 0.58 1.0" />
+  </material>
+
+  <material name="plastic_black">
+    <color rgba="0.15 0.15 0.15 1.0" />
+  </material>
+
+  <material name="plastic_dark_grey">
+    <color rgba="0.25 0.25 0.27 1.0" />
+  </material>
+
+  <material name="plastic_grey">
+    <color rgba="0.45 0.45 0.47 1.0" />
+  </material>
+
+  <material name="plastic_white">
+    <color rgba="0.95 0.95 0.95 1.0" />
+  </material>
+
+  <material name="plastic_orange">
+    <color rgba="0.95 0.50 0.10 1.0" />
+  </material>
+
+  <material name="plastic_red">
+    <color rgba="0.90 0.15 0.15 1.0" />
+  </material>
+
+  <material name="plastic_blue">
+    <color rgba="0.15 0.40 0.85 1.0" />
+  </material>
+
+  <material name="plastic_green">
+    <color rgba="0.15 0.65 0.25 1.0" />
+  </material>
+
+  <material name="plastic_yellow">
+    <color rgba="0.95 0.85 0.10 1.0" />
+  </material>
+
+  <material name="plastic_clear">
+    <color rgba="0.90 0.90 0.90 0.3" />
+  </material>
+
+  <material name="copper">
+    <color rgba="0.72 0.45 0.20 1.0" />
+  </material>
+
+  <material name="brass">
+    <color rgba="0.80 0.60 0.25 1.0" />
+  </material>
+
+  <material name="gold">
+    <color rgba="0.85 0.70 0.25 1.0" />
+  </material>
+
+  <material name="chrome">
+    <color rgba="0.85 0.85 0.88 1.0" />
+  </material>
+
+  <material name="pcb_green">
+    <color rgba="0.15 0.45 0.15 1.0" />
+  </material>
+
+  <material name="pcb_blue">
+    <color rgba="0.15 0.25 0.50 1.0" />
+  </material>
+
+  <material name="pcb_black">
+    <color rgba="0.10 0.10 0.10 1.0" />
+  </material>
+
+  <material name="silicone">
+    <color rgba="0.20 0.20 0.22 1.0" />
+  </material>
+
+  <material name="rubber">
+    <color rgba="0.15 0.15 0.15 1.0" />
+  </material>
+
+  <material name="rubber_orange">
+    <color rgba="0.95 0.45 0.10 1.0" />
+  </material>
+
+  <material name="foam">
+    <color rgba="0.90 0.90 0.90 0.8" />
+  </material>
+
+  <material name="marker_front">
+    <color rgba="0.90 0.10 0.10 1.0" />
+  </material>
+
+  <material name="marker_rear">
+    <color rgba="0.10 0.70 0.20 1.0" />
+  </material>
+
+  <material name="marker_right">
+    <color rgba="0.10 0.10 0.90 1.0" />
+  </material>
+
+  <material name="marker_left">
+    <color rgba="0.90 0.90 0.10 1.0" />
+  </material>
+
+  <material name="marker_top">
+    <color rgba="0.95 0.95 0.95 1.0" />
+  </material>
+
+  <material name="marker_bottom">
+    <color rgba="0.20 0.20 0.20 1.0" />
+  </material>
+
+  <material name="black">
+    <color rgba="0.0 0.0 0.0 1.0" />
+  </material>
+
+  <material name="white">
+    <color rgba="1.0 1.0 1.0 1.0" />
+  </material>
+
+  <material name="red">
+    <color rgba="0.8 0.0 0.0 1.0" />
+  </material>
+
+  <material name="green">
+    <color rgba="0.0 0.8 0.0 1.0" />
+  </material>
+
+  <material name="blue">
+    <color rgba="0.0 0.0 0.8 1.0" />
+  </material>
+
+  <material name="yellow">
+    <color rgba="0.8 0.8 0.0 1.0" />
+  </material>
+
+  <material name="orange">
+    <color rgba="1.0 0.5 0.0 1.0" />
+  </material>
+
+  <material name="purple">
+    <color rgba="0.5 0.0 0.5 1.0" />
+  </material>
+
+  <material name="grey">
+    <color rgba="0.5 0.5 0.5 1.0" />
+  </material>
+
+  <material name="dark_grey">
+    <color rgba="0.3 0.3 0.3 1.0" />
+  </material>
+
+  <material name="light_grey">
+    <color rgba="0.7 0.7 0.7 1.0" />
+  </material>
+
+  <xacro:macro name="gazebo_material" params="link_name material_name">
+    <gazebo reference="${link_name}">
+      <material>${material_name}</material>
+    </gazebo>
+  </xacro:macro>
+
+</robot>
