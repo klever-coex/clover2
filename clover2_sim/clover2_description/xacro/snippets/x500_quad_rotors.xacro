@@ -1,0 +1,130 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="x500_quad_rotors">
+    <xacro:motor_from_package
+            parent="base_link"
+            motor_number="0"
+            mass_rotor="${x500_rotor_mass}"
+            radius_rotor="0.14"
+            mesh_package="${x500_mesh_package}"
+            mesh_file="${x500_mesh_root}/1345_prop_ccw.stl"
+            direction="ccw"
+            visual_xyz="${x500_prop_visual_xyz}"
+            visual_rpy="0 0 0"
+            use_box_collision="true"
+            collision_box_size="${x500_collision_box}"
+            collision_length="0.005"
+        >
+      <origin
+                xyz="${x500_arm_half} -${x500_arm_half} ${x500_rotor_z}"
+                rpy="0 0 0"
+            />
+      <inertia
+                ixx="${x500_rotor_ixx}"
+                ixy="0"
+                ixz="0"
+                iyy="${x500_rotor_iyy}"
+                iyz="0"
+                izz="${x500_rotor_izz}"
+            />
+    </xacro:motor_from_package>
+    <xacro:motor_from_package
+            parent="base_link"
+            motor_number="1"
+            mass_rotor="${x500_rotor_mass}"
+            radius_rotor="0.14"
+            mesh_package="${x500_mesh_package}"
+            mesh_file="${x500_mesh_root}/1345_prop_ccw.stl"
+            direction="ccw"
+            visual_xyz="${x500_prop_visual_xyz}"
+            visual_rpy="0 0 0"
+            use_box_collision="true"
+            collision_box_size="${x500_collision_box}"
+            with_bell="true"
+            bell_mesh="package://${x500_mesh_package}/${x500_mesh_root}/5010Bell.dae"
+            bell_mesh_scale="1 1 1"
+            bell_visual_xyz="0 0 -0.032"
+            bell_visual_rpy="0 0 0"
+            collision_length="0.005"
+        >
+      <origin
+                xyz="-${x500_arm_half} ${x500_arm_half} ${x500_rotor_z}"
+                rpy="0 0 0"
+            />
+      <inertia
+                ixx="${x500_rotor_ixx}"
+                ixy="0"
+                ixz="0"
+                iyy="${x500_rotor_iyy}"
+                iyz="0"
+                izz="${x500_rotor_izz}"
+            />
+    </xacro:motor_from_package>
+    <xacro:motor_from_package
+            parent="base_link"
+            motor_number="2"
+            mass_rotor="${x500_rotor_mass}"
+            radius_rotor="0.14"
+            mesh_package="${x500_mesh_package}"
+            mesh_file="${x500_mesh_root}/1345_prop_cw.stl"
+            mesh_scale="${x500_prop_scale} ${x500_prop_scale} ${x500_prop_scale}"
+            direction="cw"
+            visual_xyz="${x500_prop_visual_xyz}"
+            visual_rpy="0 0 0"
+            use_box_collision="true"
+            collision_box_size="${x500_collision_box}"
+            with_bell="true"
+            bell_mesh="package://${x500_mesh_package}/${x500_mesh_root}/5010Bell.dae"
+            bell_mesh_scale="1 1 1"
+            bell_visual_xyz="0 0 -0.032"
+            bell_visual_rpy="0 0 0"
+            collision_length="0.005"
+        >
+      <origin
+                xyz="${x500_arm_half} ${x500_arm_half} ${x500_rotor_z}"
+                rpy="0 0 0"
+            />
+      <inertia
+                ixx="${x500_rotor_ixx}"
+                ixy="0"
+                ixz="0"
+                iyy="${x500_rotor_iyy}"
+                iyz="0"
+                izz="${x500_rotor_izz}"
+            />
+    </xacro:motor_from_package>
+    <xacro:motor_from_package
+            parent="base_link"
+            motor_number="3"
+            mass_rotor="${x500_rotor_mass}"
+            radius_rotor="0.14"
+            mesh_package="${x500_mesh_package}"
+            mesh_file="${x500_mesh_root}/1345_prop_cw.stl"
+            mesh_scale="${x500_prop_scale} ${x500_prop_scale} ${x500_prop_scale}"
+            direction="cw"
+            visual_xyz="${x500_prop_visual_xyz}"
+            visual_rpy="0 0 0"
+            use_box_collision="true"
+            collision_box_size="${x500_collision_box}"
+            with_bell="true"
+            bell_mesh="package://${x500_mesh_package}/${x500_mesh_root}/5010Bell.dae"
+            bell_mesh_scale="1 1 1"
+            bell_visual_xyz="0 0 -0.032"
+            bell_visual_rpy="0 0 0"
+            collision_length="0.005"
+        >
+      <origin
+                xyz="-${x500_arm_half} -${x500_arm_half} ${x500_rotor_z}"
+                rpy="0 0 0"
+            />
+      <inertia
+                ixx="${x500_rotor_ixx}"
+                ixy="0"
+                ixz="0"
+                iyy="${x500_rotor_iyy}"
+                iyz="0"
+                izz="${x500_rotor_izz}"
+            />
+    </xacro:motor_from_package>
+  </xacro:macro>
+</robot>
