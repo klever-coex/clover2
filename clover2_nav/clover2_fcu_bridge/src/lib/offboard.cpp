@@ -140,6 +140,8 @@ void offboard::complite_setpoint(
     pose_in_req.pose.position.y = y.value_or(prev_pos.y);
     pose_in_req.pose.position.z = z.value_or(prev_pos.z);
 
+    RCLCPP_INFO(get_logger(), "prev_pos: x: %.02f y: %.02f z: %.02f", prev_pos.x, prev_pos.y, prev_pos.z);
+
     if (yaw.has_value()) {
         set_yaw(pose_in_req.pose.orientation, *yaw);
     }
@@ -235,14 +237,15 @@ void offboard::publish_offboard() {
         check_fcu(process_state);
     }
 
-    if (m_reset_require) {
-        RCLCPP_INFO(get_logger(), "Pose reset require");
-        m_pose_setpoint = m_current_pose;
+    if (m_reset_require && backend->ready()) {
+        // RCLCPP_INFO(get_logger(), "Pose reset require");
+        // m_pose_setpoint = m_current_pose;
         m_reset_require = false;
     }
 
     switch (process_state) {
         case state::idle:
+            m_pose_setpoint = m_current_pose;
             publish_position();
             break;
         case state::position:
@@ -272,6 +275,17 @@ void offboard::publish_position() {
     double x, y, z, yaw;
     extract_pose(m_pose_setpoint, x, y, z, yaw);
     m_backend.lock()->set_position_setpoint(x, y, z, yaw);
+
+    RCLCPP_INFO_THROTTLE(
+        get_logger(),
+        *get_clock(),
+        1000,
+        "publish pose: x: %.02f y: %.02f z: %.02f yaw: %.02f",
+        x,
+        y,
+        z,
+        yaw
+    );
 }
 
 void offboard::publish_velocity() {
