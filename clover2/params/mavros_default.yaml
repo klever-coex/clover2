@@ -26,6 +26,7 @@
       - terrain
       - wheel_odometry
       - wind_estimation
+      - odometry
 
 # --- system plugins ---
 

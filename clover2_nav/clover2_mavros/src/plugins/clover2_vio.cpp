@@ -23,10 +23,9 @@ public:
 
     explicit clover2_vio(mavros::plugin::UASPtr uas_)
         : Plugin(uas_, "clover2_vio")
-        , m_reset_counter(0)
+        , m_reset_counter(10)
         , m_pose_child_frame_id(uas_->get_base_link_frame_id())
-        , m_pose_gap_reset(rclcpp::Duration::from_seconds(1.0))
-        , m_have_last_pose(false) {
+        , m_pose_gap_reset(rclcpp::Duration::from_seconds(1.0)) {
         enable_node_watch_parameters();
 
         node_declare_and_watch_parameter(
@@ -68,87 +67,92 @@ private:
         }
     }
 
-    void pose_cov_cb(
-        const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr
-            pose_msg) {
-        const rclcpp::Time now = node->now();
-        if (m_have_last_pose && m_pose_gap_reset.seconds() > 0.0) {
-            if ((now - m_last_pose_recv) > m_pose_gap_reset) {
-                ++m_reset_counter;
-            }
-        }
-        m_last_pose_recv = now;
-        m_have_last_pose = true;
+    void send_vision_estimate(
+        const rclcpp::Time& stamp, const Eigen::Affine3d& tr,
+        const geometry_msgs::msg::PoseWithCovariance::_covariance_type& cov) {
+        auto position =
+            ftf::transform_frame_enu_ned(Eigen::Vector3d(tr.translation()));
 
-        Eigen::Affine3d tf_parent2parent_des = Eigen::Affine3d::Identity();
-        Eigen::Affine3d tf_child2child_des = Eigen::Affine3d::Identity();
-
-        const std::string& parent_frame = pose_msg->header.frame_id;
-        const bool parent_tf_available = lookup_static_transform(
-            parent_frame + "_ned", parent_frame, tf_parent2parent_des);
-        const bool child_tf_available =
-            lookup_static_transform(m_pose_child_frame_id + "_frd",
-                                    m_pose_child_frame_id, tf_child2child_des);
-        if (!parent_tf_available || !child_tf_available) {
+        Eigen::Quaterniond q(tr.rotation());
+        if (!std::isfinite(q.x()) ||
+            !std::isfinite(q.y()) ||
+            !std::isfinite(q.z()) ||
+            !std::isfinite(q.w()))
+        {
+            RCLCPP_ERROR(get_logger(),
+                "Vision: quaternion NaN/Inf");
             return;
         }
 
-        ftf::Covariance6d cov_pose_arr = pose_msg->pose.covariance;
-        ftf::EigenMapCovariance6d cov_pose_map(cov_pose_arr.data());
+        double q_norm = q.norm();
 
-        Matrix6d r_pose = Matrix6d::Zero();
-        Matrix6d r_vel = Matrix6d::Zero();
+        if (std::abs(q_norm - 1.0) > 0.05) {
+            RCLCPP_ERROR(get_logger(),
+                "Vision: invalid quaternion norm: %.3f",
+                q_norm);
+            return;
+        }
 
-        const Eigen::Vector3d position =
-            tf_parent2parent_des.linear() *
-            ftf::to_eigen(pose_msg->pose.pose.position);
+        auto rpy = ftf::quaternion_to_rpy(ftf::transform_orientation_enu_ned(
+            ftf::transform_orientation_baselink_aircraft(q)));
 
-        const Eigen::Quaterniond q_child2parent(
-            ftf::to_eigen(pose_msg->pose.pose.orientation));
-        const Eigen::Affine3d tf_childDes2parentDes =
-            tf_parent2parent_des * q_child2parent *
-            tf_child2child_des.inverse();
-        const Eigen::Quaterniond orientation(tf_childDes2parentDes.linear());
+        auto cov_ned = ftf::transform_frame_enu_ned(cov);
+        ftf::EigenMapConstCovariance6d cov_map(cov_ned.data());
 
-        r_pose.block<3, 3>(0, 0) = r_pose.block<3, 3>(3, 3) =
-            tf_parent2parent_des.linear();
-        r_vel.block<3, 3>(0, 0) = r_vel.block<3, 3>(3, 3) =
-            tf_child2child_des.linear();
-        cov_pose_map = r_pose * cov_pose_map * r_pose.transpose();
+        mavlink::common::msg::VISION_POSITION_ESTIMATE vp{};
+        vp.usec = get_time_usec(stamp);
+        // vp.reset_counter = m_reset_counter;
 
-        Matrix6d cov_vel_unknown = Matrix6d::Zero();
-        cov_vel_unknown(0, 0) = cov_vel_unknown(1, 1) = cov_vel_unknown(2, 2) =
-            1e6;
-        cov_vel_unknown(3, 3) = cov_vel_unknown(4, 4) = cov_vel_unknown(5, 5) =
-            1e4;
-        Eigen::Matrix<double, 6, 6, Eigen::RowMajor> cov_vel_map =
-            r_vel * cov_vel_unknown * r_vel.transpose();
+        vp.x = position.x();
+        vp.y = position.y();
+        vp.z = position.z();
+        vp.roll = rpy.x();
+        vp.pitch = rpy.y();
+        vp.yaw = rpy.z();
 
-        mavlink::common::msg::ODOMETRY msg{};
-        msg.frame_id = utils::enum_value(MAV_FRAME::LOCAL_FRD);
-        msg.child_frame_id = utils::enum_value(MAV_FRAME::BODY_FRD);
-        msg.estimator_type = utils::enum_value(MAV_ESTIMATOR_TYPE::VISION);
-        msg.time_usec = get_time_usec(pose_msg->header.stamp);
-        msg.reset_counter = m_reset_counter;
+        ftf::covariance_urt_to_mavlink(cov_map, vp.covariance);
 
-        msg.x = static_cast<float>(position.x());
-        msg.y = static_cast<float>(position.y());
-        msg.z = static_cast<float>(position.z());
-        msg.vx = msg.vy = msg.vz = 0.F;
-        msg.rollspeed = msg.pitchspeed = msg.yawspeed = 0.F;
+        uas->send_message(vp);
+    }
 
-        ftf::quaternion_to_mavlink(orientation, msg.q);
-        ftf::covariance_urt_to_mavlink(cov_pose_map, msg.pose_covariance);
-        ftf::covariance_urt_to_mavlink(cov_vel_map, msg.velocity_covariance);
+    void pose_cov_cb(
+        const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr
+            pose_msg) {
+        const rclcpp::Time stamp = rclcpp::Time(pose_msg->header.stamp);
 
-        uas->send_message(msg);
+        if (m_last_pose_recv == stamp) {
+            RCLCPP_DEBUG_THROTTLE(
+                get_logger(), *get_clock(), 10,
+                "Vision: Same transform as last one, dropped.");
+            return;
+        }
+
+        if ((stamp - m_last_pose_recv) > m_pose_gap_reset) {
+            RCLCPP_WARN(get_logger(),
+                        "Increase reset counter.");
+            ++m_reset_counter;
+        }
+
+        m_last_pose_recv = stamp;
+
+        Eigen::Affine3d tr;
+        tf2::fromMsg(pose_msg->pose.pose, tr);
+
+        for (const auto& v : pose_msg->pose.covariance) {
+            if (!std::isfinite(v)) {
+                RCLCPP_ERROR(get_logger(),
+                    "Vision: covariance contains NaN/Inf");
+                return;
+            }
+        }
+
+        send_vision_estimate(stamp, tr, pose_msg->pose.covariance);
     }
 
     uint8_t m_reset_counter;
     std::string m_pose_child_frame_id;
-    rclcpp::Duration m_pose_gap_reset{rclcpp::Duration::from_seconds(1.0)};
-    bool m_have_last_pose;
     rclcpp::Time m_last_pose_recv{0, 0, RCL_ROS_TIME};
+    rclcpp::Duration m_pose_gap_reset{rclcpp::Duration::from_seconds(1.0)};
 
     rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::
         SharedPtr m_pose_cov_sub;

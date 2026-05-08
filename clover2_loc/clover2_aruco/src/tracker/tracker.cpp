@@ -114,7 +114,7 @@ void tracker::markers_callback(
     }
 
     // transform between tracking frame and camera frame
-    Eigen::Affine3d camera_transform;
+    Eigen::Isometry3d camera_transform;
     try {
         auto camera_transform_msg = m_tf_buffer->lookupTransform(
             m_tracking_id, msg->header.frame_id, tf2::TimePointZero);
@@ -147,13 +147,14 @@ void tracker::markers_callback(
     Eigen::Vector4d cumulative_q = Eigen::Vector4d::Zero();
 
     for (const auto& marker : msg->markers) {
-        Eigen::Affine3d marker_pose;
+        Eigen::Isometry3d marker_pose = Eigen::Isometry3d::Identity();
         tf2::fromMsg(marker.pose.pose, marker_pose);
 
-        Eigen::Affine3d camera_in_map =
+        Eigen::Isometry3d camera_in_map =
             m_map_client->get_transform(marker.id) * marker_pose.inverse();
 
-        Eigen::Affine3d drone_in_map = camera_in_map * camera_transform;
+        Eigen::Isometry3d drone_in_map =
+            camera_in_map * camera_transform;
 
         // add debug transform
         poses_debug.poses.push_back(tf2::toMsg(drone_in_map));
@@ -170,7 +171,7 @@ void tracker::markers_callback(
     avg_quat.coeffs() = cumulative_q.normalized();
 
     // fill pose msg
-    Eigen::Affine3d result_pose = Eigen::Affine3d::Identity();
+    Eigen::Isometry3d result_pose = Eigen::Isometry3d::Identity();
     result_pose.translate(avg_translation);
     result_pose.rotate(avg_quat);
 

@@ -13,6 +13,7 @@
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <tf2/LinearMath/Vector3.hpp>
 #include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_broadcaster.hpp>
 #include <tf2_ros/transform_listener.h>
 
 // STL

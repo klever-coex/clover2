@@ -59,7 +59,7 @@ public:
 
     int get_count() const { return static_cast<int>(m_markers.size()); }
 
-    const Eigen::Affine3d& get_transform(int id) const {
+    const Eigen::Isometry3d& get_transform(int id) const {
         return m_markers.at(id).transform;
     }
 

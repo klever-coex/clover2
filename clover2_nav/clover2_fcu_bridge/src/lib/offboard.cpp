@@ -132,7 +132,7 @@ void offboard::complite_setpoint(
         RCLCPP_WARN(get_logger(),
                     "complite_setpoint: TF to frame_id '%s' failed: %s",
                     frame_id.c_str(), ex.what());
-        return;
+        throw;
     }
 
     const auto& prev_pos = pose_in_req.pose.position;
@@ -160,7 +160,7 @@ void offboard::complite_setpoint(
             "complite_setpoint: TF to local frame '%s' failed: %s (setpoint "
             "unchanged)",
             m_local_frame.c_str(), ex.what());
-        return;
+        throw;
     }
 
     if (pose.pose.position.z < m_height_low) {
