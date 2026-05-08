@@ -5,6 +5,5 @@
 :maxdepth: 1
 :hidden:
 
-Overview
 Programming
 ```

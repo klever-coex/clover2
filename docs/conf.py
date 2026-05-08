@@ -14,12 +14,15 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
     "sphinx.ext.autosectionlabel",
+    "sphinx_copybutton",
 ]
 
 autosectionlabel_prefix_document = True
 
 myst_enable_extensions = [
     "colon_fence",
+    "deflist",
+    "html_image",
 ]
 
 source_suffix = {
@@ -41,16 +44,13 @@ master_doc = "index"
 
 html_theme = "sphinx_rtd_theme"
 html_theme_options = {
-    "analytics_id": "G-EVD5Z6G6NH",
     "collapse_navigation": False,
     "sticky_navigation": False,
     "navigation_depth": -1,
 }
 
 html_context = {
-    "extra_nav_links": {
-        "Просмотреть исходный код": "https://gitflic.ru/project/klever-coex/clover2"
-    }
+
 }
 
 html_static_path = [
