@@ -18,7 +18,7 @@ public:
 
     int id;
     double size;
-    Eigen::Affine3d transform;
+    Eigen::Isometry3d transform;
     std::string marker_frame_id;
 };
 

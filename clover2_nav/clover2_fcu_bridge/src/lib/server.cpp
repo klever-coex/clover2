@@ -310,7 +310,7 @@ void server::extract_target_pose(const geometry_msgs::msg::Pose& pose,
         yaw = tf2::getYaw(pose.orientation);
     }
 
-    RCLCPP_INFO(get_logger(), "set_position x=%.3f y=%.3f z=%.3f yaw=%.3f", p.x,
+    RCLCPP_INFO(get_logger(), "extract_target_pose x=%.3f y=%.3f z=%.3f yaw=%.3f", p.x,
                 p.y, p.z, yaw.value_or(NAN));
 }
 

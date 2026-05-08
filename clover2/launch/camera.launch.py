@@ -25,11 +25,11 @@ def make_gz_bridge_topics(camera_name: str):
     cam_image = f"{camera_name}_camera_image"
     cam_info = f"{camera_name}_camera_info"
     return [
-        {"bridge_names": [cam_image, cam_info]},
+        {"bridge_names": [cam_image, cam_info, "odom"]},
         # Camera image
         {f"bridges.{cam_image}.ros_topic_name": "~/image_raw"},
         {
-            f"bridges.{cam_image}.gz_topic_name": "/world/aruco/model/px4/link/camera_link/sensor/imager/image"
+            f"bridges.{cam_image}.gz_topic_name": "/world/clover2_aruco/model/px4/link/camera_link/sensor/imager/image"
         },
         {f"bridges.{cam_image}.ros_type_name": "sensor_msgs/msg/Image"},
         {f"bridges.{cam_image}.gz_type_name": "gz.msgs.Image"},
@@ -38,12 +38,18 @@ def make_gz_bridge_topics(camera_name: str):
         # Camera info
         {f"bridges.{cam_info}.ros_topic_name": "~/camera_info"},
         {
-            f"bridges.{cam_info}.gz_topic_name": "/world/aruco/model/px4/link/camera_link/sensor/imager/camera_info"
+            f"bridges.{cam_info}.gz_topic_name": "/world/clover2_aruco/model/px4/link/camera_link/sensor/imager/camera_info"
         },
         {f"bridges.{cam_info}.ros_type_name": "sensor_msgs/msg/CameraInfo"},
         {f"bridges.{cam_info}.gz_type_name": "gz.msgs.CameraInfo"},
         {f"bridges.{cam_info}.direction": "GZ_TO_ROS"},
         {f"bridges.{cam_info}.frame_id": camera_name},
+        {"bridges.odom.ros_topic_name": "/odom"},
+        {"bridges.odom.gz_topic_name": "/world/clover2_aruco/dynamic_pose/info"},
+        {"bridges.odom.ros_type_name": "geometry_msgs/msg/PoseArray"},
+        {"bridges.odom.gz_type_name": "gz.msgs.Pose_V"},
+        {"bridges.odom.direction": "GZ_TO_ROS"},
+        {"bridges.odom.frame_id": "map"},
     ]
 
 
