@@ -103,7 +103,7 @@ private:
     void extract_pose(const geometry_msgs::msg::PoseStamped& pose,
                       tf2::Vector3& pos, double& yaw) const;
 
-    void complite_setpoint(const std::string& frame_id,
+    void complete_setpoint(const std::string& frame_id,
                            const std::optional<double>& x,
                            const std::optional<double>& y,
                            const std::optional<double>& z,
@@ -123,7 +123,7 @@ private:
     void publish_position();
     void publish_velocity();
     void update_navigation_setpoint();
-    void check_action_complite(
+    void check_action_complete(
         const geometry_msgs::msg::PoseStamped& target_pose);
 
     void change_state(const state new_state);
