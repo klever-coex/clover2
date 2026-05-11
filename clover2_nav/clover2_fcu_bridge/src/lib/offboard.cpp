@@ -59,7 +59,7 @@ void offboard::set_position(const std::string& frame_id,
 
     geometry_msgs::msg::PoseStamped pose_in_req;
     pose_in_req.header.frame_id = m_local_frame;
-    complite_setpoint(frame_id, x, y, z, yaw, m_pose_setpoint, pose_in_req);
+    complete_setpoint(frame_id, x, y, z, yaw, m_pose_setpoint, pose_in_req);
 
     m_pose_setpoint = pose_in_req;
     change_state(state::position);
@@ -75,7 +75,7 @@ void offboard::navigate(const std::string& frame_id, std::optional<double> x,
     m_speed = std::clamp(speed, speed_low_limit, m_speed_limit);
     geometry_msgs::msg::PoseStamped pose_in_req;
     pose_in_req.header.frame_id = m_local_frame;
-    complite_setpoint(frame_id, x, y, z, yaw, m_pose_setpoint, pose_in_req);
+    complete_setpoint(frame_id, x, y, z, yaw, m_pose_setpoint, pose_in_req);
 
     // TODO: update m_yaw_speed
 
@@ -108,7 +108,7 @@ void offboard::extract_pose(const geometry_msgs::msg::PoseStamped& pose,
     yaw = tf2::getYaw(pose.pose.orientation);
 }
 
-void offboard::complite_setpoint(
+void offboard::complete_setpoint(
     const std::string& frame_id, const std::optional<double>& x,
     const std::optional<double>& y, const std::optional<double>& z,
     const std::optional<double>& yaw,
@@ -130,7 +130,7 @@ void offboard::complite_setpoint(
         }
     } catch (const tf2::TransformException& ex) {
         RCLCPP_WARN(get_logger(),
-                    "complite_setpoint: TF to frame_id '%s' failed: %s",
+                    "complete_setpoint: TF to frame_id '%s' failed: %s",
                     frame_id.c_str(), ex.what());
         throw;
     }
@@ -159,7 +159,7 @@ void offboard::complite_setpoint(
     } catch (const tf2::TransformException& ex) {
         RCLCPP_WARN(
             get_logger(),
-            "complite_setpoint: TF to local frame '%s' failed: %s (setpoint "
+            "complete_setpoint: TF to local frame '%s' failed: %s (setpoint "
             "unchanged)",
             m_local_frame.c_str(), ex.what());
         throw;
@@ -263,7 +263,7 @@ void offboard::publish_offboard() {
     }
 
     if (m_state != state::idle) {
-        check_action_complite(target_pose);
+        check_action_complete(target_pose);
     }
 
     if (m_process_callback) {
@@ -323,7 +323,7 @@ void offboard::update_navigation_setpoint() {
     set_yaw(m_pose_setpoint.pose.orientation, yaw_pose);
 }
 
-void offboard::check_action_complite(
+void offboard::check_action_complete(
     const geometry_msgs::msg::PoseStamped& target_pose) {
     double diff_yaw;
     tf2::Vector3 diff_pos;
