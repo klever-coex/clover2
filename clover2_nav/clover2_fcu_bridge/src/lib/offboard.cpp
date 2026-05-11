@@ -329,6 +329,15 @@ void offboard::check_action_complite(
     tf2::Vector3 diff_pos;
     compute_diff(target_pose, diff_pos, diff_yaw);
 
+    RCLCPP_INFO_THROTTLE(
+        get_logger(),
+        *get_clock(),
+        5000, "Diff: x: %.02f y: %.02f z: %.02f", diff_pos.x(), diff_pos.y(), diff_pos.z());
+    RCLCPP_INFO_THROTTLE(
+        get_logger(),
+        *get_clock(),
+        5000, "Target: x: %.02f y: %.02f z: %.02f", target_pose.pose.position.x, target_pose.pose.position.y, target_pose.pose.position.z);
+
     if (diff_pos.length() < m_tolerance && std::abs(diff_yaw) < 0.05) {
         change_state(state::idle);
         m_pose_setpoint = target_pose;

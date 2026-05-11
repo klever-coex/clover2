@@ -2,7 +2,7 @@ import clover2
 
 drone = clover2.Clover2()
 
-drone.offboard.navigate_async("map", x=0.0, y=0.0, speed=2.0)
+drone.offboard.navigate_async("map", z=2.0, speed=.5)
 
 # import time
 
