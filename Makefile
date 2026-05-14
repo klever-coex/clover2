@@ -6,8 +6,9 @@ export
 
 # Configuration
 BUILD_MODE ?= develop
-REGISTRY_HOST ?= registry.gitlab.com
 REGISTRY ?= $(REGISTRY_HOST)/coex2/clover2/
+REGISTRY_HOST ?= registry.gitlab.com
+REGISTRY_POLICY ?= load
 PROJECT_DIR ?= $(shell pwd)
 DOCKER_OUTPUT_DIR ?= $(PROJECT_DIR)/build-docker
 
@@ -16,15 +17,15 @@ UID ?= $(shell id -u)
 GID ?= $(shell id -g)
 
 # Calculate CLOVER2_VERSION based on BUILD_MODE
-VERSION_BASE := $(shell cat $(PROJECT_DIR)/VERSION 2>/dev/null || echo "0.0.0")
-GIT_HASH := $(shell git -C $(PROJECT_DIR) rev-parse --short HEAD 2>/dev/null || echo "unknown")
+CLOVER2_BASE_VERSION := $(shell cat $(PROJECT_DIR)/tooling/VERSION 2>/dev/null)
+CLOVER2_GIT_HASH := $(shell git -C $(PROJECT_DIR) rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 ifeq ($(BUILD_MODE),release)
-	CLOVER2_VERSION := $(VERSION_BASE)
+	CLOVER2_VERSION := $(CLOVER2_BASE_VERSION)
 else ifeq ($(BUILD_MODE),master)
-	CLOVER2_VERSION := $(VERSION_BASE)-$(GIT_HASH)
+	CLOVER2_VERSION := $(CLOVER2_BASE_VERSION)+$(CLOVER2_GIT_HASH)
 else ifeq ($(BUILD_MODE),develop)
-	CLOVER2_VERSION := $(VERSION_BASE)-$(GIT_HASH)
+	CLOVER2_VERSION := $(CLOVER2_BASE_VERSION)+$(CLOVER2_GIT_HASH)
 else
 	$(error Unknown BUILD_MODE '$(BUILD_MODE)'. Expected one of: release, master, develop)
 endif
@@ -38,7 +39,7 @@ export DOCKER_OUTPUT_DIR
 ## help: Show this help message
 help:
 	@printf "Available targets:\n\n"
-	@awk '/^[a-zA-Z\-\_0-9%:\\]+/ { \
+	@awk '/^[a-zA-Z\-_0-9%:\\]+/ { \
 		helpMessage = match(lastLine, /^## (.*)/); \
 		if (helpMessage) { \
 		helpCommand = $$1; \
@@ -51,14 +52,18 @@ help:
 	{ lastLine = $$0 }' $(MAKEFILE_LIST) | sort -u
 	@printf "\n"
 
-## docker-bake-%: Build docker images using docker buildx bake
-docker-bake-%:
+## clover2-bake-%: Build docker images using buildx bake
+clover2-bake-%:
 	@mkdir -p $(DOCKER_OUTPUT_DIR)
-	docker buildx bake --progress=plain $*
+	docker buildx bake -f docker/docker-bake.hcl --progress plain $*
 
-## docker-print: Print docker buildx bake configuration
-docker-print-%:
-	docker buildx bake --print $*
+## clover2-bake-push-%: Push docker images
+clover2-bake-push-%:
+	docker buildx bake --set *.output=type=registry -f docker/docker-bake.hcl $*
+
+## clover2-bake-print-%: Print buildx bake configuration
+clover2-bake-print-%:
+	docker buildx bake -f docker/docker-bake.hcl --print $*
 
 ## builder-download: Download base disk image for builder
 builder-download:
@@ -88,8 +93,11 @@ builder-%-in-docker:
 		-v /dev:/dev \
 		-v $(PROJECT_DIR):/builder \
 		-w /builder \
-		$(REGISTRY)clover2-builder:$(CLOVER2_VERSION) \
+		$(REGISTRY)clover2-builder:$(CLOVER2_GIT_HASH) \
 		sh -c "make builder-$*"
+
+clover2-devtool-install-repos:
+	vcs import third_party < third_party/clover2.repos
 
 ## clean: Cleanup build artifacts
 clean:
@@ -98,7 +106,7 @@ clean:
 ## version: Show current version information
 version:
 	@echo "BUILD_MODE: $(BUILD_MODE)"
-	@echo "VERSION_BASE: $(VERSION_BASE)"
-	@echo "GIT_HASH: $(GIT_HASH)"
+	@echo "CLOVER2_BASE_VERSION: $(CLOVER2_BASE_VERSION)"
+	@echo "CLOVER2_GIT_HASH: $(CLOVER2_GIT_HASH)"
 	@echo "CLOVER2_VERSION: $(CLOVER2_VERSION)"
 	@echo "REGISTRY: $(REGISTRY)"

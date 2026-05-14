@@ -1,7 +1,9 @@
 .env
+/.cache
 
 /.venv
 /.vscode/
+/.cache/
 
 *.DS_Store
 
@@ -28,3 +30,6 @@ dist-ssr
 *.local
 
 /build-*
+
+/third_party/*
+!/third_party/clover2.repos
