@@ -81,16 +81,14 @@ private:
 
     rclcpp::TimerBase::SharedPtr m_state_publish_timer;
 
-    rclcpp::Publisher<clover2_nav_msgs::msg::State>::SharedPtr
-        m_state_pub;
+    rclcpp::Publisher<clover2_nav_msgs::msg::State>::SharedPtr m_state_pub;
 
     rclcpp::Service<clover2_nav_msgs::srv::ArmDisarm>::SharedPtr
         m_arm_disarm_srv;
     rclcpp::Service<clover2_nav_msgs::srv::Land>::SharedPtr m_land_srv;
     rclcpp::Service<clover2_nav_msgs::srv::SetPosition>::SharedPtr
         m_set_position_srv;
-    rclcpp::Service<clover2_nav_msgs::srv::Navigate>::SharedPtr
-        m_navigate_srv;
+    rclcpp::Service<clover2_nav_msgs::srv::Navigate>::SharedPtr m_navigate_srv;
 
     rclcpp_action::Server<NavigateAsync>::SharedPtr m_navigate_async_action;
 

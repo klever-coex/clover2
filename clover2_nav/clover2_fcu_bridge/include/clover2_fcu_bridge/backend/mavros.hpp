@@ -23,8 +23,9 @@ public:
     explicit mavros(const context& ctx);
     ~mavros() override = default;
 
-    bool is_armed() const final { return m_mavros_state.armed; };
+    bool is_armed() const final { return m_mavros_state.armed; }
     bool ready() const final;
+    bool connected() const final;
     void arm() final;
     void disarm() final;
     void land() final;

@@ -6,7 +6,6 @@
 #include <rclcpp/create_timer.hpp>
 #include <rclcpp/logging.hpp>
 #include <tf2/LinearMath/Quaternion.h>
-#include <tf2/LinearMath/Vector3.hpp>
 #include <tf2/exceptions.h>
 #include <tf2/utils.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -21,7 +20,7 @@
 
 namespace {
 constexpr const double speed_low_limit = 0.1;
-}
+}  // namespace
 
 namespace clover2_fcu_bridge {
 
@@ -29,68 +28,95 @@ std::vector<std::string> offboard::list_backends() {
     return backend::fabric::instance().list_backends();
 }
 
-offboard::~offboard() {
-    m_backend.reset();
-    m_update_timer.reset();
-}
+offboard::~offboard() { m_update_timer.reset(); }
 
-bool offboard::in_idle() const {
-    return m_state == state::idle;
+bool offboard::in_idle() const { return m_fsm.quiescent_for_async(); }
+
+bool offboard::in_error() const {
+    return m_fsm.current_state() == offboard_fsm::state::error;
 }
 
 void offboard::reset_state() {
-    change_state(state::idle);
-    m_pose_setpoint = m_backend.lock()->get_pose();
-
+    m_nav.reset();
+    m_fsm.reset();
+    try {
+        m_pose_setpoint = m_fcu.get_pose();
+    } catch (const std::exception&) {
+        m_pose_setpoint = geometry_msgs::msg::PoseStamped();
+    }
     RCLCPP_INFO(get_logger(), "State reset");
 }
 
 void offboard::set_process_callback(process_callback&& cb) {
-    m_process_callback = cb;
+    m_process_callback = std::move(cb);
 }
+
+void offboard::set_tolerance(double tolerance) {
+    m_tolerance = tolerance;
+    m_nav.set_tolerance(tolerance);
+}
+
+double offboard::get_tolerance() const { return m_tolerance; }
+
+void offboard::set_slowdown_distance(double distance) {
+    m_slowdown_distance = distance;
+    m_nav.set_slowdown_distance(distance);
+}
+
+double offboard::get_slowdown_distance() const { return m_slowdown_distance; }
 
 void offboard::set_position(const std::string& frame_id,
                             std::optional<double> x, std::optional<double> y,
                             std::optional<double> z,
                             std::optional<double> yaw) {
-    if (m_state != state::idle) {
+    if (!m_fsm.can_accept_command()) {
         throw std::runtime_error("Trying set_position from invalid state.");
     }
 
     geometry_msgs::msg::PoseStamped pose_in_req;
     pose_in_req.header.frame_id = m_local_frame;
-    complete_setpoint(frame_id, x, y, z, yaw, m_pose_setpoint, pose_in_req);
+    try {
+        complete_setpoint(frame_id, x, y, z, yaw, m_pose_setpoint, pose_in_req);
+    } catch (const tf2::TransformException& ex) {
+        on_tf_failed(ex.what());
+        throw;
+    }
 
-    m_pose_setpoint = pose_in_req;
-    change_state(state::position);
+    m_fsm.request_position(pose_in_req, m_fcu, m_nav, m_clock->now());
 }
 
 void offboard::navigate(const std::string& frame_id, std::optional<double> x,
                         std::optional<double> y, std::optional<double> z,
                         std::optional<double> yaw, double speed) {
-    if (m_state != state::idle) {
+    if (!m_fsm.can_accept_command()) {
         throw std::runtime_error("Trying navigate from invalid state.");
     }
 
-    m_speed = std::clamp(speed, speed_low_limit, m_speed_limit);
+    const double clamped = std::clamp(speed, speed_low_limit, m_speed_limit);
+    m_nav.set_speed_limits(clamped, m_speed_limit);
+    m_nav.set_yaw_rate(m_yaw_speed);
+    m_nav.set_height_low(m_height_low);
+
     geometry_msgs::msg::PoseStamped pose_in_req;
     pose_in_req.header.frame_id = m_local_frame;
-    complete_setpoint(frame_id, x, y, z, yaw, m_pose_setpoint, pose_in_req);
+    try {
+        complete_setpoint(frame_id, x, y, z, yaw, m_pose_setpoint, pose_in_req);
+    } catch (const tf2::TransformException& ex) {
+        on_tf_failed(ex.what());
+        throw;
+    }
 
-    // TODO: update m_yaw_speed
-
-    m_nav_setpoint = pose_in_req;
-    change_state(state::navigation);
+    m_fsm.request_navigate(pose_in_req, clamped, m_fcu, m_nav, m_clock->now());
 }
 
 void offboard::get_position(double& x, double& y, double& z,
                             double& yaw) const {
-    const auto pose = m_backend.lock()->get_pose();
+    const auto pose = m_fcu.get_pose();
     extract_pose(pose, x, y, z, yaw);
 }
 
 geometry_msgs::msg::PoseStamped offboard::get_position() const {
-    return m_backend.lock()->get_pose();
+    return m_fcu.get_pose();
 }
 
 void offboard::extract_pose(const geometry_msgs::msg::PoseStamped& pose,
@@ -115,13 +141,15 @@ void offboard::complete_setpoint(
     const geometry_msgs::msg::PoseStamped& ref_pose,
     geometry_msgs::msg::PoseStamped& pose) const {
     geometry_msgs::msg::PoseStamped pose_in_req = ref_pose;
-    pose_in_req.header.stamp = get_clock()->now();
 
     try {
         if (!ref_pose.header.frame_id.empty()) {
             if (ref_pose.header.frame_id != frame_id) {
-                pose_in_req = m_tf_buffer->transform(ref_pose, frame_id,
-                                                     tf2::durationFromSec(0.1));
+                geometry_msgs::msg::PoseStamped ref_tf = ref_pose;
+                ref_tf.header.stamp.sec = 0;
+                ref_tf.header.stamp.nanosec = 0;
+                pose_in_req = m_tf_buffer->transform(
+                    ref_tf, frame_id, tf2::durationFromSec(0.05));
             } else {
                 pose_in_req.header.frame_id = frame_id;
             }
@@ -140,29 +168,30 @@ void offboard::complete_setpoint(
     pose_in_req.pose.position.y = y.value_or(prev_pos.y);
     pose_in_req.pose.position.z = z.value_or(prev_pos.z);
 
-    RCLCPP_INFO(get_logger(), "prev_pos: x: %.02f y: %.02f z: %.02f", prev_pos.x, prev_pos.y, prev_pos.z);
-
     if (yaw.has_value()) {
         set_yaw(pose_in_req.pose.orientation, *yaw);
     }
 
     pose_in_req.header.frame_id = frame_id;
-    pose_in_req.header.stamp = get_clock()->now();
+    pose_in_req.header.stamp.sec = 0;
+    pose_in_req.header.stamp.nanosec = 0;
 
     try {
         if (frame_id != m_local_frame) {
             pose = m_tf_buffer->transform(pose_in_req, m_local_frame,
-                                          tf2::durationFromSec(0.1));
+                                          tf2::durationFromSec(0.05));
         } else {
             pose = pose_in_req;
         }
     } catch (const tf2::TransformException& ex) {
-        RCLCPP_WARN(
-            get_logger(),
-            "complete_setpoint: TF to local frame '%s' failed: %s (setpoint "
-            "unchanged)",
-            m_local_frame.c_str(), ex.what());
+        RCLCPP_WARN(get_logger(),
+                    "complete_setpoint: TF to local frame '%s' failed: %s",
+                    m_local_frame.c_str(), ex.what());
         throw;
+    }
+
+    if (pose.header.frame_id != m_local_frame) {
+        throw tf2::TransformException("setpoint frame mismatch after TF");
     }
 
     if (pose.pose.position.z < m_height_low) {
@@ -172,199 +201,63 @@ void offboard::complete_setpoint(
     }
 }
 
-void offboard::compute_diff(const geometry_msgs::msg::PoseStamped& ref,
-                            tf2::Vector3& diff_pos, double& diff_yaw) const {
-    tf2::Vector3 curr_pos, target_pos;
-    double curr_yaw, target_yaw;
-
-    extract_pose(m_current_pose, curr_pos, curr_yaw);
-    extract_pose(ref, target_pos, target_yaw);
-
-    diff_pos = target_pos - curr_pos;
-    diff_yaw = target_yaw - curr_yaw;
-}
-
-void offboard::nav_current_diff(tf2::Vector3& diff_pos, double& diff_yaw) const {
-    compute_diff(m_nav_setpoint, diff_pos, diff_yaw);
-}
-
 void offboard::set_yaw(geometry_msgs::msg::Quaternion& q, double yaw) const {
     tf2::Quaternion quat;
     quat.setRPY(0.0, 0.0, yaw);
     q = tf2::toMsg(quat);
 }
 
-void offboard::check_fcu(state& process_state) {
-    auto backend = m_backend.lock();
-    const auto mode = backend->get_mode();
-
-    if (mode != data::mode::value::offboard) {
-        try {
-            backend->set_mode(data::mode::value::offboard);
-            m_reset_require = true;
-        } catch (const std::exception& e) {
-            RCLCPP_ERROR(get_logger(), "Fail to set offboard mode: %s",
-                         e.what());
-            throw;
-        }
-
-        process_state = state::idle;
-        return;
+void offboard::on_tf_failed(const std::string& detail) {
+    try {
+        m_fsm.handle_event(offboard_fsm::event::tf_failed, m_fcu, m_nav,
+                           m_clock->now(), detail);
+    } catch (const std::exception& ex) {
+        RCLCPP_WARN(get_logger(), "FSM tf_failed handling: %s", ex.what());
     }
-
-    if (!backend->is_armed()) {
-        backend->arm();
-
-        m_reset_require = true;
-        process_state = state::idle;
-        return;
-    }
-
-    m_check_fcu = false;
 }
 
 void offboard::publish_offboard() {
-    auto process_state = m_state;
-    auto backend = m_backend.lock();
-
-    if (!backend->ready()) return;
-
-    m_current_pose = backend->get_pose();
-    m_pose_setpoint.header.stamp = get_clock()->now();
-    geometry_msgs::msg::PoseStamped target_pose;
-
-    if (m_state != state::idle && m_check_fcu) {
-        check_fcu(process_state);
+    if (!m_fcu.ready() && m_fsm.current_state() == offboard_fsm::state::idle) {
+        return;
     }
 
-    if (m_reset_require && backend->ready()) {
-        // RCLCPP_INFO(get_logger(), "Pose reset require");
-        // m_pose_setpoint = m_current_pose;
-        m_reset_require = false;
+    geometry_msgs::msg::PoseStamped current_pose = m_pose_setpoint;
+    try {
+        current_pose = m_fcu.get_pose();
+    } catch (const std::exception& ex) {
+        RCLCPP_WARN_THROTTLE(get_logger(), *m_clock, 2000,
+                             "get_pose failed: %s", ex.what());
+        if (m_fsm.current_state() == offboard_fsm::state::idle) {
+            return;
+        }
     }
 
-    switch (process_state) {
-        case state::idle:
-            m_pose_setpoint = m_current_pose;
-            publish_position();
-            break;
-        case state::position:
-            publish_position();
-            target_pose = m_pose_setpoint;
-            break;
-        case state::navigation:
-            update_navigation_setpoint();
-            publish_position();
-            target_pose = m_nav_setpoint;
-            break;
-        default:
-            RCLCPP_ERROR(get_logger(), "Unknown state %d", m_state);
-            break;
-    }
+    geometry_msgs::msg::PoseStamped out{};
+    m_fsm.tick(m_fcu, m_nav, current_pose, m_clock->now(), out);
 
-    if (m_state != state::idle) {
-        check_action_complete(target_pose);
-    }
+    m_pose_setpoint = out;
+
+    double x = 0.0;
+    double y = 0.0;
+    double z = 0.0;
+    double yaw = 0.0;
+    extract_pose(out, x, y, z, yaw);
+    m_fcu.set_position_setpoint(x, y, z, yaw);
+
+    RCLCPP_INFO_THROTTLE(get_logger(), *m_clock, 1000,
+                         "publish pose: x: %.02f y: %.02f z: %.02f yaw: %.02f",
+                         x, y, z, yaw);
 
     if (m_process_callback) {
         m_process_callback();
     }
 }
 
-void offboard::publish_position() {
-    double x, y, z, yaw;
-    extract_pose(m_pose_setpoint, x, y, z, yaw);
-    m_backend.lock()->set_position_setpoint(x, y, z, yaw);
-
-    RCLCPP_INFO_THROTTLE(
-        get_logger(),
-        *get_clock(),
-        1000,
-        "publish pose: x: %.02f y: %.02f z: %.02f yaw: %.02f",
-        x,
-        y,
-        z,
-        yaw
-    );
-}
-
-void offboard::publish_velocity() {
-    double vx, vy, vz, yaw_rate;
-    vx = m_velocity_setpoint.linear.x;
-    vy = m_velocity_setpoint.linear.y;
-    vz = m_velocity_setpoint.linear.z;
-    yaw_rate = m_velocity_setpoint.angular.z;
-    m_backend.lock()->set_velocity_setpoint(vx, vy, vz, yaw_rate);
-}
-
-void offboard::update_navigation_setpoint() {
-    tf2::Vector3 curr_pos, nav_pos;
-    double curr_yaw, nav_yaw;
-
-    extract_pose(m_current_pose, curr_pos, curr_yaw);
-    extract_pose(m_nav_setpoint, nav_pos, nav_yaw);
-
-    auto diff_pos = nav_pos - curr_pos;
-    auto diff_yaw = nav_yaw - curr_yaw;
-
-    double clamp_speed =
-        std::clamp(diff_pos.length() / m_slowdown_distance, 0.1, 1.0) * m_speed;
-
-    nav_pos = diff_pos.normalized() * clamp_speed;
-    nav_pos += curr_pos;
-
-    double yaw_pose = curr_yaw + m_yaw_speed * (std::abs(diff_yaw) / diff_yaw);
-    if (std::abs(diff_yaw) < m_yaw_speed) {
-        yaw_pose = nav_yaw;
-    }
-
-    tf2::toMsg(nav_pos, m_pose_setpoint.pose.position);
-
-    set_yaw(m_pose_setpoint.pose.orientation, yaw_pose);
-}
-
-void offboard::check_action_complete(
-    const geometry_msgs::msg::PoseStamped& target_pose) {
-    double diff_yaw;
-    tf2::Vector3 diff_pos;
-    compute_diff(target_pose, diff_pos, diff_yaw);
-
-    RCLCPP_INFO_THROTTLE(
-        get_logger(),
-        *get_clock(),
-        5000, "Diff: x: %.02f y: %.02f z: %.02f", diff_pos.x(), diff_pos.y(), diff_pos.z());
-    RCLCPP_INFO_THROTTLE(
-        get_logger(),
-        *get_clock(),
-        5000, "Target: x: %.02f y: %.02f z: %.02f", target_pose.pose.position.x, target_pose.pose.position.y, target_pose.pose.position.z);
-
-    if (diff_pos.length() < m_tolerance && std::abs(diff_yaw) < 0.05) {
-        change_state(state::idle);
-        m_pose_setpoint = target_pose;
-    }
-}
-
-void offboard::change_state(const state new_state) {
-    auto state_set_map = [](const offboard::state& s) -> const char* {
-        switch (s) {
-            case offboard::state::idle:
-                return "idle";
-            case offboard::state::position:
-                return "position";
-            case offboard::state::navigation:
-                return "navigation";
-            default:
-                throw std::runtime_error("Unexpected state");
-        }
-    };
-
-    RCLCPP_INFO(get_logger(), "Change state from %s to %s",
-                state_set_map(m_state), state_set_map(new_state));
-    m_state = new_state;
-
-    if (new_state != offboard::state::idle) {
-        m_check_fcu = true;
-    }
+void offboard::nav_current_diff(tf2::Vector3& diff_pos,
+                                double& diff_yaw) const {
+    const auto current = m_fcu.get_pose();
+    navigation_controller::pose_diff(current, m_fsm.command_pose(), diff_pos,
+                                     diff_yaw);
 }
 
 }  // namespace clover2_fcu_bridge

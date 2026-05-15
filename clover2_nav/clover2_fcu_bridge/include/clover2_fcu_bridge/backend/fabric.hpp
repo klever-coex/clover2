@@ -35,4 +35,4 @@ private:
     std::unordered_map<std::string, builder_type> m_builders;
 };
 
-}  // namespace backend
+}  // namespace clover2_fcu_bridge::backend
