@@ -53,7 +53,7 @@ RPLIDAR C1 — это 2D-лидар для кругового сканирова
 - направление задаётся углом;
 - дальность задаётся расстоянием от центра лидара до препятствия.
 
-Ось X направлена вперёд по направлению «мёртвой зоны» датчика. Угол отсчитывается по часовой стрелке и увеличивается по мере вращения сканирующего модуля.
+Ось X — это начальное направление сканирования. От него лидар отсчитывает угол до каждой измеренной точки. Угол увеличивается по часовой стрелке по мере вращения сканирующего модуля.
 
 ## Данные в ROS 2
 
@@ -78,7 +78,7 @@ distance = ranges[i]
 
 При частоте 10 Гц RPLidar C1 обновляет такой массив примерно 10 раз в секунду. Эти данные можно использовать для обнаружения препятствий, навигации и построения карты.
 
-## Сборка и установка RPLidar C1
+## Установка RPLidar C1
 
 1. Установите RPLidar C1 на монтажную деку из поликарбоната при помощи винтов M2.5x6 (см. рисунок 3).
 
@@ -122,9 +122,6 @@ distance = ranges[i]
 В первом терминале запустите драйвер RPLidar C1:
 
 ```bash
-source /opt/ros/jazzy/setup.bash
-source ~/clover2_ws/install/setup.bash
-
 ros2 run rplidar_ros rplidar_composition --ros-args \
   -p serial_port:=/dev/rplidar \
   -p serial_baudrate:=460800 \
@@ -148,9 +145,6 @@ current scan mode: Standard, sample rate: 5 Khz, max_distance: 16.0 m, scan freq
 Во втором терминале проверьте, что топик появился:
 
 ```bash
-source /opt/ros/jazzy/setup.bash
-source ~/clover2_ws/install/setup.bash
-
 ros2 topic list | grep scan
 ros2 topic info /scan
 ```
@@ -182,35 +176,3 @@ ros2 topic echo --once /scan --field ranges
 ```
 
 Если `/scan` публикуется с ненулевой частотой, а поле `ranges` содержит массив расстояний в метрах, лидар работает корректно.
-
-## Приложение: установка драйвера
-
-Драйвер RPLidar для ROS 2 находится в репозитории [`Slamtec/rplidar_ros`](https://github.com/Slamtec/rplidar_ros/tree/ros2). Если пакет `rplidar_ros` отсутствует, установите ROS 2-версию из ветки `ros2`:
-
-```bash
-cd ~/clover2_ws/src/clover2/third_party
-git clone -b ros2 https://github.com/Slamtec/rplidar_ros.git
-
-cd ~/clover2_ws
-source /opt/ros/jazzy/setup.bash
-colcon build --symlink-install --packages-select rplidar_ros
-source install/setup.bash
-```
-
-Во время сборки могут появиться предупреждения из файлов SDK, например `unused parameter` или `ISO C++ forbids zero-size array`. Это не ошибка, если в конце сборки есть строка:
-
-```text
-Finished <<< rplidar_ros
-```
-
-После установки проверьте, что устройство и пакет доступны:
-
-```bash
-ls -l /dev/rplidar
-
-source /opt/ros/jazzy/setup.bash
-source ~/clover2_ws/install/setup.bash
-
-ros2 pkg prefix rplidar_ros
-ros2 pkg executables rplidar_ros
-```
