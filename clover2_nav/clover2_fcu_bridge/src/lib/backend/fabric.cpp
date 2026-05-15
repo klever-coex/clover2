@@ -3,7 +3,8 @@
 
 namespace clover2_fcu_bridge::backend {
 
-fabric::fabric() {  //
+fabric::fabric()  //
+{
     add<mavros>();
 }
 

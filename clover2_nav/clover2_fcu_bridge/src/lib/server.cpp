@@ -102,11 +102,9 @@ server::CallbackReturn server::on_activate(
         "~/land", std::bind(&server::handle_land, this, _1, _2),
         rclcpp::ServicesQoS(), m_service_callback_group);
 
-    m_set_position_srv =
-        create_service<clover2_nav_msgs::srv::SetPosition>(
-            "~/set_position",
-            std::bind(&server::handle_set_position, this, _1, _2),
-            rclcpp::ServicesQoS(), m_service_callback_group);
+    m_set_position_srv = create_service<clover2_nav_msgs::srv::SetPosition>(
+        "~/set_position", std::bind(&server::handle_set_position, this, _1, _2),
+        rclcpp::ServicesQoS(), m_service_callback_group);
 
     m_navigate_srv = create_service<clover2_nav_msgs::srv::Navigate>(
         "~/navigate", std::bind(&server::handle_navigate, this, _1, _2),
@@ -178,8 +176,7 @@ void server::handle_arm_disarm(
 }
 
 void server::handle_land(
-    [[maybe_unused]] const clover2_nav_msgs::srv::Land::Request::
-        SharedPtr req,
+    [[maybe_unused]] const clover2_nav_msgs::srv::Land::Request::SharedPtr req,
     clover2_nav_msgs::srv::Land::Response::SharedPtr resp) {
     try {
         m_offboard->reset_state();
@@ -239,6 +236,7 @@ rclcpp_action::GoalResponse server::handle_navigate_async_goal(
         m_offboard->navigate(goal->header.frame_id, x, y, z, yaw, speed);
     } catch (const std::exception& e) {
         RCLCPP_WARN(get_logger(), "Unable to navigate: %s", e.what());
+        m_offboard->reset_state();
         return rclcpp_action::GoalResponse::REJECT;
     }
 
@@ -261,6 +259,15 @@ void server::handle_navigate_async_accepted(
 
 void server::process_navigate_async(
     const std::shared_ptr<GoalHandleNavigateAsync> goal_handle) {
+    if (m_offboard->in_error()) {
+        auto result = std::make_shared<NavigateAsync::Result>();
+        result->success = false;
+        result->message = "offboard error";
+        goal_handle->abort(result);
+        m_offboard->set_process_callback(nullptr);
+        return;
+    }
+
     auto feedback = std::make_shared<NavigateAsync::Feedback>();
     double yaw;
     tf2::Vector3 diff;
@@ -310,8 +317,9 @@ void server::extract_target_pose(const geometry_msgs::msg::Pose& pose,
         yaw = tf2::getYaw(pose.orientation);
     }
 
-    RCLCPP_INFO(get_logger(), "extract_target_pose x=%.3f y=%.3f z=%.3f yaw=%.3f", p.x,
-                p.y, p.z, yaw.value_or(NAN));
+    RCLCPP_INFO(get_logger(),
+                "extract_target_pose x=%.3f y=%.3f z=%.3f yaw=%.3f", p.x, p.y,
+                p.z, yaw.value_or(NAN));
 }
 
 }  // namespace clover2_fcu_bridge

@@ -1,6 +1,6 @@
 // clover2
-#include <clover2_fcu_bridge/backend/mavros.hpp>
 #include <clover2_common/rclcpp_trails.hpp>
+#include <clover2_fcu_bridge/backend/mavros.hpp>
 #include <rclcpp/logging.hpp>
 
 // STL
@@ -128,6 +128,8 @@ mavros::mavros(const context& ctx)
 bool mavros::ready() const {
     return m_pose_received && m_mavros_state.connected;
 }
+
+bool mavros::connected() const { return m_mavros_state.connected; }
 
 void mavros::arm() {
     if (!m_arming_client->service_is_ready()) {

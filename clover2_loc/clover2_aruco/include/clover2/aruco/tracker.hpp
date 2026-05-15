@@ -23,6 +23,8 @@ namespace clover2::aruco {
 
 class tracker : public clover2_common::lifecycle_node {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     using SharedPtr = std::shared_ptr<tracker>;
     using CallbackReturn = rclcpp_lifecycle::node_interfaces::
         LifecycleNodeInterface::CallbackReturn;

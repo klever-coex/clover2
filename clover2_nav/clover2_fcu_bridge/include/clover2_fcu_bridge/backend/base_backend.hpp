@@ -21,6 +21,7 @@ public:
     virtual ~base_backend() = default;
 
     virtual bool ready() const = 0;
+    virtual bool connected() const { return true; }
 
     virtual bool is_armed() const = 0;
     virtual void arm() = 0;
@@ -46,7 +47,7 @@ public:
 
 protected:
     rclcpp::Logger get_logger() const { return m_logger; }
-    rclcpp::Clock::SharedPtr get_clock() const { return m_clock; };
+    rclcpp::Clock::SharedPtr get_clock() const { return m_clock; }
 
     context m_ctx;
     geometry_msgs::msg::PoseStamped m_pose;
