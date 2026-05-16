@@ -1,3 +1,4 @@
+import os
 import pathlib
 
 PROJECT_DIR = pathlib.Path(__file__).absolute().parent
@@ -5,6 +6,7 @@ PROJECT_DIR = pathlib.Path(__file__).absolute().parent
 project = "clover2"
 author = "Lapin Matvey"
 copyright = "2025, Lapin Matvey"
+version = os.environ["CLOVER2_VERSION"] or "unknown"
 
 extensions = [
     "myst_parser",
@@ -15,6 +17,7 @@ extensions = [
     "sphinx.ext.githubpages",
     "sphinx.ext.autosectionlabel",
     "sphinx_copybutton",
+    "sphinx_simplepdf"
 ]
 
 autosectionlabel_prefix_document = True

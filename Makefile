@@ -65,6 +65,10 @@ clover2-bake-push-%:
 clover2-bake-print-%:
 	docker buildx bake -f docker/docker-bake.hcl --print $*
 
+## clover2-docs-%: Execute commands from docs dir
+clover2-docs-%:
+	$(MAKE) -C $(PROJECT_DIR)/docs $*
+
 ## builder-download: Download base disk image for builder
 builder-download:
 	$(PROJECT_DIR)/tooling/builder/download.py \

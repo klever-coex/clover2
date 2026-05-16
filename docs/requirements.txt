@@ -1,8 +1,9 @@
-sphinx>=9.0
-sphinx-rtd-theme
-sphinx-intl
 myst-parser
-sphinx-markdown-tables
+pillow
 sphinx-copybutton
 sphinx-design
-pillow
+sphinx-intl
+sphinx-markdown-tables
+sphinx-rtd-theme
+sphinx-simplepdf
+sphinx>=9.0
