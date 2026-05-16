@@ -7,3 +7,4 @@ sphinx-markdown-tables
 sphinx-rtd-theme
 sphinx-simplepdf
 sphinx>=9.0
+furo
