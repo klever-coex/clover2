@@ -1,6 +1,6 @@
 # ROS2
 
-```{figure} ../../assets/common/programming/ros2/ros2-logo.webp
+```{figure} @assets@/common/programming/ros2/ros2-logo.webp
 :alt: Docker
 :width: 20%
 ```

@@ -4,6 +4,6 @@
 :titlesonly:
 :maxdepth: 1
 
-rplidar
-thermal_camera
+Sensors/rplidar
+Sensors/thermal_camera
 ```

@@ -1,10 +1,11 @@
 import pathlib
+from datetime import datetime
 
 PROJECT_DIR = pathlib.Path(__file__).absolute().parent
 
 project = "clover2"
 author = "Lapin Matvey"
-copyright = "2025, Lapin Matvey"
+copyright = f"{datetime.now().year}, Lapin Matvey"
 
 extensions = [
     "myst_parser",
@@ -49,10 +50,14 @@ html_theme_options = {
     "navigation_depth": -1,
 }
 
-html_context = {
+html_static_path = ["assets"]
 
-}
 
-html_static_path = [
-    (PROJECT_DIR / "assets").as_posix(),
-]
+def resolve_assets_ref(app, docname, source):
+    """Replace @assets@ with correct relative path from current file to assets/."""
+    depth = len(docname.split("/"))
+    source[0] = source[0].replace("@assets@", "../" * depth + "assets")
+
+
+def setup(app):
+    app.connect("source-read", resolve_assets_ref)

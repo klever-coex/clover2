@@ -8,7 +8,7 @@
 
 <br>
 
-```{figure} ../../assets/rplidar/Lidar.webp
+```{figure} @assets@/common/programming/sensors/rplidar/lidar.webp
 :alt: RPLidar C1
 :width: 500px
 :align: center
@@ -33,7 +33,7 @@ RPLIDAR C1 — это 2D-лидар для кругового сканирова
 
 Если рядом нет объекта или отражённый сигнал слишком слабый, измерение может быть невалидным. Такие значения обычно игнорируются алгоритмами навигации и построения карты.
 
-```{figure} ../../assets/rplidar/coord_scheme.webp
+```{figure} @assets@/common/programming/sensors/rplidar/coord_scheme.webp
 :alt: Определение системы координат данных сканирования RPLIDAR C1
 :width: 500px
 :align: center
@@ -82,7 +82,7 @@ distance = ranges[i]
 
 1. Установите RPLidar C1 на монтажную деку из поликарбоната при помощи винтов M2.5x6 (см. рисунок 3).
 
-   ```{figure} ../../assets/rplidar/assemble_lidar1.webp
+   ```{figure} @assets@/common/programming/sensors/rplidar/assemble_lidar1.webp
    :alt: Установка RPLIDAR C1
    :width: 700px
    :align: center
@@ -92,7 +92,7 @@ distance = ranges[i]
 
 2. Установите алюминиевые стойки 40мм на монтажную деку из поликарбоната при помощи винтов М3х6 (см. рисунок 4).
 
-   ```{figure} ../../assets/rplidar/assemble_lidar2.webp
+   ```{figure} @assets@/common/programming/sensors/rplidar/assemble_lidar2.webp
    :alt: Установка алюминиевых стоек
    :width: 700px
    :align: center
@@ -102,7 +102,7 @@ distance = ranges[i]
 
 3. Установите подготовленный RPLidar на алюминиевые стойки с помощью винтов М3х6 (см. рисунок 5).
 
-   ```{figure} ../../assets/rplidar/assemble_lidar3.webp
+   ```{figure} @assets@/common/programming/sensors/rplidar/assemble_lidar3.webp
    :alt: Установка RPLIDAR C1 на алюминиевые стойки
    :width: 700px
    :align: center
