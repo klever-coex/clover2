@@ -25,25 +25,30 @@ public:
 
     explicit clover2_vio(mavros::plugin::UASPtr uas_)
         : Plugin(uas_, "clover2_vio")
-        , m_reset_counter(10)
-        , m_pose_child_frame_id(uas_->get_base_link_frame_id())
+        , m_frame_id("map")
+        , m_odom_frame_id("odom")
         , m_pose_gap_reset(rclcpp::Duration::from_seconds(1.0)) {
         enable_node_watch_parameters();
 
         node_declare_and_watch_parameter(
-            "frame_id", "map",
+            "frame_id", uas_->get_map_frame_id(),
             [&](const rclcpp::Parameter& p) { m_frame_id = p.as_string(); });
 
+        node_declare_and_watch_parameter("tf.odom_frame_id",
+                                         uas_->get_odom_frame_id(),
+                                         [&](const rclcpp::Parameter& p) {
+                                             m_odom_frame_id = p.as_string();
+                                         });
+
         node_declare_and_watch_parameter(
-            "pose.child_frame_id", uas_->get_base_link_frame_id(),
-            [&](const rclcpp::Parameter& p) {
-                m_pose_child_frame_id = p.as_string();
-            });
-        node_declare_and_watch_parameter(
-            "pose.gap_reset_s", 1.0, [&](const rclcpp::Parameter& p) {
+            "gap_reset_s", 1.0, [&](const rclcpp::Parameter& p) {
                 m_pose_gap_reset =
                     rclcpp::Duration::from_seconds(p.as_double());
             });
+
+        node_declare_and_watch_parameter(
+            "jump_reset_m", 2.0,
+            [&](const rclcpp::Parameter& p) { m_jump_reset = p.as_double(); });
 
         m_pose_cov_sub = node->create_subscription<
             geometry_msgs::msg::PoseWithCovarianceStamped>(
@@ -71,7 +76,7 @@ private:
             return true;
         }
 
-        if (jump > 2.0) {
+        if (jump > m_jump_reset) {
             return true;
         }
 
@@ -88,24 +93,16 @@ private:
             return;
         }
 
-        if ((stamp - m_last_pose_recv) > m_pose_gap_reset) {
-            RCLCPP_WARN(get_logger(), "Increase reset counter.");
-            ++m_reset_counter;
-        }
-
-        m_last_pose_recv = stamp;
-
         bool reset = is_vio_reset(tr.translation(), stamp);
 
         if (reset) {
             RCLCPP_WARN(get_logger(), "VIO reset detected → updating offset");
 
-            Eigen::Affine3d world_before = m_offset * tr;
-            m_offset = world_before * tr.inverse();
-            m_offset_initialized = true;
-
+            m_offset = m_world_current * tr.inverse();
             ++m_reset_counter;
         }
+
+        m_last_pose_recv = stamp;
 
         Eigen::Affine3d corrected = m_offset * tr;
         auto position = ftf::transform_frame_enu_ned(
@@ -132,6 +129,15 @@ private:
         ftf::covariance_urt_to_mavlink(cov_map, vp.covariance);
 
         uas->send_message(vp);
+
+        {
+            geometry_msgs::msg::TransformStamped tf;
+            tf.header.stamp = get_clock()->now();
+            tf.header.frame_id = m_frame_id;
+            tf.child_frame_id = m_odom_frame_id;
+            tf.transform = tf2::eigenToTransform(m_offset.inverse()).transform;
+            uas->tf2_broadcaster.sendTransform(tf);
+        }
     }
 
     void pose_cov_cb(
@@ -157,25 +163,29 @@ private:
         const mavlink::mavlink_message_t* msg [[maybe_unused]],
         mavlink::common::msg::LOCAL_POSITION_NED& pos_ned,
         mavros::plugin::filter::SystemAndOk filter [[maybe_unused]]) {
-        m_local_position = ftf::transform_frame_ned_enu(
+        m_world_current.translation() = ftf::transform_frame_ned_enu(
             Eigen::Vector3d(pos_ned.x, pos_ned.y, pos_ned.z));
 
-        auto enu_orientation_msg = uas->data.get_attitude_orientation_enu();
-        tf2::fromMsg(enu_orientation_msg, m_local_orientation);
+        Eigen::Quaterniond orientation;
+        geometry_msgs::msg::Quaternion enu_orientation_msg =
+            uas->data.get_attitude_orientation_enu();
+        tf2::fromMsg(enu_orientation_msg, orientation);
+
+        m_world_current.linear() = orientation.toRotationMatrix();
     }
 
-    uint8_t m_reset_counter;
+    uint8_t m_reset_counter{0};
+
     std::string m_frame_id;
-    std::string m_pose_child_frame_id;
+    std::string m_odom_frame_id;
 
     std::atomic<bool> m_first_pose = true;
-    std::atomic<bool> m_offset_initialized = false;
 
-    Eigen::Vector3d m_local_position;
-    Eigen::Quaterniond m_local_orientation;
+    Eigen::Affine3d m_world_current;
     Eigen::Affine3d m_offset = Eigen::Affine3d::Identity();
     Eigen::Vector3d m_last_vio_position = Eigen::Vector3d::Zero();
 
+    double m_jump_reset{2.0};
     rclcpp::Time m_last_pose_recv{0, 0, RCL_ROS_TIME};
     rclcpp::Duration m_pose_gap_reset{rclcpp::Duration::from_seconds(1.0)};
 
@@ -185,4 +195,5 @@ private:
 }  // namespace clover2_mavros
 
 #include <mavros/mavros_plugin_register_macro.hpp>
+
 MAVROS_PLUGIN_REGISTER(clover2_mavros::clover2_vio)
