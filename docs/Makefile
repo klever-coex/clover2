@@ -27,6 +27,9 @@ pdf: pdf-ru pdf-en
 clean:
 	rm -rf build
 
+host: html
+	$(PYTHON) -m http.server -d $(REPO_DIR)/build/html/ru
+
 check-images:
 	python3 ./image_cleaner.py --dry-run ./assets
 
