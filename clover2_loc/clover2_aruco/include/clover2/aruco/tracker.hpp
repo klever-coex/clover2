@@ -1,6 +1,7 @@
 #pragma once
 
 // ROS2 includes
+#include "std_msgs/msg/header.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
@@ -44,13 +45,18 @@ private:
     void markers_callback(
         const clover2_pose_msgs::msg::MarkerArray::SharedPtr msg);
 
+    void publish_tf(const std_msgs::msg::Header& header,
+                    Eigen::Isometry3d pose);
+
     // Camera parameters
-    std::string m_tracking_id;
+    std::string m_frame_id;
 
     // Detection parameters
     std::shared_ptr<clover2::map::client> m_map_client;
 
     // TF
+    bool m_tf_send{false};
+    std::string m_child_frame_id;
     std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
     std::shared_ptr<tf2_ros::Buffer> m_tf_buffer;
     std::shared_ptr<tf2_ros::TransformListener> m_tf_listener;
@@ -60,7 +66,8 @@ private:
     rclcpp::Subscription<clover2_pose_msgs::msg::MarkerArray>::SharedPtr
         m_markers_sub;
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr m_pose_pub;
-    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr m_pose_cov_pub;
+    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr
+        m_pose_cov_pub;
     rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr
         m_poses_debug_pub;
 };
