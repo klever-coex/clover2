@@ -12,11 +12,22 @@ namespace clover2::aruco {
 
 tracker::tracker(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("tracker", options) {
+    declare_and_watch_parameter<std::string>(
+        "frame_id", "base_link",
+        [this](const rclcpp::Parameter& p) { m_frame_id = p.as_string(); },
+        "Tracking target");
+
+    declare_and_watch_parameter<bool>(
+        "tf.send", true,
+        [this](const rclcpp::Parameter& p) { m_tf_send = p.as_bool(); },
+        "Send transform");
 
     declare_and_watch_parameter<std::string>(
-        "tracking", "base_link",
-        [this](const rclcpp::Parameter& p) { m_tracking_id = p.as_string(); },
-        "Tracking result");
+        "tf.child_frame_id", "vision_estimate",
+        [this](const rclcpp::Parameter& p) {
+            m_child_frame_id = p.as_string();
+        },
+        "Vision position estimate frame");
 
     register_on_configure(
         std::bind(&tracker::on_configure, this, std::placeholders::_1));
@@ -34,12 +45,12 @@ tracker::~tracker() {}
 
 tracker::CallbackReturn tracker::on_configure(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
-    m_callback_group = create_callback_group(
-        rclcpp::CallbackGroupType::MutuallyExclusive);
+    m_callback_group =
+        create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
     try {
-        m_map_client =
-            std::make_shared<clover2::map::client>(shared_from_this(), m_callback_group);
+        m_map_client = std::make_shared<clover2::map::client>(
+            shared_from_this(), m_callback_group);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map client. Exception: %s",
                      e.what());
@@ -117,12 +128,12 @@ void tracker::markers_callback(
     Eigen::Isometry3d camera_transform;
     try {
         auto camera_transform_msg = m_tf_buffer->lookupTransform(
-            m_tracking_id, msg->header.frame_id, tf2::TimePointZero);
+            m_frame_id, msg->header.frame_id, tf2::TimePointZero);
 
         camera_transform = tf2::transformToEigen(camera_transform_msg);
     } catch (const tf2::TransformException& ex) {
         RCLCPP_ERROR(get_logger(), "Unable got transform %s to %s: %s",
-                     m_tracking_id.c_str(), msg->header.frame_id.c_str(),
+                     m_frame_id.c_str(), msg->header.frame_id.c_str(),
                      ex.what());
         return;
     }
@@ -153,8 +164,7 @@ void tracker::markers_callback(
         Eigen::Isometry3d camera_in_map =
             m_map_client->get_transform(marker.id) * marker_pose.inverse();
 
-        Eigen::Isometry3d drone_in_map =
-            camera_in_map * camera_transform;
+        Eigen::Isometry3d drone_in_map = camera_in_map * camera_transform;
 
         // add debug transform
         poses_debug.poses.push_back(tf2::toMsg(drone_in_map));
@@ -189,9 +199,25 @@ void tracker::markers_callback(
     m_pose_pub->publish(estimated_pose);
     m_pose_cov_pub->publish(estimated_pose_cov);
 
+    publish_tf(estimated_pose.header, result_pose.inverse());
+
     // publish tracker id poses form each marker
     if (m_poses_debug_pub->get_subscription_count() != 0) {
         m_poses_debug_pub->publish(poses_debug);
+    }
+}
+
+void tracker::publish_tf(const std_msgs::msg::Header& header,
+                         Eigen::Isometry3d pose) {
+    if (m_tf_send) {
+        geometry_msgs::msg::TransformStamped transform =
+            tf2::eigenToTransform(pose);
+
+        transform.header.stamp = header.stamp;
+        transform.header.frame_id = m_child_frame_id;
+        transform.child_frame_id = header.frame_id;
+
+        m_tf_broadcaster->sendTransform(transform);
     }
 }
 
