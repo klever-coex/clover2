@@ -1,5 +1,5 @@
 # Docker
-```{figure} ../../assets/common/programming/docker/docker-logo.webp
+```{figure} @assets@/common/programming/docker/docker-logo.webp
 :alt: Docker
 :width: 90%
 :align: center
@@ -87,7 +87,7 @@ newgrp docker
 
 #### Шаг 1: Установка WSL2
 Из меню Пуск открыть приложение `Microsoft Store` и найти в магазине приложений `Ubuntu 24.04`.
-```{figure} ../../assets/common/programming/docker/ms-ubuntu-install.webp
+```{figure} @assets@/common/programming/docker/ms-ubuntu-install.webp
 :alt: ms-ubuntu-install
 :width: 90%
 :align: center
@@ -95,7 +95,7 @@ newgrp docker
 <br>
 
 Нажимая кнопку `Получить` вы начнёте процесс установки. Через какое то время кнопка смениться на `Открыть`. После этого необходимо перезагрузить компьютер чтобы применить установку новой программы.
-```{figure} ../../assets/common/programming/docker/ms-ubuntu-open.webp
+```{figure} @assets@/common/programming/docker/ms-ubuntu-open.webp
 :alt: ms-ubuntu-open
 :width: 90%
 :align: center
@@ -103,7 +103,7 @@ newgrp docker
 <br>
 
 После перезагрузки компьютера в меню Пуск найдите приложение `Ubuntu 24.04` и запустите его. При первом запуске программа предложит создать пользователя, придумайте имя и пароль (сделайте его таким же как в Windows или простым, чтобы не забыть). Если сделали всё правильно - увидите зелёную надпись с именем вашего пользователя и названием компьютера, поздравляю - вы в операционной системе линкус!
-```{figure} ../../assets/common/programming/docker/wsl-setup-user.webp
+```{figure} @assets@/common/programming/docker/wsl-setup-user.webp
 :alt: wsl-setup-user
 :width: 90%
 :align: center
@@ -113,7 +113,7 @@ newgrp docker
 #### Шаг 2: Установка Docker Desktop
 Необходимо скачать [установщик](https://docs.docker.com/desktop/release-notes/).
 Проходя по ссылке под номером версии будет выбор установщика для всех популярных операционных систем, требуется нажать на Windows.
-```{figure} ../../assets/common/programming/docker/docker-windows-download.webp
+```{figure} @assets@/common/programming/docker/docker-windows-download.webp
 :alt: docker-windows-download
 :width: 90%
 :align: center
@@ -123,7 +123,7 @@ newgrp docker
 Запустите скаченный установщик, дважды нажав на скаченный файл в папке загрузки.
 Выберите галочки так же как на фотографии ниже и нажмите OK.
 По завершунию установки программа предложит перезагрузить компьютер, надо перезагрузить.
-```{figure} ../../assets/common/programming/docker/win-docker-1-step.webp
+```{figure} @assets@/common/programming/docker/win-docker-1-step.webp
 :alt: win-docker-1-step
 :width: 90%
 :align: center
@@ -131,7 +131,7 @@ newgrp docker
 <br>
 
 После перезагрузки Docker Desktop откроется автоматически, при первом запуске надо согласиться с правилами программы.
-```{figure} ../../assets/common/programming/docker/docker-first-run.webp
+```{figure} @assets@/common/programming/docker/docker-first-run.webp
 :alt: docker-first-run
 :width: 90%
 :align: center
@@ -194,7 +194,7 @@ htop
 ```
 
 После выполнения команды должен отобразиться следующий интерфейс. Можно сразу увидеть что внутри докера запущено всего две программы: bash - это наш терминал и htop - это программа которую мы установили. Само собой в операционной системе на вашем компьютере работает намного больше программ чем мы видим здесь, как минимум браузер через который вы читаете эту статью, но внутри контейнера этих программ нет, так как он изолирован.
-```{figure} ../../assets/common/programming/docker/htop.webp
+```{figure} @assets@/common/programming/docker/htop.webp
 :alt: htop
 :width: 90%
 :align: center
