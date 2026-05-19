@@ -1,11 +1,5 @@
 # RPLidar C1
 
-```{contents}
-:depth: 2
-:local:
-:class: custom-toc
-```
-
 <br>
 
 ```{figure} @assets@/common/programming/sensors/rplidar/lidar.webp
