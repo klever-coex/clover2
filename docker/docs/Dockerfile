@@ -11,7 +11,7 @@ COPY docs /app
 
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-RUN make check_images
+RUN make check-images
 RUN make html
 
 FROM nginx:1.29.3-alpine-slim

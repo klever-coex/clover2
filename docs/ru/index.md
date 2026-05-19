@@ -1,4 +1,4 @@
-# Документация clover2
+# Clover2
 
 ```{toctree}
 :titlesonly:

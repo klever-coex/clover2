@@ -8,19 +8,30 @@ PYTHON		:= python3
 BUILD      	= $(PYTHON) -m sphinx
 OPTS       	=-c . -W --verbose
 
-html_ru:
+html-ru:
 	@$(BUILD) -b html -D language='ru' $(OPTS) ./ru ./build/html/ru
 
-html_en:
+html-en:
 	@$(BUILD) -b html -D language='en' $(OPTS) ./en ./build/html/en
 
-html: html_ru html_en
+html: html-ru html-en
+
+pdf-ru:
+	@$(BUILD) -b simplepdf -D language='ru' $(OPTS) ./ru ./build/pdf/ru
+
+pdf-en:
+	@$(BUILD) -b simplepdf -D language='en' $(OPTS) ./en ./build/html/en
+
+pdf: pdf-ru pdf-en
 
 clean:
 	rm -rf build
 
-check_images:
+host: html
+	$(PYTHON) -m http.server -d $(REPO_DIR)/build/html/ru
+
+check-images:
 	python3 ./image_cleaner.py --dry-run ./assets
 
-optimize_images:
+optimize-images:
 	python3 ./image_cleaner.py -v ./assets
