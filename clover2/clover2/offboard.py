@@ -1,4 +1,6 @@
 import threading
+from types import NoneType
+from typing import Any
 
 from clover2_nav_msgs.action import NavigateAsync
 from clover2_nav_msgs.msg import State
@@ -6,6 +8,7 @@ from clover2_nav_msgs.srv import ArmDisarm, Land, Navigate, SetPosition
 from geometry_msgs.msg import Pose
 from rclpy.action import ActionClient
 from rclpy.node import Node
+from rclpy.task import Future
 from tf_transformations import quaternion_from_euler
 
 from . import utils
@@ -14,12 +17,13 @@ NAN = float("nan")
 
 
 class ActionHelper:
-    def __init__(self, action, goal):
-        self.event = threading.Event()
-        self.result = None
-        self.message = "ok"
-        self.goal_future = action.send_goal_async(goal)
+    def __init__(self, action: ActionClient, goal):
+        self.event: threading.Event = threading.Event()
+        self.result: NoneType = None
+        self.message: str = "ok"
+        self.goal_future: Future = action.send_goal_async(goal)
         self.goal_future.add_done_callback(self._response_callback)
+        self.get_result_future: Future | NoneType = None
 
     def wait(self):
         self.event.wait()
@@ -69,7 +73,7 @@ class Offboard:
     def is_armed(self) -> bool:
         return self._state.is_armed
 
-    def flight_mode(self) -> bool:
+    def flight_mode(self) -> str:
         return self._state.mode
 
     def arm_disarm(self, arm: bool) -> bool:
@@ -145,10 +149,11 @@ class Offboard:
 
         if helper.result is None:
             self._node.get_logger().error(helper.message)
-            return False
+            raise Exception(helper.message)
 
         if not helper.result.success:
             self._node.get_logger().error(helper.result.message)
+            raise Exception(helper.result.message)
 
         return helper.result.success
 

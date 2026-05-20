@@ -44,6 +44,7 @@ void offboard::reset_state() {
     } catch (const std::exception&) {
         m_pose_setpoint = geometry_msgs::msg::PoseStamped();
     }
+    m_fcu.set_mode(data::mode{data::mode::value::position});
     RCLCPP_INFO(get_logger(), "State reset");
 }
 

@@ -3,6 +3,8 @@
 #include <clover2_fcu_bridge/backend/mavros.hpp>
 #include <rclcpp/logging.hpp>
 
+#include <cmath>
+
 // STL
 #include <memory>
 #include <optional>
@@ -237,23 +239,23 @@ void mavros::set_setpoint(const std::optional<tf2::Vector3> p,
     msg.coordinate_frame = mavros_msgs::msg::PositionTarget::FRAME_LOCAL_NED;
     msg.type_mask = type_mask(p, v, a, yaw, yaw_rate);
 
-    auto p1 = p.value_or(tf2::Vector3(0.0, 0.0, 0.0));
+    auto p1 = p.value_or(tf2::Vector3(NAN, NAN, NAN));
     msg.position.x = p1.x();
     msg.position.y = p1.y();
     msg.position.z = p1.z();
 
-    auto v1 = v.value_or(tf2::Vector3(0.0, 0.0, 0.0));
+    auto v1 = v.value_or(tf2::Vector3(NAN, NAN, NAN));
     msg.velocity.x = v1.x();
     msg.velocity.y = v1.y();
     msg.velocity.z = v1.z();
 
-    auto a1 = a.value_or(tf2::Vector3(0.0, 0.0, 0.0));
+    auto a1 = a.value_or(tf2::Vector3(NAN, NAN, NAN));
     msg.acceleration_or_force.x = a1.x();
     msg.acceleration_or_force.y = a1.y();
     msg.acceleration_or_force.z = a1.z();
 
-    msg.yaw = yaw.value_or(0.0);
-    msg.yaw_rate = yaw_rate.value_or(0.0);
+    msg.yaw = yaw.value_or(NAN);
+    msg.yaw_rate = yaw_rate.value_or(NAN);
 
     m_pos_setpoint_pub->publish(msg);
 }

@@ -41,8 +41,8 @@ public:
         const std::shared_ptr<NodeT> node,
         std::shared_ptr<clover2_fcu_bridge::backend::base_backend> backend,
         rclcpp::CallbackGroup::SharedPtr group = nullptr)
-        : m_fsm(node->get_logger().get_child("fsm"), node->get_clock())
-        , m_backend(backend)
+        : m_fcu(backend)
+        , m_fsm(node->get_logger().get_child("fsm"), node->get_clock())
         , m_logger(node->get_logger().get_child("offboard"))
         , m_clock(node->get_clock())
         , m_group(group) {
@@ -125,9 +125,8 @@ private:
     fcu_backend m_fcu;
     offboard_fsm m_fsm;
     navigation_controller m_nav;
-    std::shared_ptr<clover2_fcu_bridge::backend::base_backend> m_backend;
 
-    std::string m_local_frame{"map"};
+    std::string m_local_frame{"odom"};
     process_callback m_process_callback{nullptr};
 
     double m_speed_limit{2.0};
