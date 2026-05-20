@@ -5,7 +5,6 @@
 :maxdepth: 2
 :hidden:
 
-Assembly
 Setup
 Programming
 ```
