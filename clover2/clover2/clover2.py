@@ -18,7 +18,7 @@ class Clover2(Node):
 
         self._init_ros(node_name)
 
-        self.offboard = Offboard(self)
+        self._offboard = Offboard(self)
 
         # Stop function on exit
         atexit.register(self._stop)
@@ -50,56 +50,20 @@ class Clover2(Node):
 
     def is_armed(self) -> bool:
         """Alias of is_armed()"""
-        return self.offboard.is_armed()
+        return self._offboard.is_armed()
 
     def arm(self) -> bool:
         """Alias of arm()"""
-        return self.offboard.arm()
+        return self._offboard.arm()
 
     def disarm(self) -> bool:
         """Alias of disarm()"""
-        return self.offboard.disarm()
+        return self._offboard.disarm()
 
     def land(self) -> bool:
         """Alias of land()"""
-        return self.offboard.land()
+        return self._offboard.land()
 
-    def get_mode(self) -> str:
+    def flight_mode(self) -> str:
         """Alias of get_mode()"""
-        return self.offboard.get_mode()
-
-    # def set_mode(self, mode: FlightMode) -> bool:
-    #     return self._client.set_mode(mode)
-
-    # def get_state(self) -> DroneState:
-    #     return self._client.get_state()
-
-    # def get_battery(self) -> Battery:
-    #     return self._client.get_battery()
-
-    # def takeoff(self, z: float | int, timeout: float | int = 10.0) -> bool:
-    #     return self._client.takeoff(z, timeout)
-
-    # def turn_motors_on(self) -> bool:
-    #     future = self._client.turn_motors_on_impl()
-    #     result = utils.wait_future(future, timeout=1.0)
-    #     if result:
-    #         return result.success
-    #     return False
-
-    # def turn_motors_off(self) -> bool:
-    #     future = self._client.turn_motors_off_impl()
-    #     return utils.wait_future(future, timeout=1.0).success or False
-
-    # def move(
-    #     self,
-    #     x: SetpointValue = None,
-    #     y: SetpointValue = None,
-    #     z: SetpointValue = None,
-    #     yaw: SetpointValue = None,
-    #     speed: SetpointValue = 0.3,
-    #     frame_id: str = "map",
-    # ):
-    #     pos = Point(x=x, y=y, z=z)
-    #     vel = Vector3(x=speed, y=speed, z=speed)
-    #     self._offboard.move(pos=pos, vel=vel, yaw=yaw, yaw_rate=0.1, frame_id=frame_id)
+        return self._offboard.flight_mode()
