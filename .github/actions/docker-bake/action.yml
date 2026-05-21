@@ -9,10 +9,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Build ${{ inputs.target }}
-      shell: bash
-      run: make clover2-bake-${{ inputs.target }}
-
-    - name: Push ${{ inputs.target }}
+    - name: Build and push ${{ inputs.target }}
       shell: bash
       run: make clover2-bake-push-${{ inputs.target }}
