@@ -1,10 +1,14 @@
-FROM python:3.11-slim AS builder
+ARG BUILDPLATFORM
+FROM --platform=${BUILDPLATFORM} python:3.11-slim AS builder
 
+ARG CLOVER2_VERSION
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
     apt-get install -y make && \
     rm -rf /var/lib/apt/lists/*
+
+ENV CLOVER2_VERSION=${CLOVER2_VERSION}
 
 WORKDIR /app
 COPY docs /app
