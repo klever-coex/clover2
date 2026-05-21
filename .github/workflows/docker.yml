@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   detect-mode:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       build_mode: ${{ steps.detect.outputs.build_mode }}
     steps:
@@ -38,7 +38,7 @@ jobs:
 
   docker:
     needs: detect-mode
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       fail-fast: false
       matrix:
@@ -66,7 +66,7 @@ jobs:
   image:
     if: false
     needs: docker
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Placeholder for OS image build
         run: echo "OS image build not yet implemented"
