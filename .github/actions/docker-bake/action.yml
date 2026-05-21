@@ -1,0 +1,18 @@
+name: Docker Bake
+description: Build and push a Docker bake target
+
+inputs:
+  target:
+    description: Bake target name (e.g. px4, ros, tooling, clover2-docs)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Build ${{ inputs.target }}
+      shell: bash
+      run: make clover2-bake-${{ inputs.target }}
+
+    - name: Push ${{ inputs.target }}
+      shell: bash
+      run: make clover2-bake-push-${{ inputs.target }}

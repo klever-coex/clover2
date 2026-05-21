@@ -1,9 +1,0 @@
-services:
-  px4:
-    image: registry.gitlab.com/coex2/clover2/clover2-px4:1cd4a48
-    container_name: px4
-    init: true
-    ipc: host
-    network_mode: host
-    volumes:
-      - ./px4-workdir:/workdir

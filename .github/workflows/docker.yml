@@ -1,0 +1,72 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  detect-mode:
+    runs-on: ubuntu-latest
+    outputs:
+      build_mode: ${{ steps.detect.outputs.build_mode }}
+    steps:
+      - name: Detect build mode
+        id: detect
+        shell: bash
+        run: |
+          case "${{ github.ref }}" in
+            refs/heads/master)
+              echo "build_mode=master" >> "$GITHUB_OUTPUT" ;;
+            refs/tags/*)
+              echo "build_mode=release" >> "$GITHUB_OUTPUT" ;;
+            *)
+              if [ "${{ github.event_name }}" = pull_request ] || [ "${{ github.event_name }}" = push ]; then
+                echo "build_mode=develop" >> "$GITHUB_OUTPUT"
+              else
+                echo "Unexpected event: ${{ github.event_name }}"
+                exit 1
+              fi
+              ;;
+          esac
+
+  docker:
+    needs: detect-mode
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [tooling, clover2-docs, clover2-frontend, clover2-wetty]
+    env:
+      BUILD_MODE: ${{ needs.detect-mode.outputs.build_mode }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/docker-setup
+
+      - name: Restore Docker cache
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: docker-cache-${{ matrix.target }}-${{ github.run_id }}
+          restore-keys: |
+            docker-cache-${{ matrix.target }}-
+            docker-cache-
+
+      - uses: ./.github/actions/docker-bake
+        with:
+          target: ${{ matrix.target }}
+
+  image:
+    if: false
+    needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder for OS image build
+        run: echo "OS image build not yet implemented"
