@@ -52,6 +52,7 @@ mkdir -p /home/$USER/.clover2_backup/deb
 cp /tmp/clover2-build-extras/deb/* /home/$USER/.clover2_backup/deb/
 
 for fname in /tmp/clover2-build-extras/deb/*.deb; do
+    log_info "Install deb: $fname"
     sudo apt install -f $fname
 done
 
