@@ -1,16 +1,7 @@
-import random
-import string
 import threading
 from typing import Any
 
 from rclpy.task import Future
-
-
-def generate_random_string(length: int) -> str:
-
-    characters = string.ascii_letters + string.digits
-    random_string = "".join(random.choices(characters, k=length))
-    return random_string
 
 
 def wait_future(future: Future, timeout: float | int) -> Any:
