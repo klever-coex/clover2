@@ -53,7 +53,7 @@ cp /tmp/clover2-build-extras/deb/* /home/$USER/.clover2_backup/deb/
 
 for fname in /tmp/clover2-build-extras/deb/*.deb; do
     log_info "Install deb: $fname"
-    sudo apt install -f $fname
+    sudo apt install -yf $fname
 done
 
 log_info "Install vscodium extension"
