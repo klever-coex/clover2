@@ -50,6 +50,15 @@ jobs:
 
       - uses: ./.github/actions/docker-setup
 
+      - name: Restore Docker cache
+        uses: actions/cache@v5
+        with:
+          path: .cache
+          key: docker-cache-${{ matrix.target }}-${{ github.run_id }}
+          restore-keys: |
+            docker-cache-${{ matrix.target }}-
+            docker-cache-
+
       - uses: ./.github/actions/docker-bake
         with:
           target: ${{ matrix.target }}
