@@ -7,7 +7,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
-find_package(clover2_fcu_bridge_msgs REQUIRED)
+find_package(clover2_nav_msgs REQUIRED)
 
 ament_python_install_package(${PROJECT_NAME})
 
