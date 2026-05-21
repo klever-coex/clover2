@@ -245,7 +245,7 @@ void offboard::publish_offboard() {
     extract_pose(out, x, y, z, yaw);
     m_fcu.set_position_setpoint(x, y, z, yaw);
 
-    RCLCPP_INFO_THROTTLE(get_logger(), *m_clock, 1000,
+    RCLCPP_DEBUG_THROTTLE(get_logger(), *m_clock, 1000,
                          "publish pose: x: %.02f y: %.02f z: %.02f yaw: %.02f",
                          x, y, z, yaw);
 
