@@ -1,7 +1,7 @@
-#include <clover2/common/node.hpp>
+#include <clover2_common/node.hpp>
 #include <rclcpp/node.hpp>
 
-namespace clover2::common {
+namespace clover2_common {
 
 node::node(const std::string& node_name, const rclcpp::NodeOptions& options)
     : rclcpp::Node(node_name, options) {
@@ -27,4 +27,4 @@ std::shared_ptr<parameter_watcher> node::get_parameter_watcher() const {
     return m_parameter_watcher;
 }
 
-}  // namespace clover2::common
+}  // namespace clover2_common

@@ -17,7 +17,7 @@ COPY clover2_nav/clover2_pose_msgs/package.xml /ws/src/clover2_nav/clover2_pose_
 COPY clover2_nav/clover2_optical_flow/package.xml /ws/src/clover2_nav/clover2_optical_flow/package.xml
 COPY clover2_nav/clover2_map/package.xml /ws/src/clover2_nav/clover2_map/package.xml
 COPY clover2_nav/clover2_aruco/package.xml /ws/src/clover2_nav/clover2_aruco/package.xml
-COPY clover2_fcu_bridge_msgs/package.xml /ws/src/clover2_fcu_bridge_msgs/package.xml
+COPY clover2_nav_msgs/package.xml /ws/src/clover2_nav_msgs/package.xml
 COPY clover2_fcu_bridge/package.xml /ws/src/clover2_fcu_bridge/package.xml
 
 RUN /clover2/rosdep-parse.sh /ws/src $ROS_DISTRO --dependency-types=exec > /clover2/apt-depends.txt && \
