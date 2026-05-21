@@ -1,6 +1,6 @@
-#include <clover2/common/parameter_watcher.hpp>
+#include <clover2_common/parameter_watcher.hpp>
 
-namespace clover2::common {
+namespace clover2_common {
 
 void parameter_watcher::cleanup() {
     m_set_parameters_handle.reset();
@@ -38,4 +38,4 @@ parameter_watcher::SetParametersResult parameter_watcher::on_set_parameters_cb(
     return result;
 }
 
-}  // namespace clover2::common
+}  // namespace clover2_common
