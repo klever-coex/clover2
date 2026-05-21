@@ -1,12 +1,12 @@
 // clover2
-#include <clover2/common/lifecycle_node.hpp>
+#include <clover2_common/lifecycle_node.hpp>
 
 // msgs
 #include <lifecycle_msgs/msg/state.hpp>
 
 #include <memory>
 
-namespace clover2::common {
+namespace clover2_common {
 
 lifecycle_node::lifecycle_node(const std::string& node_name,
                                const rclcpp::NodeOptions& options)
@@ -89,4 +89,4 @@ void lifecycle_node::produce_lifecycle_diagnostics(
     status.summaryf(level, "Lifecycle State: %s", state.label().c_str());
 }
 
-}  // namespace clover2::common
+}  // namespace clover2_common

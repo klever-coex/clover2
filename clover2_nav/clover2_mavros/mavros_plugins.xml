@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<library path="clover2_mavros_plugins">
+  <class name="clover2_vio" type="mavros::plugin::PluginFactoryTemplate&lt;clover2_mavros::clover2_vio&gt;" base_class_type="mavros::plugin::PluginFactory">
+    <description>@brief Clover2 VIO: PoseWithCovarianceStamped to MAVLink ODOMETRY
+@plugin clover2_vio</description>
+  </class>
+</library>

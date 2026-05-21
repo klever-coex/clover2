@@ -1,0 +1,105 @@
+name: simulation
+frame_id: map
+version: 0
+default_size: 0.36
+
+markers:
+  - id: 0
+    pose:
+      x: 0.0
+      y: 0.0
+    rot:
+      yaw: -1.57079632
+  - id: 1
+    pose:
+      x: 0.0
+      y: -1.0
+    rot:
+      yaw: -1.57079632
+  - id: 2
+    pose:
+      x: 0.0
+      y: -2.0
+    rot:
+      yaw: -1.57079632
+  - id: 3
+    pose:
+      x: 0.0
+      y: -3.0
+    rot:
+      yaw: -1.57079632
+
+  - id: 4
+    pose:
+      x: -1.0
+      y: 0.0
+    rot:
+      yaw: -1.57079632
+  - id: 5
+    pose:
+      x: -1.0
+      y: -1.0
+    rot:
+      yaw: -1.57079632
+  - id: 6
+    pose:
+      x: -1.0
+      y: -2.0
+    rot:
+      yaw: -1.57079632
+  - id: 7
+    pose:
+      x: -1.0
+      y: -3.0
+    rot:
+      yaw: -1.57079632
+
+  - id: 8
+    pose:
+      x: -2.0
+      y: 0.0
+    rot:
+      yaw: -1.57079632
+  - id: 9
+    pose:
+      x: -2.0
+      y: -1.0
+    rot:
+      yaw: -1.57079632
+  - id: 10
+    pose:
+      x: -2.0
+      y: -2.0
+    rot:
+      yaw: -1.57079632
+  - id: 11
+    pose:
+      x: -2.0
+      y: -3.0
+    rot:
+      yaw: -1.57079632
+
+  - id: 12
+    pose:
+      x: -3.0
+      y: 0.0
+    rot:
+      yaw: -1.57079632
+  - id: 13
+    pose:
+      x: -3.0
+      y: -1.0
+    rot:
+      yaw: -1.57079632
+  - id: 14
+    pose:
+      x: -3.0
+      y: -2.0
+    rot:
+      yaw: -1.57079632
+  - id: 15
+    pose:
+      x: -3.0
+      y: -3.0
+    rot:
+      yaw: -1.57079632
