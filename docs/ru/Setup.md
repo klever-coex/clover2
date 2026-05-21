@@ -32,6 +32,8 @@ QGroundControl
 
 Скачайте актуальную стабильную версию PX4 на странице [PX4 Autopilot releases](https://github.com/PX4/PX4-Autopilot/releases).
 
+- Прошивка PX4 1.17.0 для MicoAir H743 V2: [micoair_h743-v2_default.px4](@assets@/downloads/micoair_h743-v2_default.px4)
+
 Для загрузки прошивки:
 
 1. Отключите полетный контроллер от компьютера, если он уже подключен.
@@ -89,8 +91,8 @@ QGroundControl
 <br>
 
 1. Выберите меню *Airframe*.
-2. Выберите тип рамы *Quadrotor*.
-3. Выберите подтип рамы *Generic Quadrotor*.
+2. Выберите тип рамы *Quadrotor x*.
+3. Выберите подтип рамы *Generic Quadcopter*.
 4. Переместитесь в начало списка и нажмите *Apply and Restart*.
 5. Подтвердите действие кнопкой *Apply*.
 6. Дождитесь применения настроек и перезагрузки полетного контроллера.
