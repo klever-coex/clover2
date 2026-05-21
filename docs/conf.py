@@ -48,15 +48,15 @@ master_doc = "index"
 
 html_theme = "furo"
 html_theme_options = {
-    "light_css_variables": {
-        "color-brand-primary": "#fb4616",
-        #     "color-brand-content": "#CC3333",
-    },
-    "dark_css_variables": {
-        "color-brand-primary": "#fb4616",
-        # "color-brand-content": "#CC3333",
-    },
-    "source_repository": "https://gitlab.com/coex2/clover2/",
+    # "light_css_variables": {
+    #     "color-brand-primary": "orange",
+    #     "color-brand-content": "#CC3333",
+    # },
+    # "dark_css_variables": {
+    #     "color-brand-primary": "orange",
+    #     "color-brand-content": "#CC3333",
+    # },
+    "source_repository": "https://github.com/klever-coex/clover2/",
     "source_branch": "master",
     "sidebar_hide_name": True,
 }

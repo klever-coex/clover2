@@ -11,7 +11,7 @@ variable "LABELS" {
   default = {
     "org.opencontainers.image.authors"  = "Lapin Matvey"
     "org.opencontainers.image.licenses" = "MIT"
-    "org.opencontainers.image.source"   = "https://gitlab.com/coex2/clover2"
+    "org.opencontainers.image.source"   = "https://github.com/klever-coex/clover2"
     "org.opencontainers.image.version"  = CLOVER2_VERSION
     "org.opencontainers.image.revision" = CLOVER2_GIT_HASH
   }
