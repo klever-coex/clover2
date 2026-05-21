@@ -6,8 +6,8 @@ export
 
 # Configuration
 BUILD_MODE ?= develop
-REGISTRY ?= $(REGISTRY_HOST)/coex2/clover2/
-REGISTRY_HOST ?= registry.gitlab.com
+REGISTRY ?= $(REGISTRY_HOST)/klever-coex/clover2/
+REGISTRY_HOST ?= ghcr.io
 REGISTRY_POLICY ?= load
 PROJECT_DIR ?= $(shell pwd)
 DOCKER_OUTPUT_DIR ?= $(PROJECT_DIR)/build-docker

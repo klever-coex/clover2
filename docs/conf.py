@@ -57,7 +57,7 @@ html_theme_options = {
     #     "color-brand-primary": "orange",
     #     "color-brand-content": "#CC3333",
     # },
-    "source_repository": "https://gitlab.com/coex2/clover2/",
+    "source_repository": "https://github.com/klever-coex/clover2/",
     "source_branch": "master",
 }
 
