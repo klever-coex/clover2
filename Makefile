@@ -10,7 +10,8 @@ REGISTRY ?= $(REGISTRY_HOST)/klever-coex/clover2/
 REGISTRY_HOST ?= ghcr.io
 REGISTRY_POLICY ?= load
 PROJECT_DIR ?= $(shell pwd)
-DOCKER_OUTPUT_DIR ?= $(PROJECT_DIR)/build-docker
+BUILD_EXPTRAS_DIR ?= $(PROJECT_DIR)/build-extras
+DOCKER_OUTPUT_DIR ?= $(BUILD_EXPTRAS_DIR)/docker
 
 # Constants
 UID ?= $(shell id -u)

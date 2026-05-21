@@ -1,3 +1,5 @@
+sudo apt-get update
+
 log_info "Install geographiclib"
 sudo apt-get install -yq geographiclib-tools
 
