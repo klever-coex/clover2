@@ -4,8 +4,15 @@ on:
   push:
     branches: [master]
   pull_request:
+  pull_request_review_request:
+    types: [created]
+  workflow_dispatch:
   release:
     types: [published]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -13,6 +20,7 @@ permissions:
 
 jobs:
   detect-mode:
+    if: ${{ github.event.pull_request == null || !github.event.pull_request.draft }}
     runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}
     outputs:
       build_mode: ${{ steps.detect.outputs.build_mode }}
