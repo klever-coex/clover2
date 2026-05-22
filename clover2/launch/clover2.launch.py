@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from asyncio import Condition
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -25,6 +26,7 @@ def generate_launch_description():
     navigation = LaunchConfiguration("navigation")
     optical_flow = LaunchConfiguration("optical_flow")
     simulation = LaunchConfiguration("simulation")
+    front_camera = LaunchConfiguration("front_camera")
 
     # Declare arguments
     use_sim_time_declare = DeclareLaunchArgument(
@@ -61,6 +63,12 @@ def generate_launch_description():
         "simulation",
         default_value="false",
         description="Start simulation mode",
+    )
+
+    front_camera_declare = DeclareLaunchArgument(
+        "front_camera",
+        default_value="false",
+        description="Start front camera",
     )
 
     # Start additional launch files
@@ -111,6 +119,7 @@ def generate_launch_description():
             "optical_flow": TextSubstitution(text="false"),
             "simulation": simulation,
         }.items(),
+        condition=IfCondition(front_camera),
     )
 
     fcu_bridge_cmd = IncludeLaunchDescription(
@@ -146,6 +155,7 @@ def generate_launch_description():
             navigation_declare,
             optical_flow_declare,
             simulation_declare,
+            front_camera_declare,
             # Launch nodes
             description_cmd,
             navigation_cmd,
