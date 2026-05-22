@@ -1,3 +1,5 @@
+sudo apt-get update
+
 log_info "Install geographiclib"
 sudo apt-get install -yq geographiclib-tools
 
@@ -16,10 +18,6 @@ sudo apt-get install -yq \
     ros-$ROS_DISTRO-mavros-msgs \
     ros-$ROS_DISTRO-tf-transformations \
     ros-$ROS_DISTRO-web-video-server
-
-log_info "Copy camera calibration files"
-mkdir -p /home/$USER/.ros/camera_info
-cp $ASSETS_DIR/camera_info/*.yaml /home/$USER/.ros/camera_info/
 
 sudo apt-get autoclean
 sudo apt-get clean

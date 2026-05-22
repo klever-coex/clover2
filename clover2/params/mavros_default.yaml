@@ -5,7 +5,7 @@
     plugin_denylist:
       - camera
       - debug_value
-      # - distance_sensor
+      - distance_sensor
       - fake_gps
       - geofence
       - gimbal_control

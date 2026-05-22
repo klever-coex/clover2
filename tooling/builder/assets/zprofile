@@ -1,7 +1,0 @@
-figlet -f slant clover2 | lolcat
-
-echo ""
-
-. /etc/os-release 
-
-echo "Project version: $CLOVER2_VERSION"
