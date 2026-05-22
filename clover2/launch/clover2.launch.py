@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from asyncio import Condition
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -12,6 +13,10 @@ from launch.substitutions import (
     PathJoinSubstitution,
     TextSubstitution,
 )
+
+ENABLE_NAVIGATION = True
+ENABLE_OPTICAL_FLOW = True
+ENABLE_FRONT_CAMERA = False
 
 
 def generate_launch_description():
@@ -25,6 +30,7 @@ def generate_launch_description():
     navigation = LaunchConfiguration("navigation")
     optical_flow = LaunchConfiguration("optical_flow")
     simulation = LaunchConfiguration("simulation")
+    front_camera = LaunchConfiguration("front_camera")
 
     # Declare arguments
     use_sim_time_declare = DeclareLaunchArgument(
@@ -50,17 +56,27 @@ def generate_launch_description():
     )
 
     navigation_declare = DeclareLaunchArgument(
-        "navigation", default_value="true", description="Enable navigation"
+        "navigation",
+        default_value="true" if ENABLE_NAVIGATION else "false",
+        description="Enable navigation",
     )
 
     optical_flow_declare = DeclareLaunchArgument(
-        "optical_flow", default_value="true", description="Enable optical flow"
+        "optical_flow",
+        default_value="true" if ENABLE_OPTICAL_FLOW else "false",
+        description="Enable optical flow",
     )
 
     simulation_declare = DeclareLaunchArgument(
         "simulation",
         default_value="false",
         description="Start simulation mode",
+    )
+
+    front_camera_declare = DeclareLaunchArgument(
+        "front_camera",
+        default_value="true" if ENABLE_FRONT_CAMERA else "false",
+        description="Start front camera",
     )
 
     # Start additional launch files
@@ -98,6 +114,22 @@ def generate_launch_description():
         }.items(),
     )
 
+    front_camera_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [PathJoinSubstitution([pkg_clover2, "launch", "camera.launch.py"])]
+        ),
+        launch_arguments={
+            "use_sim_time": use_sim_time,
+            "log_level": log_level,
+            "params_file": params_file,
+            "camera_name": TextSubstitution(text="front_camera"),
+            "feature_detector": TextSubstitution(text="false"),
+            "optical_flow": TextSubstitution(text="false"),
+            "simulation": simulation,
+        }.items(),
+        condition=IfCondition(front_camera),
+    )
+
     fcu_bridge_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [PathJoinSubstitution([pkg_clover2, "launch", "fcu_bridge.launch.py"])]
@@ -131,10 +163,12 @@ def generate_launch_description():
             navigation_declare,
             optical_flow_declare,
             simulation_declare,
+            front_camera_declare,
             # Launch nodes
             description_cmd,
             navigation_cmd,
             main_camera_cmd,
+            front_camera_cmd,
             fcu_bridge_cmd,
             web_support_cmd,
         ]
