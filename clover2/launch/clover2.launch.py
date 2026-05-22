@@ -14,6 +14,10 @@ from launch.substitutions import (
     TextSubstitution,
 )
 
+ENABLE_NAVIGATION = True
+ENABLE_OPTICAL_FLOW = True
+ENABLE_FRONT_CAMERA = False
+
 
 def generate_launch_description():
     pkg_clover2 = get_package_share_directory("clover2")
@@ -52,11 +56,15 @@ def generate_launch_description():
     )
 
     navigation_declare = DeclareLaunchArgument(
-        "navigation", default_value="true", description="Enable navigation"
+        "navigation",
+        default_value="true" if ENABLE_NAVIGATION else "false",
+        description="Enable navigation",
     )
 
     optical_flow_declare = DeclareLaunchArgument(
-        "optical_flow", default_value="true", description="Enable optical flow"
+        "optical_flow",
+        default_value="true" if ENABLE_OPTICAL_FLOW else "false",
+        description="Enable optical flow",
     )
 
     simulation_declare = DeclareLaunchArgument(
@@ -67,7 +75,7 @@ def generate_launch_description():
 
     front_camera_declare = DeclareLaunchArgument(
         "front_camera",
-        default_value="false",
+        default_value="true" if ENABLE_FRONT_CAMERA else "false",
         description="Start front camera",
     )
 
