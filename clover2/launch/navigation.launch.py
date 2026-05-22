@@ -9,6 +9,8 @@ from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
+ARUCO_MAP_FILE = "example-1.yaml"
+
 
 def launch_setup(context, *args, **kwargs):
 
@@ -98,7 +100,7 @@ def generate_launch_description():
     )
 
     map_declare = DeclareLaunchArgument(
-        "map", default_value="example-1.yaml", description="Map name"
+        "map", default_value=ARUCO_MAP_FILE, description="Map name"
     )
 
     return LaunchDescription(
