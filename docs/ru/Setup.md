@@ -32,7 +32,7 @@ QGroundControl
 
 Скачайте актуальную стабильную версию PX4 на странице [PX4 Autopilot releases](https://github.com/PX4/PX4-Autopilot/releases).
 
-- Прошивка PX4 1.17.0 для MicoAir H743 V2: [micoair_h743-v2_default.px4](@assets@/downloads/micoair_h743-v2_default.px4)
+- Прошивка PX4 1.16.1 для MicoAir H743 V2: [micoair_h743-v2_default.px4](@assets@/downloads/micoair_h743-v2_default.px4)
 
 Для загрузки прошивки:
 
