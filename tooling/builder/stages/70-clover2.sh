@@ -8,9 +8,6 @@ cd /home/$USER/clover2_ws
 log_info "Add clover2 project to bashrc"
 echo "source /home/$USER/clover2_ws/install/setup.bash" >> ~/.bashrc
 
-log_info "Install build artifacts"
-sudo cp /tmp/clover2-build-extras/docker/* /root/
-
 log_info "Create /opt/clover2 dir"
 sudo mkdir /opt/clover2
 sudo chown -R $USER:$USER /opt/clover2
