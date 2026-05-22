@@ -1,7 +1,6 @@
 import os
 import pathlib
-
-from datetime import date
+from datetime import date, datetime
 
 PROJECT_DIR = pathlib.Path(__file__).absolute().parent
 
@@ -19,7 +18,7 @@ extensions = [
     "sphinx.ext.githubpages",
     "sphinx.ext.autosectionlabel",
     "sphinx_copybutton",
-    "sphinx_simplepdf"
+    "sphinx_simplepdf",
 ]
 
 autosectionlabel_prefix_document = True
@@ -49,25 +48,21 @@ master_doc = "index"
 
 html_theme = "furo"
 html_theme_options = {
-    # "light_css_variables": {
-    #     "color-brand-primary": "orange",
-    #     "color-brand-content": "#CC3333",
-    # },
-    # "dark_css_variables": {
-    #     "color-brand-primary": "orange",
-    #     "color-brand-content": "#CC3333",
-    # },
+    "light_css_variables": {
+        "color-brand-primary": "#fb4616",
+        # "color-brand-content": "#CC3333",
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "#fb4616",
+        # "color-brand-content": "#CC3333",
+    },
     "source_repository": "https://github.com/klever-coex/clover2/",
     "source_branch": "master",
+    "sidebar_hide_name": True,
 }
 
-html_static_path = [
-    (PROJECT_DIR / "assets").as_posix(),
-]
+html_static_path = ["assets"]
 
-html_css_files = [
-    'custom.css',
-]
 
 def setup(app):
     def on_config_inited(app, config):
@@ -75,4 +70,9 @@ def setup(app):
 
         config.html_theme_options["source_directory"] = f"docs/{lang}/"
 
+    def on_source_read(app, docname, source):
+        depth = len(docname.split("/"))
+        source[0] = source[0].replace("@assets@", "../" * depth + "assets")
+
     app.connect("config-inited", on_config_inited)
+    app.connect("source-read", on_source_read)
