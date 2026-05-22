@@ -8,12 +8,15 @@ import {
   Menu,
   Globe,
   BookOpenText,
-  Terminal
+  Camera,
+  SquarePen,
 } from "lucide-react";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
-  const [language, setLanguage] = useState(localStorage.getItem("language") || "ru");
+  const [language, setLanguage] = useState(
+    localStorage.getItem("language") || "ru",
+  );
   const { t, i18n } = useTranslation();
 
   const changeLanguage = (lang) => {
@@ -24,25 +27,33 @@ const Sidebar = () => {
 
   const menu = [
     { name: t("sidebar.dashboard"), icon: <Drone size={20} />, path: "/" },
-    { name: t("sidebar.ros2"), icon: <EthernetPort size={20} />, path: "/ros2" },
-    { name: t("sidebar.settings"), icon: <Settings size={20} />, path: "/settings" },
+    // {
+    //   name: t("sidebar.ros2"),
+    //   icon: <EthernetPort size={20} />,
+    //   path: "/ros2",
+    // },
+    // {
+    //   name: t("sidebar.settings"),
+    //   icon: <Settings size={20} />,
+    //   path: "/settings",
+    // },
     {
       name: t("sidebar.documentation"),
       icon: <BookOpenText size={20} />,
-      path: `${window.location.protocol}//${window.location.hostname}:81/${language}`,
-      redirect: true
-    },
-    {
-      name: t("sidebar.terminal"),
-      icon: <Terminal size={20} />,
-      path: `${window.location.protocol}//${window.location.hostname}:3000/wetty`,
-      redirect: true
+      path: `${window.location.protocol}//${window.location.hostname}:9000/${language}/index.html`,
+      redirect: true,
     },
     {
       name: t("sidebar.camera"),
-      icon: <Terminal size={20} />,
+      icon: <Camera size={20} />,
       path: `${window.location.protocol}//${window.location.hostname}:8081`,
-      redirect: true
+      redirect: true,
+    },
+    {
+      name: t("sidebar.ide"),
+      icon: <SquarePen size={20} />,
+      path: `${window.location.protocol}//${window.location.hostname}:9880`,
+      redirect: true,
     },
   ];
 
@@ -52,11 +63,20 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className={`h-screen bg-gray-900 text-gray-100 flex flex-col transition-all duration-300 ${isOpen ? "w-64" : "w-20"}`}>
+    <div
+      className={`h-screen bg-gray-900 text-gray-100 flex flex-col transition-all duration-300 ${isOpen ? "w-64" : "w-20"}`}
+    >
       {/* Header */}
-      <div className={`flex items-center ${isOpen ? "justify-between" : "justify-center"} p-4 border-b border-gray-700`}>
-        {isOpen && <span className="text-2xl font-bold">{t("header.title")}</span>}
-        <button onClick={() => setIsOpen(!isOpen)} className="p-2 rounded-xl hover:bg-gray-800 transition">
+      <div
+        className={`flex items-center ${isOpen ? "justify-between" : "justify-center"} p-4 border-b border-gray-700`}
+      >
+        {isOpen && (
+          <span className="text-2xl font-bold">{t("header.title")}</span>
+        )}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="p-2 rounded-xl hover:bg-gray-800 transition"
+        >
           <Menu size={20} />
         </button>
       </div>
@@ -69,7 +89,8 @@ const Sidebar = () => {
             key={item.name}
             to={item.path}
             className={({ isActive }) =>
-              `flex items-center ${isOpen ? "gap-3 justify-start" : "justify-center"} p-2 rounded-xl transition ${isActive ? "bg-gray-700" : "hover:bg-gray-800"
+              `flex items-center ${isOpen ? "gap-3 justify-start" : "justify-center"} p-2 rounded-xl transition ${
+                isActive ? "bg-gray-700" : "hover:bg-gray-800"
               }`
             }
           >
@@ -80,7 +101,9 @@ const Sidebar = () => {
       </nav>
 
       {/* Language Selector */}
-      <div className={`border-t border-gray-700 p-4 ${isOpen ? "flex items-center justify-between" : "flex justify-center"}`}>
+      <div
+        className={`border-t border-gray-700 p-4 ${isOpen ? "flex items-center justify-between" : "flex justify-center"}`}
+      >
         <Globe size={20} className="text-gray-400" />
         {isOpen && (
           <select

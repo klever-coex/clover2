@@ -5,7 +5,8 @@
     "settings": "Settings",
     "documentation": "Documentation",
     "terminal": "Shell",
-    "camera": "Camera Viwer"
+    "camera": "Camera Viwer",
+    "ide": "IDE"
   },
   "header": {
     "title": "Clover2"

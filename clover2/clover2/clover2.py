@@ -1,6 +1,5 @@
 import atexit
 import threading
-from types import NoneType
 
 import rclpy
 from rclpy.node import Node
