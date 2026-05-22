@@ -50,5 +50,3 @@
 * **AUTO.LAND** — автоматическая посадка.
 
 Дополнительная информация: [PX4 Flight Modes](https://docs.px4.io/main/en/flight_modes/).
-
-**Далее**: [Настройка питания](power.md).
