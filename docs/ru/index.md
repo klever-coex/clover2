@@ -7,6 +7,7 @@
 
 Setup
 Programming
+UsefulInfo
 ```
 
 ```{figure} @assets@/common/klever5-code.webp
