@@ -98,6 +98,21 @@ def generate_launch_description():
         }.items(),
     )
 
+    front_camera_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [PathJoinSubstitution([pkg_clover2, "launch", "camera.launch.py"])]
+        ),
+        launch_arguments={
+            "use_sim_time": use_sim_time,
+            "log_level": log_level,
+            "params_file": params_file,
+            "camera_name": TextSubstitution(text="front_camera"),
+            "feature_detector": TextSubstitution(text="false"),
+            "optical_flow": TextSubstitution(text="false"),
+            "simulation": simulation,
+        }.items(),
+    )
+
     fcu_bridge_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [PathJoinSubstitution([pkg_clover2, "launch", "fcu_bridge.launch.py"])]
@@ -135,6 +150,7 @@ def generate_launch_description():
             description_cmd,
             navigation_cmd,
             main_camera_cmd,
+            front_camera_cmd,
             fcu_bridge_cmd,
             web_support_cmd,
         ]
