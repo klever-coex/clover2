@@ -20,4 +20,4 @@ The new Klever focuses on a modern robotics ecosystem:
 
 This approach makes the platform equally suitable for beginners — who with a pre-configured system image, examples, and detailed documentation can quickly run their first flight and start programming without complex setup — and for advanced developers who need a stable and reliable foundation for implementing complex projects: autonomous navigation, computer vision tasks, drone swarm development, as well as research and industrial solutions.
 
-The kit includes a fully configured Raspberry Pi image with all necessary software, libraries, and development tools. All software and documentation are open source and available on [GitHub](https://github.com/klever-coex/clover2).
+The kit includes a fully configured Raspberry Pi image with all necessary software, libraries, and development tools. Documentation are available on [klever-doc.tech](https://klever-doc.tech/ROS2/).
