@@ -218,5 +218,5 @@ group "tooling" {
 }
 
 group "web" {
-  targets = ["clover2-docs", "clover2-frontend", "clover2-wetty"]
+  targets = ["clover2-docs", "clover2-frontend"]
 }

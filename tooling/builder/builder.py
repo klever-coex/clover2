@@ -3,6 +3,7 @@
 import argparse
 import asyncio
 import logging
+import os
 import pathlib
 import re
 
@@ -47,7 +48,7 @@ async def qemu_state(args, image: pathlib.Path):
         image=image,
         ssh_user="pi",
         ssh_password="raspberry",
-        smp=16,
+        smp=12,
         extra_args=[
             "-append",
             '"console=ttyAMA0,115200 root=/dev/vda2 rw"',
@@ -73,6 +74,10 @@ async def qemu_state(args, image: pathlib.Path):
         logger.info("Cleanup git project")
         await qemu.execute(
             "cd /home/pi/clover2_ws/src/clover2 && git reset --hard HEAD && git clean -fdx"
+        )
+
+        await qemu.copy_to(
+            pathlib.Path(os.environ["BUILD_EXPTRAS_DIR"]), ("/tmp/clover2-build-extras")
         )
 
         logger.info("Run image setup script")
