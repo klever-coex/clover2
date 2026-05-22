@@ -56,6 +56,12 @@ target "base" {
   context = "."
   labels = LABELS
 
+  args = {
+    CLOVER2_VERSION = "${CLOVER2_VERSION}"
+    CLOVER2_BASE_VERSION = "${CLOVER2_BASE_VERSION}"
+    CLOVER2_GIT_HASH = "${CLOVER2_GIT_HASH}"
+  }
+
   cache-from = ["type=local,src=.cache/docker"]
   cache-to   = ["type=local,dest=.cache/docker,mode=max"]
 }
