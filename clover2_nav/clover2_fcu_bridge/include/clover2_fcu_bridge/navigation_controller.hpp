@@ -44,7 +44,7 @@ private:
     double m_speed{0.3};
     double m_speed_limit{2.0};
     double m_yaw_rate{0.1};
-    double m_tolerance{0.05};
+    double m_tolerance{0.35};
     double m_slowdown{0.3};
     double m_height_low{0.3};
 

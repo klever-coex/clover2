@@ -29,6 +29,20 @@ tracker::tracker(const rclcpp::NodeOptions& options)
         },
         "Vision position estimate frame");
 
+    declare_and_watch_parameter<double>(
+        "xy_variation", 0.4,
+        [this](const rclcpp::Parameter& p) {
+            m_xy_variation = p.as_string();
+        },
+        "Published variation for x and y");
+
+    declare_and_watch_parameter<double>(
+        "z_variation", 0.4,
+        [this](const rclcpp::Parameter& p) {
+            m_z_variation = p.as_string();
+        },
+        "Published variation for x and y");
+
     register_on_configure(
         std::bind(&tracker::on_configure, this, std::placeholders::_1));
     register_on_activate(
@@ -187,9 +201,9 @@ void tracker::markers_callback(
 
     estimated_pose.pose = tf2::toMsg(result_pose);
     estimated_pose_cov.pose.pose = estimated_pose.pose;
-    estimated_pose_cov.pose.covariance[0] = 0.3;
-    estimated_pose_cov.pose.covariance[7] = 0.3;
-    estimated_pose_cov.pose.covariance[14] = 0.5;
+    estimated_pose_cov.pose.covariance[0] = m_xy_variation;
+    estimated_pose_cov.pose.covariance[7] = m_xy_variation;
+    estimated_pose_cov.pose.covariance[14] = m_z_variation;
 
     estimated_pose_cov.pose.covariance[21] = 0.3;
     estimated_pose_cov.pose.covariance[28] = 0.3;
