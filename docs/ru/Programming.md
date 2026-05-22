@@ -7,7 +7,6 @@
 
 Programming/DroneProgramming
 Programming/Sensors
-Programming/UsefulInfo
 Programming/ROS2
 Programming/Docker
 ```
