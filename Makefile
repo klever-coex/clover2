@@ -10,7 +10,8 @@ REGISTRY ?= $(REGISTRY_HOST)/klever-coex/clover2/
 REGISTRY_HOST ?= ghcr.io
 REGISTRY_POLICY ?= load
 PROJECT_DIR ?= $(shell pwd)
-DOCKER_OUTPUT_DIR ?= $(PROJECT_DIR)/build-docker
+BUILD_EXPTRAS_DIR ?= $(PROJECT_DIR)/build-extras
+DOCKER_OUTPUT_DIR ?= $(BUILD_EXPTRAS_DIR)/docker
 
 # Constants
 UID ?= $(shell id -u)
@@ -55,7 +56,11 @@ help:
 ## clover2-bake-%: Build docker images using buildx bake
 clover2-bake-%:
 	@mkdir -p $(DOCKER_OUTPUT_DIR)
-	docker buildx bake -f docker/docker-bake.hcl --progress plain $*
+	docker buildx bake \
+		$(if $(TARGET_ARCH),--set *.platform=linux/$(TARGET_ARCH)) \
+		-f docker/docker-bake.hcl \
+		--progress plain \
+		$*
 
 ## clover2-bake-push-%: Push docker images
 clover2-bake-push-%:
