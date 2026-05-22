@@ -3,15 +3,10 @@ services:
     image: ${REGISTRY}clover2-docs:${CLOVER2_GIT_HASH}
     restart: unless-stopped
     ports:
-    - 81:80
+    - "9000:80"
+
   clover2-frontend:
     image: ${REGISTRY}clover2-frontend:${CLOVER2_GIT_HASH}
     restart: unless-stopped
     ports:
-    - 80:80
-  clover2-wetty:
-    image: ${REGISTRY}clover2-wetty:${CLOVER2_GIT_HASH}
-    restart: unless-stopped
-    command: --ssh-user pi --ssh-host ${CLOVER2_HOSTNAME}
-    ports:
-    - 3000:3000
+    - "80:80"
