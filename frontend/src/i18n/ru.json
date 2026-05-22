@@ -5,7 +5,8 @@
     "settings": "Настройки",
     "documentation": "Документация",
     "terminal": "Консоль",
-    "camera": "Просмотр камеры"
+    "camera": "Просмотр камеры",
+    "ide": "Среда разработки"
   },
   "header": {
     "title": "Clover2"
