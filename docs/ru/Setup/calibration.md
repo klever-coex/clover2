@@ -60,5 +60,3 @@
 5. Дождитесь окончания калибровки.
 
 Дополнительная информация: [PX4 Level Horizon Calibration](https://docs.px4.io/main/en/config/level_horizon_calibration.html).
-
-**Далее**: [Настройка аппаратуры управления](radio.md).

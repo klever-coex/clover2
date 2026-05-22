@@ -141,5 +141,3 @@ PID-коэффициенты зависят от конкретной сборк
 * `MPC_Z_VEL_I_ACC` = 2.3
 * `MPC_THR_HOVER` = 0.4
 * `MPC_ACC_DOWN_MAX` = 2.0
-
-**Далее**: [Калибровка датчиков](Setup/calibration.md).
