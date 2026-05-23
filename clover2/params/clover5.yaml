@@ -6,6 +6,13 @@
   ros__parameters:
     tracking: "base_link"
 
+/**/fcu_bridge:
+  ros__parameters:
+    backend: "mavros"
+    speed_limit: 1.0
+    tolerance: 0.15
+    slowdown_distance: 0.5
+
 /**/main_camera/camera:
   ros__parameters:
     camera: 0
@@ -47,7 +54,7 @@
       plugin: "clover2::cam_feature::plugins::aruco"
       cornerRefinementMethod: 2
       minMarkerPerimeterRate: 0.075
-      adaptiveThreshConstant: 14.0
+      adaptiveThreshConstant: 25.0
 
 /**/main_camera/optical_flow:
   ros__parameters:

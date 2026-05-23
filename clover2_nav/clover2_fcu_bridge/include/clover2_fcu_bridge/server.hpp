@@ -74,6 +74,10 @@ private:
                              std::optional<double>& z,
                              std::optional<double>& yaw) const;
 
+    double m_speed_limit{1.0};
+    double m_tolerance{0.15};
+    double m_slowdown{0.5};
+
     std::string m_backend_name;
     clover2_common::parameter_watcher::SharedPtr m_parameter_watcher;
 
@@ -92,8 +96,8 @@ private:
 
     rclcpp_action::Server<NavigateAsync>::SharedPtr m_navigate_async_action;
 
-    std::shared_ptr<clover2_fcu_bridge::backend::base_backend> m_backend;
-    std::shared_ptr<clover2_fcu_bridge::offboard> m_offboard;
+    std::shared_ptr<clover2_fcu_bridge::backend::base_backend> m_backend{nullptr};
+    std::shared_ptr<clover2_fcu_bridge::offboard> m_offboard{nullptr};
 };
 
 }  // namespace clover2_fcu_bridge
