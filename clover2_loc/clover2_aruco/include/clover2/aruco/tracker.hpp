@@ -1,7 +1,6 @@
 #pragma once
 
 // ROS2 includes
-#include "std_msgs/msg/header.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
