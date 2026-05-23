@@ -62,11 +62,11 @@ public:
             },
             m_group);
 
-        m_nav.set_tolerance(m_tolerance);
-        m_nav.set_slowdown_distance(m_slowdown_distance);
-        m_nav.set_speed_limits(0.3, m_speed_limit);
-        m_nav.set_yaw_rate(m_yaw_speed);
-        m_nav.set_height_low(m_height_low);
+        // m_nav.set_tolerance(m_tolerance);
+        // m_nav.set_slowdown_distance(m_slowdown_distance);
+        // m_nav.set_speed_limit(m_speed_limit);
+        m_nav.set_speed(0.3);
+        // m_nav.set_yaw_rate(m_yaw_speed);
 
         RCLCPP_INFO(get_logger(), "Offboard initialized");
     }
@@ -94,9 +94,11 @@ public:
     void arm() { m_fcu.arm(); }
     void disarm() { m_fcu.disarm(); }
 
-    void set_tolerance(double tolerance = 0.05);
+    void set_speed_limit(double speed);
+    double get_speed_limit() const;
+    void set_tolerance(double tolerance);
     double get_tolerance() const;
-    void set_slowdown_distance(double distance = 0.3);
+    void set_slowdown_distance(double distance);
     double get_slowdown_distance() const;
 
 private:
@@ -129,11 +131,11 @@ private:
     std::string m_local_frame{"odom"};
     process_callback m_process_callback{nullptr};
 
-    double m_speed_limit{2.0};
-    double m_yaw_speed{0.1};
+    // double m_speed_limit{1.0};
+    // double m_yaw_speed{0.1};
     double m_height_low{0.3};
-    double m_tolerance{0.05};
-    double m_slowdown_distance{0.3};
+    // double m_tolerance{0.15};
+    // double m_slowdown_distance{0.3};
     std::chrono::milliseconds m_publish_period{20};
     geometry_msgs::msg::PoseStamped m_pose_setpoint;
 

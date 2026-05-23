@@ -98,7 +98,6 @@ def launch_setup(context, *args, **kwargs):
                     {"use_sim_time": use_sim_time},
                     {"frame_id": camera_name.perform(context)},
                 ],
-                additional_env=
             )
         ],
     )

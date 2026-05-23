@@ -59,6 +59,43 @@ server::server(const rclcpp::NodeOptions& options)
         },
         "Offboard backend name for fabric (e.g. mavros)");
 
+    m_parameter_watcher->declare_and_watch_parameter<double>(
+        "speed_limit", m_speed_limit,
+        [this](const rclcpp::Parameter& p) {
+            if (p.as_double() < 0.1) {
+                throw std::runtime_error(
+                    "Speed limit should be greater then 0.1");
+            }
+
+            m_speed_limit = p.as_double();
+            if (m_offboard.get()) {
+                m_offboard->set_speed_limit(m_speed_limit);
+            }
+        },
+        "Controller speed limit");
+
+    m_parameter_watcher->declare_and_watch_parameter<double>(
+        "tolerance", m_tolerance,
+        [this](const rclcpp::Parameter& p) {
+            m_tolerance = p.as_double();
+
+            if (m_offboard.get()) {
+                m_offboard->set_tolerance(m_tolerance);
+            }
+        },
+        "Controller tolerance");
+
+    m_parameter_watcher->declare_and_watch_parameter<double>(
+        "slowdown_distance", m_slowdown,
+        [this](const rclcpp::Parameter& p) {
+            m_slowdown = p.as_double();
+
+            if (m_offboard.get()) {
+                m_offboard->set_slowdown_distance(m_slowdown);
+            }
+        },
+        "Controller slowdown distance");
+
     register_on_configure(
         std::bind(&server::on_configure, this, std::placeholders::_1));
     register_on_activate(
@@ -77,6 +114,9 @@ server::CallbackReturn server::on_configure(
         clover2_fcu_bridge::backend::context ctx(*this);
         m_backend = backend::fabric::instance().create(m_backend_name, ctx);
         m_offboard = offboard::make_shared(this->shared_from_this(), m_backend);
+        m_offboard->set_speed_limit(m_speed_limit);
+        m_offboard->set_tolerance(m_tolerance);
+        m_offboard->set_slowdown_distance(m_slowdown)
     } catch (const std::runtime_error& e) {
         RCLCPP_ERROR(get_logger(), "Failed to create backend '%s': %s",
                      m_backend_name.c_str(), e.what());

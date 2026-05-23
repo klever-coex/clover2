@@ -55,7 +55,7 @@ class ActionHelper:
     def _on_goal_response(self, future: Future) -> None:
         goal_handle = future.result()
         if not goal_handle.accepted:
-            self._message = goal_handle.reject_reason() or "Goal rejected"
+            self._message = "Goal rejected"
             self._event.set()
             return
 

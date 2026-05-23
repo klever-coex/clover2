@@ -6,8 +6,6 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_msgs/msg/tf_message.hpp>
 
-#include <fstream>
-
 namespace clover2::aruco {
 
 tracker::tracker(const rclcpp::NodeOptions& options)
@@ -32,14 +30,14 @@ tracker::tracker(const rclcpp::NodeOptions& options)
     declare_and_watch_parameter<double>(
         "xy_variation", 0.4,
         [this](const rclcpp::Parameter& p) {
-            m_xy_variation = p.as_string();
+            m_xy_variation = p.as_double();
         },
         "Published variation for x and y");
 
     declare_and_watch_parameter<double>(
         "z_variation", 0.4,
         [this](const rclcpp::Parameter& p) {
-            m_z_variation = p.as_string();
+            m_z_variation = p.as_double();
         },
         "Published variation for x and y");
 
