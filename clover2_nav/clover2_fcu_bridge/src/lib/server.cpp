@@ -116,7 +116,7 @@ server::CallbackReturn server::on_configure(
         m_offboard = offboard::make_shared(this->shared_from_this(), m_backend);
         m_offboard->set_speed_limit(m_speed_limit);
         m_offboard->set_tolerance(m_tolerance);
-        m_offboard->set_slowdown_distance(m_slowdown)
+        m_offboard->set_slowdown_distance(m_slowdown);
     } catch (const std::runtime_error& e) {
         RCLCPP_ERROR(get_logger(), "Failed to create backend '%s': %s",
                      m_backend_name.c_str(), e.what());
