@@ -54,7 +54,7 @@
       plugin: "clover2::cam_feature::plugins::aruco"
       cornerRefinementMethod: 2
       minMarkerPerimeterRate: 0.075
-      adaptiveThreshConstant: 14.0
+      adaptiveThreshConstant: 25.0
 
 /**/main_camera/optical_flow:
   ros__parameters:
