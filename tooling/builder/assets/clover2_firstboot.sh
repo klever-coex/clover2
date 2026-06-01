@@ -24,6 +24,8 @@ source /usr/lib/os-release
 envsubst < $REPO_DIR/tooling/builder/assets/docker-compose.yaml.in > /opt/clover2/docker-compose.yaml
 chown pi /opt/clover2/docker-compose.yaml
 
+sudo systemctl enable codium-server@pi
+
 echo "---> Remove firstboot scrip <---"
 systemctl disable clover2-firstboot.service
 rm /etc/systemd/system/clover2-firstboot.service

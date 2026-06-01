@@ -1,0 +1,91 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro
+        name="motor"
+        params="
+      parent
+      motor_number
+      mass_rotor
+      radius_rotor
+      mesh
+      name_prefix:=''
+      direction:=cw
+      motor_constant:=8.54858e-06
+      moment_constant:=0.016
+      time_constant_up:=0.0125
+      time_constant_down:=0.025
+      max_rot_velocity:=1000.0
+      command_sub_topic:=command/motor_speed
+      rotor_drag_coefficient:=8.06428e-05
+      rolling_moment_coefficient:=1e-06
+      rotor_velocity_slowdown_sim:=10
+      collision_length:=0.005
+      visual_xyz:='0 0 0'
+      visual_rpy:='0 0 0'
+      inertial_xyz:='0 0 0'
+      inertial_rpy:='0 0 0'
+      *origin
+      *inertia
+    "
+    >
+    <xacro:property
+            name="motor_link"
+            value="${name_prefix}rotor_${motor_number}"
+        />
+    <xacro:property
+            name="motor_joint"
+            value="${name_prefix}rotor_${motor_number}_joint"
+        />
+
+    <joint name="${motor_joint}" type="continuous">
+      <xacro:insert_block name="origin" />
+      <axis xyz="0 0 1" />
+      <parent link="${parent}" />
+      <child link="${motor_link}" />
+    </joint>
+
+    <link name="${motor_link}">
+      <inertial>
+        <origin xyz="${inertial_xyz}" rpy="${inertial_rpy}" />
+        <mass value="${mass_rotor}" />
+        <xacro:insert_block name="inertia" />
+      </inertial>
+      <visual>
+        <origin xyz="${visual_xyz}" rpy="${visual_rpy}" />
+        <geometry>
+          <mesh filename="${mesh}" scale="1 1 1" />
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+          <geometry>
+            <cylinder length="${collision_length}" radius="${radius_rotor}" />
+          </geometry>
+      </collision>
+    </link>
+
+    <gazebo reference="${motor_link}">
+      <plugin
+                filename="gz-sim-multicopter-motor-model-system"
+                name="gz::sim::systems::MulticopterMotorModel"
+            >
+        <jointName>${motor_joint}</jointName>
+        <linkName>${motor_link}</linkName>
+        <turningDirection>${direction}</turningDirection>
+        <timeConstantUp>${time_constant_up}</timeConstantUp>
+        <timeConstantDown>${time_constant_down}</timeConstantDown>
+        <maxRotVelocity>${max_rot_velocity}</maxRotVelocity>
+        <motorConstant>${motor_constant}</motorConstant>
+        <momentConstant>${moment_constant}</momentConstant>
+        <commandSubTopic>${command_sub_topic}</commandSubTopic>
+        <motorNumber>${motor_number}</motorNumber>
+        <rotorDragCoefficient>${rotor_drag_coefficient}</rotorDragCoefficient>
+        <rollingMomentCoefficient
+                >${rolling_moment_coefficient}</rollingMomentCoefficient>
+        <rotorVelocitySlowdownSim
+                >${rotor_velocity_slowdown_sim}</rotorVelocitySlowdownSim>
+        <motorType>velocity</motorType>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+</robot>

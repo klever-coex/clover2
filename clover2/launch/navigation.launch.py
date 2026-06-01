@@ -2,12 +2,15 @@
 from pathlib import Path
 
 from ament_index_python.packages import get_package_share_directory
-from clover2.helpers.resource import CLOVER2_RESOURCE_DIR, find_file
+from clover2.config import CLOVER2_RESOURCE_DIR
+from clover2.utils import find_file
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, LogInfo, OpaqueFunction
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+
+ARUCO_MAP_FILE = "example-1.yaml"
 
 
 def launch_setup(context, *args, **kwargs):
@@ -74,7 +77,7 @@ def launch_setup(context, *args, **kwargs):
         remappings=[
             # TODO: remove hardcode
             ("~/markers", "/main_camera/feat_detector/output/markers"),
-            ("~/pose_cov", "/mavros/vision_pose/pose_cov"),
+            ("~/pose_cov", "/mavros/clover2_vio/pose_cov"),
             ("~/map_update", "/map_server/map_update"),
             ("~/get_map", "/map_server/get_map"),
         ],
@@ -102,7 +105,7 @@ def generate_launch_description():
     )
 
     map_declare = DeclareLaunchArgument(
-        "map", default_value="example-1.yaml", description="Map name"
+        "map", default_value=ARUCO_MAP_FILE, description="Map name"
     )
 
     aruco_map_server = DeclareLaunchArgument(

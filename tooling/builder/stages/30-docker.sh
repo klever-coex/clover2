@@ -8,3 +8,6 @@ chmod +x /tmp/docker-install.sh
 
 log_info "Fix docker permissions"
 sudo usermod -aG docker $USER
+
+log_info "Install builded containers"
+sudo cp /tmp/clover2-build-extras/docker/* /root/

@@ -8,15 +8,13 @@ from launch.actions import (
     DeclareLaunchArgument,
     GroupAction,
     OpaqueFunction,
-    RegisterEventHandler,
+    SetEnvironmentVariable,
 )
 from launch.conditions import IfCondition, UnlessCondition
-from launch.event_handlers import OnProcessStart
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import (
     ComposableNodeContainer,
     LoadComposableNodes,
-    PushRosNamespace,
 )
 from launch_ros.descriptions import ComposableNode
 
@@ -25,11 +23,11 @@ def make_gz_bridge_topics(camera_name: str):
     cam_image = f"{camera_name}_camera_image"
     cam_info = f"{camera_name}_camera_info"
     return [
-        {"bridge_names": [cam_image, cam_info]},
+        {"bridge_names": [cam_image, cam_info, "odom"]},
         # Camera image
         {f"bridges.{cam_image}.ros_topic_name": "~/image_raw"},
         {
-            f"bridges.{cam_image}.gz_topic_name": "/world/aruco/model/px4/link/camera_link/sensor/imager/image"
+            f"bridges.{cam_image}.gz_topic_name": "/world/clover2_aruco/model/px4/link/camera_link/sensor/imager/image"
         },
         {f"bridges.{cam_image}.ros_type_name": "sensor_msgs/msg/Image"},
         {f"bridges.{cam_image}.gz_type_name": "gz.msgs.Image"},
@@ -38,12 +36,20 @@ def make_gz_bridge_topics(camera_name: str):
         # Camera info
         {f"bridges.{cam_info}.ros_topic_name": "~/camera_info"},
         {
-            f"bridges.{cam_info}.gz_topic_name": "/world/aruco/model/px4/link/camera_link/sensor/imager/camera_info"
+            f"bridges.{cam_info}.gz_topic_name": "/world/clover2_aruco/model/px4/link/camera_link/sensor/imager/camera_info"
         },
         {f"bridges.{cam_info}.ros_type_name": "sensor_msgs/msg/CameraInfo"},
         {f"bridges.{cam_info}.gz_type_name": "gz.msgs.CameraInfo"},
         {f"bridges.{cam_info}.direction": "GZ_TO_ROS"},
         {f"bridges.{cam_info}.frame_id": camera_name},
+        {"bridges.odom.ros_topic_name": "/mavros/distance_sensor/rangefinder"},
+        {
+            "bridges.odom.gz_topic_name": "/world/clover2_aruco/model/px4/link/rangefinder_link/sensor/rangefinder/scan"
+        },
+        {"bridges.odom.ros_type_name": "sensor_msgs/msg/Range"},
+        {"bridges.odom.gz_type_name": "gz.msgs.LaserScan"},
+        {"bridges.odom.direction": "GZ_TO_ROS"},
+        {"bridges.odom.frame_id": "camera_link"},
     ]
 
 
@@ -69,7 +75,7 @@ def launch_setup(context, *args, **kwargs):
 
     camera_container = ComposableNodeContainer(
         name="container",
-        namespace="",
+        namespace=camera_name.perform(context),
         package="rclcpp_components",
         executable="component_container_mt",
         respawn=True,
@@ -85,6 +91,7 @@ def launch_setup(context, *args, **kwargs):
             ComposableNode(
                 package="camera_ros",
                 plugin="camera::CameraNode",
+                namespace=camera_name.perform(context),
                 name="camera",
                 parameters=[
                     params_file,
@@ -102,6 +109,7 @@ def launch_setup(context, *args, **kwargs):
             ComposableNode(
                 package="ros_gz_bridge",
                 plugin="ros_gz_bridge::RosGzBridge",
+                namespace=camera_name.perform(context),
                 name="camera",
                 parameters=[
                     params_file,
@@ -119,6 +127,7 @@ def launch_setup(context, *args, **kwargs):
             ComposableNode(
                 package="clover2_cam_feature",
                 plugin="clover2::cam_feature::cam_feature",
+                namespace=camera_name.perform(context),
                 name="feat_detector",
                 parameters=[params_file, {"use_sim_time": use_sim_time}],
                 remappings=camera_remappings
@@ -135,6 +144,7 @@ def launch_setup(context, *args, **kwargs):
             ComposableNode(
                 package="clover2_optical_flow",
                 plugin="clover2::optical_flow::optical_flow",
+                namespace=camera_name.perform(context),
                 name="optical_flow",
                 parameters=[params_file, {"use_sim_time": use_sim_time}],
                 remappings=camera_remappings,
@@ -142,28 +152,16 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
-    load_composable = RegisterEventHandler(
-        OnProcessStart(
-            target_action=camera_container,
-            on_start=[
-                PushRosNamespace(camera_name.perform(context)),
+    return [
+        GroupAction(
+            actions=[
+                camera_container,
                 camera_component,
                 sim_camera_component,
                 feature_detector_component,
                 optical_flow_component,
-            ],
-        )
-    )
-
-    camera_group = GroupAction(
-        actions=[
-            PushRosNamespace(camera_name.perform(context)),
-            camera_container,
-            load_composable,
-        ]
-    )
-    return [
-        camera_group,
+            ]
+        ),
     ]
 
 

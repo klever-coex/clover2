@@ -1,10 +1,13 @@
+import os
 import pathlib
+from datetime import date, datetime
 
 PROJECT_DIR = pathlib.Path(__file__).absolute().parent
 
 project = "clover2"
 author = "Lapin Matvey"
-copyright = "2025, Lapin Matvey"
+copyright = f"{date.today().year}, Lapin Matvey"
+version = os.environ["CLOVER2_VERSION"] or "unknown"
 
 extensions = [
     "myst_parser",
@@ -14,12 +17,16 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
     "sphinx.ext.autosectionlabel",
+    "sphinx_copybutton",
+    "sphinx_simplepdf",
 ]
 
 autosectionlabel_prefix_document = True
 
 myst_enable_extensions = [
     "colon_fence",
+    "deflist",
+    "html_image",
 ]
 
 source_suffix = {
@@ -39,20 +46,33 @@ exclude_patterns = [
 
 master_doc = "index"
 
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 html_theme_options = {
-    "analytics_id": "G-EVD5Z6G6NH",
-    "collapse_navigation": False,
-    "sticky_navigation": False,
-    "navigation_depth": -1,
+    "light_css_variables": {
+        "color-brand-primary": "#fb4616",
+        # "color-brand-content": "#CC3333",
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "#fb4616",
+        # "color-brand-content": "#CC3333",
+    },
+    "source_repository": "https://github.com/klever-coex/clover2/",
+    "source_branch": "master",
+    "sidebar_hide_name": True,
 }
 
-html_context = {
-    "extra_nav_links": {
-        "Просмотреть исходный код": "https://gitflic.ru/project/klever-coex/clover2"
-    }
-}
+html_static_path = ["assets"]
 
-html_static_path = [
-    (PROJECT_DIR / "assets").as_posix(),
-]
+
+def setup(app):
+    def on_config_inited(app, config):
+        lang = config.language or "en"
+
+        config.html_theme_options["source_directory"] = f"docs/{lang}/"
+
+    def on_source_read(app, docname, source):
+        depth = len(docname.split("/"))
+        source[0] = source[0].replace("@assets@", "../" * depth + "assets")
+
+    app.connect("config-inited", on_config_inited)
+    app.connect("source-read", on_source_read)

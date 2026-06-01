@@ -1,0 +1,96 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="clover5">
+
+  <xacro:property
+        name="config"
+        value="${xacro.load_yaml('$(find clover2_description)/config/robots/clover5.yaml')}"
+    />
+  <xacro:property
+        name="common"
+        value="${xacro.load_yaml('$(find clover2_description)/config/common.yaml')}"
+    />
+
+  <xacro:include
+        filename="$(find clover2_description)/xacro/macros/inertial.xacro"
+    />
+  <xacro:include
+        filename="$(find clover2_description)/xacro/macros/materials.xacro"
+    />
+  <xacro:include
+        filename="$(find clover2_description)/xacro/core/frame.xacro"
+    />
+  <xacro:include filename="$(find clover2_description)/xacro/core/arms.xacro" />
+  <!-- <xacro:include
+        filename="$(find clover2_description)/xacro/core/motors.xacro"
+    /> -->
+
+  <xacro:include
+        filename="$(find clover2_description)/xacro/sensors/camera_macro.xacro"
+    />
+  <xacro:include
+        filename="$(find clover2_description)/xacro/sensors/imu_macro.xacro"
+    />
+
+  <xacro:quad_frame
+        name="base_link"
+        mass="${config['frame']['body_mass']}"
+        body_l="${config['frame']['body_length']}"
+        body_w="${config['frame']['body_width']}"
+        body_h="${config['frame']['body_height']}"
+        arm_length="${config['frame']['arm_length']}"
+        arm_diameter="${config['frame']['arm_diameter']}"
+    >
+    <origin
+            xyz="0 0 ${config['landing_gear']['height'] + config['frame']['body_height']/2}"
+            rpy="0 0 0"
+        />
+  </xacro:quad_frame>
+
+  <!-- <xacro:quad_arms
+        parent="base_link"
+        arm_length="${config['frame']['arm_length']}"
+        arm_diameter="${config['frame']['arm_diameter']}"
+        mass="0.05"
+        motor_mount_size="0.03"
+        motor_mount_mass="0.02"
+    /> -->
+
+  <!-- <xacro:quad_motors
+        parent="base_link"
+        motor_mass="${config['motors']['motor_mass']}"
+        prop_diameter="${config['motors']['prop_diameter']}"
+        prop_mass="${config['motors']['prop_mass']}"
+        num_motors="4"
+    /> -->
+
+    <xacro:imu_module
+        name="imu"
+        parent="base_link"
+        mass="0.01"
+        topic="/imu/data"
+    >
+        <origin xyz="0 0 0" rpy="0 0 0" />
+    </xacro:imu_module>
+
+
+  <xacro:if value="${config['sensors']['main_camera']['enabled']}">
+    <xacro:camera_module
+            name="main_camera"
+            parent="base_link"
+            image_w="640"
+            image_h="480"
+            hfov="1.22"
+            update_rate="30"
+        >
+            <origin
+                xyz="${config['sensors']['main_camera']['position'][0]}
+                     ${config['sensors']['main_camera']['position'][1]}
+                     ${config['sensors']['main_camera']['position'][2]}"
+                rpy="${config['sensors']['main_camera']['orientation'][0]}
+                     ${config['sensors']['main_camera']['orientation'][1]}
+                     ${config['sensors']['main_camera']['orientation'][2]}"
+            />
+        </xacro:camera_module>
+  </xacro:if>
+
+</robot>

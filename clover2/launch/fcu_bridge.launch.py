@@ -42,7 +42,10 @@ def launch_setup(context, *args, **kwargs):
             },
         ],
         output="screen",
-        arguments=["--ros-args", "--log-level", log_level],
+        arguments=["--ros-args", "--log-level", "warn"],
+        remappings=[
+            ("/mavros/px4flow/raw/send", "/main_camera/mavros/px4flow/raw/send"),
+        ],
     )
 
     offboard_server_node = Node(

@@ -10,9 +10,6 @@ COPY tooling/docker/* /clover2/
 # WORKDIR /clover2_ws
 # COPY . /clover2_ws/src/clover2
 WORKDIR /ws
-COPY clover2_sim/clover2_gz_sim/package.xml /ws/src/clover2_sim/clover2_gz_sim/package.xml
-COPY clover2_sim/clover2_sim/package.xml /ws/src/clover2_sim/clover2_sim/package.xml
-COPY clover2_sim/clover2_description/package.xml /ws/src/clover2_sim/clover2_description/package.xml
 COPY clover2/package.xml /ws/src/clover2/package.xml
 COPY clover2_common/package.xml /ws/src/clover2_common/package.xml
 COPY clover2_nav/clover2_cam_feature/package.xml /ws/src/clover2_nav/clover2_cam_feature/package.xml
@@ -20,7 +17,7 @@ COPY clover2_nav/clover2_pose_msgs/package.xml /ws/src/clover2_nav/clover2_pose_
 COPY clover2_nav/clover2_optical_flow/package.xml /ws/src/clover2_nav/clover2_optical_flow/package.xml
 COPY clover2_nav/clover2_map/package.xml /ws/src/clover2_nav/clover2_map/package.xml
 COPY clover2_nav/clover2_aruco/package.xml /ws/src/clover2_nav/clover2_aruco/package.xml
-COPY clover2_fcu_bridge_msgs/package.xml /ws/src/clover2_fcu_bridge_msgs/package.xml
+COPY clover2_nav_msgs/package.xml /ws/src/clover2_nav_msgs/package.xml
 COPY clover2_fcu_bridge/package.xml /ws/src/clover2_fcu_bridge/package.xml
 
 RUN /clover2/rosdep-parse.sh /ws/src $ROS_DISTRO --dependency-types=exec > /clover2/apt-depends.txt && \
