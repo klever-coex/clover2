@@ -9,7 +9,7 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
-    LaunchConfiguration,
+    LaunchActionuration,
     PathJoinSubstitution,
     TextSubstitution,
 )
@@ -22,14 +22,14 @@ ENABLE_FRONT_CAMERA = False
 def generate_launch_description():
 
     # Reading arguments
-    use_sim_time = LaunchConfiguration("use_sim_time")
-    log_level = LaunchConfiguration("log_level")
-    params_file = LaunchConfiguration("params_file")
-    fcu_conn = LaunchConfiguration("fcu_conn")
-    navigation = LaunchConfiguration("navigation")
-    optical_flow = LaunchConfiguration("optical_flow")
-    simulation = LaunchConfiguration("simulation")
-    front_camera = LaunchConfiguration("front_camera")
+    use_sim_time = LaunchActionuration("use_sim_time")
+    log_level = LaunchActionuration("log_level")
+    params_file = LaunchActionuration("params_file")
+    fcu_conn = LaunchActionuration("fcu_conn")
+    navigation = LaunchActionuration("navigation")
+    optical_flow = LaunchActionuration("optical_flow")
+    simulation = LaunchActionuration("simulation")
+    front_camera = LaunchActionuration("front_camera")
 
     # Declare arguments
     use_sim_time_declare = DeclareLaunchArgument(
