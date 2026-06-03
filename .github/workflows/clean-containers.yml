@@ -15,8 +15,8 @@ jobs:
       - name: Purge old container versions
         uses: snok/container-retention-policy@v3.1.0
         with:
-          account: ${{ github.repository_owner }}
-          token: ${{ secrets.ACTIONS_TOKEN }}
+          account: ${{ github.actor }}
+          token: ${{ github.token }}
           image-names: "clover2/*"
           cut-off: "1w"
           keep-at-least: 5
