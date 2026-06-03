@@ -16,7 +16,7 @@ jobs:
         uses: snok/container-retention-policy@v3.1.0
         with:
           account: ${{ github.actor }}
-          token: ${{ github.token }}
+          token: ${{ secrets.GHCR_PAT }}
           image-names: "clover2/*"
           cut-off: "1w"
           keep-at-least: 5
