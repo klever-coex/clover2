@@ -48,7 +48,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [tooling, clover2-docs, clover2-frontend, clover2-wetty]
+        target: [tooling, clover2-docs, clover2-frontend]
     env:
       BUILD_MODE: ${{ needs.detect-mode.outputs.build_mode }}
     steps:
