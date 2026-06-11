@@ -3,7 +3,7 @@
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchActionuration
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
@@ -11,9 +11,9 @@ def generate_launch_description():
     pkg_clover2 = get_package_share_directory("clover2")
 
     # Reading arguments
-    use_sim_time = LaunchActionuration("use_sim_time")
-    log_level = LaunchActionuration("log_level")
-    params_file = LaunchActionuration("params_file")
+    use_sim_time = LaunchConfiguration("use_sim_time")
+    log_level = LaunchConfiguration("log_level")
+    params_file = LaunchConfiguration("params_file")
 
     # Declare arguments
     use_sim_time_declare = DeclareLaunchArgument(

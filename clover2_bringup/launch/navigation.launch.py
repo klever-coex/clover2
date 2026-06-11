@@ -7,7 +7,7 @@ from clover2.utils import find_file
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, LogInfo, OpaqueFunction
 from launch.conditions import IfCondition
-from launch.substitutions import LaunchActionuration
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 ARUCO_MAP_FILE = "example-1.yaml"
@@ -18,12 +18,12 @@ def launch_setup(context, *args, **kwargs):
     pkg_clover2_map = get_package_share_directory("clover2_map")
 
     # Reading arguments
-    use_sim_time = LaunchActionuration("use_sim_time")
-    log_level = LaunchActionuration("log_level")
-    params_file = LaunchActionuration("params_file")
-    map = LaunchActionuration("map")
-    aruco_tracker = LaunchActionuration("aruco_tracker")
-    aruco_map_server = LaunchActionuration("aruco_map_server")
+    use_sim_time = LaunchConfiguration("use_sim_time")
+    log_level = LaunchConfiguration("log_level")
+    params_file = LaunchConfiguration("params_file")
+    map = LaunchConfiguration("map")
+    aruco_tracker = LaunchConfiguration("aruco_tracker")
+    aruco_map_server = LaunchConfiguration("aruco_map_server")
 
     # Resolve map file path
     map_dirs = [

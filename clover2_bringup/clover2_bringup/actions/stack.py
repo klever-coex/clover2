@@ -1,70 +1,81 @@
+from pathlib import Path
 from typing import List, Optional
 
-from ament_index_python.packages import get_package_share_directory
 from launch.action import Action
-from launch.actions import DeclareLaunchArgument
 from launch.launch_context import LaunchContext
-from launch.substitutions import PathJoinSubstitution
+from launch.some_substitutions_type import SomeSubstitutionsType
+from launch.substitutions import TextSubstitution
+from typing_extensions import Dict
+
+from clover2_bringup.actions import CamFeatureAction
 
 from .base import LaunchAction
-from .camera import CameraAction
 from .localization import LocalizationAction
+from .resource import ResourceLaunch
 
 
 class Clover2Stack(LaunchAction):
     def __init__(
         self,
-        *,
-        camera: Optional[CameraAction] = None,
-        localization: Optional[LocalizationAction] = None,
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
-        self._camera = camera
-        self._localization = localization
+        self.__cameras: List = []
+        self.__processors: List = []
+        self.__localization: Optional[LocalizationAction] = None
 
-    def declare_arguments(self) -> List[DeclareLaunchArgument]:
-        args: List[DeclareLaunchArgument] = [
-            DeclareLaunchArgument(
-                "use_sim_time",
-                default_value="false",
-                description="Use simulation clock if true",
-            ),
-            DeclareLaunchArgument(
-                "log_level",
-                default_value="info",
-                description="Log level for all nodes",
-            ),
-            DeclareLaunchArgument(
-                "params_file",
-                default_value=PathJoinSubstitution(
-                    [
-                        get_package_share_directory("clover2"),
-                        "params",
-                        "clover5.yaml",
-                    ]
-                ),
-                description="Parameters file",
-            ),
-        ]
-        if self._camera is not None:
-            args.extend(self._camera.declare_arguments())
-        if self._localization is not None:
-            args.extend(self._localization.declare_arguments())
-        return args
+    def __camera_constructor(
+        self, *, camera_name: SomeSubstitutionsType, **kwargs
+    ) -> Optional[ResourceLaunch]:
+        return None
+
+    def add_camera(self, camera: ResourceLaunch):
+        self.__cameras.append(camera)
+
+    def add_cam_feature_detector(
+        self,
+        camera: ResourceLaunch,
+        feature_name: SomeSubstitutionsType = "feat_detector",
+    ):
+        self.__processors.append(
+            CamFeatureAction(
+                camera=camera.as_source(),
+                feature_name=feature_name,
+                log_level=self.log_level,
+                namespace=self.namespace,
+                parameters=self.parameters,
+                use_sim_time=self.use_sim_time,
+            )
+        )
+
+    def add_localization(
+        self,
+        map_file: SomeSubstitutionsType = TextSubstitution(text="example-1.yaml"),
+        map_server: SomeSubstitutionsType = TextSubstitution(text="true"),
+        tracker: SomeSubstitutionsType = TextSubstitution(text="true"),
+        extra_resource_dirs: Optional[List[Path]] = None,
+    ):
+        self.__localization = LocalizationAction(
+            extra_resource_dirs=extra_resource_dirs,
+            log_level=self.log_level,
+            map_file=map_file,
+            map_server=map_server,
+            namespace=self.namespace,
+            parameters=self.parameters,
+            tracker=tracker,
+            use_sim_time=self.use_sim_time,
+        )
 
     def execute(self, context: LaunchContext) -> Optional[List[Action]]:
         actions: List[Action] = []
-        cameras = []
-        if self._camera is not None:
-            camera_actions = self._camera.execute(context)
-            if camera_actions:
-                actions.extend(camera_actions)
-            cameras.append(self._camera.as_source(context))
-        if self._localization is not None:
-            if not self._localization._cameras and cameras:
-                self._localization._cameras = cameras
-            loc_actions = self._localization.execute(context)
-            if loc_actions:
-                actions.extend(loc_actions)
+
+        for camera in self.__cameras:
+            actions.append(camera.execute(context))
+
+        for processor in self.__processors:
+            actions.append(processor.execute(context))
+
+        if self.__localization is not None:
+            actions.append(self.__localization.execute(context))
+
         return actions

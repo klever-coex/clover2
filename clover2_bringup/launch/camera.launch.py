@@ -11,7 +11,7 @@ from launch.actions import (
     SetEnvironmentVariable,
 )
 from launch.conditions import IfCondition, UnlessCondition
-from launch.substitutions import LaunchActionuration
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import (
     ComposableNodeContainer,
     LoadComposableNodes,
@@ -55,13 +55,13 @@ def make_gz_bridge_topics(camera_name: str):
 
 def launch_setup(context, *args, **kwargs):
 
-    use_sim_time = LaunchActionuration("use_sim_time")
-    log_level = LaunchActionuration("log_level")
-    params_file = LaunchActionuration("params_file")
-    camera_name = LaunchActionuration("camera_name")
-    feature_detector = LaunchActionuration("feature_detector")
-    optical_flow = LaunchActionuration("optical_flow")
-    simulation = LaunchActionuration("simulation")
+    use_sim_time = LaunchConfiguration("use_sim_time")
+    log_level = LaunchConfiguration("log_level")
+    params_file = LaunchConfiguration("params_file")
+    camera_name = LaunchConfiguration("camera_name")
+    feature_detector = LaunchConfiguration("feature_detector")
+    optical_flow = LaunchConfiguration("optical_flow")
+    simulation = LaunchConfiguration("simulation")
 
     camera_remappings = [
         ("~/input/image_raw", f"/{camera_name.perform(context)}/camera/image_raw"),
@@ -206,13 +206,13 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            use_sim_time_declare,
-            log_level_declare,
-            params_file_declare,
-            camera_name_declare,
-            feature_detector_declare,
-            optical_flow_declare,
-            simulation_declare,
-            OpaqueFunction(function=launch_setup),
+            # use_sim_time_declare,
+            # log_level_declare,
+            # params_file_declare,
+            # camera_name_declare,
+            # feature_detector_declare,
+            # optical_flow_declare,
+            # simulation_declare,
+            # OpaqueFunction(function=launch_setup),
         ]
     )

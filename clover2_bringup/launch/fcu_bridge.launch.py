@@ -3,7 +3,7 @@
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import LaunchActionuration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 
 # Set FCU URL based on connection type
@@ -18,11 +18,11 @@ fcu_url_mappings = {
 def launch_setup(context, *args, **kwargs):
 
     # Reading arguments
-    use_sim_time = LaunchActionuration("use_sim_time")
-    log_level = LaunchActionuration("log_level")
-    params_file = LaunchActionuration("params_file")
-    mavros_params_file = LaunchActionuration("mavros_params_file")
-    fcu_conn = LaunchActionuration("fcu_conn")
+    use_sim_time = LaunchConfiguration("use_sim_time")
+    log_level = LaunchConfiguration("log_level")
+    params_file = LaunchConfiguration("params_file")
+    mavros_params_file = LaunchConfiguration("mavros_params_file")
+    fcu_conn = LaunchConfiguration("fcu_conn")
 
     # Get connection type
     fcu_url = fcu_url_mappings.get(fcu_conn.perform(context), fcu_url_mappings["uart"])
