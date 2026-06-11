@@ -5,7 +5,8 @@ from ament_index_python.packages import get_package_share_directory
 from clover2.config import CLOVER2_RESOURCE_DIR
 from clover2.utils import find_file
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, LogInfo, OpaqueFunction
+from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
@@ -21,6 +22,8 @@ def launch_setup(context, *args, **kwargs):
     log_level = LaunchConfiguration("log_level")
     params_file = LaunchConfiguration("params_file")
     map = LaunchConfiguration("map")
+    aruco_tracker = LaunchConfiguration("aruco_tracker")
+    aruco_map_server = LaunchConfiguration("aruco_map_server")
 
     # Resolve map file path
     map_dirs = [
@@ -34,17 +37,18 @@ def launch_setup(context, *args, **kwargs):
             f"Map file '{map.perform(context)}' not found in any of the expected directories: {map_dirs}"
         )
 
-    map_filename = str(map_filename)
+    print_used_map_cmd = LogInfo(msg=f"Using map file: {map_filename.as_posix()}")
 
     # Aruco map server
     aruco_map_server_cmd = Node(
         package="clover2_map",
         executable="server",
         name="map_server",
+        condition=IfCondition(aruco_map_server),
         parameters=[
             params_file,
             {
-                "map": map_filename,
+                "map": map_filename.as_posix(),
                 "use_sim_time": use_sim_time,
             },
         ],
@@ -59,6 +63,7 @@ def launch_setup(context, *args, **kwargs):
         package="clover2_aruco",
         executable="tracker",
         name="aruco_tracker",
+        condition=IfCondition(aruco_tracker),
         parameters=[
             params_file,
             {
@@ -78,7 +83,7 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
-    return [aruco_map_server_cmd, tracker_cmd]
+    return [print_used_map_cmd, aruco_map_server_cmd, tracker_cmd]
 
 
 def generate_launch_description():
@@ -103,12 +108,22 @@ def generate_launch_description():
         "map", default_value=ARUCO_MAP_FILE, description="Map name"
     )
 
+    aruco_map_server = DeclareLaunchArgument(
+        "aruco_map_server", default_value="true", description="Start aruco map server"
+    )
+
+    aruco_tracker = DeclareLaunchArgument(
+        "aruco_tracker", default_value="true", description="Start aruco tracker"
+    )
+
     return LaunchDescription(
         [
             use_sim_time_declare,
             log_level_declare,
             params_file_declare,
             map_declare,
+            aruco_map_server,
+            aruco_tracker,
             OpaqueFunction(function=launch_setup),
         ]
     )

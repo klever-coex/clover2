@@ -20,7 +20,6 @@ ENABLE_FRONT_CAMERA = False
 
 
 def generate_launch_description():
-    pkg_clover2 = get_package_share_directory("clover2")
 
     # Reading arguments
     use_sim_time = LaunchConfiguration("use_sim_time")
@@ -83,7 +82,20 @@ def generate_launch_description():
     description_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [PathJoinSubstitution([pkg_clover2, "launch", "description.launch.py"])]
-        )
+        ),
+    )
+
+    # Launch aruco nodes
+    map_declare = DeclareLaunchArgument(
+        "map", default_value="example-1.yaml", description="Map file"
+    )
+
+    aruco_map_server_declare = DeclareLaunchArgument(
+        "aruco_map_server", default_value="true", description="Enable aruco map server"
+    )
+
+    aruco_tracker_declare = DeclareLaunchArgument(
+        "aruco_tracker", default_value="true", description="Enable aruco tracker"
     )
 
     navigation_cmd = IncludeLaunchDescription(
@@ -154,7 +166,10 @@ def generate_launch_description():
     )
 
     return LaunchDescription(
-        [
+        fcu_bridge_declare()
+        + camera_declare("near_camera")
+        + camera_declare("front_camera")
+        + [
             # Declare arguments
             use_sim_time_declare,
             log_level_declare,
@@ -162,6 +177,7 @@ def generate_launch_description():
             fcu_conn_declare,
             navigation_declare,
             optical_flow_declare,
+            map_declare,
             simulation_declare,
             front_camera_declare,
             # Launch nodes
@@ -173,3 +189,18 @@ def generate_launch_description():
             web_support_cmd,
         ]
     )
+
+
+def main(argv=sys.argv[1:]):
+    ls = LaunchService(argv=argv)
+    ld = generate_launch_description()
+
+    print(LaunchIntrospector().format_launch_description(ld))
+
+    ls.include_launch_description(ld)
+
+    # return ls.run()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

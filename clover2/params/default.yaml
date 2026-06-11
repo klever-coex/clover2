@@ -1,0 +1,43 @@
+/**:
+  ros__parameters:
+    use_intra_process_comms: true
+
+/**/map_server:
+  ros__parameters:
+
+/**/aruco_tracker:
+  ros__parameters:
+    tracking: "base_link"
+    optimizer: "simple_mean"
+    graph_linearizer:
+      history_sec: 1.0
+    simple_mean:
+      history_sec: 0.2
+
+/**/main_camera_of:
+  ros__parameters:
+    roi: 256
+
+/**/main_camera:
+  ros__parameters:
+    camera: "/base/axi/pcie@120000/rp1/i2c@88000/imx219@10"
+    AwbMode: 0
+    Brightness: 0.0
+    Contrast: 1.2
+    ExposureTime: 1500
+    ExposureTimeMode: 1
+    format: "RGB888"
+    frame_id: "main_camera_link"
+    height: 480
+    StatsOutputEnable: false
+    width: 640
+
+/**/main_camera_aruco_detector:
+  ros__parameters:
+    marker_dict: "4X4_250"
+    prefix_frame_id: "aruco_"
+    tf_publish: true
+
+/**/web_video_server:
+  ros__parameters:
+    port: 8081

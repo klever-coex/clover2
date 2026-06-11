@@ -130,7 +130,9 @@ def launch_setup(context, *args, **kwargs):
                 namespace=camera_name.perform(context),
                 name="feat_detector",
                 parameters=[params_file, {"use_sim_time": use_sim_time}],
-                remappings=camera_remappings + map_server_remappings,
+                remappings=camera_remappings
+                + map_server_remappings
+                + [("~/markers", "/aruco_tracker/markers")],
             )
         ],
     )
@@ -204,13 +206,13 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            use_sim_time_declare,
-            log_level_declare,
-            params_file_declare,
-            camera_name_declare,
-            feature_detector_declare,
-            optical_flow_declare,
-            simulation_declare,
-            OpaqueFunction(function=launch_setup),
+            # use_sim_time_declare,
+            # log_level_declare,
+            # params_file_declare,
+            # camera_name_declare,
+            # feature_detector_declare,
+            # optical_flow_declare,
+            # simulation_declare,
+            # OpaqueFunction(function=launch_setup),
         ]
     )
