@@ -15,7 +15,7 @@ jobs:
       - name: Purge old container versions
         uses: snok/container-retention-policy@v3.1.0
         with:
-          account: ${{ github.actor }}
+          account: klever-coex
           token: ${{ secrets.GHCR_PAT }}
           image-names: "clover2/*"
           cut-off: "1w"
