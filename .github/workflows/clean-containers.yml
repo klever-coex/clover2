@@ -18,8 +18,8 @@ jobs:
           account: klever-coex
           token: ${{ secrets.GHCR_PAT }}
           image-names: "clover2/*"
-          cut-off: "1w"
-          keep-at-least: 5
+          cut-off: "3d"
+          keep-at-least: 3
           image-tags: "!latest !stable"
           dry-run: false
           tag-selection: both
