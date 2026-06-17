@@ -13,7 +13,7 @@ public:
 
     void on_enter() override;
     void on_exit() override;
-    void set_navigator(std::shared_ptr<core::navigator> nav) override;
+    void set_navigator(std::weak_ptr<core::navigator> nav) override;
     std::vector<std::pair<std::string, std::string>> shortcuts() const override;
 
     std::shared_ptr<screen> inner() const { return m_inner; }

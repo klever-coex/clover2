@@ -13,7 +13,8 @@ class navigator;
 
 class screen : public cpptui::Vertical {
 public:
-    screen(std::string name, std::shared_ptr<core::navigator> navigator = nullptr)
+    screen(std::string name,
+           std::shared_ptr<core::navigator> navigator = nullptr)
         : cpptui::Vertical()
         , m_name(std::move(name))
         , m_navigator(std::move(navigator)) {}
@@ -28,9 +29,12 @@ public:
     bool can_go_back() const { return m_can_go_back; }
     void set_can_go_back(bool v) { m_can_go_back = v; }
 
-    std::shared_ptr<core::navigator> get_navigator() const { return m_navigator; }
-    virtual void set_navigator(std::shared_ptr<core::navigator> nav) {
-        m_navigator = std::move(nav);
+    std::shared_ptr<core::navigator> get_navigator() const {
+        return m_navigator.lock();
+    }
+
+    virtual void set_navigator(std::weak_ptr<core::navigator> nav) {
+        m_navigator = nav;
     }
 
     virtual std::vector<std::pair<std::string, std::string>> shortcuts() const {
@@ -43,7 +47,7 @@ public:
 protected:
     std::string m_name;
     std::string m_title;
-    std::shared_ptr<core::navigator> m_navigator;
+    std::weak_ptr<core::navigator> m_navigator;
 
 private:
     bool m_can_go_back = true;

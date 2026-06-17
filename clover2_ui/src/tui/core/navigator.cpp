@@ -31,27 +31,31 @@ navigator::navigator(cpptui::App& app, const std::string& title)
 void navigator::push(std::shared_ptr<screen> screen) {
     if (!screen) return;
 
-    screen->set_navigator(
-        std::static_pointer_cast<navigator>(shared_from_this()));
+    m_app.post([this, screen]() {
+        screen->set_navigator(
+            std::static_pointer_cast<navigator>(shared_from_this()));
 
-    if (!m_stack.empty()) {
-        m_stack.back()->on_exit();
-    }
+        if (!m_stack.empty()) {
+            m_stack.back()->on_exit();
+        }
 
-    m_stack.push_back(std::move(screen));
-    m_stack.back()->on_enter();
+        m_stack.push_back(std::move(screen));
+        m_stack.back()->on_enter();
 
-    update_display();
+        update_display();
+    });
 }
 
 void navigator::pop() {
     if (m_stack.size() <= 1) return;
 
-    m_stack.back()->on_exit();
-    m_stack.pop_back();
-    m_stack.back()->on_enter();
+    m_app.post([this]() {
+        m_stack.back()->on_exit();
+        m_stack.pop_back();
+        m_stack.back()->on_enter();
 
-    update_display();
+        update_display();
+    });
 }
 
 void navigator::replace(std::shared_ptr<screen> screen) {
@@ -72,12 +76,10 @@ void navigator::replace(std::shared_ptr<screen> screen) {
 }
 
 void navigator::add_key_binding(key_binding binding,
-                                std::function<void()> callback,
-                                std::string key,
+                                std::function<void()> callback, std::string key,
                                 std::string description) {
-    m_key_bindings.push_back(
-        {std::move(binding), std::move(callback), std::move(key),
-         std::move(description)});
+    m_key_bindings.push_back({std::move(binding), std::move(callback),
+                              std::move(key), std::move(description)});
 }
 
 bool navigator::can_go_back() const { return m_stack.size() > 1; }
@@ -91,7 +93,7 @@ bool navigator::on_event(const cpptui::Event& event) {
     if (event.is_key_event()) {
         if (event.is_escape()) {
             if (can_go_back()) {
-                m_app.post([this]() { pop(); });
+                pop();
                 return true;
             }
             return true;
@@ -99,7 +101,7 @@ bool navigator::on_event(const cpptui::Event& event) {
 
         if (event.is_backspace()) {
             if (can_go_back()) {
-                m_app.post([this]() { pop(); });
+                pop();
                 return true;
             }
             return true;
@@ -108,17 +110,14 @@ bool navigator::on_event(const cpptui::Event& event) {
         for (const auto& bk : m_key_bindings) {
             bool match = false;
             if (bk.binding.ctrl) {
-                char upper = std::toupper(
-                    static_cast<char>(bk.binding.key));
-                char lower = std::tolower(
-                    static_cast<char>(bk.binding.key));
+                char upper = std::toupper(static_cast<char>(bk.binding.key));
+                char lower = std::tolower(static_cast<char>(bk.binding.key));
                 int raw = upper - 'A' + 1;
-                match = (event.ctrl &&
-                         (event.key == upper || event.key == lower ||
-                          event.key == raw));
+                match =
+                    (event.ctrl && (event.key == upper || event.key == lower ||
+                                    event.key == raw));
             } else {
-                match = (event.key == bk.binding.key &&
-                         !event.ctrl);
+                match = (event.key == bk.binding.key && !event.ctrl);
             }
             if (match) {
                 m_app.post([cb = bk.callback]() { cb(); });

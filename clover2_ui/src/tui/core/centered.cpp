@@ -25,7 +25,7 @@ void centered::on_enter() { m_inner->on_enter(); }
 
 void centered::on_exit() { m_inner->on_exit(); }
 
-void centered::set_navigator(std::shared_ptr<core::navigator> nav) {
+void centered::set_navigator(std::weak_ptr<core::navigator> nav) {
     screen::set_navigator(nav);
     m_inner->set_navigator(std::move(nav));
 }
