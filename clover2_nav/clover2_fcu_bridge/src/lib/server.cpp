@@ -164,12 +164,16 @@ server::CallbackReturn server::on_activate(
             m_state_pub->publish(state);
         });
 
+    start_offboard_bond();
+
     RCLCPP_INFO(get_logger(), "activate");
     return CallbackReturn::SUCCESS;
 }
 
 server::CallbackReturn server::on_deactivate(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
+    stop_offboard_bond();
+
     m_state_pub.reset();
 
     m_arm_disarm_srv.reset();
@@ -185,6 +189,8 @@ server::CallbackReturn server::on_deactivate(
 
 server::CallbackReturn server::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
+    stop_offboard_bond();
+
     m_offboard.reset();
     m_backend.reset();
 
@@ -194,8 +200,78 @@ server::CallbackReturn server::on_cleanup(
 
 server::CallbackReturn server::on_shutdown(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
+    stop_offboard_bond();
+
     RCLCPP_INFO(get_logger(), "shutdown");
     return CallbackReturn::SUCCESS;
+}
+
+void server::start_offboard_bond() {
+    if (m_offboard_bond) {
+        return;
+    }
+
+    m_offboard_bond = std::make_shared<bond::Bond>(
+        m_offboard_bond_topic, m_offboard_bond_id, get_node_base_interface(),
+        get_node_logging_interface(), get_node_parameters_interface(),
+        get_node_timers_interface(), get_node_topics_interface());
+    m_offboard_bond_formed = false;
+    m_offboard_bond->setFormedCallback([this]() {
+        m_offboard_bond_formed = true;
+        RCLCPP_INFO(get_logger(), "Offboard bond formed");
+    });
+    m_offboard_bond->setBrokenCallback(
+        std::bind(&server::handle_offboard_bond_broken, this));
+    m_offboard_bond->start();
+
+    RCLCPP_INFO(get_logger(), "Started offboard bond '%s' on topic '%s'",
+                m_offboard_bond_id.c_str(), m_offboard_bond_topic.c_str());
+}
+
+void server::stop_offboard_bond() {
+    if (!m_offboard_bond) {
+        return;
+    }
+
+    m_offboard_bond->breakBond();
+    reset_offboard_bond();
+}
+
+void server::reset_offboard_bond() {
+    m_offboard_bond.reset();
+    m_offboard_bond_formed = false;
+}
+
+void server::handle_offboard_bond_broken() {
+    if (!m_offboard_bond_formed) {
+        RCLCPP_WARN(get_logger(),
+                    "Offboard bond connect timeout before client connected, "
+                    "restarting bond");
+        reset_offboard_bond();
+        start_offboard_bond();
+        return;
+    }
+
+    RCLCPP_WARN(get_logger(), "Offboard client bond broken, landing");
+
+    if (!m_offboard) {
+        RCLCPP_WARN(get_logger(), "Unable to land: offboard is not initialized");
+        return;
+    }
+
+    if (!m_backend) {
+        RCLCPP_WARN(get_logger(), "Unable to land: backend is not initialized");
+        return;
+    }
+
+    try {
+        m_offboard->set_process_callback(nullptr);
+        m_offboard->reset_state();
+        m_backend->land();
+    } catch (const std::exception& e) {
+        RCLCPP_ERROR(get_logger(), "Landing after offboard bond break failed: %s",
+                     e.what());
+    }
 }
 
 void server::handle_arm_disarm(

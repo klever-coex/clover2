@@ -2,10 +2,18 @@ import atexit
 import threading
 
 import rclpy
+from rclpy.duration import Duration
 from rclpy.node import Node
+from bondpy import bondpy
 
 from . import utils
 from .clients import CameraClient, OffboardClient
+
+OFFBOARD_BOND_TOPIC = "/fcu_bridge/bond"
+OFFBOARD_BOND_ID = "offboard"
+OFFBOARD_BOND_CONNECT_TIMEOUT = 10.0
+OFFBOARD_BOND_FORM_TIMEOUT = 3.0
+OFFBOARD_BOND_HEARTBEAT_PERIOD = 2.0
 
 
 class Clover2(Node):
@@ -21,6 +29,18 @@ class Clover2(Node):
         )
         self._ros_thread.start()
         _ = atexit.register(self._stop)
+
+        self._offboard_bond = bondpy.Bond(self, OFFBOARD_BOND_TOPIC, OFFBOARD_BOND_ID)
+        self._offboard_bond.set_connect_timeout(OFFBOARD_BOND_CONNECT_TIMEOUT)
+        self._offboard_bond.set_heartbeat_period(OFFBOARD_BOND_HEARTBEAT_PERIOD)
+        self._offboard_bond.set_formed_callback(self._on_offboard_bond_formed)
+        self._offboard_bond.set_broken_callback(self._on_offboard_bond_broken)
+        self._offboard_bond.start()
+
+        if not self._offboard_bond.wait_until_formed(
+            Duration(seconds=OFFBOARD_BOND_FORM_TIMEOUT)
+        ):
+            self.get_logger().warn("Offboard bond was not formed within 3 seconds")
 
         self._offboard: OffboardClient = OffboardClient(self)
         self._camera: CameraClient = CameraClient(self)
@@ -46,8 +66,17 @@ class Clover2(Node):
         while rclpy.ok():
             rclpy.spin(self)
 
+    def _on_offboard_bond_formed(self) -> None:
+        self.get_logger().info("Offboard bond formed")
+
+    def _on_offboard_bond_broken(self) -> None:
+        self.get_logger().warn("Offboard bond broken")
+
     def _stop(self) -> None:
         self.get_logger().debug(f"Exit callback for {self.get_name()}")
+
+        if hasattr(self, "_offboard_bond"):
+            self._offboard_bond.break_bond()
 
         if rclpy.ok():
             rclpy.shutdown()

@@ -13,6 +13,7 @@
 #include <clover2_nav_msgs/srv/set_position.hpp>
 
 // ROS2
+#include <bondcpp/bond.hpp>
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/timer.hpp>
@@ -74,6 +75,11 @@ private:
                              std::optional<double>& z,
                              std::optional<double>& yaw) const;
 
+    void start_offboard_bond();
+    void stop_offboard_bond();
+    void reset_offboard_bond();
+    void handle_offboard_bond_broken();
+
     double m_speed_limit{1.0};
     double m_tolerance{0.15};
     double m_slowdown{0.5};
@@ -82,6 +88,11 @@ private:
     clover2_common::parameter_watcher::SharedPtr m_parameter_watcher;
 
     rclcpp::CallbackGroup::SharedPtr m_service_callback_group;
+
+    std::shared_ptr<bond::Bond> m_offboard_bond;
+    std::string m_offboard_bond_topic{"/fcu_bridge/bond"};
+    std::string m_offboard_bond_id{"offboard"};
+    bool m_offboard_bond_formed{false};
 
     rclcpp::TimerBase::SharedPtr m_state_publish_timer;
 
