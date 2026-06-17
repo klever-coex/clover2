@@ -95,18 +95,6 @@ target "project-deploy" {
   }
 }
 
-target "clover2-wetty" {
-  tags = tagged("clover2-wetty")
-  output = outputs("clover2-wetty", true)
-
-  inherits = ["base"]
-  platforms = PLATFORMS
-
-  dockerfile-inline = <<EOF
-  FROM wettyoss/wetty
-  EOF
-}
-
 #       ____  ____  _____
 #      / __ \/ __ \/ ___/
 #     / /_/ / / / /\__ \
