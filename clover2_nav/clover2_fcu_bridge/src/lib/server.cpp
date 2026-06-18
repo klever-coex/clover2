@@ -252,15 +252,19 @@ void server::handle_offboard_bond_broken() {
         return;
     }
 
-    RCLCPP_WARN(get_logger(), "Offboard client bond broken, landing");
-
     if (!m_offboard) {
         RCLCPP_WARN(get_logger(), "Unable to land: offboard is not initialized");
+        reset_offboard_bond();
+        start_offboard_bond();
         return;
     }
 
+    RCLCPP_WARN(get_logger(), "Offboard client bond broken, landing");
+
     if (!m_backend) {
         RCLCPP_WARN(get_logger(), "Unable to land: backend is not initialized");
+        reset_offboard_bond();
+        start_offboard_bond();
         return;
     }
 
@@ -272,6 +276,9 @@ void server::handle_offboard_bond_broken() {
         RCLCPP_ERROR(get_logger(), "Landing after offboard bond break failed: %s",
                      e.what());
     }
+    
+    reset_offboard_bond();
+    start_offboard_bond();
 }
 
 void server::handle_arm_disarm(
