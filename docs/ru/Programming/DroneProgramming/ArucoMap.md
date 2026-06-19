@@ -135,4 +135,136 @@ id size x y [z yaw pitch roll]
 3. Измерьте позицию каждого маркера рулеткой относительно выбранного нуля.
 4. Запишите в YAML: `id`, `pose.x/y/z`, `rot.yaw`.
 5. Укажите `default_size` равный реальному размеру распечатанного маркера (размер маркера — это сторона чёрного квадрата).
-6. Скопируйте файл в `clover2_loc/clover2_map/map/` и перезапустите `map_server`.
+6. Скопируйте файл в `clover2_loc/clover2_map/map/` и после изменения конфигурации перезапустите сервис clover2 командой `sudo systemctl restart clover2`.
+
+## Как открыть терминал на дроне
+
+Сейчас удобнее всего работать с терминалом дрона через Web IDE. Откройте в браузере `http://192.168.11.1:9880`, затем создайте терминал через меню  `Terminal` -> `New Terminal`.
+
+```{figure} @assets@/common/programming/drone-programming/aruco-map/web-ide-home.webp
+:alt: Главная страница Web IDE
+:width: 100%
+:align: center
+
+Рисунок 1 — Web IDE в браузере
+```
+
+<br>
+
+```{figure} @assets@/common/programming/drone-programming/aruco-map/web-ide-terminal-menu.webp
+:alt: Пункт New Terminal в меню Web IDE
+:width: 100%
+:align: center
+
+Рисунок 2 — Создание нового терминала через меню Web IDE
+```
+
+<br>
+
+```{figure} @assets@/common/programming/drone-programming/aruco-map/web-ide-terminal-open.webp
+:alt: Открытый терминал в Web IDE
+:width: 100%
+:align: center
+
+Рисунок 3 — Открытый терминал в Web IDE
+```
+
+<br>
+
+Также к дрону можно подключиться по SSH. На Windows для этого можно использовать PuTTY. По умолчанию адрес дрона — 192.168.11.1, имя пользователя — pi, пароль — raspberry.
+```bash
+ssh pi@192.168.11.1
+```
+
+
+```{figure} @assets@/common/programming/drone-programming/aruco-map/ssh-connect.webp
+:alt: Подключение к дрону по SSH
+:width: 100%
+:align: center
+
+Рисунок 4 — Подключение к дрону по SSH
+```
+
+<br>
+
+```{figure} @assets@/common/programming/drone-programming/aruco-map/ssh-login.webp
+:alt: Успешный вход в терминал дрона
+:width: 100%
+:align: center
+
+Рисунок 5 — Вход в терминал
+```
+
+## Как задать карту по умолчанию
+
+Карта по умолчанию задаётся в файле `clover2/launch/navigation.launch.py`. На дроне этот файл находится по пути `~/clover2_ws/src/clover2/clover2/launch/navigation.launch.py`.
+
+Чтобы изменить карту по умолчанию, откройте файл:
+
+```bash
+cd ~/clover2_ws/src/clover2/clover2/launch
+nano navigation.launch.py
+```
+
+Затем замените `example-1.yaml` в параметре ARUCO_MAP_FILE на имя своего файла карты. Файл карты должен лежать в `/opt/clover2/map` или в `clover2_loc/clover2_map/map/`.
+
+```{figure} @assets@/common/programming/drone-programming/aruco-map/open-navigation-launch.webp
+:alt: Открытие navigation.launch.py в терминале
+:width: 100%
+:align: center
+
+Рисунок 6 — Открытие файла navigation.launch.py для редактирования
+```
+
+<br>
+
+```{figure} @assets@/common/programming/drone-programming/aruco-map/edit-default-map.webp
+:alt: Изменение карты по умолчанию в navigation.launch.py
+:width: 100%
+:align: center
+
+Рисунок 7 — Пример изменения карты по умолчанию в navigation.launch.py
+```
+
+## Как применить изменения
+
+После изменения карты или параметров камеры перезапустите сервис clover2:
+
+```bash
+sudo systemctl restart clover2
+```
+
+Команда `sudo systemctl restart clover2.service` эквивалентна и тоже корректна.
+
+```{figure} @assets@/common/programming/drone-programming/aruco-map/restart-clover2-service.webp
+:alt: Перезапуск сервиса clover2
+:width: 100%
+:align: center
+
+Рисунок 8 — Перезапуск сервиса clover2
+```
+
+## Проверка карты и камеры
+
+### Проверка топиков
+
+Сначала проверьте, что камера публикует отладочное изображение и что маркеры распознаются корректно.
+
+Откройте в браузере топик `/main_camera/feat_detector/output/debug` и наведите камеру на маркеры. На изображении должны появиться обнаруженные метки.
+
+Также распознавание можно проверить в терминале дрона по топику `/main_camera/feat_detector/output/markers`. При наведении камеры на маркеры в этом топике должны появляться сообщения с найденными метками.
+
+```bash
+ros2 topic echo /main_camera/feat_detector/output/markers
+```
+
+### Проверка удержания позиции над полем маркеров
+
+После проверки топиков нужно убедиться, что дрон может удерживать позицию над полем меток:
+
+1. Поставьте дрон над полем, состоящим из ArUco-маркеров.
+2. Переключите полётный контроллер в режим `Stabilized`.
+3. Выполните ручной взлёт.
+4. После отрыва от земли удерживайте стик газа примерно на 50%.
+5. Переключите режим в `Position`.
+6. Дрон должен сам зависнуть и удерживать позицию над полем меток.
