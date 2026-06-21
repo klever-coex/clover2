@@ -25,6 +25,7 @@ public:
 
     bool on_event(const cpptui::Event& event) override;
     void on_focus() override;
+    std::vector<std::pair<std::string, std::string>> shortcuts() const override;
 
 private:
     size_t m_current{0};

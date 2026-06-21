@@ -13,7 +13,7 @@ namespace clover2_ui::api {
 class config_field : public std::enable_shared_from_this<config_field> {
 public:
     const std::string& name() const noexcept { return m_name; }
-    config_field* parent() const noexcept { return m_parent; }
+    std::shared_ptr<config_field> parent() const { return m_parent.lock(); }
     std::string path() const;
 
     const std::string& type_str() const noexcept { return m_type_str; }
@@ -37,10 +37,14 @@ public:
 
     template <typename T>
     T as() const {
-        if (m_value.IsDefined() && !m_value.IsNull()) {
-            return m_value.as<T>();
+        try {
+            if (m_value.IsDefined() && !m_value.IsNull()) {
+                return m_value.as<T>();
+            }
+            if (has_default()) return default_value().as<T>();
+        } catch (const YAML::BadConversion&) {
+            // Type mismatch — fall through to default
         }
-        if (has_default()) return default_value().as<T>();
         return T{};
     }
 
@@ -73,11 +77,13 @@ public:
         const YAML::Node& schema_root, const YAML::Node& values_root);
 
 private:
-    config_field(std::string name, YAML::Node schema, config_field* parent);
+    config_field(std::string name, YAML::Node schema,
+                 std::shared_ptr<config_field> parent);
 
     static std::shared_ptr<config_field> build_tree(
         std::string name, const YAML::Node& schema_entry,
-        const YAML::Node* values, config_field* parent);
+        const YAML::Node* values,
+        std::shared_ptr<config_field> parent);
 
     void parse_schema();
 
@@ -85,7 +91,7 @@ private:
                                     const YAML::Node& schema_entry);
 
     std::string m_name;
-    config_field* m_parent = nullptr;
+    std::weak_ptr<config_field> m_parent;
 
     YAML::Node m_schema;
     std::string m_type_str;

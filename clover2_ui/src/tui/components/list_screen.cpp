@@ -68,4 +68,8 @@ bool list_screen::on_event(const cpptui::Event& event) {
     return core::screen::on_event(event);
 }
 
+std::vector<std::pair<std::string, std::string>> list_screen::shortcuts() const {
+    return {{"up/down", "Navigate"}, {"enter", "Select"}};
+}
+
 }  // namespace clover2_ui::tui::components

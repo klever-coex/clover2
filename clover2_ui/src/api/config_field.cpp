@@ -5,13 +5,14 @@
 #include <fstream>
 #include <stdexcept>
 #include <string>
+#include <iostream>
 
 namespace clover2_ui::api {
 
 config_field::config_field(std::string name, YAML::Node schema,
-                           config_field* parent)
+                           std::shared_ptr<config_field> parent)
     : m_name(std::move(name))
-    , m_parent(parent)
+    , m_parent(std::move(parent))
     , m_schema(std::move(schema)) {
     parse_schema();
 }
@@ -45,8 +46,9 @@ void config_field::parse_schema() {
 }
 
 std::string config_field::path() const {
-    if (!m_parent || m_parent->name().empty()) return m_name;
-    return m_parent->path() + "." + m_name;
+    auto p = m_parent.lock();
+    if (!p || p->name().empty()) return m_name;
+    return p->path() + "." + m_name;
 }
 
 bool config_field::has_default() const noexcept {
@@ -179,9 +181,9 @@ YAML::Node config_field::resolve_value(const YAML::Node* values,
 
 std::shared_ptr<config_field> config_field::build_tree(
     std::string name, const YAML::Node& schema_entry, const YAML::Node* values,
-    config_field* parent) {
+    std::shared_ptr<config_field> parent) {
     auto field = std::shared_ptr<config_field>(
-        new config_field(std::move(name), schema_entry, parent));
+        new config_field(std::move(name), schema_entry, std::move(parent)));
 
     if (field->is_object()) {
         field->m_value = YAML::Node(YAML::NodeType::Map);
@@ -197,7 +199,7 @@ std::shared_ptr<config_field> config_field::build_tree(
                     child_values = &child_val;
                 }
                 auto child = build_tree(child_name, kv.second, child_values,
-                                        field.get());
+                                        field);
                 field->m_children.push_back(std::move(child));
             }
         }
@@ -239,7 +241,7 @@ std::shared_ptr<config_field> config_field::load_from_nodes(
                 child_values = &child_val;
             }
             auto child =
-                build_tree(child_name, kv.second, child_values, root.get());
+                build_tree(child_name, kv.second, child_values, root);
             root->m_children.push_back(std::move(child));
         }
     }
@@ -257,7 +259,10 @@ std::shared_ptr<config_field> config_field::load(
         if (!values_path.empty()) {
             try {
                 values_root = YAML::LoadFile(values_path);
-            } catch (const YAML::Exception&) {
+            } catch (const YAML::Exception& e) {
+                std::cerr << "Warning: failed to load config values from "
+                          << values_path << ": " << e.what()
+                          << ". Using schema defaults." << std::endl;
             }
         }
 

@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
 
     nav->add_key_binding(
         {'s', true},
-        [&]() {
+        [values_path, root_field]() {
             std::ofstream out(values_path);
             if (out) {
                 out << root_field->to_yaml_value();

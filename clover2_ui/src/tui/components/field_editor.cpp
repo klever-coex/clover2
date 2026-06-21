@@ -88,7 +88,9 @@ void field_editor::save() {
             try {
                 double val = std::stod(m_input->get_value());
                 m_field->set(val);
-            } catch (...) {
+            } catch (const std::exception&) {
+                // Invalid float input — keep editor open so user can correct
+                return;
             }
         }
     } else if (m_field->is_enum()) {
@@ -113,6 +115,14 @@ void field_editor::on_enter() {
 }
 
 bool field_editor::on_event(const cpptui::Event& event) {
+    if (event.is_nav_down()) {
+        if (m_save_btn) { m_save_btn->set_focus(true); }
+        return true;
+    }
+    if (event.is_nav_up()) {
+        if (m_cancel_btn) { m_cancel_btn->set_focus(true); }
+        return true;
+    }
     return core::screen::on_event(event);
 }
 

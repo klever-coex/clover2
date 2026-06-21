@@ -31,30 +31,39 @@ navigator::navigator(cpptui::App& app, const std::string& title)
 void navigator::push(std::shared_ptr<screen> screen) {
     if (!screen) return;
 
-    m_app.post([this, screen]() {
-        screen->set_navigator(
-            std::static_pointer_cast<navigator>(shared_from_this()));
+    auto weak_self = std::weak_ptr<navigator>(
+        std::static_pointer_cast<navigator>(shared_from_this()));
+    m_app.post([weak_self, screen]() {
+        auto self = weak_self.lock();
+        if (!self) return;
 
-        if (!m_stack.empty()) {
-            m_stack.back()->on_exit();
+        screen->set_navigator(self);
+
+        if (!self->m_stack.empty()) {
+            self->m_stack.back()->on_exit();
         }
 
-        m_stack.push_back(std::move(screen));
-        m_stack.back()->on_enter();
+        self->m_stack.push_back(std::move(screen));
+        self->m_stack.back()->on_enter();
 
-        update_display();
+        self->update_display();
     });
 }
 
 void navigator::pop() {
     if (m_stack.size() <= 1) return;
 
-    m_app.post([this]() {
-        m_stack.back()->on_exit();
-        m_stack.pop_back();
-        m_stack.back()->on_enter();
+    auto weak_self = std::weak_ptr<navigator>(
+        std::static_pointer_cast<navigator>(shared_from_this()));
+    m_app.post([weak_self]() {
+        auto self = weak_self.lock();
+        if (!self) return;
 
-        update_display();
+        self->m_stack.back()->on_exit();
+        self->m_stack.pop_back();
+        self->m_stack.back()->on_enter();
+
+        self->update_display();
     });
 }
 
