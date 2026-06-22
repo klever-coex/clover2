@@ -1,3 +1,7 @@
+import uuid as uuid_lib
+
+import rclpy
+from bondpy import bondpy
 from clover2_nav_msgs.action import NavigateAsync
 from clover2_nav_msgs.msg import State
 from clover2_nav_msgs.srv import ArmDisarm, Land, Navigate, SetPosition
@@ -5,10 +9,15 @@ from geometry_msgs.msg import Pose
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from tf_transformations import quaternion_from_euler
+from unique_identifier_msgs.msg import UUID
 
 from ..utils import ActionHelper, ActionStatus, wait_future
 
 NAN = float("nan")
+NAVIGATE_BOND_TOPIC = "/fcu_bridge/bond"
+NAVIGATE_BOND_CONNECT_TIMEOUT = 2.0
+NAVIGATE_BOND_HEARTBEAT_PERIOD = 0.2
+NAVIGATE_BOND_HEARTBEAT_TIMEOUT = 1.0
 
 
 class OffboardClient:
@@ -111,19 +120,34 @@ class OffboardClient:
 
         self._navigate_async_aclient.wait_for_server()
 
-        helper = ActionHelper(self._navigate_async_aclient, goal)
-        status = helper.wait()
+        goal_uuid = UUID(uuid=list(uuid_lib.uuid4().bytes))
+        goal_uuid_string = str(uuid_lib.UUID(bytes=bytes(goal_uuid.uuid)))
+        self._logger.info(f"Navigate async goal UUID: {goal_uuid_string}")
 
-        if status is ActionStatus.REJECTED:
-            raise RuntimeError(helper.message)
+        # Одинаковый UUID связывает bond только с этим action.
+        bond_id = f"navigate_async:{goal_uuid_string}"
+        navigate_bond = bondpy.Bond(self._node, NAVIGATE_BOND_TOPIC, bond_id)
+        navigate_bond.set_connect_timeout(NAVIGATE_BOND_CONNECT_TIMEOUT)
+        navigate_bond.set_heartbeat_period(NAVIGATE_BOND_HEARTBEAT_PERIOD)
+        navigate_bond.set_heartbeat_timeout(NAVIGATE_BOND_HEARTBEAT_TIMEOUT)
+        navigate_bond.start()
 
-        if status is not ActionStatus.SUCCEEDED:
-            raise RuntimeError(f"NavigateAsync {status.name}: {helper.message}")
+        try:
+            helper = ActionHelper(self._navigate_async_aclient, goal, goal_uuid)
+            status = helper.wait()
 
-        if not helper.result.success:
-            raise RuntimeError(helper.result.message)
+            if status is ActionStatus.REJECTED:
+                raise RuntimeError(helper.message)
 
-        return helper.result.success
+            if status is not ActionStatus.SUCCEEDED:
+                raise RuntimeError(f"NavigateAsync {status.name}: {helper.message}")
+
+            if not helper.result.success:
+                raise RuntimeError(helper.result.message)
+
+            return helper.result.success
+        finally:
+            navigate_bond.break_bond()
 
     def __fill_pose(self, x, y, z, yaw) -> Pose:
         pose = Pose()
