@@ -3,8 +3,7 @@
 <package format="3">
   <name>clover2_bringup</name>
   <version>0.0.0</version>
-  <description
-    >Clover2 launch system — actions-based bringup with LibcameraAction, LocalizationAction, Clover2Stack</description>
+  <description>TODO: Package description</description>
   <maintainer email="2663161@mail.ru">l_motya</maintainer>
   <license>TODO: License declaration</license>
 

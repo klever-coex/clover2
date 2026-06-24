@@ -1,0 +1,52 @@
+<launch>
+    <arg name="feature_detector" default="false" />
+    <arg name="optical_flow" default="false" />
+
+    <arg name="map_server_node" />
+
+    <arg name="camera_id" default="0" />
+    <arg name="camera_name" default="main_camera" />
+    <arg name="ns" default="" />
+    <arg name="sensing_pkg" />
+    <arg name="use_sim_time" default="false" />
+    <arg name="param_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
+
+    <!-- local variables -->
+    <let name="local_ns" value="$(var ns)/$(var camera_name)" />
+
+    <include file="$(find-pkg-share $(var sensing_pkg))/launch/sensing/camera.launch.xml">
+        <arg name="use_sim_time" value="$(var use_sim_time)" />
+        <arg name="param_file" default="$(var param_file)" />
+
+        <arg name="camera_id" value="$(var camera_id)" />
+        <arg name="container_name" value="$(var local_ns)/container" />
+        <arg name="use_composition" value="true" />
+        <arg name="ns" value="$(var local_ns)" />
+    </include>
+
+    <include file="$(find-pkg-share clover2_bringup)/launch/vision/feature_detector.launch.xml" if="$(var feature_detector)">
+        <arg name="use_sim_time" value="$(var use_sim_time)" />
+        <arg name="param_file" default="$(var param_file)" />
+
+        <arg name="camera_node" value="$(var local_ns)/camera" />
+        <arg name="container_name" value="$(var local_ns)/container" />
+        <arg name="map_server_node" value="$(var map_server_node)" />
+        <arg name="use_composition" value="true" />
+        <arg name="ns" value="$(var local_ns)" />
+    </include>
+
+    <include file="$(find-pkg-share clover2_bringup)/launch/vision/optical_flow.launch.xml" if="$(var optical_flow)">
+        <arg name="use_sim_time" value="$(var use_sim_time)" />
+        <arg name="param_file" default="$(var param_file)" />
+
+        <arg name="camera_node" value="$(var local_ns)/camera" />
+        <arg name="container_name" value="$(var local_ns)/container" />
+        <arg name="use_composition" value="true" />
+        <arg name="ns" value="$(var local_ns)" />
+    </include>
+
+    <include file="$(find-pkg-share clover2_bringup)/launch/snippets/component_container.launch.xml">
+        <arg name="container_name" value="container" />
+        <arg name="ns" value="$(var local_ns)" />
+    </include>
+</launch>

@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
-import os
-from asyncio import Condition
-
+import sys
 from ament_index_python.packages import get_package_share_directory
-from launch import LaunchDescription
+from launch import LaunchDescription, LaunchIntrospector, LaunchService
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -15,8 +13,9 @@ from launch.substitutions import (
 )
 
 ENABLE_NAVIGATION = True
-ENABLE_OPTICAL_FLOW = True
 ENABLE_FRONT_CAMERA = False
+
+pkg_clover2_bringup = get_package_share_directory("clover2_bringup")
 
 
 def generate_launch_description():
@@ -24,10 +23,10 @@ def generate_launch_description():
     # Reading arguments
     use_sim_time = LaunchConfiguration("use_sim_time")
     log_level = LaunchConfiguration("log_level")
-    params_file = LaunchConfiguration("params_file")
+    params_files = LaunchConfiguration("params_files")
     fcu_conn = LaunchConfiguration("fcu_conn")
     navigation = LaunchConfiguration("navigation")
-    optical_flow = LaunchConfiguration("optical_flow")
+    map = LaunchConfiguration("map")
     simulation = LaunchConfiguration("simulation")
     front_camera = LaunchConfiguration("front_camera")
 
@@ -42,10 +41,12 @@ def generate_launch_description():
         "log_level", default_value="info", description="Log level for all nodes"
     )
 
-    params_file_declare = DeclareLaunchArgument(
-        "params_file",
-        default_value=PathJoinSubstitution([pkg_clover2, "params", "clover5.yaml"]),
-        description="Log level for all nodes",
+    params_files_declare = DeclareLaunchArgument(
+        "params_files",
+        default_value=PathJoinSubstitution(
+            [pkg_clover2_bringup, "params", "clover5.yaml"]
+        ),
+        description="Parameters files (space-separated)",
     )
 
     fcu_conn_declare = DeclareLaunchArgument(
@@ -58,12 +59,6 @@ def generate_launch_description():
         "navigation",
         default_value="true" if ENABLE_NAVIGATION else "false",
         description="Enable navigation",
-    )
-
-    optical_flow_declare = DeclareLaunchArgument(
-        "optical_flow",
-        default_value="true" if ENABLE_OPTICAL_FLOW else "false",
-        description="Enable optical flow",
     )
 
     simulation_declare = DeclareLaunchArgument(
@@ -81,7 +76,11 @@ def generate_launch_description():
     # Start additional launch files
     description_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [PathJoinSubstitution([pkg_clover2, "launch", "description.launch.py"])]
+            [
+                PathJoinSubstitution(
+                    [pkg_clover2_bringup, "launch", "description.launch.py"]
+                )
+            ]
         ),
     )
 
@@ -90,53 +89,45 @@ def generate_launch_description():
         "map", default_value="example-1.yaml", description="Map file"
     )
 
-    aruco_map_server_declare = DeclareLaunchArgument(
-        "aruco_map_server", default_value="true", description="Enable aruco map server"
-    )
-
-    aruco_tracker_declare = DeclareLaunchArgument(
-        "aruco_tracker", default_value="true", description="Enable aruco tracker"
-    )
-
     navigation_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [PathJoinSubstitution([pkg_clover2, "launch", "navigation.launch.py"])]
+            [
+                PathJoinSubstitution(
+                    [pkg_clover2_bringup, "launch", "navigation.launch.py"]
+                )
+            ]
         ),
         condition=IfCondition(navigation),
         launch_arguments={
             "use_sim_time": use_sim_time,
             "log_level": log_level,
-            "params_file": params_file,
-            "map": "simulation.yaml",
+            "params_files": params_files,
+            "map": map,
         }.items(),
     )
 
     main_camera_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [PathJoinSubstitution([pkg_clover2, "launch", "camera.launch.py"])]
+            [PathJoinSubstitution([pkg_clover2_bringup, "launch", "camera.launch.py"])]
         ),
         launch_arguments={
             "use_sim_time": use_sim_time,
             "log_level": log_level,
-            "params_file": params_file,
+            "params_files": params_files,
             "camera_name": TextSubstitution(text="main_camera"),
-            "feature_detector": navigation,
-            "optical_flow": optical_flow,
             "simulation": simulation,
         }.items(),
     )
 
     front_camera_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [PathJoinSubstitution([pkg_clover2, "launch", "camera.launch.py"])]
+            [PathJoinSubstitution([pkg_clover2_bringup, "launch", "camera.launch.py"])]
         ),
         launch_arguments={
             "use_sim_time": use_sim_time,
             "log_level": log_level,
-            "params_file": params_file,
+            "params_files": params_files,
             "camera_name": TextSubstitution(text="front_camera"),
-            "feature_detector": TextSubstitution(text="false"),
-            "optical_flow": TextSubstitution(text="false"),
             "simulation": simulation,
         }.items(),
         condition=IfCondition(front_camera),
@@ -144,39 +135,43 @@ def generate_launch_description():
 
     fcu_bridge_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [PathJoinSubstitution([pkg_clover2, "launch", "fcu_bridge.launch.py"])]
+            [
+                PathJoinSubstitution(
+                    [pkg_clover2_bringup, "launch", "fcu_bridge.launch.py"]
+                )
+            ]
         ),
         launch_arguments={
             "use_sim_time": use_sim_time,
             "log_level": log_level,
-            "params_file": params_file,
+            "params_files": params_files,
             "fcu_conn": fcu_conn,
         }.items(),
     )
 
     web_support_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [PathJoinSubstitution([pkg_clover2, "launch", "web_support.launch.py"])]
+            [
+                PathJoinSubstitution(
+                    [pkg_clover2_bringup, "launch", "web_support.launch.py"]
+                )
+            ]
         ),
         launch_arguments={
             "use_sim_time": use_sim_time,
             "log_level": log_level,
-            "params_file": params_file,
+            "params_files": params_files,
         }.items(),
     )
 
     return LaunchDescription(
-        fcu_bridge_declare()
-        + camera_declare("near_camera")
-        + camera_declare("front_camera")
-        + [
+        [
             # Declare arguments
             use_sim_time_declare,
             log_level_declare,
-            params_file_declare,
+            params_files_declare,
             fcu_conn_declare,
             navigation_declare,
-            optical_flow_declare,
             map_declare,
             simulation_declare,
             front_camera_declare,
@@ -199,7 +194,7 @@ def main(argv=sys.argv[1:]):
 
     ls.include_launch_description(ld)
 
-    # return ls.run()
+    return ls.run()
 
 
 if __name__ == "__main__":

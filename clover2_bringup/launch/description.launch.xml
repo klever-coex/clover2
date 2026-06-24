@@ -1,0 +1,9 @@
+<launch>
+    <node
+        pkg="tf2_ros"
+        exec="static_transform_publisher"
+        name="camera_to_base"
+        args="--frame-id base_link --child-frame-id main_camera --x 0.05 --y 0.0 --z -0.07 --roll 0.0 --pitch 3.1415926 --yaw -1.5707963"
+    >
+    </node>
+</launch>

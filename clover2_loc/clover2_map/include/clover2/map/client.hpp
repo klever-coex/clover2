@@ -46,7 +46,7 @@ public:
             node->template create_client<clover2_pose_msgs::srv::GetMap>(
                 "~/get_map", rclcpp::ServicesQoS());
 
-        update_map();
+        // update_map();
     }
 
     bool valid() const { return m_map_valid; }

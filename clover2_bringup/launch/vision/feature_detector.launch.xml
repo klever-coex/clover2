@@ -1,0 +1,37 @@
+<launch>
+    <arg name="use_sim_time" default="false" />
+
+    <arg name="camera_node" default="camera" />
+    <arg name="container_name" default="camera_container" />
+    <arg name="map_server_node" default="map_server" />
+    <arg name="ns" default="" />
+    <arg name="use_composition" default="false" />
+
+    <node pkg="clover2_cam_feature" exec="cam_feature" name="cam_feature" namespace="$(var ns)" unless="$(var use_composition)">
+
+        <remap from="~/input/image" to="$(var camera_node)/image" />
+        <remap from="~/input/camera_info" to="$(var camera_node)/camera_info" />
+
+        <remap from="~/map_update" to="map_server/map_update" />
+        <remap from="~/get_map" to="map_server/get_map" />
+
+        <param name="use_sim_time" value="$(var use_sim_time)" />
+
+        <param from="$(find-pkg-share clover2_bringup)/params/cam_feature/default.yaml" />
+    </node>
+
+    <load_composable_node target="$(var container_name)">
+        <composable_node pkg="clover2_cam_feature" plugin="clover2::cam_feature::cam_feature" name="cam_feature" namespace="$(var ns)" if="$(var use_composition)">
+
+            <remap from="~/input/image" to="$(var camera_node)/image" />
+            <remap from="~/input/camera_info" to="$(var camera_node)/camera_info" />
+
+            <remap from="~/map_update" to="map_server/map_update" />
+            <remap from="~/get_map" to="map_server/get_map" />
+
+            <param name="use_sim_time" value="$(var use_sim_time)" />
+
+            <param from="$(find-pkg-share clover2_bringup)/params/cam_feature/default.yaml" />
+        </composable_node>
+    </load_composable_node>
+</launch>

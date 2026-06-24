@@ -33,7 +33,7 @@ fcu_bridge:
   type: object
   description: "Flight controller unit bridge"
   fields:
-    interface:
+    fcu_conn:
       type: str
       default: "usb"
       description: "FCU connection type"
@@ -59,7 +59,7 @@ localization:
           type: str
           default: "example-1.yaml"
           description: "Map file name"
-    tracker:
+    aruco_tracker:
       type: object
       description: "ArUco marker tracker"
       fields:
@@ -67,3 +67,12 @@ localization:
           type: bool
           default: true
           description: "Enable ArUco tracker"
+
+2d_lidar:
+  type: object
+  description: "RPLidar Driver Settings"
+  fields:
+    enable:
+      type: bool
+      default: false
+      description: "Enable RPLidar Driver"
