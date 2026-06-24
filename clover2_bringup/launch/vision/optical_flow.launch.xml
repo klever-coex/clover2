@@ -8,8 +8,8 @@
 
     <node pkg="clover2_optical_flow" exec="optical_flow" name="optical_flow" namespace="$(var ns)" unless="$(var use_composition)">
 
-        <remap from="~/input/image" to="/$(var camera_node)/image" />
-        <remap from="~/input/camera_info" to="/$(var camera_node)/camera_info" />
+        <remap from="~/input/image_raw" to="$(var camera_node)/image_raw" />
+        <remap from="~/input/camera_info" to="$(var camera_node)/camera_info" />
 
         <param name="use_sim_time" value="$(var use_sim_time)" />
         <param name="roi" value="256" />
@@ -18,8 +18,8 @@
     <load_composable_node target="$(var container_name)">
         <composable_node pkg="clover2_optical_flow" plugin="clover2::optical_flow::optical_flow" name="optical_flow" namespace="$(var ns)" if="$(var use_composition)">
 
-            <remap from="~/input/image" to="/$(var camera_node)/image" />
-            <remap from="~/input/camera_info" to="/$(var camera_node)/camera_info" />
+            <remap from="~/input/image_raw" to="$(var camera_node)/image_raw" />
+            <remap from="~/input/camera_info" to="$(var camera_node)/camera_info" />
 
             <param name="use_sim_time" value="$(var use_sim_time)" />
             <param name="roi" value="256" />

@@ -17,7 +17,7 @@
     </node>
 
     <load_composable_node target="$(var container_name)">
-        <composable_node pkg="camera_ros" plugin="camera::CameraNode" name="camera" if="$(var use_composition)">
+        <composable_node pkg="camera_ros" plugin="camera::CameraNode" name="camera" namespace="$(var ns)" if="$(var use_composition)">
 
             <param name="camera" value="$(var camera_id)" />
             <param name="frame_id" value="$(var frame_id)" />
