@@ -1,5 +1,6 @@
 #!/bin/sh
 
+RED='\e[0;31m'
 GREEN='\e[0;32m'
 NC='\e[0m'
 
@@ -7,5 +8,6 @@ echo
 
 . /etc/os-release
 echo "Project version: $GREEN $CLOVER2_VERSION $NC"
+echo "Start in browser: $RED http://$(hostname).local $NC"
 
 echo
