@@ -17,7 +17,7 @@
 
     <arg name="use_sim_time" default="false" />
     <arg name="sensing_pkg" default="clover2_bringup" />
-    <arg name="root_ns" default="test" />
+    <arg name="root_ns" default="" description="Should starts with / or be empty" />
     <arg name="param_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
 
     <include file="$(find-pkg-share clover2_bringup)/launch/description.launch.xml" />
@@ -31,7 +31,7 @@
         <arg name="ns" value="$(var root_ns)" />
         <arg name="sensing_pkg" value="$(var sensing_pkg)" />
 
-        <arg name="map_server_node" value="/map_server" />
+        <arg name="map_server_node" value="$(var root_ns)/map_server" />
         <arg name="feature_detector" value="$(var main_camera.feature_detector)" />
         <arg name="optical_flow" value="$(var main_camera.optical_flow)" />
     </include>
@@ -45,7 +45,7 @@
         <arg name="ns" value="$(var root_ns)" />
         <arg name="sensing_pkg" value="$(var sensing_pkg)" />
 
-        <arg name="map_server_node" value="/map_server" />
+        <arg name="map_server_node" value="$(var root_ns)/map_server" />
         <arg name="feature_detector" value="false" />
         <arg name="optical_flow" value="false" />
     </include>

@@ -5,7 +5,7 @@
 
     <arg name="camera_id" default="0" />
     <arg name="camera_name" default="main_camera" />
-    <arg name="ns" default="" />
+    <arg name="ns" default="" description="Should starts with / or be empty" />
     <arg name="sensing_pkg" />
     <arg name="use_sim_time" default="false" />
     <arg name="param_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
@@ -31,7 +31,7 @@
         <arg name="param_file" value="$(var param_file)" />
 
         <arg name="camera_node" value="camera" />
-        <arg name="container_name" value="$(var camera_name)/container" />
+        <arg name="container_name" value="$(var local_ns)/container" />
         <arg name="map_server_node" value="$(var map_server_node)" />
         <arg name="use_composition" value="true" />
         <arg name="ns" value="$(var local_ns)" />
@@ -42,7 +42,7 @@
         <arg name="param_file" value="$(var param_file)" />
 
         <arg name="camera_node" value="camera" />
-        <arg name="container_name" value="$(var camera_name)/container" />
+        <arg name="container_name" value="$(var local_ns)/container" />
         <arg name="use_composition" value="true" />
         <arg name="ns" value="$(var local_ns)" />
     </include>

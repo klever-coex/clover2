@@ -1,13 +1,13 @@
 <launch>
     <arg name="map" default="example-1.yaml" />
     <arg name="map_server" default="true" />
-    <arg name="aruco_tracker" default="true" />
+    <arg name="aruco_tracker" default="false" />
 
     <arg name="feature_detector_node" default="/main_camera/cam_feature" />
     <arg name="output_pose_topic" default="/mavros/clover2_vio/pose_cov" />
 
     <arg name="use_sim_time" default="false" />
-    <arg name="ns" default="" />
+    <arg name="ns" default="" description="Should starts with / or be empty" />
     <arg name="param_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
 
     <map_server map="$(var map)" namespace="$(var ns)" use_sim_time="$(var use_sim_time)" if="$(var map_server)">
