@@ -1,7 +1,7 @@
 <launch>
     <arg name="feature_detector" default="false" />
     <arg name="optical_flow" default="false" />
-    <arg name="map_server_node" default="/map_server"/>
+    <arg name="map_server_node" default="/map_server" />
 
     <arg name="camera_id" default="0" />
     <arg name="camera_name" default="main_camera" />
@@ -23,7 +23,10 @@
         <arg name="ns" value="$(var local_ns)" />
     </include>
 
-    <include file="$(find-pkg-share clover2_bringup)/launch/vision/feature_detector.launch.xml" if="$(var feature_detector)">
+    <include
+        file="$(find-pkg-share clover2_bringup)/launch/vision/feature_detector.launch.xml"
+        if="$(var feature_detector)"
+    >
         <arg name="use_sim_time" value="$(var use_sim_time)" />
         <arg name="param_file" value="$(var param_file)" />
 

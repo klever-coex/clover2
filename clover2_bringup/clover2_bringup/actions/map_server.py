@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Dict, List, Optional, cast
 
 from ament_index_python.packages import get_package_share_directory
-from clover2.config import CLOVER2_RESOURCE_DIR
 from clover2.utils import find_file
 from launch.action import Action
 from launch.actions import LogInfo
@@ -47,7 +46,6 @@ class MapServerAction(Action):
             resource_paths
             if resource_paths is not None
             else [
-                TextSubstitution(text=str(CLOVER2_RESOURCE_DIR / "map")),
                 TextSubstitution(text=str(Path(pkg_clover2_map) / "map")),
             ]
         )
