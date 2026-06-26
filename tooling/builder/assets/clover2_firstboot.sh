@@ -6,7 +6,8 @@ echo "---> Fix home directory permissions <---"
 chmod +rx /home/pi
 
 export CLOVER2_HOSTNAME='clover2-'$(openssl rand -hex 3)
-REPO_DIR="/home/pi/clover2_ws/src/clover2"
+CLOVER2_WS_DIR="/opt/clover2/ws"
+REPO_DIR="${CLOVER2_WS_DIR}/src/clover2"
 
 echo "---> Creating Wi-Fi AP with SSID=${CLOVER2_HOSTNAME} <---"
 nmcli con add type wifi ifname wlan0 mode ap con-name clover2 ssid $CLOVER2_HOSTNAME autoconnect true \

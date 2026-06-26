@@ -1,16 +1,18 @@
 log_info "Build clover2 workspace"
 
-cd /home/$USER/clover2_ws
-/bin/bash -c "cd /home/$USER/clover2_ws/src/clover2 && make clover2-devtool-install-repos"
-/bin/bash -c "cd /home/$USER/clover2_ws && source /opt/ros/$ROS_DISTRO/setup.bash && rosdep install -y --from-paths src --ignore-src --skip-keys=libcamera"
-/bin/bash -c "cd /home/$USER/clover2_ws && source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --symlink-install"
+CLOVER2_WS_DIR="/opt/clover2/ws"
+
+cd $CLOVER2_WS_DIR
+/bin/bash -c "cd $CLOVER2_WS_DIR/src/clover2 && make clover2-devtool-install-repos"
+/bin/bash -c "cd $CLOVER2_WS_DIR && source /opt/ros/$ROS_DISTRO/setup.bash && rosdep install -y --from-paths src --ignore-src --skip-keys=libcamera"
+/bin/bash -c "cd $CLOVER2_WS_DIR && source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --symlink-install"
 
 log_info "Add clover2 project to bashrc"
-echo "source /home/$USER/clover2_ws/install/setup.bash" >> ~/.bashrc
+echo "source $CLOVER2_WS_DIR/install/setup.bash" >> ~/.bashrc
 
-log_info "Create /opt/clover2 dir"
-sudo mkdir /opt/clover2
-sudo chown -R $USER:$USER /opt/clover2
+# log_info "Create /opt/clover2 dir"
+# sudo mkdir /opt/clover2
+# sudo chown -R $USER:$USER /opt/clover2
 
 log_info "Install udev rules"
 sudo cp $ASSETS_DIR/udev/* /etc/udev/rules.d/
