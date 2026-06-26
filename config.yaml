@@ -1,0 +1,18 @@
+main_camera:
+  enable: true
+  feature_detector: true
+front_camera:
+  enable: true
+optical_flow:
+  enable: true
+fcu_bridge:
+  fcu_conn: usb
+localization:
+  enable: true
+  map_server:
+    enable: true
+    map_filename: example-1.yaml
+  aruco_tracker:
+    enable: true
+2d_lidar:
+  enable: false

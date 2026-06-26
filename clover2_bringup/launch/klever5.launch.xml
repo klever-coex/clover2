@@ -1,20 +1,21 @@
 <launch>
-    <arg name="localization" default="true" />
-    <arg name="localization.map_server" default="true" />
-    <arg name="localization.map" default="example-1.yaml" />
-    <arg name="localization.aruco_tracker" default="true" />
+    <!-- Config arguments -->
+    <arg name="localization.enable" default="true" />
+    <arg name="localization.aruco_tracker.enable" default="true" />
+    <arg name="localization.map_server.enable" default="true" />
+    <arg name="localization.map_server.map_filename" default="example-1.yaml" />
 
-    <arg name="main_camera" default="true" />
+    <arg name="main_camera.enable" default="true" />
     <arg name="main_camera.feature_detector" default="true" />
-    <arg name="main_camera.optical_flow" default="true" />
 
-    <arg name="front_camera" default="true" />
+    <arg name="optical_flow.enable" default="true" />
 
-    <arg name="fcu_bridge" default="true" />
     <arg name="fcu_bridge.fcu_conn" default="uart" />
 
-    <arg name="2d_lidar" default="true" />
+    <arg name="front_camera.enable" default="false" />
+    <arg name="2d_lidar.enable" default="false" />
 
+    <!-- Launch common arguments -->
     <arg name="use_sim_time" default="false" />
     <arg name="sensing_pkg" default="clover2_bringup" />
     <arg name="root_ns" default="" description="Should starts with / or be empty" />
@@ -22,7 +23,10 @@
 
     <include file="$(find-pkg-share clover2_bringup)/launch/description.launch.xml" />
 
-    <include file="$(find-pkg-share clover2_bringup)/launch/vision/camera_pipeline.launch.xml" if="$(var main_camera)">
+    <include
+        file="$(find-pkg-share clover2_bringup)/launch/vision/camera_pipeline.launch.xml"
+        if="$(var main_camera.enable)"
+    >
         <arg name="use_sim_time" value="$(var use_sim_time)" />
         <arg name="param_file" value="$(var param_file)" />
 
@@ -33,10 +37,13 @@
 
         <arg name="map_server_node" value="$(var root_ns)/map_server" />
         <arg name="feature_detector" value="$(var main_camera.feature_detector)" />
-        <arg name="optical_flow" value="$(var main_camera.optical_flow)" />
+        <arg name="optical_flow" value="$(var optical_flow.enable)" />
     </include>
 
-    <include file="$(find-pkg-share clover2_bringup)/launch/vision/camera_pipeline.launch.xml" if="$(var front_camera)">
+    <include
+        file="$(find-pkg-share clover2_bringup)/launch/vision/camera_pipeline.launch.xml"
+        if="$(var front_camera.enable)"
+    >
         <arg name="use_sim_time" value="$(var use_sim_time)" />
         <arg name="param_file" value="$(var param_file)" />
 
@@ -50,7 +57,7 @@
         <arg name="optical_flow" value="false" />
     </include>
 
-    <include file="$(find-pkg-share clover2_bringup)/launch/snippets/fcu_bridge.launch.xml" if="$(var fcu_bridge)">
+    <include file="$(find-pkg-share clover2_bringup)/launch/snippets/fcu_bridge.launch.xml">
         <arg name="use_sim_time" value="$(var use_sim_time)" />
         <arg name="param_file" value="$(var param_file)" />
         <arg name="ns" value="$(var root_ns)" />
@@ -58,7 +65,10 @@
         <arg name="fcu_conn" value="$(var fcu_bridge.fcu_conn)" />
     </include>
 
-    <include file="$(find-pkg-share clover2_bringup)/launch/snippets/localization.launch.xml" if="$(var localization)">
+    <include
+        file="$(find-pkg-share clover2_bringup)/launch/snippets/localization.launch.xml"
+        if="$(var localization.enable)"
+    >
         <arg name="use_sim_time" value="$(var use_sim_time)" />
         <arg name="param_file" value="$(var param_file)" />
 
@@ -66,8 +76,10 @@
         <arg name="feature_detector_node" value="$(var root_ns)/main_camera/cam_feature" />
         <arg name="output_pose_topic" value="$(var root_ns)/mavros/clover2_vio/pose_cov" />
 
-        <arg name="map_server" value="$(var localization.map_server)" />
-        <arg name="aruco_tracker" value="$(var localization.aruco_tracker)" />
+        <arg name="map_server" value="$(var localization.map_server.enable)" />
+        <arg name="aruco_tracker" value="$(var localization.aruco_tracker.enable)" />
+
+        <arg name="map" value="$(var localization.map_server.map_filename)" />
     </include>
 
     <include file="$(find-pkg-share clover2_bringup)/launch/web_support.launch.xml">
@@ -76,7 +88,7 @@
         <arg name="ns" value="$(var root_ns)" />
     </include>
 
-    <include file="$(find-pkg-share $(var sensing_pkg))/launch/sensing/2d_lidar.launch.xml">
+    <include file="$(find-pkg-share $(var sensing_pkg))/launch/sensing/2d_lidar.launch.xml" if="$(var 2d_lidar.enable)">
         <arg name="param_file" value="$(var param_file)" />
         <arg name="ns" value="$(var root_ns)" />
     </include>

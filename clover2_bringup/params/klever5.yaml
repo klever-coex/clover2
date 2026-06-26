@@ -8,7 +8,6 @@
 
 /**/fcu_bridge:
   ros__parameters:
-    backend: "mavros"
     speed_limit: 1.0
     tolerance: 0.15
     slowdown_distance: 0.5

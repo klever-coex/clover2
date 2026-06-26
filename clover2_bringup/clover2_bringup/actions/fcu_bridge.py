@@ -41,7 +41,7 @@ class FCUBridgeAction(Action):
         backend: SomeSubstitutionsType = TextSubstitution(text="mavros"),
         namespace: SomeSubstitutionsType = "",
         log_level: SomeSubstitutionsType = "info",
-        use_sim_time: SomeSubstitutionsType = False,
+        use_sim_time: SomeSubstitutionsType = "false",
         params_files: Optional[List[str]] = None,
         parameters: Optional[SomeParameters] = None,
         **kwargs,
