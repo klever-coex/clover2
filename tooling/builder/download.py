@@ -13,21 +13,40 @@ import requests
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+CACHE_DIR = config.PROJECT_DIR / ".cache" / "downloads"
+
+
+def _cached_file(url: str) -> pathlib.Path:
+    filename = pathlib.Path(url).name
+    return CACHE_DIR / filename
+
+
+def _ensure_cached(cfg: config.ImageConfiguration) -> pathlib.Path:
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    cached = _cached_file(cfg.base_image_url)
+
+    if cached.is_file():
+        logger.info(f"Using cached: '{cached}'")
+    else:
+        logger.info(f"Downloading: '{cfg.base_image_url}' -> '{cached}'")
+        with requests.get(cfg.base_image_url, stream=True) as r:
+            r.raise_for_status()
+            with open(cached, "wb") as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+
+    return cached
+
 
 def download_image(args, cfg: config.ImageConfiguration):
     tmp_dir = pathlib.Path(tempfile.mkdtemp(prefix="clover2-downloads."))
-    logger.info(f"Use tmp dir for downloads: '{tmp_dir}'")
+    logger.info(f"Use tmp dir for work: '{tmp_dir}'")
 
-    destination_path = tmp_dir / pathlib.Path(cfg.base_image_url).name
+    cached = _ensure_cached(cfg)
+    destination_path = tmp_dir / cached.name
+    shutil.copy(cached, destination_path)
 
-    logger.info(f"Downloading: '{cfg.base_image_url}'")
-    with requests.get(cfg.base_image_url, stream=True) as r:
-        r.raise_for_status()
-        with open(destination_path, "wb") as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
-
-    logger.info(f"Decompress...")
+    logger.info("Decompress...")
     subprocess.run(["unxz", "-T0", destination_path], check=True)
 
     image_path = destination_path.parent / destination_path.stem

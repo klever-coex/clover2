@@ -1,10 +1,11 @@
 import os
-import requests
+import pathlib
 import subprocess
 import tempfile
-import pathlib
-from typing import Callable
 from dataclasses import dataclass, field
+from typing import Callable
+
+import requests
 
 assert os.environ.get("PROJECT_DIR") is not None, "PROJECT_DIR unset"
 assert os.environ.get("DOCKER_OUTPUT_DIR") is not None, "DOCKER_OUTPUT_DIR unset"
@@ -26,6 +27,6 @@ class ImageConfiguration:
 image_configurations: dict = {
     "clover2-ubuntu24": ImageConfiguration(
         "clover2-ubuntu24",
-        "https://cdimage.ubuntu.com/releases/24.04/release/ubuntu-24.04.3-preinstalled-server-arm64+raspi.img.xz"
+        "https://cdimage.ubuntu.com/releases/24.04/release/ubuntu-24.04.4-preinstalled-server-arm64+raspi.img.xz",
     )
 }

@@ -2,7 +2,7 @@ log_info "Build clover2 workspace"
 
 CLOVER2_WS_DIR="/opt/clover2/ws"
 
-cd $CLOVER2_WS_DIR
+cd "$CLOVER2_WS_DIR" || exit
 /bin/bash -c "cd $CLOVER2_WS_DIR/src/clover2 && make clover2-devtool-install-repos"
 /bin/bash -c "cd $CLOVER2_WS_DIR && source /opt/ros/$ROS_DISTRO/setup.bash && rosdep install -y --from-paths src --ignore-src --skip-keys=libcamera"
 /bin/bash -c "cd $CLOVER2_WS_DIR && source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --symlink-install"
