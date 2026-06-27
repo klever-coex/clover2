@@ -8,7 +8,7 @@
 
 namespace clover2_ui::tui::components {
 
-form_screen::form_screen(std::shared_ptr<api::config_field> object,
+form_screen::form_screen(std::shared_ptr<api::settings::config_field> object,
                          navigate_fn on_navigate,
                          std::shared_ptr<core::navigator> nav)
     : core::screen(object->name(), std::move(nav))
@@ -22,10 +22,8 @@ form_screen::form_screen(std::shared_ptr<api::config_field> object,
     add(std::make_shared<cpptui::HorizontalSpacer>());
 
     for (size_t i = 0; i < m_object->children().size(); i++) {
-        const auto& field = m_object->children()[i];
-
         auto btn = std::make_shared<cpptui::Button>(
-            cpptui::StyledText(field->name()), [this, i]() {
+            cpptui::StyledText(""), [this, i]() {
                 if (m_on_navigate) {
                     m_on_navigate(m_object->children()[i]);
                 }
@@ -45,7 +43,23 @@ void form_screen::on_focus() {
     }
 }
 
-void form_screen::on_enter() { on_focus(); }
+void form_screen::on_enter() {
+    for (size_t i = 0; i < m_buttons.size(); i++) {
+        const auto& field = m_object->children()[i];
+
+        std::string btn_text = field->name();
+
+        if (field->is_scalar()) {
+            btn_text += "  [ " + field->as<std::string>() + " ]";
+        } else {
+            btn_text += "  -->";
+        }
+
+        m_buttons[i]->set_label(cpptui::StyledText(btn_text));
+    }
+
+    on_focus();
+}
 
 bool form_screen::on_event(const cpptui::Event& event) {
     if (event.is_nav_down()) {
@@ -73,7 +87,8 @@ bool form_screen::on_event(const cpptui::Event& event) {
     return core::screen::on_event(event);
 }
 
-std::vector<std::pair<std::string, std::string>> form_screen::shortcuts() const {
+std::vector<std::pair<std::string, std::string>> form_screen::shortcuts()
+    const {
     return {{"up/down", "Navigate"}};
 }
 

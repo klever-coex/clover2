@@ -1488,6 +1488,12 @@ class VTParser {
   /// @return true if inside a sequence, false otherwise
   bool in_sequence() const { return state_ != State::Start; }
 
+  /// @brief Reset parser state (e.g., after a bare ESC timeout)
+  void reset() {
+    state_ = State::Start;
+    buffer_.clear();
+  }
+
   /// @brief Process a single byte of input
   /// @param c The character to process
   /// @return An Event if a complete sequence or key was parsed, otherwise
@@ -2545,6 +2551,12 @@ class Terminal {
         struct timeval tv = {0, 50000};
         if (select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv) <= 0) break;
       }
+    }
+    // Bare ESC — escape byte not followed by sequence bytes within 50ms
+    if (parser_.in_sequence()) {
+      parser_.reset();
+      event.type = EventType::Key;
+      event.key = 27;  // ESC
     }
 #endif
     return event;

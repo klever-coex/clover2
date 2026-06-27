@@ -1,14 +1,16 @@
 #pragma once
 
+#include <clover2_ui/api/settings/field_type.hpp>
 #include <yaml-cpp/node/node.h>
 #include <yaml-cpp/yaml.h>
 
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
-namespace clover2_ui::api {
+namespace clover2_ui::api::settings {
 
 class config_field : public std::enable_shared_from_this<config_field> {
 public:
@@ -16,11 +18,13 @@ public:
     std::shared_ptr<config_field> parent() const { return m_parent.lock(); }
     std::string path() const;
 
-    const std::string& type_str() const noexcept { return m_type_str; }
+    const field_type type() const noexcept { return m_type; }
+    const std::string_view type_str() const noexcept {
+        return m_type.to_string();
+    }
     const std::string& description() const noexcept { return m_description; }
 
-    bool is_object() const noexcept { return m_type_str == "object"; }
-    bool is_list() const noexcept;
+    bool is_object() const noexcept { return m_type == field_type::OBJECT; }
     bool is_scalar() const noexcept;
 
     bool has_default() const noexcept;
@@ -41,10 +45,12 @@ public:
             if (m_value.IsDefined() && !m_value.IsNull()) {
                 return m_value.as<T>();
             }
+
             if (has_default()) return default_value().as<T>();
         } catch (const YAML::BadConversion&) {
             // Type mismatch — fall through to default
         }
+
         return T{};
     }
 
@@ -82,8 +88,7 @@ private:
 
     static std::shared_ptr<config_field> build_tree(
         std::string name, const YAML::Node& schema_entry,
-        const YAML::Node* values,
-        std::shared_ptr<config_field> parent);
+        const YAML::Node* values, std::shared_ptr<config_field> parent);
 
     void parse_schema();
 
@@ -94,7 +99,7 @@ private:
     std::weak_ptr<config_field> m_parent;
 
     YAML::Node m_schema;
-    std::string m_type_str;
+    field_type m_type;
     std::string m_description;
     bool m_is_enum = false;
     std::vector<std::string> m_enum_values;
@@ -106,4 +111,4 @@ private:
     std::vector<std::shared_ptr<config_field>> m_children;
 };
 
-}  // namespace clover2_ui::api
+}  // namespace clover2_ui::api::settings

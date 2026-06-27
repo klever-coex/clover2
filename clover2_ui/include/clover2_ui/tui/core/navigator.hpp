@@ -28,12 +28,15 @@ public:
         bool ctrl = false;
     };
 
-    void add_key_binding(key_binding binding,
-                         std::function<void()> callback,
-                         std::string key = "",
-                         std::string description = "");
+    void add_key_binding(key_binding binding, std::function<void()> callback,
+                         std::string key = "", std::string description = "");
 
     bool on_event(const cpptui::Event& event) override;
+
+    void show_notification(
+        cpptui::StyledText text,
+        cpptui::Notification::Type type = cpptui::Notification::Type::Info,
+        int duration_ms = 3000);
 
 private:
     void update_display();
@@ -54,6 +57,7 @@ private:
     std::shared_ptr<cpptui::Label> m_header_label;
     std::shared_ptr<cpptui::Vertical> m_content;
     std::shared_ptr<widget::footer> m_footer;
+    std::shared_ptr<cpptui::Notification> m_notification;
 
     std::vector<bound_key> m_key_bindings;
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <clover2_ui/api/config_field.hpp>
+#include <clover2_ui/api/settings/config_field.hpp>
 #include <clover2_ui/tui/core/screen.hpp>
 #include <cpptui/cpptui.hpp>
 
@@ -10,11 +10,11 @@
 namespace clover2_ui::tui::components {
 
 using navigate_fn =
-    std::function<void(std::shared_ptr<api::config_field> field)>;
+    std::function<void(std::shared_ptr<api::settings::config_field> field)>;
 
 class form_screen : public core::screen {
 public:
-    form_screen(std::shared_ptr<api::config_field> object,
+    form_screen(std::shared_ptr<api::settings::config_field> object,
                navigate_fn on_navigate,
                std::shared_ptr<core::navigator> nav = nullptr);
 
@@ -29,7 +29,7 @@ private:
 
     navigate_fn m_on_navigate;
 
-    std::shared_ptr<api::config_field> m_object;
+    std::shared_ptr<api::settings::config_field> m_object;
     std::shared_ptr<cpptui::Label> m_title_label;
     std::vector<std::shared_ptr<cpptui::Button>> m_buttons;
 };

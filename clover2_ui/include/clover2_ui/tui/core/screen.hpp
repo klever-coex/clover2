@@ -14,7 +14,7 @@ class navigator;
 class screen : public cpptui::Vertical {
 public:
     screen(std::string name,
-           std::shared_ptr<core::navigator> navigator = nullptr)
+           std::shared_ptr<core::navigator> navigator)
         : cpptui::Vertical()
         , m_name(std::move(name))
         , m_navigator(std::move(navigator)) {}

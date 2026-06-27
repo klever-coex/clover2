@@ -22,10 +22,13 @@ navigator::navigator(cpptui::App& app, const std::string& title)
     m_content = std::make_shared<cpptui::Vertical>();
     add(m_content);
 
+    m_notification = std::make_shared<cpptui::Notification>();
+    m_notification->max_visible = 1;
+    m_notification->height = 1;
+    m_header->add(m_notification);
+
     m_footer = std::make_shared<widget::footer>();
     add(m_footer);
-
-    m_app.register_exit_key('q', true);
 }
 
 void navigator::push(std::shared_ptr<screen> screen) {
@@ -33,6 +36,7 @@ void navigator::push(std::shared_ptr<screen> screen) {
 
     auto weak_self = std::weak_ptr<navigator>(
         std::static_pointer_cast<navigator>(shared_from_this()));
+
     m_app.post([weak_self, screen]() {
         auto self = weak_self.lock();
         if (!self) return;
@@ -55,6 +59,7 @@ void navigator::pop() {
 
     auto weak_self = std::weak_ptr<navigator>(
         std::static_pointer_cast<navigator>(shared_from_this()));
+
     m_app.post([weak_self]() {
         auto self = weak_self.lock();
         if (!self) return;
@@ -105,19 +110,14 @@ bool navigator::on_event(const cpptui::Event& event) {
                 pop();
                 return true;
             }
-            return true;
-        }
 
-        if (event.is_backspace()) {
-            if (can_go_back()) {
-                pop();
-                return true;
-            }
+            cpptui::App::quit();
             return true;
         }
 
         for (const auto& bk : m_key_bindings) {
             bool match = false;
+
             if (bk.binding.ctrl) {
                 char upper = std::toupper(static_cast<char>(bk.binding.key));
                 char lower = std::tolower(static_cast<char>(bk.binding.key));
@@ -128,6 +128,7 @@ bool navigator::on_event(const cpptui::Event& event) {
             } else {
                 match = (event.key == bk.binding.key && !event.ctrl);
             }
+
             if (match) {
                 m_app.post([cb = bk.callback]() { cb(); });
                 return true;
@@ -138,20 +139,27 @@ bool navigator::on_event(const cpptui::Event& event) {
     return cpptui::Vertical::on_event(event);
 }
 
+void navigator::show_notification(cpptui::StyledText text,
+                                  cpptui::Notification::Type type,
+                                  int duration_ms) {
+    m_notification->show(text, type, duration_ms);
+}
+
 void navigator::update_display() {
     m_content->clear_children();
+
     if (!m_stack.empty()) {
         m_content->add(m_stack.back());
         m_content->layout();
     }
+
     update_header();
     update_footer();
 }
 
 void navigator::update_footer() {
     std::vector<std::pair<std::string, std::string>> all = {
-        {"ctrl^q", "Quit"},
-        {"backspace", "Back"},
+        {"esc", "Quit"},
     };
 
     for (const auto& bk : m_key_bindings) {

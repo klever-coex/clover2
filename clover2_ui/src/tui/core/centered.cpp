@@ -7,7 +7,7 @@
 namespace clover2_ui::tui::core {
 
 centered::centered(std::shared_ptr<screen> inner, int width, int height)
-    : screen(inner->name())
+    : screen(inner->name(), nullptr)
     , m_inner(std::move(inner)) {
     m_title = m_inner->title();
 

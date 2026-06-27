@@ -1,4 +1,4 @@
-#include <clover2_ui/api/config_field.hpp>
+#include <clover2_ui/api/settings/config_field.hpp>
 #include <clover2_ui/tui/components/field_editor.hpp>
 #include <clover2_ui/tui/components/form_screen.hpp>
 #include <clover2_ui/tui/core/centered.hpp>
@@ -13,12 +13,13 @@
 
 using namespace clover2_ui;
 
-static std::shared_ptr<tui::core::centered> create_form_screen(
-    std::shared_ptr<api::config_field>& field,
+static std::shared_ptr<tui::core::screen> create_form_screen(
+    std::shared_ptr<api::settings::config_field>& field,
     std::shared_ptr<tui::core::navigator>& nav);
 
-static void navigate_to_field(std::shared_ptr<api::config_field> field,
-                              std::shared_ptr<tui::core::navigator> nav) {
+static void navigate_to_field(
+    std::shared_ptr<api::settings::config_field> field,
+    std::shared_ptr<tui::core::navigator> nav) {
     if (field->is_object()) {
         nav->push(create_form_screen(field, nav));
     } else {
@@ -28,12 +29,12 @@ static void navigate_to_field(std::shared_ptr<api::config_field> field,
     }
 }
 
-static std::shared_ptr<tui::core::centered> create_form_screen(
-    std::shared_ptr<api::config_field>& field,
+static std::shared_ptr<tui::core::screen> create_form_screen(
+    std::shared_ptr<api::settings::config_field>& field,
     std::shared_ptr<tui::core::navigator>& nav) {
     auto form = std::make_shared<tui::components::form_screen>(
         field,
-        [nav](std::shared_ptr<api::config_field> child) {
+        [nav](std::shared_ptr<api::settings::config_field> child) {
             navigate_to_field(child, nav);
         },
         nav);
@@ -60,17 +61,21 @@ int main(int argc, char** argv) {
     const std::filesystem::path schema_path = argv[1];
     const std::filesystem::path values_path = argv[2];
 
-    auto root_field = api::config_field::load(schema_path, values_path);
+    auto root_field =
+        api::settings::config_field::load(schema_path, values_path);
     auto nav = std::make_shared<tui::core::navigator>(app, "Clover2 settings");
 
     nav->add_key_binding(
         {'s', true},
-        [values_path, root_field]() {
+        [&]() {
             std::ofstream out(values_path);
             if (out) {
                 out << root_field->to_yaml_value();
                 root_field->mark_clean();
             }
+
+            nav->show_notification("File saved.",
+                                   cpptui::Notification::Type::Success, 1000);
         },
         "ctrl^s", "Save");
 

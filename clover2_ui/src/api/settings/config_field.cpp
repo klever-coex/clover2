@@ -1,13 +1,14 @@
-#include <clover2_ui/api/config_field.hpp>
+#include "clover2_ui/api/settings/field_type.hpp"
+#include <clover2_ui/api/settings/config_field.hpp>
 #include <yaml-cpp/yaml.h>
 
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <stdexcept>
 #include <string>
-#include <iostream>
 
-namespace clover2_ui::api {
+namespace clover2_ui::api::settings {
 
 config_field::config_field(std::string name, YAML::Node schema,
                            std::shared_ptr<config_field> parent)
@@ -18,15 +19,8 @@ config_field::config_field(std::string name, YAML::Node schema,
 }
 
 void config_field::parse_schema() {
-    if (m_schema["type"]) {
-        m_type_str = m_schema["type"].as<std::string>();
-    } else {
-        m_type_str = "str";
-    }
-
-    if (m_schema["description"]) {
-        m_description = m_schema["description"].as<std::string>();
-    }
+    m_type = field_type::from_string(m_schema["type"].as<std::string>("str"));
+    m_description = m_schema["description"].as<std::string>("");
 
     if (m_schema["enum"] && m_schema["enum"].IsSequence()) {
         m_is_enum = true;
@@ -34,20 +28,12 @@ void config_field::parse_schema() {
             m_enum_values.push_back(v.as<std::string>());
         }
     }
-
-    if (m_type_str.rfind("list", 0) == 0) {
-        auto start = m_type_str.find('[');
-        auto end = m_type_str.find(']');
-        if (start != std::string::npos && end != std::string::npos &&
-            end > start + 1) {
-            m_list_item_type = m_type_str.substr(start + 1, end - start - 1);
-        }
-    }
 }
 
 std::string config_field::path() const {
     auto p = m_parent.lock();
     if (!p || p->name().empty()) return m_name;
+
     return p->path() + "." + m_name;
 }
 
@@ -126,18 +112,6 @@ YAML::Node config_field::to_yaml_value() const {
         return obj;
     }
 
-    if (is_list()) {
-        if (m_value.IsDefined() && !m_value.IsNull()) {
-            return YAML::Clone(m_value);
-        }
-
-        if (has_default()) {
-            return YAML::Clone(m_schema["default"]);
-        }
-
-        return YAML::Node(YAML::NodeType::Sequence);
-    }
-
     if (m_value.IsDefined() && !m_value.IsNull()) {
         return YAML::Clone(m_value);
     }
@@ -159,13 +133,9 @@ void config_field::save_to_file(const std::filesystem::path& file) const {
     }
 }
 
-bool config_field::is_list() const noexcept {
-    return m_type_str.rfind("list", 0) == 0;
-}
-
 bool config_field::is_scalar() const noexcept {
-    return m_type_str == "str" || m_type_str == "int" ||
-           m_type_str == "float" || m_type_str == "bool";
+    return m_type == field_type::STR || m_type == field_type::INT ||
+           m_type == field_type::BOOL || m_type == field_type::FLOAT;
 }
 
 YAML::Node config_field::resolve_value(const YAML::Node* values,
@@ -173,9 +143,11 @@ YAML::Node config_field::resolve_value(const YAML::Node* values,
     if (values && *values && !values->IsNull()) {
         return *values;
     }
+
     if (schema_entry["default"]) {
         return schema_entry["default"];
     }
+
     return YAML::Node();
 }
 
@@ -193,13 +165,15 @@ std::shared_ptr<config_field> config_field::build_tree(
                 std::string child_name = kv.first.as<std::string>();
                 const YAML::Node* child_values = nullptr;
                 YAML::Node child_val;
+
                 if (values && *values && values->IsMap() &&
                     (*values)[child_name]) {
                     child_val = (*values)[child_name];
                     child_values = &child_val;
                 }
-                auto child = build_tree(child_name, kv.second, child_values,
-                                        field);
+
+                auto child =
+                    build_tree(child_name, kv.second, child_values, field);
                 field->m_children.push_back(std::move(child));
             }
         }
@@ -228,7 +202,7 @@ std::shared_ptr<config_field> config_field::load_from_nodes(
 
     auto root = std::shared_ptr<config_field>(
         new config_field("", root_schema, nullptr));
-    root->m_type_str = "object";
+    root->m_type = field_type::OBJECT;
     root->m_value = YAML::Node(YAML::NodeType::Map);
 
     if (schema_root.IsMap()) {
@@ -236,12 +210,13 @@ std::shared_ptr<config_field> config_field::load_from_nodes(
             std::string child_name = kv.first.as<std::string>();
             const YAML::Node* child_values = nullptr;
             YAML::Node child_val;
+
             if (values_root.IsMap() && values_root[child_name]) {
                 child_val = values_root[child_name];
                 child_values = &child_val;
             }
-            auto child =
-                build_tree(child_name, kv.second, child_values, root);
+
+            auto child = build_tree(child_name, kv.second, child_values, root);
             root->m_children.push_back(std::move(child));
         }
     }
@@ -273,4 +248,4 @@ std::shared_ptr<config_field> config_field::load(
     }
 }
 
-}  // namespace clover2_ui::api
+}  // namespace clover2_ui::api::settings

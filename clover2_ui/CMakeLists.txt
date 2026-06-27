@@ -22,6 +22,4 @@ ament_auto_add_executable(settings src/commands/settings.cpp)
 
 ament_auto_package(
   USE_SCOPED_HEADER_INSTALL_DIR
-  INSTALL_TO_SHARE
-    schemas
 )
