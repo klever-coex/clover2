@@ -16,7 +16,7 @@ install(
 )
 
 install(
-  DIRECTORY launch params
+  DIRECTORY launch params schemas
   DESTINATION share/${PROJECT_NAME}
 )
 
