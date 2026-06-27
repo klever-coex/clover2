@@ -9,10 +9,13 @@ cd $CLOVER2_WS_DIR
 
 log_info "Add clover2 project to bashrc"
 echo "source $CLOVER2_WS_DIR/install/setup.bash" >> ~/.bashrc
-
-# log_info "Create /opt/clover2 dir"
-# sudo mkdir /opt/clover2
-# sudo chown -R $USER:$USER /opt/clover2
+cat >> ~/.bashrc <<'EOF'
+clover2-setting() {
+    ros2 run clover2_ui settings \
+        "$(ros2 pkg prefix clover2_bringup --share)/schemas/klever5.yaml" \
+        /opt/clover2/.config.yaml
+}
+EOF
 
 log_info "Install udev rules"
 sudo cp $ASSETS_DIR/udev/* /etc/udev/rules.d/
@@ -20,6 +23,8 @@ sudo cp $ASSETS_DIR/udev/* /etc/udev/rules.d/
 log_info "Install some scripts"
 sudo cp $ASSETS_DIR/clover2_firstboot.sh /root/
 sudo cp $ASSETS_DIR/ros2_launch.sh /opt/clover2/
+cp $ASSETS_DIR/launcher_config.yaml /opt/clover2/.config.yaml
+ln -s "$(ros2 pkg prefix clover2_ui --share)/examples" /home/pi/examples
 
 sudo chmod +x /root/clover2_firstboot.sh
 sudo chmod +x /opt/clover2/ros2_launch.sh
