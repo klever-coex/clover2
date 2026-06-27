@@ -5,10 +5,11 @@
 :maxdepth: 1
 :hidden:
 
-Setup/calibration
-Setup/radio
-Setup/modes
-Setup/power
+Setup/Calibration
+Setup/Radio
+Setup/Modes
+Setup/Power
+Setup/DroneSettings
 ```
 
 ```{figure} ../assets/common/setup/qgc.webp

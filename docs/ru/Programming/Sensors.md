@@ -6,5 +6,5 @@
 :hidden:
 
 Sensors/rplidar
-Sensors/thermal_camera
+Sensors/ThermalCamera
 ```

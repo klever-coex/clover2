@@ -43,10 +43,6 @@ localization:
   type: object
   description: "Drone localization subsystem"
   fields:
-    enable:
-      type: bool
-      default: true
-      description: "Enable drone localization"
     map_server:
       type: object
       description: "ArUco marker map server"

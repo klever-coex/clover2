@@ -1,6 +1,5 @@
 <launch>
     <!-- Config arguments -->
-    <arg name="localization.enable" default="true" />
     <arg name="localization.aruco_tracker.enable" default="true" />
     <arg name="localization.map_server.enable" default="true" />
     <arg name="localization.map_server.map_filename" default="example-1.yaml" />
@@ -65,10 +64,7 @@
         <arg name="fcu_conn" value="$(var fcu_bridge.fcu_conn)" />
     </include>
 
-    <include
-        file="$(find-pkg-share clover2_bringup)/launch/snippets/localization.launch.xml"
-        if="$(var localization.enable)"
-    >
+    <include file="$(find-pkg-share clover2_bringup)/launch/snippets/localization.launch.xml">
         <arg name="use_sim_time" value="$(var use_sim_time)" />
         <arg name="param_file" value="$(var param_file)" />
 
