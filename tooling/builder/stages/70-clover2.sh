@@ -10,7 +10,7 @@ cd "$CLOVER2_WS_DIR" || exit
 log_info "Add clover2 project to bashrc"
 echo "source $CLOVER2_WS_DIR/install/setup.bash" >> ~/.bashrc
 cat >> ~/.bashrc <<'EOF'
-clover2-setting() {
+clover2-settings() {
     ros2 run clover2_ui settings \
         "$(ros2 pkg prefix clover2_bringup --share)/schemas/klever5.yaml" \
         /opt/clover2/.config.yaml
@@ -24,7 +24,7 @@ log_info "Install some scripts"
 sudo cp $ASSETS_DIR/clover2_firstboot.sh /root/
 sudo cp $ASSETS_DIR/ros2_launch.sh /opt/clover2/
 cp $ASSETS_DIR/launcher_config.yaml /opt/clover2/.config.yaml
-ln -s "$(ros2 pkg prefix clover2_ui --share)/examples" /home/pi/examples
+ln -s "$(ros2 pkg prefix clover2 --share)/examples" /home/$USER/examples
 
 sudo chmod +x /root/clover2_firstboot.sh
 sudo chmod +x /opt/clover2/ros2_launch.sh
@@ -39,3 +39,5 @@ sudo systemctl enable clover2-firstboot.service
 log_info "Set image version ${CLOVER2_VERSION}"
 echo "CLOVER2_VERSION=${CLOVER2_VERSION}" | sudo tee -a /usr/lib/os-release
 echo "CLOVER2_GIT_HASH=${CLOVER2_GIT_HASH}" | sudo tee -a /usr/lib/os-release
+
+sudo chown -R $USER:$USER /opt/clover2

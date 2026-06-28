@@ -71,8 +71,6 @@ def parse_args() -> argparse.Namespace:
 
 def main(args: argparse.Namespace):
     configuration = parse_config_from_file(args.config)
-    for k in configuration.keys():
-        print(k)
 
     ld = LaunchDescription(
         [

@@ -5,7 +5,7 @@ export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
 
 source /opt/ros/jazzy/setup.bash
 
-if [ -f "$FILE" ]; then
+if [ -f /opt/clover2/ws/install/setup.bash ]; then
     source /opt/clover2/ws/install/setup.bash
 
     klever5_launcher.py --config /opt/clover2/.config.yaml
