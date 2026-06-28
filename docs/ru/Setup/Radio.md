@@ -2,7 +2,7 @@
 
 ## Обзор аппаратуры
 
-```{figure} ../../assets/ru/setup/radio/rc-pocket-front-part.webp
+```{figure} @assets@/ru/setup/radio/rc-pocket-front-part.webp
 :alt: Аппаратура управления, вид спереди
 :width: 90%
 :align: center
@@ -11,7 +11,7 @@
 ```
 <br>
 
-```{figure} ../../assets/ru/setup/radio/rc-pocket-back-part.webp
+```{figure} @assets@/ru/setup/radio/rc-pocket-back-part.webp
 :alt: Аппаратура управления, вид сзади
 :width: 90%
 :align: center
@@ -31,7 +31,7 @@
 Если на экране аппаратуры появляются предупреждения, проверьте положение тумблеров и стика газа (*Throttle*). Перед включением они должны находиться в нулевом положении.
 ```
 
-```{figure} ../../assets/common/setup/radio/warn.webp
+```{figure} @assets@/common/setup/radio/warn.webp
 :alt: Предупреждение при неверном положении стиков или тумблеров
 :width: 55%
 :align: center
@@ -42,7 +42,7 @@
 
 После установки тумблеров и стиков в нулевое положение откроется главное меню.
 
-```{figure} ../../assets/common/setup/radio/main-menu-no-signal.webp
+```{figure} @assets@/common/setup/radio/main-menu-no-signal.webp
 :alt: Главное меню аппаратуры без связи с приёмником
 :width: 55%
 :align: center
@@ -61,7 +61,7 @@
 
 2. На аппаратуре нажмите кнопку **SYS** и перейдите в меню **ExpressLRS**.
 
-```{figure} ../../assets/common/setup/radio/rx/elrs-step-1.webp
+```{figure} @assets@/common/setup/radio/rx/elrs-step-1.webp
 :alt: Переход в меню ExpressLRS
 :width: 55%
 :align: center
@@ -72,7 +72,7 @@
 
 3. Установите **TX Power** в значение **100 mW**.
 
-```{figure} ../../assets/common/setup/radio/rx/elrs-step-2.webp
+```{figure} @assets@/common/setup/radio/rx/elrs-step-2.webp
 :alt: Установка мощности передатчика 100 mW
 :width: 55%
 :align: center
@@ -83,7 +83,7 @@
 
 4. Нажмите **Bind** и дождитесь завершения сопряжения.
 
-```{figure} ../../assets/common/setup/radio/rx/elrs-step-3.webp
+```{figure} @assets@/common/setup/radio/rx/elrs-step-3.webp
 :alt: Запуск сопряжения в меню ExpressLRS
 :width: 55%
 :align: center
@@ -92,7 +92,7 @@
 ```
 <br>
 
-```{figure} ../../assets/common/setup/radio/rx/elrs-bind.webp
+```{figure} @assets@/common/setup/radio/rx/elrs-bind.webp
 :alt: Процесс сопряжения ExpressLRS
 :width: 55%
 :align: center
@@ -103,7 +103,7 @@
 
 5. Нажмите **RTN**. В главном меню появится индикатор связи с приёмником.
 
-```{figure} ../../assets/common/setup/radio/main-menu.webp
+```{figure} @assets@/common/setup/radio/main-menu.webp
 :alt: Главное меню аппаратуры после успешного сопряжения
 :width: 55%
 :align: center
