@@ -124,7 +124,7 @@ class OffboardClient:
         goal_uuid_string = str(uuid_lib.UUID(bytes=bytes(goal_uuid.uuid)))
         self._logger.info(f"Navigate async goal UUID: {goal_uuid_string}")
 
-        # Одинаковый UUID связывает bond только с этим action.
+        # The same UUID binds the bond to this action only.
         bond_id = f"navigate_async:{goal_uuid_string}"
         navigate_bond = bondpy.Bond(self._node, NAVIGATE_BOND_TOPIC, bond_id)
         navigate_bond.set_connect_timeout(NAVIGATE_BOND_CONNECT_TIMEOUT)

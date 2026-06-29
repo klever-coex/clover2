@@ -61,20 +61,20 @@ private:
         const clover2_nav_msgs::srv::Navigate::Request::SharedPtr req,
         clover2_nav_msgs::srv::Navigate::Response::SharedPtr resp);
 
-    /// @brief Проверяет возможность принять новый goal и резервирует слот
-    /// до вызова accepted callback.
-    /// @details Offboard-навигация запускается только после формирования bond.
+    /// @brief Checks if a new goal can be accepted and reserves a slot 
+    //  before calling the accepted callback
+    /// @details Offboard navigation starts only after the bond is formed.
     rclcpp_action::GoalResponse handle_navigate_async_goal(
         const rclcpp_action::GoalUUID& uuid,
         std::shared_ptr<const NavigateAsync::Goal> goal);
-    /// @brief Принимает отмену только для текущего action навигации.
+    /// @brief Accepts cancellation only for the current navigation action.
     rclcpp_action::CancelResponse handle_navigate_async_cancel(
         const std::shared_ptr<GoalHandleNavigateAsync> goal_handle);
-    /// @brief Сохраняет принятый goal и запускает связанный с ним bond.
+    /// @brief Callback saves the accepted goal and launches the associated bond.
     void handle_navigate_async_accepted(
         const std::shared_ptr<GoalHandleNavigateAsync> goal_handle);
 
-    /// @brief Публикует feedback и завершает action после запуска навигации.
+    /// @brief Publishes feedback and finishes the action after navigation starts.
     void process_navigate_async(
         const std::shared_ptr<GoalHandleNavigateAsync> goal_handle);
 
@@ -83,16 +83,16 @@ private:
                              std::optional<double>& z,
                              std::optional<double>& yaw) const;
 
-    /// @brief Создаёт контрольный bond с уникальным UUID action goal.
+    /// @brief Creates a watchdog bond with the unique action goal UUID.
     void start_navigate_bond(
         const std::shared_ptr<GoalHandleNavigateAsync> goal_handle);
-    /// @brief Штатно закрывает текущий bond без аварийной обработки.
+    /// @brief Closes the current bond normally without emergency handling.
     void cleanup_navigate_bond();
-    /// @brief Запускает навигацию после формирования bond с клиентом.
+    /// @brief Starts navigation after the client bond is formed.
     void handle_navigate_bond_formed(
         const std::string& bond_id,
         const std::shared_ptr<GoalHandleNavigateAsync> goal_handle);
-    /// @brief Останавливает навигацию и сажает аппарат при потере action.
+    /// @brief Stops navigation and lands the vehicle when the action is lost.
     void handle_navigate_bond_broken(const std::string& bond_id);
 
     double m_speed_limit{1.0};
@@ -104,18 +104,15 @@ private:
 
     rclcpp::CallbackGroup::SharedPtr m_service_callback_group;
 
-    /// @brief Bond, контролирующий время жизни текущего action навигации.
+    /// @brief Bond that watches the lifetime of the current navigation action.
     std::shared_ptr<bond::Bond> m_navigate_bond;
 
-    /// @brief ROS-топик для обмена сообщениями operation bond.
-    std::string m_navigate_bond_topic{"/fcu_bridge/bond"};
-
-    /// @brief Идентификатор bond, сформированный из UUID текущего goal.
+    /// @brief Bond id built from the current goal UUID.
     std::string m_navigate_bond_id;
 
-    /// @brief Признак штатного закрытия bond сервером.
-    /// @details `true` — сервер выполняет штатный `breakBond()`;
-    /// `false` — bond работает либо был разорван нештатно.
+    /// @brief Indicates that the server is closing the bond normally.
+    /// @details `true` means the server is performing an expected `breakBond()`;
+    /// `false` means the bond is active or was broken unexpectedly.
     bool m_navigate_bond_closing{false};
 
     rclcpp::TimerBase::SharedPtr m_state_publish_timer;
@@ -130,16 +127,16 @@ private:
     rclcpp::Service<clover2_nav_msgs::srv::Navigate>::SharedPtr m_navigate_srv;
 
     rclcpp_action::Server<NavigateAsync>::SharedPtr m_navigate_async_action;
-    /// @brief Goal, которому принадлежат текущая навигация и operation bond.
+    /// @brief Goal that owns the current navigation and operation bond.
     std::shared_ptr<GoalHandleNavigateAsync> m_active_navigate_goal;
 
-    /// @brief Время перехода текущей навигации в idle перед штатным success.
+    /// @brief Time when the current navigation entered idle before normal success.
     std::optional<std::chrono::steady_clock::time_point>
         m_navigate_completion_started_at;
 
-    /// @brief Признак ожидания accepted callback для нового goal.
-    /// @details `true` — goal принят в goal callback, но ещё не передан в
-    /// accepted callback; `false` — ожидающего goal нет.
+    /// @brief Indicates that a new goal is waiting for the accepted callback.
+    /// @details `true` means the goal callback accepted the goal but the accepted
+    /// callback has not run yet; `false` means there is no pending goal.
     bool m_navigate_goal_pending{false};
 
     std::shared_ptr<clover2_fcu_bridge::backend::base_backend> m_backend{nullptr};

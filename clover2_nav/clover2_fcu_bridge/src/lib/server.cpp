@@ -232,14 +232,14 @@ void server::start_navigate_bond(
     m_navigate_bond_id = bond_id;
     m_navigate_bond_closing = false;
     m_navigate_bond = std::make_shared<bond::Bond>(
-        m_navigate_bond_topic, bond_id, get_node_base_interface(),
+        "/fcu_bridge/bond", bond_id, get_node_base_interface(),
         get_node_logging_interface(), get_node_parameters_interface(),
         get_node_timers_interface(), get_node_topics_interface());
     m_navigate_bond->setConnectTimeout(kNavigateBondConnectTimeout);
     m_navigate_bond->setHeartbeatPeriod(kNavigateBondHeartbeatPeriod);
     m_navigate_bond->setHeartbeatTimeout(kNavigateBondHeartbeatTimeout);
 
-    // UUID и goal handle позволяют отфильтровать callback от старого action.
+    // The UUID and goal handle allow you to filter the callback from the old action.
     m_navigate_bond->setFormedCallback([this, bond_id, goal_handle]() {
         handle_navigate_bond_formed(bond_id, goal_handle);
     });
@@ -262,7 +262,7 @@ void server::cleanup_navigate_bond() {
     const std::string bond_id = m_navigate_bond_id;
     auto bond = std::move(m_navigate_bond);
 
-    // Флаг отличает штатный breakBond() от потери клиента.
+    // This flag separates an expected breakBond() from a lost client.
     m_navigate_bond_closing = true;
     m_navigate_bond_id.clear();
     bond->breakBond();
@@ -293,7 +293,7 @@ void server::handle_navigate_bond_formed(
         return;
     }
 
-    // До формирования bond управление дроном намеренно не начинается.
+    // The drone is not controlled before the bond is formed.
     try {
         const auto goal = goal_handle->get_goal();
         const double speed =
@@ -329,13 +329,13 @@ void server::handle_navigate_bond_broken(const std::string& bond_id) {
                 bond_id.c_str());
     auto goal_handle = m_active_navigate_goal;
 
-    // Сначала очищаем bond, чтобы повторный callback не обработал тот же разрыв.
+    // Clear the bond first so a repeated callback cannot handle the same break.
     m_navigate_bond.reset();
     m_navigate_bond_id.clear();
     m_navigate_goal_pending = false;
     m_navigate_completion_started_at.reset();
 
-    // Сначала прекращаем offboard-управление, затем запрашиваем посадку.
+    // Stop offboard control first, then request landing.
     if (m_offboard) {
         try {
             m_offboard->set_process_callback(nullptr);
@@ -455,7 +455,7 @@ rclcpp_action::GoalResponse server::handle_navigate_async_goal(
         return rclcpp_action::GoalResponse::REJECT;
     }
 
-    // Резервируем слот до accepted callback, не запуская навигацию заранее.
+    // Reserve the slot until the accepted callback without starting navigation early.
     m_navigate_goal_pending = true;
     return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 }
@@ -495,7 +495,7 @@ void server::process_navigate_async(
         result->message = "navigate canceled";
         goal_handle->canceled(result);
 
-        // При завершении удаляем callback и принадлежащий goal bond.
+        // On terminal state, remove the callback and the bond owned by this goal.
         m_offboard->set_process_callback(nullptr);
         cleanup_navigate_bond();
         m_active_navigate_goal.reset();
