@@ -20,6 +20,7 @@
 #include <rclcpp_action/rclcpp_action.hpp>
 
 // STL
+#include <atomic>
 #include <chrono>
 #include <memory>
 #include <optional>
@@ -137,7 +138,7 @@ private:
     /// @brief Indicates that a new goal is waiting for the accepted callback.
     /// @details `true` means the goal callback accepted the goal but the accepted
     /// callback has not run yet; `false` means there is no pending goal.
-    bool m_navigate_goal_pending{false};
+    std::atomic_bool m_navigate_goal_pending{false};
 
     std::shared_ptr<clover2_fcu_bridge::backend::base_backend> m_backend{nullptr};
     std::shared_ptr<clover2_fcu_bridge::offboard> m_offboard{nullptr};

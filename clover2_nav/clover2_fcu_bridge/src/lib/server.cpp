@@ -177,7 +177,7 @@ server::CallbackReturn server::on_activate(
 server::CallbackReturn server::on_deactivate(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
     cleanup_navigate_bond();
-    m_navigate_goal_pending = false;
+    m_navigate_goal_pending.store(false);
     m_active_navigate_goal.reset();
     m_navigate_completion_started_at.reset();
 
@@ -197,7 +197,7 @@ server::CallbackReturn server::on_deactivate(
 server::CallbackReturn server::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
     cleanup_navigate_bond();
-    m_navigate_goal_pending = false;
+    m_navigate_goal_pending.store(false);
     m_active_navigate_goal.reset();
     m_navigate_completion_started_at.reset();
 
@@ -211,7 +211,7 @@ server::CallbackReturn server::on_cleanup(
 server::CallbackReturn server::on_shutdown(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
     cleanup_navigate_bond();
-    m_navigate_goal_pending = false;
+    m_navigate_goal_pending.store(false);
     m_active_navigate_goal.reset();
     m_navigate_completion_started_at.reset();
 
@@ -222,13 +222,13 @@ server::CallbackReturn server::on_shutdown(
 void server::start_navigate_bond(
     const std::shared_ptr<GoalHandleNavigateAsync> goal_handle) {
     if (m_navigate_bond) {
-        RCLCPP_WARN(get_logger(),
-                    "Replacing an existing navigate action bond");
+        RCLCPP_WARN(get_logger(), "Replacing an existing navigate action bond");
         cleanup_navigate_bond();
     }
 
     const std::string bond_id =
-        "navigate_async:" + rclcpp_action::to_string(goal_handle->get_goal_id());
+        "navigate_async:" +
+        rclcpp_action::to_string(goal_handle->get_goal_id());
     m_navigate_bond_id = bond_id;
     m_navigate_bond_closing = false;
     m_navigate_bond = std::make_shared<bond::Bond>(
@@ -239,7 +239,8 @@ void server::start_navigate_bond(
     m_navigate_bond->setHeartbeatPeriod(kNavigateBondHeartbeatPeriod);
     m_navigate_bond->setHeartbeatTimeout(kNavigateBondHeartbeatTimeout);
 
-    // The UUID and goal handle allow you to filter the callback from the old action.
+    // The UUID and goal handle allow you to filter the callback from the old
+    // action.
     m_navigate_bond->setFormedCallback([this, bond_id, goal_handle]() {
         handle_navigate_bond_formed(bond_id, goal_handle);
     });
@@ -288,6 +289,7 @@ void server::handle_navigate_bond_formed(
         result->success = false;
         result->message = "navigate canceled";
         goal_handle->canceled(result);
+
         cleanup_navigate_bond();
         m_active_navigate_goal.reset();
         return;
@@ -332,7 +334,7 @@ void server::handle_navigate_bond_broken(const std::string& bond_id) {
     // Clear the bond first so a repeated callback cannot handle the same break.
     m_navigate_bond.reset();
     m_navigate_bond_id.clear();
-    m_navigate_goal_pending = false;
+    m_navigate_goal_pending.store(false);
     m_navigate_completion_started_at.reset();
 
     // Stop offboard control first, then request landing.
@@ -450,13 +452,17 @@ rclcpp_action::GoalResponse server::handle_navigate_async_goal(
     RCLCPP_INFO(get_logger(), "Navigate async goal received: %s",
                 goal_uuid.c_str());
 
-    if (m_navigate_goal_pending || m_active_navigate_goal) {
+    const bool goal_was_pending = m_navigate_goal_pending.exchange(true);
+    if (goal_was_pending || m_active_navigate_goal) {
+        if (!goal_was_pending) {
+            m_navigate_goal_pending.store(false);
+        }
         RCLCPP_WARN(get_logger(), "Navigate async goal rejected: goal active");
         return rclcpp_action::GoalResponse::REJECT;
     }
 
-    // Reserve the slot until the accepted callback without starting navigation early.
-    m_navigate_goal_pending = true;
+    // Reserve the slot until the accepted callback without starting navigation
+    // early.
     return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 }
 
@@ -465,7 +471,8 @@ rclcpp_action::CancelResponse server::handle_navigate_async_cancel(
     RCLCPP_INFO(get_logger(), "Navigate async cancel requested");
 
     if (goal_handle != m_active_navigate_goal) {
-        RCLCPP_WARN(get_logger(), "Navigate async cancel rejected: goal inactive");
+        RCLCPP_WARN(get_logger(),
+                    "Navigate async cancel rejected: goal inactive");
         return rclcpp_action::CancelResponse::REJECT;
     }
 
@@ -477,7 +484,7 @@ void server::handle_navigate_async_accepted(
     const std::shared_ptr<GoalHandleNavigateAsync> goal_handle) {
     RCLCPP_INFO(get_logger(), "Navigate async goal accepted");
     m_active_navigate_goal = goal_handle;
-    m_navigate_goal_pending = false;
+    m_navigate_goal_pending.store(false);
     m_navigate_completion_started_at.reset();
     start_navigate_bond(goal_handle);
 }
@@ -508,6 +515,7 @@ void server::process_navigate_async(
         result->message = "offboard error";
         RCLCPP_WARN(get_logger(), "Navigate async aborted: offboard error");
         goal_handle->abort(result);
+
         m_offboard->set_process_callback(nullptr);
         cleanup_navigate_bond();
         m_active_navigate_goal.reset();
@@ -549,6 +557,7 @@ void server::process_navigate_async(
     RCLCPP_INFO(get_logger(), "Navigate async finished");
     auto result = std::make_shared<NavigateAsync::Result>();
     goal_handle->succeed(result);
+
     m_offboard->set_process_callback(nullptr);
     cleanup_navigate_bond();
     m_active_navigate_goal.reset();
