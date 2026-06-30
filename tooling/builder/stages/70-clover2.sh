@@ -25,6 +25,7 @@ sudo cp $ASSETS_DIR/clover2_firstboot.sh /root/
 sudo cp $ASSETS_DIR/ros2_launch.sh /opt/clover2/
 cp $ASSETS_DIR/launcher_config.yaml /opt/clover2/.config.yaml
 ln -s "$(ros2 pkg prefix clover2 --share)/examples" /home/$USER/examples
+cp -r "$(ros2 pkg prefix clover2_map --share)/map" /opt/clover2/map
 
 sudo chmod +x /root/clover2_firstboot.sh
 sudo chmod +x /opt/clover2/ros2_launch.sh
