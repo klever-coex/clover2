@@ -1,0 +1,14 @@
+# Default sensor params for ov5647
+# Please set `camera` parameter for select specific device
+
+/**:
+  ros__parameters:
+    use_intra_process_comms: true
+    # camera: 0
+    ExposureTime: 1500
+    ExposureTimeMode: 1
+    FrameDurationLimits: [33333, 33333]
+    HdrMode: 0
+    format: "RGB888"
+    height: 480
+    width: 640

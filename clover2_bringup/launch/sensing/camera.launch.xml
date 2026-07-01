@@ -1,0 +1,41 @@
+<launch>
+    <arg name="camera_id" description="Camera identificator (for libcamera numeretic or dts path)" />
+    <arg name="camera_name" default="camera" />
+    <arg name="container_name" default="camera_container" />
+    <arg name="frame_id" default="$(var camera_name)_link" />
+    <arg name="ns" default="" />
+    <arg name="param_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
+    <arg name="use_composition" default="false" />
+
+    <node
+        pkg="camera_ros"
+        exec="camera_node"
+        name="$(var camera_name)"
+        namespace="$(var ns)"
+        unless="$(var use_composition)"
+    >
+
+        <param name="camera" value="$(var camera_id)" />
+        <param name="frame_id" value="$(var frame_id)" />
+
+        <param from="$(find-pkg-share clover2_bringup)/params/libcamera/default.yaml" />
+        <param from="$(var param_file)" />
+    </node>
+
+    <load_composable_node target="$(var container_name)">
+        <composable_node
+            pkg="camera_ros"
+            plugin="camera::CameraNode"
+            name="camera"
+            namespace="$(var ns)"
+            if="$(var use_composition)"
+        >
+
+            <param name="camera" value="$(var camera_id)" />
+            <param name="frame_id" value="$(var frame_id)" />
+
+            <param from="$(find-pkg-share clover2_bringup)/params/libcamera/default.yaml" />
+            <param from="$(var param_file)" />
+        </composable_node>
+    </load_composable_node>
+</launch>

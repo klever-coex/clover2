@@ -1,0 +1,12 @@
+<launch>
+    <arg name="container_name" default="container" />
+    <arg name="ns" default="" />
+
+    <node_container
+        pkg="rclcpp_components"
+        exec="component_container_mt"
+        name="$(var container_name)"
+        namespace="$(var ns)"
+        output="both"
+    />
+</launch>

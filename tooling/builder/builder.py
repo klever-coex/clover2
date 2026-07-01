@@ -58,7 +58,9 @@ async def qemu_state(args, image: pathlib.Path):
     )
 
     async with Qemu(cfg) as qemu:
-        await qemu.execute("mkdir -p /home/pi/clover2_ws/src/clover2")
+        await qemu.execute("sudo mkdir /opt/clover2")
+        await qemu.execute("sudo chown -R $USER:$USER /opt/clover2")
+        await qemu.execute("mkdir -p /opt/clover2/ws/src/clover2")
 
         for item in config.PROJECT_DIR.iterdir():
             if (
@@ -66,24 +68,23 @@ async def qemu_state(args, image: pathlib.Path):
                 and not item.name == ".cache"
                 and not item.name == ".venv"
             ):
-                await qemu.copy_to(item, ("/home/pi/clover2_ws/src/clover2"))
+                await qemu.copy_to(item, pathlib.Path("/opt/clover2/ws/src/clover2"))
 
         logger.info("Install make")
         await qemu.execute("sudo apt-get update && sudo apt-get install -y make")
 
         logger.info("Cleanup git project")
         await qemu.execute(
-            "cd /home/pi/clover2_ws/src/clover2 && git reset --hard HEAD && git clean -fdx"
+            "cd /opt/clover2/ws/src/clover2 && git reset --hard HEAD && git clean -fdx"
         )
 
         await qemu.copy_to(
-            pathlib.Path(os.environ["BUILD_EXPTRAS_DIR"]), ("/tmp/clover2-build-extras")
+            pathlib.Path(os.environ["BUILD_EXPTRAS_DIR"]),
+            pathlib.Path("/tmp/clover2-build-extras"),
         )
 
         logger.info("Run image setup script")
-        await qemu.execute(
-            "cd /home/pi/clover2_ws/src/clover2 && make builder-image-setup"
-        )
+        await qemu.execute("cd /opt/clover2/ws/src/clover2 && make builder-image-setup")
 
 
 def parse_args():

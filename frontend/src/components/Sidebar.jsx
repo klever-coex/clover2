@@ -52,7 +52,7 @@ const Sidebar = () => {
     {
       name: t("sidebar.ide"),
       icon: <SquarePen size={20} />,
-      path: `${window.location.protocol}//${window.location.hostname}:9880`,
+      path: `${window.location.protocol}//${window.location.hostname}:9880/?folder=/home/pi`,
       redirect: true,
     },
   ];

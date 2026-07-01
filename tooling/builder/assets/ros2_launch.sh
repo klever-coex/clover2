@@ -1,8 +1,15 @@
 #! /usr/bin/env bash
 
-source /opt/ros/jazzy/setup.bash
-source /home/pi/clover2_ws/install/setup.bash
-
 export RCUTILS_COLORIZED_OUTPUT=1
+export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
 
-ros2 launch clover2 clover2.launch.py
+source /opt/ros/jazzy/setup.bash
+
+if [ -f /opt/clover2/ws/install/setup.bash ]; then
+    source /opt/clover2/ws/install/setup.bash
+
+    klever5_launcher.py --config /opt/clover2/.config.yaml
+else
+    echo "The clover2 workspace not exists"
+    exit 255
+fi
