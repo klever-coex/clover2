@@ -2,10 +2,10 @@
 
 // clover2
 #include <clover2/cam_feature/base_plugin.hpp>
+#include <clover2/map/client.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 #include <clover2_common/node.hpp>
 #include <clover2_common/parameter_watcher.hpp>
-#include <clover2/map/client.hpp>
 
 // ROS 2
 #include <diagnostic_updater/diagnostic_updater.hpp>
@@ -83,6 +83,15 @@ private:
     rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr
         m_camera_info_sub;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr m_image_sub;
+
+    rclcpp::Time m_last_image_stamp;
+    rclcpp::Time m_last_camera_info_stamp;
+    double m_last_processing_ms{0.0};
+    size_t m_processed_frames{0};
+    size_t m_skipped_frames{0};
+    uint32_t m_last_image_width{0};
+    uint32_t m_last_image_height{0};
+    std::string m_last_image_encoding;
 };
 
 }  // namespace clover2::cam_feature
