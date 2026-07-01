@@ -17,8 +17,14 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 namespace {
+
+constexpr double kNavigateBondConnectTimeout = 2.0;
+constexpr double kNavigateBondHeartbeatPeriod = 0.2;
+constexpr double kNavigateBondHeartbeatTimeout = 1.0;
+constexpr auto kNavigateCompletionGracePeriod = std::chrono::milliseconds(1200);
 
 void ensure_backend_registered(const std::string& name) {
     const auto backends = clover2_fcu_bridge::offboard::list_backends();
@@ -170,6 +176,11 @@ server::CallbackReturn server::on_activate(
 
 server::CallbackReturn server::on_deactivate(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
+    cleanup_navigate_bond();
+    m_navigate_goal_pending.store(false);
+    m_active_navigate_goal.reset();
+    m_navigate_completion_started_at.reset();
+
     m_state_pub.reset();
 
     m_arm_disarm_srv.reset();
@@ -185,6 +196,11 @@ server::CallbackReturn server::on_deactivate(
 
 server::CallbackReturn server::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
+    cleanup_navigate_bond();
+    m_navigate_goal_pending.store(false);
+    m_active_navigate_goal.reset();
+    m_navigate_completion_started_at.reset();
+
     m_offboard.reset();
     m_backend.reset();
 
@@ -194,8 +210,173 @@ server::CallbackReturn server::on_cleanup(
 
 server::CallbackReturn server::on_shutdown(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
+    cleanup_navigate_bond();
+    m_navigate_goal_pending.store(false);
+    m_active_navigate_goal.reset();
+    m_navigate_completion_started_at.reset();
+
     RCLCPP_INFO(get_logger(), "shutdown");
     return CallbackReturn::SUCCESS;
+}
+
+void server::start_navigate_bond(
+    const std::shared_ptr<GoalHandleNavigateAsync> goal_handle) {
+    if (m_navigate_bond) {
+        RCLCPP_WARN(get_logger(), "Replacing an existing navigate action bond");
+        cleanup_navigate_bond();
+    }
+
+    const std::string bond_id =
+        "navigate_async:" +
+        rclcpp_action::to_string(goal_handle->get_goal_id());
+    m_navigate_bond_id = bond_id;
+    m_navigate_bond_closing = false;
+    m_navigate_bond = std::make_shared<bond::Bond>(
+        "/fcu_bridge/bond", bond_id, get_node_base_interface(),
+        get_node_logging_interface(), get_node_parameters_interface(),
+        get_node_timers_interface(), get_node_topics_interface());
+    m_navigate_bond->setConnectTimeout(kNavigateBondConnectTimeout);
+    m_navigate_bond->setHeartbeatPeriod(kNavigateBondHeartbeatPeriod);
+    m_navigate_bond->setHeartbeatTimeout(kNavigateBondHeartbeatTimeout);
+
+    // The UUID and goal handle allow you to filter the callback from the old
+    // action.
+    m_navigate_bond->setFormedCallback([this, bond_id, goal_handle]() {
+        handle_navigate_bond_formed(bond_id, goal_handle);
+    });
+    m_navigate_bond->setBrokenCallback(
+        [this, bond_id]() { handle_navigate_bond_broken(bond_id); });
+    m_navigate_bond->start();
+
+    RCLCPP_INFO(get_logger(), "Started navigate action bond: %s",
+                bond_id.c_str());
+}
+
+void server::cleanup_navigate_bond() {
+    m_navigate_completion_started_at.reset();
+
+    if (!m_navigate_bond) {
+        m_navigate_bond_id.clear();
+        return;
+    }
+
+    const std::string bond_id = m_navigate_bond_id;
+    auto bond = std::move(m_navigate_bond);
+
+    // This flag separates an expected breakBond() from a lost client.
+    m_navigate_bond_closing = true;
+    m_navigate_bond_id.clear();
+    bond->breakBond();
+    m_navigate_bond_closing = false;
+
+    RCLCPP_INFO(get_logger(), "Stopped navigate action bond: %s",
+                bond_id.c_str());
+}
+
+void server::handle_navigate_bond_formed(
+    const std::string& bond_id,
+    const std::shared_ptr<GoalHandleNavigateAsync> goal_handle) {
+    if (bond_id != m_navigate_bond_id || m_navigate_bond_closing ||
+        goal_handle != m_active_navigate_goal) {
+        return;
+    }
+
+    RCLCPP_INFO(get_logger(), "Navigate action bond formed: %s",
+                bond_id.c_str());
+
+    if (goal_handle->is_canceling()) {
+        auto result = std::make_shared<NavigateAsync::Result>();
+        result->success = false;
+        result->message = "navigate canceled";
+        goal_handle->canceled(result);
+
+        cleanup_navigate_bond();
+        m_active_navigate_goal.reset();
+        return;
+    }
+
+    // The drone is not controlled before the bond is formed.
+    try {
+        const auto goal = goal_handle->get_goal();
+        const double speed =
+            std::isnan(goal->speed) ? 0.0 : static_cast<double>(goal->speed);
+        std::optional<double> x, y, z, yaw;
+        extract_target_pose(goal->pose, x, y, z, yaw);
+
+        m_offboard->navigate(goal->header.frame_id, x, y, z, yaw, speed);
+        m_offboard->set_process_callback(
+            std::bind(&server::process_navigate_async, this, goal_handle));
+    } catch (const std::exception& e) {
+        RCLCPP_WARN(get_logger(), "Unable to navigate: %s", e.what());
+        m_offboard->reset_state();
+
+        if (goal_handle->is_active()) {
+            auto result = std::make_shared<NavigateAsync::Result>();
+            result->success = false;
+            result->message = e.what();
+            goal_handle->abort(result);
+        }
+
+        cleanup_navigate_bond();
+        m_active_navigate_goal.reset();
+    }
+}
+
+void server::handle_navigate_bond_broken(const std::string& bond_id) {
+    if (bond_id != m_navigate_bond_id || m_navigate_bond_closing) {
+        return;
+    }
+
+    RCLCPP_WARN(get_logger(), "Navigate action bond broken: %s",
+                bond_id.c_str());
+    auto goal_handle = m_active_navigate_goal;
+
+    // Clear the bond first so a repeated callback cannot handle the same break.
+    m_navigate_bond.reset();
+    m_navigate_bond_id.clear();
+    m_navigate_goal_pending.store(false);
+    m_navigate_completion_started_at.reset();
+
+    // Stop offboard control first, then request landing.
+    if (m_offboard) {
+        try {
+            m_offboard->set_process_callback(nullptr);
+            m_offboard->reset_state();
+        } catch (const std::exception& e) {
+            RCLCPP_ERROR(get_logger(),
+                         "Reset after navigate action bond break failed: %s",
+                         e.what());
+        }
+    }
+
+    if (m_backend) {
+        try {
+            m_backend->land();
+        } catch (const std::exception& e) {
+            RCLCPP_ERROR(get_logger(),
+                         "Landing after navigate action bond break failed: %s",
+                         e.what());
+        }
+    } else {
+        RCLCPP_WARN(get_logger(),
+                    "Unable to land after navigate action bond break: "
+                    "backend is not initialized");
+    }
+
+    if (goal_handle && goal_handle->is_active()) {
+        try {
+            auto result = std::make_shared<NavigateAsync::Result>();
+            result->success = false;
+            result->message = "navigate action bond broken";
+            goal_handle->abort(result);
+        } catch (const std::exception& e) {
+            RCLCPP_ERROR(get_logger(),
+                         "Abort after navigate action bond break failed: %s",
+                         e.what());
+        }
+    }
+
+    m_active_navigate_goal.reset();
 }
 
 void server::handle_arm_disarm(
@@ -265,46 +446,79 @@ void server::handle_navigate(
 }
 
 rclcpp_action::GoalResponse server::handle_navigate_async_goal(
-    [[maybe_unused]] const rclcpp_action::GoalUUID& uuid,
-    std::shared_ptr<const NavigateAsync::Goal> goal) {
-    try {
-        const double speed =
-            std::isnan(goal->speed) ? 0.0 : static_cast<double>(goal->speed);
-        std::optional<double> x, y, z, yaw;
-        extract_target_pose(goal->pose, x, y, z, yaw);
+    const rclcpp_action::GoalUUID& uuid,
+    [[maybe_unused]] std::shared_ptr<const NavigateAsync::Goal> goal) {
+    const auto goal_uuid = rclcpp_action::to_string(uuid);
+    RCLCPP_INFO(get_logger(), "Navigate async goal received: %s",
+                goal_uuid.c_str());
 
-        m_offboard->navigate(goal->header.frame_id, x, y, z, yaw, speed);
-    } catch (const std::exception& e) {
-        RCLCPP_WARN(get_logger(), "Unable to navigate: %s", e.what());
-        m_offboard->reset_state();
+    const bool goal_was_pending = m_navigate_goal_pending.exchange(true);
+    if (goal_was_pending || m_active_navigate_goal) {
+        if (!goal_was_pending) {
+            m_navigate_goal_pending.store(false);
+        }
+        RCLCPP_WARN(get_logger(), "Navigate async goal rejected: goal active");
         return rclcpp_action::GoalResponse::REJECT;
     }
 
+    // Reserve the slot until the accepted callback without starting navigation
+    // early.
     return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 }
 
 rclcpp_action::CancelResponse server::handle_navigate_async_cancel(
-    [[maybe_unused]] const std::shared_ptr<GoalHandleNavigateAsync>
-        goal_handle) {
+    const std::shared_ptr<GoalHandleNavigateAsync> goal_handle) {
+    RCLCPP_INFO(get_logger(), "Navigate async cancel requested");
+
+    if (goal_handle != m_active_navigate_goal) {
+        RCLCPP_WARN(get_logger(),
+                    "Navigate async cancel rejected: goal inactive");
+        return rclcpp_action::CancelResponse::REJECT;
+    }
+
     m_offboard->reset_state();
     return rclcpp_action::CancelResponse::ACCEPT;
 }
 
 void server::handle_navigate_async_accepted(
-    [[maybe_unused]] const std::shared_ptr<GoalHandleNavigateAsync>
-        goal_handle) {
-    m_offboard->set_process_callback(
-        std::bind(&server::process_navigate_async, this, goal_handle));
+    const std::shared_ptr<GoalHandleNavigateAsync> goal_handle) {
+    RCLCPP_INFO(get_logger(), "Navigate async goal accepted");
+    m_active_navigate_goal = goal_handle;
+    m_navigate_goal_pending.store(false);
+    m_navigate_completion_started_at.reset();
+    start_navigate_bond(goal_handle);
 }
 
 void server::process_navigate_async(
     const std::shared_ptr<GoalHandleNavigateAsync> goal_handle) {
+    if (goal_handle != m_active_navigate_goal) {
+        return;
+    }
+
+    if (goal_handle->is_canceling()) {
+        RCLCPP_INFO(get_logger(), "Navigate async canceled");
+        auto result = std::make_shared<NavigateAsync::Result>();
+        result->success = false;
+        result->message = "navigate canceled";
+        goal_handle->canceled(result);
+
+        // On terminal state, remove the callback and the bond owned by this goal.
+        m_offboard->set_process_callback(nullptr);
+        cleanup_navigate_bond();
+        m_active_navigate_goal.reset();
+        return;
+    }
+
     if (m_offboard->in_error()) {
         auto result = std::make_shared<NavigateAsync::Result>();
         result->success = false;
         result->message = "offboard error";
+        RCLCPP_WARN(get_logger(), "Navigate async aborted: offboard error");
         goal_handle->abort(result);
+
         m_offboard->set_process_callback(nullptr);
+        cleanup_navigate_bond();
+        m_active_navigate_goal.reset();
         return;
     }
 
@@ -321,12 +535,32 @@ void server::process_navigate_async(
 
     goal_handle->publish_feedback(feedback);
 
-    if (m_offboard->in_idle()) {
-        RCLCPP_INFO(get_logger(), "Navigate async finished");
-        auto result = std::make_shared<NavigateAsync::Result>();
-        goal_handle->succeed(result);
-        m_offboard->set_process_callback(nullptr);
+    if (!m_offboard->in_idle()) {
+        m_navigate_completion_started_at.reset();
+        return;
     }
+
+    const auto now = std::chrono::steady_clock::now();
+    if (!m_navigate_completion_started_at) {
+        m_navigate_completion_started_at = now;
+        RCLCPP_INFO(
+            get_logger(),
+            "Navigate async target reached, waiting for bond grace period");
+        return;
+    }
+
+    if (now - *m_navigate_completion_started_at <
+        kNavigateCompletionGracePeriod) {
+        return;
+    }
+
+    RCLCPP_INFO(get_logger(), "Navigate async finished");
+    auto result = std::make_shared<NavigateAsync::Result>();
+    goal_handle->succeed(result);
+
+    m_offboard->set_process_callback(nullptr);
+    cleanup_navigate_bond();
+    m_active_navigate_goal.reset();
 }
 
 void server::extract_target_pose(const geometry_msgs::msg::Pose& pose,

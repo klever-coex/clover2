@@ -5,6 +5,7 @@ from typing import Any
 from action_msgs.msg import GoalStatus
 from rclpy.action import ActionClient
 from rclpy.task import Future
+from unique_identifier_msgs.msg import UUID
 
 
 class ActionStatus(Enum):
@@ -23,13 +24,15 @@ _GOAL_STATUS_MAP: dict[int, ActionStatus] = {
 
 
 class ActionHelper:
-    def __init__(self, action: ActionClient, goal: Any) -> None:
+    def __init__(
+        self, action: ActionClient, goal: Any, goal_uuid: UUID | None = None
+    ) -> None:
         self._event = threading.Event()
         self._status: ActionStatus = ActionStatus.REJECTED
         self._result: Any = None
         self._message: str = ""
 
-        goal_future: Future = action.send_goal_async(goal)
+        goal_future: Future = action.send_goal_async(goal, goal_uuid=goal_uuid)
         goal_future.add_done_callback(self._on_goal_response)
 
     def wait(self, timeout: float | None = None) -> ActionStatus:
