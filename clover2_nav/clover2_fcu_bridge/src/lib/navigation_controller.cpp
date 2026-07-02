@@ -6,10 +6,12 @@
 #include <algorithm>
 #include <cmath>
 
+#include <iostream>
+
 namespace {
 
-constexpr double k_vec_eps = 1e-9;
-constexpr double k_yaw_reach = 0.05;
+constexpr double k_yaw_reach = 0.1;
+constexpr double k_min_speed = 0.1;
 
 }  // namespace
 
@@ -23,17 +25,16 @@ void navigation_controller::set_slowdown_distance(double distance) {
     m_slowdown = std::max(distance, 1e-3);
 }
 
-void navigation_controller::set_speed_limits(double speed, double speed_limit) {
-    m_speed_limit = std::max(speed_limit, 1e-3);
-    m_speed = std::clamp(speed, 0.1, m_speed_limit);
+void navigation_controller::set_speed(double speed) {
+    m_speed = std::clamp(speed, k_min_speed, m_speed_limit);
+}
+
+void navigation_controller::set_speed_limit(double speed) {
+    m_speed_limit = std::max(speed, k_min_speed);
 }
 
 void navigation_controller::set_yaw_rate(double yaw_rate) {
     m_yaw_rate = std::max(yaw_rate, 1e-6);
-}
-
-void navigation_controller::set_height_low(double z_min) {
-    m_height_low = z_min;
 }
 
 void navigation_controller::reset() {
@@ -141,15 +142,14 @@ void navigation_controller::update(
 
     m_target_reached = false;
 
-    tf2::Vector3 dir(0.0, 0.0, 0.0);
-    if (dist > k_vec_eps) {
-        dir = diff * (1.0 / dist);
-    }
+    if (dist > 1e-4) {
+        double gain = dist / m_slowdown;
+        double clamp_speed =
+            std::clamp(gain * gain, 0.05, 1.0) * m_speed;
+        auto step = diff.normalized() * clamp_speed;
 
-    const double clamp_speed =
-        std::clamp(dist / m_slowdown, 0.05, 1.0) * m_speed;
-    const tf2::Vector3 step = dir * clamp_speed;
-    tf2::Vector3 new_pos = curr + step;
+        curr += step;
+    }
 
     double yaw_out = curr_yaw;
     if (std::abs(diff_yaw) <= m_yaw_rate) {
@@ -160,12 +160,8 @@ void navigation_controller::update(
     yaw_out = normalize_angle(yaw_out);
 
     m_setpoint = current_pose;
-    tf2::toMsg(new_pos, m_setpoint.pose.position);
+    tf2::toMsg(curr, m_setpoint.pose.position);
     set_yaw(m_setpoint.pose.orientation, yaw_out);
-
-    if (m_setpoint.pose.position.z < m_height_low) {
-        m_setpoint.pose.position.z = m_height_low;
-    }
 }
 
 }  // namespace clover2_fcu_bridge

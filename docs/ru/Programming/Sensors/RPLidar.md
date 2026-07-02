@@ -113,27 +113,20 @@ distance = ranges[i]
 
 ## Использование
 
-Запуск выполняется из окружения ROS 2.
+### Запуск через `clover2-settings`
 
-В первом терминале запустите драйвер RPLidar C1:
+Чтобы включить лидар в Клевер необходимо открыть настройки `clover2-settings` и в группе `2d_lidar` включить настройку `enable`.
 
-```bash
-ros2 run rplidar_ros rplidar_composition --ros-args \
-  -p serial_port:=/dev/rplidar \
-  -p serial_baudrate:=460800 \
-  -p frame_id:=laser \
-  -p inverted:=false \
-  -p angle_compensate:=true \
-  -p scan_mode:=Standard \
-  -p topic_name:=scan
+```{figure} @assets@/common/programming/sensors/rplidar/2d-lidar-enable.webp
+:alt: Экран настроек 2d_lidar
+:width: 90%
+:align: center
 ```
+<br>
 
-При успешном запуске в терминале появится лог:
-
-```text
-RPLidar running on ROS2 package rplidar_ros. RPLIDAR SDK Version:2.1.0
-RPLidar health status : OK.
-current scan mode: Standard, sample rate: 5 Khz, max_distance: 16.0 m, scan frequency:10.0 Hz
+Затем необходимо перезапустить сервис clover2:
+```bash
+sudo systemctl restart clover2
 ```
 
 После успешного запуска лидар начнёт вращаться, а драйвер будет публиковать данные в топик `/scan` с типом сообщения `sensor_msgs/msg/LaserScan`.
@@ -172,3 +165,26 @@ ros2 topic echo --once /scan --field ranges
 ```
 
 Если `/scan` публикуется с ненулевой частотой, а поле `ranges` содержит массив расстояний в метрах, лидар работает корректно.
+
+### Ручной запуск лидара
+
+В первом терминале запустите драйвер RPLidar C1:
+
+```bash
+ros2 run rplidar_ros rplidar_composition --ros-args \
+  -p serial_port:=/dev/rplidar \
+  -p serial_baudrate:=460800 \
+  -p frame_id:=laser \
+  -p inverted:=false \
+  -p angle_compensate:=true \
+  -p scan_mode:=Standard \
+  -p topic_name:=scan
+```
+
+При успешном запуске в терминале появится лог:
+
+```text
+RPLidar running on ROS2 package rplidar_ros. RPLIDAR SDK Version:2.1.0
+RPLidar health status : OK.
+current scan mode: Standard, sample rate: 5 Khz, max_distance: 16.0 m, scan frequency:10.0 Hz
+```

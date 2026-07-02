@@ -1,0 +1,69 @@
+name: "2035"
+frame_id: map
+version: 0
+default_size: 0.30
+
+markers:
+  - id: 12
+    pose:
+      x: 0
+  - id: 13
+    pose:
+      x: 1
+  - id: 14
+    pose:
+      x: 2
+  - id: 15
+    pose:
+      x: 3
+
+  - id: 8
+    pose:
+      y: 1
+      x: 0
+  - id: 9
+    pose:
+      y: 1
+      x: 1
+  - id: 10
+    pose:
+      y: 1
+      x: 2
+  - id: 11
+    pose:
+      y: 1
+      x: 3
+
+  - id: 4
+    pose:
+      y: 2
+      x: 0
+  - id: 5
+    pose:
+      y: 2
+      x: 1
+  - id: 6
+    pose:
+      y: 2
+      x: 2
+  - id: 7
+    pose:
+      y: 2
+      x: 3
+
+  - id: 0
+    pose:
+      y: 3
+      x: 0
+  - id: 1
+    pose:
+      y: 3
+      x: 1
+  - id: 2
+    pose:
+      y: 3
+      x: 2
+  - id: 3
+    pose:
+      y: 3
+      x: 3

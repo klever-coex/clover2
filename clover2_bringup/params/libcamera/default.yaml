@@ -1,0 +1,11 @@
+/**:
+  ros__parameters:
+    use_intra_process_comms: true
+    # camera: 0
+    width: 640
+    height: 480
+    format: "RGB888"
+    ExposureTime: 1500
+    ExposureTimeMode: 1
+    FrameDurationLimits: [33333, 33333]
+    HdrMode: 0

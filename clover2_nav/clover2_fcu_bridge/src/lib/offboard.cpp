@@ -19,7 +19,7 @@
 #include <string>
 
 namespace {
-constexpr const double speed_low_limit = 0.1;
+constexpr const double k_speed_low_limit = 0.1;
 }  // namespace
 
 namespace clover2_fcu_bridge {
@@ -52,19 +52,29 @@ void offboard::set_process_callback(process_callback&& cb) {
     m_process_callback = std::move(cb);
 }
 
+void offboard::set_speed_limit(double speed) {  //
+    m_nav.set_speed_limit(speed);
+}
+
+double offboard::get_speed_limit() const {  //
+    return m_nav.get_speed_limit();
+}
+
 void offboard::set_tolerance(double tolerance) {
-    m_tolerance = tolerance;
     m_nav.set_tolerance(tolerance);
 }
 
-double offboard::get_tolerance() const { return m_tolerance; }
+double offboard::get_tolerance() const {  //
+    return m_nav.get_tolerance();
+}
 
 void offboard::set_slowdown_distance(double distance) {
-    m_slowdown_distance = distance;
     m_nav.set_slowdown_distance(distance);
 }
 
-double offboard::get_slowdown_distance() const { return m_slowdown_distance; }
+double offboard::get_slowdown_distance() const {
+    return m_nav.get_slowdown_distance();
+}
 
 void offboard::set_position(const std::string& frame_id,
                             std::optional<double> x, std::optional<double> y,
@@ -93,10 +103,9 @@ void offboard::navigate(const std::string& frame_id, std::optional<double> x,
         throw std::runtime_error("Trying navigate from invalid state.");
     }
 
-    const double clamped = std::clamp(speed, speed_low_limit, m_speed_limit);
-    m_nav.set_speed_limits(clamped, m_speed_limit);
-    m_nav.set_yaw_rate(m_yaw_speed);
-    m_nav.set_height_low(m_height_low);
+    const double clamped = std::clamp(speed, k_speed_low_limit, m_nav.get_speed_limit());
+    m_nav.set_speed(clamped);
+    m_nav.set_yaw_rate(m_nav.get_yaw_rate());
 
     geometry_msgs::msg::PoseStamped pose_in_req;
     pose_in_req.header.frame_id = m_local_frame;
@@ -246,8 +255,8 @@ void offboard::publish_offboard() {
     m_fcu.set_position_setpoint(x, y, z, yaw);
 
     RCLCPP_DEBUG_THROTTLE(get_logger(), *m_clock, 1000,
-                         "publish pose: x: %.02f y: %.02f z: %.02f yaw: %.02f",
-                         x, y, z, yaw);
+                          "publish pose: x: %.02f y: %.02f z: %.02f yaw: %.02f",
+                          x, y, z, yaw);
 
     if (m_process_callback) {
         m_process_callback();

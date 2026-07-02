@@ -1,7 +1,6 @@
 #pragma once
 
 // ROS2 includes
-#include "std_msgs/msg/header.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
@@ -50,6 +49,9 @@ private:
 
     // Camera parameters
     std::string m_frame_id;
+
+    // Publish parameters
+    double m_xy_variation{0.4}, m_z_variation{0.4};
 
     // Detection parameters
     std::shared_ptr<clover2::map::client> m_map_client;

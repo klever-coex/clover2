@@ -1,0 +1,9 @@
+/**:
+  ros__parameters:
+    use_intra_process_comms: true
+    feature_plugins: ["aruco"]
+    aruco:
+      plugin: "clover2::cam_feature::plugins::aruco"
+      cornerRefinementMethod: 2
+      minMarkerPerimeterRate: 0.075
+      adaptiveThreshConstant: 25.0

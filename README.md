@@ -4,7 +4,6 @@
 
 [![ROS 2](https://img.shields.io/badge/ROS_2-Jazzy-blue?logo=ros)](https://docs.ros.org/en/jazzy)
 [![PX4](https://img.shields.io/badge/PX4-1.16+-purple)](https://px4.io)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue?logo=apache)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](docker/)
 
 **Klever** is a modern educational and research platform featuring a programmable quadcopter, designed for rapid prototyping, learning, and autonomous drone development.

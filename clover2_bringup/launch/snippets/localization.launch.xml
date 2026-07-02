@@ -1,0 +1,30 @@
+<launch>
+    <arg name="map" default="example-1.yaml" />
+    <arg name="map_server" default="true" />
+    <arg name="aruco_tracker" default="false" />
+
+    <arg name="feature_detector_node" default="/main_camera/cam_feature" />
+    <arg name="output_pose_topic" default="/mavros/clover2_vio/pose_cov" />
+
+    <arg name="use_sim_time" default="false" />
+    <arg name="ns" default="" description="Should starts with / or be empty" />
+    <arg name="param_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
+
+    <map_server map="$(var map)" namespace="$(var ns)" use_sim_time="$(var use_sim_time)" if="$(var map_server)">
+        <resource_path value="/opt/clover2/map" />
+        <resource_path value="$(find-pkg-share clover2_map)/map" />
+
+        <param from="$(var param_file)" />
+    </map_server>
+
+    <node pkg="clover2_aruco" exec="tracker" name="aruco_tracker" namespace="$(var ns)" if="$(var aruco_tracker)">
+
+        <remap from="~/map_update" to="map_server/map_update" />
+        <remap from="~/get_map" to="map_server/get_map" />
+
+        <remap from="~/markers" to="$(var feature_detector_node)/output/markers" />
+        <remap from="~/pose_cov" to="$(var output_pose_topic)" />
+
+        <param from="$(var param_file)" />
+    </node>
+</launch>

@@ -200,7 +200,7 @@ bool offboard_fsm::position_close_enough(
 
     constexpr double yaw_tol = 0.05;
 
-    return d.length() < nav.tolerance() && std::abs(dyaw) < yaw_tol;
+    return d.length() < nav.get_tolerance() && std::abs(dyaw) < yaw_tol;
 }
 
 std::optional<offboard_fsm::event> offboard_fsm::poll_automatic_events(

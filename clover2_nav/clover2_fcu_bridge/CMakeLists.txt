@@ -20,10 +20,12 @@ find_package(rclcpp_action REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(bondcpp REQUIRED)
 find_package(tf2_ros REQUIRED)
 
 # Define common dependencies list for reuse
 set(dependencies
+  bondcpp
   clover2_common
   clover2_nav_msgs
   mavros_msgs

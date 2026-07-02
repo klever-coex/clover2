@@ -7,18 +7,20 @@ FROM ${BASE_IMAGE} AS rosdep-depend
 ARG ROS_DISTRO
 COPY tooling/docker/* /clover2/
 
-# WORKDIR /clover2_ws
-# COPY . /clover2_ws/src/clover2
 WORKDIR /ws
 COPY clover2/package.xml /ws/src/clover2/package.xml
+COPY clover2_bringup/package.xml /ws/src/clover2_bringup/package.xml
 COPY clover2_common/package.xml /ws/src/clover2_common/package.xml
-COPY clover2_nav/clover2_cam_feature/package.xml /ws/src/clover2_nav/clover2_cam_feature/package.xml
-COPY clover2_nav/clover2_pose_msgs/package.xml /ws/src/clover2_nav/clover2_pose_msgs/package.xml
-COPY clover2_nav/clover2_optical_flow/package.xml /ws/src/clover2_nav/clover2_optical_flow/package.xml
-COPY clover2_nav/clover2_map/package.xml /ws/src/clover2_nav/clover2_map/package.xml
-COPY clover2_nav/clover2_aruco/package.xml /ws/src/clover2_nav/clover2_aruco/package.xml
-COPY clover2_nav_msgs/package.xml /ws/src/clover2_nav_msgs/package.xml
-COPY clover2_fcu_bridge/package.xml /ws/src/clover2_fcu_bridge/package.xml
+COPY clover2_description/package.xml /ws/src/clover2_description/package.xml
+COPY clover2_loc/clover2_aruco/package.xml /ws/src/clover2_loc/clover2_aruco/package.xml
+COPY clover2_loc/clover2_cam_feature/package.xml /ws/src/clover2_loc/clover2_cam_feature/package.xml
+COPY clover2_loc/clover2_map/package.xml /ws/src/clover2_loc/clover2_map/package.xml
+COPY clover2_loc/clover2_optical_flow/package.xml /ws/src/clover2_loc/clover2_optical_flow/package.xml
+COPY clover2_loc/clover2_pose_msgs/package.xml /ws/src/clover2_loc/clover2_pose_msgs/package.xml
+COPY clover2_nav/clover2_fcu_bridge/package.xml /ws/src/clover2_nav/clover2_fcu_bridge/package.xml
+COPY clover2_nav/clover2_mavros/package.xml /ws/src/clover2_nav/clover2_mavros/package.xml
+COPY clover2_nav/clover2_nav_msgs/package.xml /ws/src/clover2_nav/clover2_nav_msgs/package.xml
+COPY clover2_ui/package.xml /ws/src/clover2_ui/package.xml
 
 RUN /clover2/rosdep-parse.sh /ws/src $ROS_DISTRO --dependency-types=exec > /clover2/apt-depends.txt && \
     cat /clover2/apt-depends.txt
