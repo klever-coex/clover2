@@ -9,9 +9,17 @@
 #include <sensor_msgs/image_encodings.hpp>
 
 // STL
+#include <chrono>
 #include <cmath>
 #include <memory>
+#include <string>
 #include <vector>
+
+namespace {
+
+constexpr const char* optical_flow_diagnostic_name = "Optical flow status";
+
+}  // namespace
 
 namespace clover2::optical_flow {
 
@@ -72,6 +80,9 @@ optical_flow::CallbackReturn optical_flow::on_configure(
     m_tf_listener = std::make_unique<tf2_ros::TransformListener>(
         *m_tf_buffer, shared_from_this());
 
+    get_diagnostic_updater()->add(optical_flow_diagnostic_name, this,
+                                  &optical_flow::produce_diagnostics);
+
     RCLCPP_INFO(get_logger(), "Optical Flow configured");
 
     return CallbackReturn::SUCCESS;
@@ -113,6 +124,8 @@ optical_flow::CallbackReturn optical_flow::on_deactivate(
 
 optical_flow::CallbackReturn optical_flow::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
+    get_diagnostic_updater()->removeByName(optical_flow_diagnostic_name);
+
     // Cleanup TF
     m_tf_buffer.reset();
     m_tf_listener.reset();
@@ -148,6 +161,7 @@ void optical_flow::camera_info_callback(
     }
 
     m_camera_model.fromCameraInfo(msg);
+    m_last_camera_info_stamp = msg->header.stamp;
 }
 
 void optical_flow::draw_flow(cv::Mat& frame, double x, double y,
@@ -169,10 +183,20 @@ void optical_flow::flow_callback(
     const sensor_msgs::msg::Image::ConstSharedPtr& msg) {
     std::lock_guard<std::mutex> camera_info_guard(m_camera_info_mtx);
 
+    m_last_image_stamp = msg->header.stamp;
+    m_last_image_width = msg->width;
+    m_last_image_height = msg->height;
+    m_last_image_encoding = msg->encoding;
+    ++m_received_frames;
+
     if (!m_camera_model.initialized()) {
-        RCLCPP_ERROR(get_logger(), "Camera info not initialized");
+        ++m_skipped_frames;
+        RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000,
+                             "Camera info not initialized");
         return;
     }
+
+    const auto start = std::chrono::steady_clock::now();
 
     auto img = cv_bridge::toCvShare(msg, "mono8")->image;
 
@@ -188,11 +212,15 @@ void optical_flow::flow_callback(
     img.convertTo(m_curr, CV_32F);
 
     rclcpp::Time current_stamp(msg->header.stamp);
-    if (m_prev.empty() || (current_stamp - m_prev_stamp).seconds() >
-                              0.1) {  // outdated previous frame
+    const bool reference_empty = m_prev.empty();
+    const bool reference_outdated =
+        !reference_empty && (current_stamp - m_prev_stamp).seconds() > 0.1;
+    if (reference_empty || reference_outdated) {
         m_prev = m_curr.clone();
         m_prev_stamp = current_stamp;
         cv::createHanningWindow(m_hann, m_curr.size(), CV_32F);
+
+        ++m_skipped_frames;
 
         return;
     }
@@ -236,8 +264,11 @@ void optical_flow::flow_callback(
     try {
         m_tf_buffer->transform(flow_camera, flow_fcu, m_fcu_frame_id);
     } catch (const tf2::TransformException& e) {
+        ++m_skipped_frames;
+        m_last_required_tf_ok = false;
         return;
     }
+    m_last_required_tf_ok = true;
 
     // Calculate integration time
     rclcpp::Duration integration_time = current_stamp - m_prev_stamp;
@@ -271,6 +302,10 @@ void optical_flow::flow_callback(
     flow_msg.quality = static_cast<uint8_t>(response * 255);
     m_flow_pub->publish(flow_msg);
 
+    ++m_processed_frames;
+    m_last_flow_publish_stamp = msg->header.stamp;
+    m_last_quality = response;
+
     m_prev = m_curr.clone();
     m_prev_stamp = current_stamp;
 
@@ -285,6 +320,82 @@ void optical_flow::flow_callback(
         out_msg.image = img;
         m_debug_pub->publish(*out_msg.toImageMsg());
     }
+
+    m_last_processing_ms = std::chrono::duration<double, std::milli>(
+                               std::chrono::steady_clock::now() - start)
+                               .count();
+}
+
+void optical_flow::produce_diagnostics(
+    diagnostic_updater::DiagnosticStatusWrapper& stat) {
+    std::lock_guard<std::mutex> guard(m_camera_info_mtx);
+
+    const bool camera_ready = m_camera_model.initialized();
+    if (!camera_ready) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Waiting for Camera Info");
+    } else if (!m_last_required_tf_ok) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+                     "Required TF transform failed");
+    } else if (m_processed_frames == 0) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Waiting for optical flow output");
+    } else {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "Running");
+    }
+
+    stat.add("Camera info initialized", camera_ready ? "true" : "false");
+    stat.add("Received frames", std::to_string(m_received_frames));
+    stat.add("Processed frames", std::to_string(m_processed_frames));
+    stat.add("Skipped frames", std::to_string(m_skipped_frames));
+    stat.add("Required TF ok", m_last_required_tf_ok ? "true" : "false");
+    stat.add("Last processing time, ms", m_last_processing_ms);
+    stat.add("Last quality", m_last_quality);
+    stat.add("ROI size, px", m_roi_px);
+    stat.add("Calculate flow gyro", m_calc_flow_gyro ? "true" : "false");
+    stat.add("Local frame", m_local_frame_id);
+    stat.add("FCU frame", m_fcu_frame_id);
+    stat.add("Flow publisher subscribers",
+             m_flow_pub ? m_flow_pub->get_subscription_count() : 0);
+    stat.add("Debug subscribers",
+             m_debug_pub ? m_debug_pub->get_subscription_count() : 0);
+
+    if (camera_ready) {
+        stat.add("Camera frame", m_camera_model.tfFrame());
+    } else {
+        stat.add("Camera frame", "unknown");
+    }
+
+    if (m_last_image_stamp.nanoseconds() == 0) {
+        stat.add("Last image age, sec", "never");
+    } else {
+        stat.add("Last image age, sec",
+                 (now() - m_last_image_stamp).seconds());
+    }
+
+    if (m_last_camera_info_stamp.nanoseconds() == 0) {
+        stat.add("Last camera info age, sec", "never");
+    } else {
+        stat.add("Last camera info age, sec",
+                 (now() - m_last_camera_info_stamp).seconds());
+    }
+
+    if (m_last_flow_publish_stamp.nanoseconds() == 0) {
+        stat.add("Last flow publish age, sec", "never");
+    } else {
+        stat.add("Last flow publish age, sec",
+                 (now() - m_last_flow_publish_stamp).seconds());
+    }
+
+    if (m_last_image_width == 0 || m_last_image_height == 0) {
+        stat.add("Last image size", "unknown");
+    } else {
+        stat.add("Last image size", std::to_string(m_last_image_width) + "x" +
+                                        std::to_string(m_last_image_height));
+    }
+
+    stat.add("Last image encoding",
+             m_last_image_encoding.empty() ? "unknown" : m_last_image_encoding);
 }
 
 geometry_msgs::msg::Vector3Stamped optical_flow::calc_flow_gyro(

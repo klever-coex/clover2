@@ -94,6 +94,9 @@ public:
         const rclcpp::Time& curr);
 
 private:
+    void produce_diagnostics(
+        diagnostic_updater::DiagnosticStatusWrapper& stat);
+
     // Parameters
     int m_roi_px;                  ///< ROI size in pixels
     bool m_calc_flow_gyro;         ///< Calculate flow gyro from TF
@@ -119,6 +122,18 @@ private:
 
     // Diagnostics
     std::shared_ptr<diagnostic_updater::Updater> m_diagnostic_updater;
+    rclcpp::Time m_last_image_stamp;
+    rclcpp::Time m_last_camera_info_stamp;
+    rclcpp::Time m_last_flow_publish_stamp;
+    double m_last_processing_ms{0.0};
+    double m_last_quality{0.0};
+    size_t m_received_frames{0};
+    size_t m_processed_frames{0};
+    size_t m_skipped_frames{0};
+    uint32_t m_last_image_width{0};
+    uint32_t m_last_image_height{0};
+    std::string m_last_image_encoding;
+    bool m_last_required_tf_ok{true};
 
     // Publishers and subscribers
     rclcpp::Publisher<mavros_msgs::msg::OpticalFlowRad>::SharedPtr
