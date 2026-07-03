@@ -6,6 +6,17 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_msgs/msg/tf_message.hpp>
 
+// STL
+#include <chrono>
+#include <mutex>
+#include <string>
+
+namespace {
+
+constexpr const char* aruco_tracker_diagnostic_name = "Aruco tracker status";
+
+}  // namespace
+
 namespace clover2::aruco {
 
 tracker::tracker(const rclcpp::NodeOptions& options)
@@ -70,6 +81,9 @@ tracker::CallbackReturn tracker::on_configure(
         return CallbackReturn::FAILURE;
     }
 
+    get_diagnostic_updater()->add(aruco_tracker_diagnostic_name, this,
+                                  &tracker::produce_diagnostics);
+
     RCLCPP_INFO(get_logger(), "Configured");
     return tracker::CallbackReturn::SUCCESS;
 }
@@ -119,6 +133,8 @@ tracker::CallbackReturn tracker::on_deactivate(
 
 tracker::CallbackReturn tracker::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
+    get_diagnostic_updater()->removeByName(aruco_tracker_diagnostic_name);
+
     m_map_client.reset();
 
     RCLCPP_INFO(get_logger(), "Cleaned up");
@@ -132,7 +148,17 @@ tracker::CallbackReturn tracker::on_shutdown(
 
 void tracker::markers_callback(
     const clover2_pose_msgs::msg::MarkerArray::SharedPtr msg) {
+    const auto start = std::chrono::steady_clock::now();
+
+    {
+        std::lock_guard<std::mutex> guard(m_diagnostics_mtx);
+        m_last_markers_stamp = msg->header.stamp;
+        m_last_marker_count = msg->markers.size();
+    }
+
     if (msg->markers.size() == 0) {
+        std::lock_guard<std::mutex> guard(m_diagnostics_mtx);
+        ++m_skipped_marker_arrays;
         return;
     }
 
@@ -147,7 +173,14 @@ void tracker::markers_callback(
         RCLCPP_ERROR(get_logger(), "Unable got transform %s to %s: %s",
                      m_frame_id.c_str(), msg->header.frame_id.c_str(),
                      ex.what());
+        std::lock_guard<std::mutex> guard(m_diagnostics_mtx);
+        ++m_skipped_marker_arrays;
+        m_last_tf_ok = false;
         return;
+    }
+    {
+        std::lock_guard<std::mutex> guard(m_diagnostics_mtx);
+        m_last_tf_ok = true;
     }
 
     // tracking position
@@ -213,9 +246,95 @@ void tracker::markers_callback(
 
     publish_tf(estimated_pose.header, result_pose.inverse());
 
+    {
+        std::lock_guard<std::mutex> guard(m_diagnostics_mtx);
+        ++m_processed_marker_arrays;
+        m_last_pose_publish_stamp = msg->header.stamp;
+        m_last_processing_ms = std::chrono::duration<double, std::milli>(
+                                   std::chrono::steady_clock::now() - start)
+                                   .count();
+    }
+
     // publish tracker id poses form each marker
     if (m_poses_debug_pub->get_subscription_count() != 0) {
         m_poses_debug_pub->publish(poses_debug);
+    }
+}
+
+void tracker::produce_diagnostics(
+    diagnostic_updater::DiagnosticStatusWrapper& stat) {
+    rclcpp::Time last_markers_stamp;
+    rclcpp::Time last_pose_publish_stamp;
+    size_t processed_marker_arrays;
+    size_t skipped_marker_arrays;
+    size_t last_marker_count;
+    double last_processing_ms;
+    bool last_tf_ok;
+
+    {
+        std::lock_guard<std::mutex> guard(m_diagnostics_mtx);
+        last_markers_stamp = m_last_markers_stamp;
+        last_pose_publish_stamp = m_last_pose_publish_stamp;
+        processed_marker_arrays = m_processed_marker_arrays;
+        skipped_marker_arrays = m_skipped_marker_arrays;
+        last_marker_count = m_last_marker_count;
+        last_processing_ms = m_last_processing_ms;
+        last_tf_ok = m_last_tf_ok;
+    }
+
+    if (last_markers_stamp.nanoseconds() == 0) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Waiting for markers");
+    } else if (last_marker_count == 0) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "No visible markers");
+    } else if (!last_tf_ok) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+                     "Required TF transform failed");
+    } else if (processed_marker_arrays == 0) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Waiting for pose output");
+    } else {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "Running");
+    }
+
+    stat.add("Processed marker arrays",
+             std::to_string(processed_marker_arrays));
+    stat.add("Skipped marker arrays", std::to_string(skipped_marker_arrays));
+    stat.add("Last marker count", std::to_string(last_marker_count));
+    stat.add("Last processing time, ms", last_processing_ms);
+    stat.add("Camera/base TF ok", last_tf_ok ? "true" : "false");
+    stat.add("Tracking frame", m_frame_id);
+    stat.add("TF send", m_tf_send ? "true" : "false");
+    stat.add("TF child frame", m_child_frame_id);
+    stat.add("XY variation", m_xy_variation);
+    stat.add("Z variation", m_z_variation);
+    stat.add("Pose subscribers",
+             m_pose_pub ? m_pose_pub->get_subscription_count() : 0);
+    stat.add("Pose covariance subscribers",
+             m_pose_cov_pub ? m_pose_cov_pub->get_subscription_count() : 0);
+    stat.add("Debug subscribers",
+             m_poses_debug_pub ? m_poses_debug_pub->get_subscription_count()
+                               : 0);
+
+    if (m_map_client) {
+        stat.add("Map frame", m_map_client->get_map_id());
+    } else {
+        stat.add("Map frame", "unknown");
+    }
+
+    if (last_markers_stamp.nanoseconds() == 0) {
+        stat.add("Last markers age, sec", "never");
+    } else {
+        stat.add("Last markers age, sec",
+                 (now() - last_markers_stamp).seconds());
+    }
+
+    if (last_pose_publish_stamp.nanoseconds() == 0) {
+        stat.add("Last pose publish age, sec", "never");
+    } else {
+        stat.add("Last pose publish age, sec",
+                 (now() - last_pose_publish_stamp).seconds());
     }
 }
 

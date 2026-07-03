@@ -94,9 +94,30 @@ ament_export_targets(
 )
 
 if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
+  find_package(diagnostic_msgs REQUIRED)
+
+  ament_add_gtest(test_aruco_tracker_diagnostics
+    test/test_aruco_tracker_diagnostics.cpp
+  )
+  target_link_libraries(test_aruco_tracker_diagnostics
+    clover2_aruco_tracker
+  )
+  ament_target_dependencies(test_aruco_tracker_diagnostics
+    clover2_pose_msgs
+    diagnostic_msgs
+    rclcpp
+  )
+  file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/ros_log")
+  set_tests_properties(test_aruco_tracker_diagnostics PROPERTIES
+    ENVIRONMENT "ROS_LOG_DIR=${CMAKE_CURRENT_BINARY_DIR}/ros_log"
+  )
+
   set(ament_cmake_copyright_FOUND TRUE)
   set(ament_cmake_cpplint_FOUND TRUE)
+  set(ament_cmake_uncrustify_FOUND TRUE)
+  set(ament_cmake_xmllint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
 

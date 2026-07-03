@@ -1,5 +1,8 @@
 #pragma once
 
+// STL
+#include <mutex>
+
 // ROS2 includes
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
@@ -47,6 +50,9 @@ private:
     void publish_tf(const std_msgs::msg::Header& header,
                     Eigen::Isometry3d pose);
 
+    void produce_diagnostics(
+        diagnostic_updater::DiagnosticStatusWrapper& stat);
+
     // Camera parameters
     std::string m_frame_id;
 
@@ -62,6 +68,16 @@ private:
     std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
     std::shared_ptr<tf2_ros::Buffer> m_tf_buffer;
     std::shared_ptr<tf2_ros::TransformListener> m_tf_listener;
+
+    // Diagnostics
+    mutable std::mutex m_diagnostics_mtx;
+    rclcpp::Time m_last_markers_stamp;
+    rclcpp::Time m_last_pose_publish_stamp;
+    size_t m_processed_marker_arrays{0};
+    size_t m_skipped_marker_arrays{0};
+    size_t m_last_marker_count{0};
+    double m_last_processing_ms{0.0};
+    bool m_last_tf_ok{true};
 
     // Publishers and subscribers
     rclcpp::CallbackGroup::SharedPtr m_callback_group;
