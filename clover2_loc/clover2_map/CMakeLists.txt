@@ -11,6 +11,7 @@ find_package(ament_cmake_ros REQUIRED)
 
 find_package(clover2_pose_msgs REQUIRED)
 find_package(clover2_common REQUIRED)
+find_package(diagnostic_updater REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
@@ -23,6 +24,7 @@ find_package(yaml-cpp REQUIRED)
 set(dependencies
   clover2_pose_msgs
   clover2_common
+  diagnostic_updater
   geometry_msgs
   rclcpp
   rclcpp_components
