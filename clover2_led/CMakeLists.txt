@@ -21,11 +21,27 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME}
     "rosidl_typesupport_cpp")
 
-ament_auto_add_library(${PROJECT_NAME}_driver
-  src/led_driver.cpp
+ament_auto_add_library(${PROJECT_NAME}_device SHARED DIRECTORY "src/device")
+target_link_libraries(${PROJECT_NAME}_device ${cpp_typesupport_target})
+
+ament_auto_add_library(${PROJECT_NAME}_driver src/driver.cpp)
+target_link_libraries(${PROJECT_NAME}_driver
+  ${cpp_typesupport_target}
+  ${PROJECT_NAME}_device
 )
 
-target_link_libraries(${PROJECT_NAME}_driver ${cpp_typesupport_target})
+ament_auto_add_executable(driver src/main.cpp)
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+
+  file(GLOB test_source RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "test/*.cpp")
+  ament_auto_add_gtest(test_${PROJECT_NAME}
+    ${test_source}
+  )
+
+  target_link_libraries(test_${PROJECT_NAME} ${cpp_typesupport_target})
+endif()
 
 ament_auto_package(
   USE_SCOPED_HEADER_INSTALL_DIR
