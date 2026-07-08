@@ -48,15 +48,12 @@ namespace clover2_fcu_bridge {
 server::server(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("fcu_bridge", options)
     , m_backend_name("mavros") {
-    m_parameter_watcher =
-        std::make_shared<clover2_common::parameter_watcher>(*this);
-
     enable_diagnostic_updater();
 
     m_service_callback_group =
         create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
-    m_parameter_watcher->declare_and_watch_parameter<std::string>(
+    declare_and_watch_parameter<std::string>(
         "backend", m_backend_name,
         [this](const rclcpp::Parameter& p) {
             const std::string name = p.as_string();
@@ -65,7 +62,7 @@ server::server(const rclcpp::NodeOptions& options)
         },
         "Offboard backend name for fabric (e.g. mavros)");
 
-    m_parameter_watcher->declare_and_watch_parameter<double>(
+    declare_and_watch_parameter<double>(
         "speed_limit", m_speed_limit,
         [this](const rclcpp::Parameter& p) {
             if (p.as_double() < 0.1) {
@@ -80,7 +77,7 @@ server::server(const rclcpp::NodeOptions& options)
         },
         "Controller speed limit");
 
-    m_parameter_watcher->declare_and_watch_parameter<double>(
+    declare_and_watch_parameter<double>(
         "tolerance", m_tolerance,
         [this](const rclcpp::Parameter& p) {
             m_tolerance = p.as_double();
@@ -91,7 +88,7 @@ server::server(const rclcpp::NodeOptions& options)
         },
         "Controller tolerance");
 
-    m_parameter_watcher->declare_and_watch_parameter<double>(
+    declare_and_watch_parameter<double>(
         "slowdown_distance", m_slowdown,
         [this](const rclcpp::Parameter& p) {
             m_slowdown = p.as_double();

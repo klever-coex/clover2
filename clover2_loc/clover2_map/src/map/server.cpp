@@ -19,9 +19,8 @@ constexpr const char* map_server_diagnostic_name = "Map server status";
 namespace clover2::map {
 
 server::server(const rclcpp::NodeOptions& options)
-    : rclcpp::Node("map_server", options)
-    , m_parameter_watcher(*this) {
-    m_parameter_watcher.declare_and_watch_parameter<std::string>(
+    : clover2_common::node("map_server", options) {
+    declare_and_watch_parameter<std::string>(
         "map", "",
         [this](const rclcpp::Parameter& p) {  //
             auto new_file = std::filesystem::path(p.as_string());

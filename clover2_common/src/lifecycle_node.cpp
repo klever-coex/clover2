@@ -1,5 +1,6 @@
 // clover2
 #include <clover2_common/lifecycle_node.hpp>
+#include <clover2_common/node_interfaces/node_parameters_watcher.hpp>
 
 // msgs
 #include <lifecycle_msgs/msg/state.hpp>
@@ -10,10 +11,11 @@ namespace clover2_common {
 
 lifecycle_node::lifecycle_node(const std::string& node_name,
                                const rclcpp::NodeOptions& options)
-    : rclcpp_lifecycle::LifecycleNode(node_name, options) {
+    : rclcpp_lifecycle::LifecycleNode(node_name, options)
+    , m_parameters_watcher(new node_interfaces::NodeParametersWatcher(
+          get_node_parameters_interface())) {
     declare_parameter("autostart", true);
     enable_diagnostic_updater();
-    enable_parameter_watcher();
 
     if (get_parameter("autostart").as_bool()) {
         m_init_timer =
@@ -42,18 +44,9 @@ void lifecycle_node::enable_diagnostic_updater() {
                   std::placeholders::_1));
 }
 
-void lifecycle_node::enable_parameter_watcher() {
-    m_parameter_watcher = std::make_shared<parameter_watcher>(*this);
-}
-
 std::shared_ptr<diagnostic_updater::Updater>
 lifecycle_node::get_diagnostic_updater() const {
     return m_diagnostic_updater;
-}
-
-std::shared_ptr<parameter_watcher> lifecycle_node::get_parameter_watcher()
-    const {
-    return m_parameter_watcher;
 }
 
 void lifecycle_node::produce_lifecycle_diagnostics(
@@ -87,6 +80,11 @@ void lifecycle_node::produce_lifecycle_diagnostics(
     }
 
     status.summaryf(level, "Lifecycle State: %s", state.label().c_str());
+}
+
+clover2_common::node_interfaces::NodeParametersWatcherInterface::SharedPtr
+lifecycle_node::get_node_parameters_watcher_interface() {
+    return m_parameters_watcher;
 }
 
 }  // namespace clover2_common

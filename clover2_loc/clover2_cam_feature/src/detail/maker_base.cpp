@@ -9,6 +9,7 @@
 // tf2
 #include <rclcpp/create_publisher.hpp>
 #include <tf2/LinearMath/Quaternion.h>
+#include <memory>
 
 namespace clover2::cam_feature::detail {
 
@@ -18,7 +19,7 @@ maker_base::maker_base()
 
 void maker_base::_configure(
     [[maybe_unused]] const std::string& name,
-    [[maybe_unused]] const rclcpp_lifecycle::LifecycleNode::WeakPtr& node,
+    [[maybe_unused]] const std::shared_ptr<clover2_common::node_context>& node,
     const std::shared_ptr<clover2::map::client>& map_client) {
     m_map_client = map_client;
 }
