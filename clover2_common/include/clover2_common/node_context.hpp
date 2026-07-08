@@ -1,5 +1,9 @@
 #pragma once
 
+// clover2
+#include <clover2_common/node_interfaces/node_parameters_watcher_interface.hpp>
+
+// ROS2
 #include <rclcpp/node_interfaces/node_base_interface.hpp>
 #include <rclcpp/node_interfaces/node_clock_interface.hpp>
 #include <rclcpp/node_interfaces/node_graph_interface.hpp>
@@ -14,11 +18,13 @@
 #include <rclcpp/node_interfaces/node_waitables_interface.hpp>
 #include <rclcpp/rclcpp.hpp>
 
+// STL
 #include <string>
 
 namespace clover2_common {
 
 using namespace rclcpp::node_interfaces;
+using namespace clover2_common::node_interfaces;
 class node_context : public NodeInterfaces<NodeBaseInterface,              //
                                            NodeClockInterface,             //
                                            NodeGraphInterface,             //
@@ -29,7 +35,8 @@ class node_context : public NodeInterfaces<NodeBaseInterface,              //
                                            NodeTimersInterface,            //
                                            NodeTopicsInterface,            //
                                            NodeTypeDescriptionsInterface,  //
-                                           NodeWaitablesInterface> {
+                                           NodeWaitablesInterface,         //
+                                           NodeParametersWatcherInterface> {
 public:
     template <typename NodeT>
     explicit node_context(NodeT& node)

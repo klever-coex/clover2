@@ -1,10 +1,13 @@
 #pragma once
 
 // clover2
-#include <clover2_common/parameter_watcher.hpp>
+#include <clover2_common/node_interfaces/node_parameters_watcher_interface.hpp>
+#include <clover2_common/util/parameter.hpp>
 
 // ROS2
 #include <diagnostic_updater/diagnostic_updater.hpp>
+#include <rclcpp/macros.hpp>
+#include <rclcpp/parameter.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 namespace clover2_common {
@@ -19,25 +22,25 @@ public:
     template <typename ParameterT>
     void declare_and_watch_parameter(
         const std::string& name, const ParameterT& default_value,
-        parameter_watcher::ParameterFunctorT cb,
+        clover2_common::util::ParameterFunctorT cb,
         const std::string& description = "",
         const std::string& additional_constraints = "", bool read_only = false,
         bool ignore_override = false) {
-        if (!m_parameter_watcher) {
-            throw std::runtime_error("Parameter watcher not created");
-        }
+        auto parameters_watcher = get_node_parameters_watcher_interface();
 
-        m_parameter_watcher->declare_and_watch_parameter(
-            name, default_value, cb, description, additional_constraints,
-            read_only, ignore_override);
+        clover2_common::util::declare_and_watch_parameter<ParameterT>(
+            parameters_watcher, name, default_value, cb, description,
+            additional_constraints, read_only, ignore_override);
     }
 
     std::shared_ptr<diagnostic_updater::Updater> get_diagnostic_updater() const;
-    std::shared_ptr<parameter_watcher> get_parameter_watcher() const;
+
+    // Custom node interfaces getters
+    clover2_common::node_interfaces::NodeParametersWatcherInterface::SharedPtr
+    get_node_parameters_watcher_interface();
 
 protected:
     void enable_diagnostic_updater();
-    void enable_parameter_watcher();
 
     void produce_lifecycle_diagnostics(
         diagnostic_updater::DiagnosticStatusWrapper& status);
@@ -45,8 +48,13 @@ protected:
     rclcpp::TimerBase::SharedPtr m_init_timer;
 
 private:
+    RCLCPP_DISABLE_COPY(node)
+
     std::shared_ptr<diagnostic_updater::Updater> m_diagnostic_updater;
-    std::shared_ptr<parameter_watcher> m_parameter_watcher;
+
+    // Custom node interfaces
+    clover2_common::node_interfaces::NodeParametersWatcherInterface::SharedPtr
+        m_parameters_watcher;
 };
 
 }  // namespace clover2_common

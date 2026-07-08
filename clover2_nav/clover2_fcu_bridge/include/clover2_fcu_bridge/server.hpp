@@ -2,7 +2,6 @@
 
 // clover2
 #include <clover2_common/lifecycle_node.hpp>
-#include <clover2_common/parameter_watcher.hpp>
 #include <clover2_fcu_bridge/backend/base_backend.hpp>
 #include <clover2_fcu_bridge/offboard.hpp>
 #include <clover2_nav_msgs/action/navigate_async.hpp>
@@ -62,7 +61,7 @@ private:
         const clover2_nav_msgs::srv::Navigate::Request::SharedPtr req,
         clover2_nav_msgs::srv::Navigate::Response::SharedPtr resp);
 
-    /// @brief Checks if a new goal can be accepted and reserves a slot 
+    /// @brief Checks if a new goal can be accepted and reserves a slot
     //  before calling the accepted callback
     /// @details Offboard navigation starts only after the bond is formed.
     rclcpp_action::GoalResponse handle_navigate_async_goal(
@@ -101,7 +100,6 @@ private:
     double m_slowdown{0.5};
 
     std::string m_backend_name;
-    clover2_common::parameter_watcher::SharedPtr m_parameter_watcher;
 
     rclcpp::CallbackGroup::SharedPtr m_service_callback_group;
 

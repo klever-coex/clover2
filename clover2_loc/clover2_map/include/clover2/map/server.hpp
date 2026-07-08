@@ -1,8 +1,8 @@
 #pragma once
 
 // clover2
-#include <clover2_common/parameter_watcher.hpp>
 #include <clover2/map/io/fs_provider.hpp>
+#include <clover2_common/node.hpp>
 
 // ROS2
 #include <clover2_pose_msgs/msg/marker_map.hpp>
@@ -18,7 +18,7 @@
 
 namespace clover2::map {
 
-class server : public rclcpp::Node {
+class server : public clover2_common::node {
 public:
     using SharedPtr = std::shared_ptr<server>;
     using SetParametersResult = rcl_interfaces::msg::SetParametersResult;
@@ -31,8 +31,6 @@ private:
         clover2_pose_msgs::srv::GetMap::Response::SharedPtr response);
 
     void update_map();
-
-    clover2_common::parameter_watcher m_parameter_watcher;
 
     std::recursive_mutex m_map_mtx;
     // std::filesystem::path m_map_path;
