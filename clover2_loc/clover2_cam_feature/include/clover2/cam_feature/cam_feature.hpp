@@ -4,7 +4,6 @@
 #include <clover2/cam_feature/base_plugin.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 #include <clover2_common/node.hpp>
-#include <clover2_common/parameter_watcher.hpp>
 #include <clover2/map/client.hpp>
 
 // ROS 2

@@ -1,12 +1,18 @@
+
+// clover2
 #include <clover2_common/node.hpp>
+#include <clover2_common/node_interfaces/node_parameters_watcher.hpp>
+
+// ROS2
 #include <rclcpp/node.hpp>
 
 namespace clover2_common {
 
 node::node(const std::string& node_name, const rclcpp::NodeOptions& options)
-    : rclcpp::Node(node_name, options) {
+    : rclcpp::Node(node_name, options)
+    , m_parameters_watcher(new node_interfaces::NodeParametersWatcher(
+          get_node_parameters_interface())) {
     enable_diagnostic_updater();
-    enable_parameter_watcher();
 }
 
 void node::enable_diagnostic_updater() {
@@ -14,17 +20,14 @@ void node::enable_diagnostic_updater() {
     m_diagnostic_updater->setHardwareID(this->get_name());
 }
 
-void node::enable_parameter_watcher() {
-    m_parameter_watcher = std::make_shared<parameter_watcher>(*this);
-}
-
 std::shared_ptr<diagnostic_updater::Updater> node::get_diagnostic_updater()
     const {
     return m_diagnostic_updater;
 }
 
-std::shared_ptr<parameter_watcher> node::get_parameter_watcher() const {
-    return m_parameter_watcher;
+clover2_common::node_interfaces::NodeParametersWatcherInterface::SharedPtr
+node::get_node_parameters_watcher_interface() {
+    return m_parameters_watcher;
 }
 
 }  // namespace clover2_common
