@@ -78,7 +78,7 @@ protected:
     rclcpp::Clock::SharedPtr m_clock;
     std::shared_ptr<clover2_common::node_context> m_node_context;
     clover2_common::node_interfaces::NodeParametersWatcherInterface::SharedPtr
-        m_parameters_watcher;
+        m_parameters_watcher{nullptr};
 };
 
 }  // namespace clover2::cam_feature

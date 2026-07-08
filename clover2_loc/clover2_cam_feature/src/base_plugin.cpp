@@ -11,7 +11,9 @@ base_plugin::base_plugin()
     , m_node_context(nullptr) {}
 
 base_plugin::~base_plugin() {
-    m_parameters_watcher->undeclare_watcher_parameters();
+    if (m_parameters_watcher) {
+        m_parameters_watcher->undeclare_watcher_parameters();
+    }
 }
 
 void base_plugin::configure(
