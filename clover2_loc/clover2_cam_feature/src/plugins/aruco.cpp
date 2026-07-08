@@ -67,11 +67,10 @@ public:
         auto parameters_interface =
             node_context->get_node_parameters_interface();
 
-        rclcpp::Parameter dictionary_id_param("4X4_50");
         clover2_common::util::declare_parameter_if_not_declared(
-            parameters_interface, name + ".marker_dict",
-            dictionary_id_param.as_string());
+            parameters_interface, name + ".marker_dict", "4X4_50");
 
+        rclcpp::Parameter dictionary_id_param;
         parameters_interface->get_parameter(name + ".marker_dict",
                                             dictionary_id_param);
 
@@ -122,7 +121,7 @@ private:
         WATCH_PARAM(minMarkerDistanceRate, double);
         WATCH_PARAM(cornerRefinementMethod, int);
         WATCH_PARAM(cornerRefinementWinSize, int);
-        WATCH_PARAM(polygonalApproxAccuracyRate, int);
+        WATCH_PARAM(cornerRefinementMaxIterations, int);
         WATCH_PARAM(cornerRefinementMinAccuracy, double);
         WATCH_PARAM(markerBorderBits, int);
         WATCH_PARAM(perspectiveRemovePixelPerCell, int);
