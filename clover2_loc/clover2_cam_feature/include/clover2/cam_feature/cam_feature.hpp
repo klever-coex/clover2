@@ -2,6 +2,7 @@
 
 // clover2
 #include <clover2/cam_feature/base_plugin.hpp>
+#include <clover2/cam_feature/cam_feature_diagnostics.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 #include <clover2_common/node.hpp>
 #include <clover2/map/client.hpp>
@@ -74,6 +75,7 @@ private:
         "clover2_cam_feature", "clover2::cam_feature::base_plugin"};
     std::unordered_map<std::string, base_plugin::SharedPtr> m_plugins;
 
+    CamFeatureDiagnostics::SharedPtr m_diagnostics;
     std::shared_ptr<clover2::map::client> m_map_client;
 
     rclcpp::Publisher<clover2_pose_msgs::msg::MarkerArray>::SharedPtr

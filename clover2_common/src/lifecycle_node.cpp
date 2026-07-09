@@ -1,5 +1,6 @@
 // clover2
 #include <clover2_common/lifecycle_node.hpp>
+#include <clover2_common/node_interfaces/node_diagnostics.hpp>
 #include <clover2_common/node_interfaces/node_parameters_watcher.hpp>
 
 // msgs
@@ -34,11 +35,17 @@ lifecycle_node::lifecycle_node(const std::string& node_name,
 
 lifecycle_node::~lifecycle_node() { RCLCPP_INFO(get_logger(), "Destroying"); }
 
+// думаю стоит удалить
 void lifecycle_node::enable_diagnostic_updater() {
-    m_diagnostic_updater = std::make_shared<diagnostic_updater::Updater>(this);
-    m_diagnostic_updater->setHardwareID(this->get_name());
+    if (m_diagnostics) {
+        return;
+    }
 
-    m_diagnostic_updater->add(
+    m_diagnostics = std::make_shared<node_interfaces::NodeDiagnostics>(
+        std::make_shared<diagnostic_updater::Updater>(this),
+        this->get_name());
+
+    m_diagnostics->add(
         "Lifecycle State",
         std::bind(&lifecycle_node::produce_lifecycle_diagnostics, this,
                   std::placeholders::_1));
@@ -46,7 +53,13 @@ void lifecycle_node::enable_diagnostic_updater() {
 
 std::shared_ptr<diagnostic_updater::Updater>
 lifecycle_node::get_diagnostic_updater() const {
-    return m_diagnostic_updater;
+    return m_diagnostics->get_updater();
+}
+
+void lifecycle_node::set_node_diagnostics_interface(
+    clover2_common::node_interfaces::NodeDiagnosticsInterface::SharedPtr
+        diagnostics) {
+    m_diagnostics = diagnostics;
 }
 
 void lifecycle_node::produce_lifecycle_diagnostics(
@@ -80,6 +93,11 @@ void lifecycle_node::produce_lifecycle_diagnostics(
     }
 
     status.summaryf(level, "Lifecycle State: %s", state.label().c_str());
+}
+
+clover2_common::node_interfaces::NodeDiagnosticsInterface::SharedPtr
+lifecycle_node::get_node_diagnostics_interface() {
+    return m_diagnostics;
 }
 
 clover2_common::node_interfaces::NodeParametersWatcherInterface::SharedPtr

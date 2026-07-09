@@ -33,6 +33,10 @@ namespace clover2::cam_feature {
 
 cam_feature::cam_feature(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("cam_feature", options) {
+    m_diagnostics = std::make_shared<CamFeatureDiagnostics>(
+        get_diagnostic_updater(), get_name());
+    set_node_diagnostics_interface(m_diagnostics);
+
     declare_parameter("feature_plugins", default_plugin_ids);
 
     for (size_t i = 0; i < default_plugin_ids.size(); i++) {
@@ -59,8 +63,11 @@ cam_feature::CallbackReturn cam_feature::on_configure(
 
     auto node_context = std::make_shared<clover2_common::node_context>(*this);
 
-    get_diagnostic_updater()->add(cam_feature_diagnostic_name, this,
-                                  &cam_feature::produce_diagnostics);
+    m_diagnostics->set_error_callback(
+        CamFeatureDiagnostics::error::missing_camera_info,
+        [](diagnostic_updater::DiagnosticStatusWrapper& stat) {
+            // проверка camera_info
+        });
 
     try {
         m_map_client = std::make_shared<clover2::map::client>(this);
@@ -168,7 +175,7 @@ cam_feature::CallbackReturn cam_feature::on_deactivate(
 
 cam_feature::CallbackReturn cam_feature::on_cleanup(
     const rclcpp_lifecycle::State& /* state */) {
-    get_diagnostic_updater()->removeByName(cam_feature_diagnostic_name);
+    // get_diagnostic_updater()->removeByName(cam_feature_diagnostic_name);
 
     for (auto it = m_plugins.begin(); it != m_plugins.end(); ++it) {
         it->second->cleanup();
@@ -261,6 +268,7 @@ void cam_feature::camera_info_callback(
     m_last_camera_info_stamp = msg->header.stamp;
 }
 
+// легаси
 void cam_feature::produce_diagnostics(
     diagnostic_updater::DiagnosticStatusWrapper& stat) {
     std::lock_guard<std::mutex> guard(m_camera_info_mtx);

@@ -1,6 +1,7 @@
 #pragma once
 
 // clover2
+#include <clover2_common/node_interfaces/node_diagnostics_interface.hpp>
 #include <clover2_common/node_interfaces/node_parameters_watcher_interface.hpp>
 
 // ROS2
@@ -36,6 +37,7 @@ class node_context : public NodeInterfaces<NodeBaseInterface,              //
                                            NodeTopicsInterface,            //
                                            NodeTypeDescriptionsInterface,  //
                                            NodeWaitablesInterface,         //
+                                           NodeDiagnosticsInterface,       //
                                            NodeParametersWatcherInterface> {
 public:
     template <typename NodeT>
