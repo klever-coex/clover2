@@ -22,32 +22,33 @@ public:
                     std::shared_ptr<clover2_common::node_context> node_context);
     void cleanup() noexcept;
 
-    const data::driver_info& info() const noexcept;
+    const clover2_led::data::driver_info& info() const noexcept;
 
-    void write(const data::led_frame& frame);
+    void write(const clover2_led::data::led_frame& frame);
 
     void set_brightness(float brightness);
     float brightness() const;
 
+    const std::string& get_name() const;
+
 protected:
     explicit base_device();
 
-    data::driver_info& info() noexcept;
+    clover2_led::data::driver_info& info() noexcept;
 
     virtual void on_initialize(size_t led_count) = 0;
     virtual void on_cleanup() = 0;
 
     virtual bool set_hardware_brightness(float brightness);
 
-    virtual void write_raw_frame(const std::vector<data::color>& colors) = 0;
-
-    const std::string& get_name() const;
+    virtual void write_raw_frame(
+        const std::vector<clover2_led::data::color>& colors) = 0;
 
     rclcpp::Logger get_logger() const;
     rclcpp::Clock::SharedPtr get_clock() const;
 
 private:
-    data::driver_info m_info;
+    clover2_led::data::driver_info m_info;
 
     float m_brightness{1.f};
     std::chrono::steady_clock::time_point m_last_write;

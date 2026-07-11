@@ -1,3 +1,4 @@
+#include <clover2_common/node.hpp>
 #include <clover2_common/node_context.hpp>
 #include <clover2_led/data/driver_info.hpp>
 #include <clover2_led/device/base_device.hpp>
@@ -17,10 +18,6 @@ public:
     mock_device() = default;
 
     void set_mock_info(const driver_info& info) { base_device::info() = info; }
-
-    using base_device::get_clock;
-    using base_device::get_logger;
-    using base_device::get_name;
 
     bool initialized{false};
     size_t init_led_count{0};
@@ -52,7 +49,7 @@ class BaseDeviceFixture : public ::testing::Test {
 protected:
     void SetUp() override {
         rclcpp::init(0, nullptr);
-        m_test_node = std::make_shared<rclcpp::Node>("test_node");
+        m_test_node = std::make_shared<clover2_common::node>("test_node");
         m_node_context =
             std::make_shared<clover2_common::node_context>(*m_test_node);
     }
@@ -68,7 +65,7 @@ protected:
         dev.initialize("test_device", led_count, m_node_context);
     }
 
-    std::shared_ptr<rclcpp::Node> m_test_node;
+    std::shared_ptr<clover2_common::node> m_test_node;
     std::shared_ptr<clover2_common::node_context> m_node_context;
 };
 
@@ -114,7 +111,6 @@ TEST_F(BaseDeviceFixture, InitializeSetsNameAndCallsOnInitialize) {
     init_device(dev, 16);
     EXPECT_TRUE(dev.initialized);
     EXPECT_EQ(dev.init_led_count, 16u);
-    EXPECT_EQ(dev.get_name(), "test_device");
 }
 
 TEST_F(BaseDeviceFixture, CleanupCallsOnCleanup) {

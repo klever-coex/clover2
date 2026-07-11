@@ -24,8 +24,6 @@ public:
     ~driver() override;
 
 private:
-    void on_init();
-
     void on_frame(const clover2_led::msg::LedFrame& msg);
 
     data::driver_info m_info{};

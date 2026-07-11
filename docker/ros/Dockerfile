@@ -8,10 +8,12 @@ ARG ROS_DISTRO
 COPY tooling/docker/* /clover2/
 
 WORKDIR /ws
+
 COPY clover2/package.xml /ws/src/clover2/package.xml
 COPY clover2_bringup/package.xml /ws/src/clover2_bringup/package.xml
 COPY clover2_common/package.xml /ws/src/clover2_common/package.xml
 COPY clover2_description/package.xml /ws/src/clover2_description/package.xml
+COPY clover2_led/package.xml /ws/src/clover2_led/package.xml
 COPY clover2_loc/clover2_aruco/package.xml /ws/src/clover2_loc/clover2_aruco/package.xml
 COPY clover2_loc/clover2_cam_feature/package.xml /ws/src/clover2_loc/clover2_cam_feature/package.xml
 COPY clover2_loc/clover2_map/package.xml /ws/src/clover2_loc/clover2_map/package.xml
