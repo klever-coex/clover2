@@ -35,31 +35,32 @@ lifecycle_node::lifecycle_node(const std::string& node_name,
 
 lifecycle_node::~lifecycle_node() { RCLCPP_INFO(get_logger(), "Destroying"); }
 
-// думаю стоит удалить
 void lifecycle_node::enable_diagnostic_updater() {
     if (m_diagnostics) {
         return;
     }
 
     m_diagnostics = std::make_shared<node_interfaces::NodeDiagnostics>(
-        std::make_shared<diagnostic_updater::Updater>(this),
-        this->get_name());
+        get_node_base_interface(), get_node_clock_interface(),
+        get_node_logging_interface(), get_node_parameters_interface(),
+        get_node_timers_interface(), get_node_topics_interface());
 
+    add_lifecycle_diagnostics();
+}
+
+void lifecycle_node::add_lifecycle_diagnostics() {
+    m_diagnostics->remove_by_name("Lifecycle State");
     m_diagnostics->add(
         "Lifecycle State",
         std::bind(&lifecycle_node::produce_lifecycle_diagnostics, this,
                   std::placeholders::_1));
 }
 
-std::shared_ptr<diagnostic_updater::Updater>
-lifecycle_node::get_diagnostic_updater() const {
-    return m_diagnostics->get_updater();
-}
-
 void lifecycle_node::set_node_diagnostics_interface(
     clover2_common::node_interfaces::NodeDiagnosticsInterface::SharedPtr
         diagnostics) {
     m_diagnostics = diagnostics;
+    add_lifecycle_diagnostics();
 }
 
 void lifecycle_node::produce_lifecycle_diagnostics(

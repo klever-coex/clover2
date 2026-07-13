@@ -5,10 +5,20 @@ namespace clover2_common::node_interfaces {
 class NodeDiagnostics::NodeDiagnosticsImpl {
 public:
     NodeDiagnosticsImpl(
-        const std::shared_ptr<diagnostic_updater::Updater>& updater,
-        const std::string& hardware_id)
-        : m_updater(updater) {
-        m_updater->setHardwareID(hardware_id);
+        rclcpp::node_interfaces::NodeBaseInterface::SharedPtr base_interface,
+        rclcpp::node_interfaces::NodeClockInterface::SharedPtr clock_interface,
+        rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr
+            logging_interface,
+        rclcpp::node_interfaces::NodeParametersInterface::SharedPtr
+            parameters_interface,
+        rclcpp::node_interfaces::NodeTimersInterface::SharedPtr
+            timers_interface,
+        rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr
+            topics_interface)
+        : m_updater(std::make_shared<diagnostic_updater::Updater>(
+              base_interface, clock_interface, logging_interface,
+              parameters_interface, timers_interface, topics_interface)) {
+        m_updater->setHardwareID(base_interface->get_name());
     }
 
     void add(const std::string& name, DiagnosticTaskCallbackT callback) {
@@ -21,18 +31,21 @@ public:
 
     void force_update() { m_updater->force_update(); }
 
-    std::shared_ptr<diagnostic_updater::Updater> get_updater() {
-        return m_updater;
-    }
-
 private:
     std::shared_ptr<diagnostic_updater::Updater> m_updater;
 };
 
 NodeDiagnostics::NodeDiagnostics(
-    const std::shared_ptr<diagnostic_updater::Updater>& updater,
-    const std::string& hardware_id)
-    : m_impl(new NodeDiagnosticsImpl(updater, hardware_id)) {}
+    rclcpp::node_interfaces::NodeBaseInterface::SharedPtr base_interface,
+    rclcpp::node_interfaces::NodeClockInterface::SharedPtr clock_interface,
+    rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr logging_interface,
+    rclcpp::node_interfaces::NodeParametersInterface::SharedPtr
+        parameters_interface,
+    rclcpp::node_interfaces::NodeTimersInterface::SharedPtr timers_interface,
+    rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface)
+    : m_impl(new NodeDiagnosticsImpl(base_interface, clock_interface,
+                                     logging_interface, parameters_interface,
+                                     timers_interface, topics_interface)) {}
 
 NodeDiagnostics::~NodeDiagnostics() {}
 
@@ -46,9 +59,5 @@ void NodeDiagnostics::remove_by_name(const std::string& name) {
 }
 
 void NodeDiagnostics::force_update() { m_impl->force_update(); }
-
-std::shared_ptr<diagnostic_updater::Updater> NodeDiagnostics::get_updater() {
-    return m_impl->get_updater();
-}
 
 }  // namespace clover2_common::node_interfaces

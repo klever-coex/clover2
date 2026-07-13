@@ -5,6 +5,12 @@
 
 // ROS2
 #include <rclcpp/macros.hpp>
+#include <rclcpp/node_interfaces/node_base_interface.hpp>
+#include <rclcpp/node_interfaces/node_clock_interface.hpp>
+#include <rclcpp/node_interfaces/node_logging_interface.hpp>
+#include <rclcpp/node_interfaces/node_parameters_interface.hpp>
+#include <rclcpp/node_interfaces/node_timers_interface.hpp>
+#include <rclcpp/node_interfaces/node_topics_interface.hpp>
 #include <rclcpp/visibility_control.hpp>
 
 // STL
@@ -18,9 +24,17 @@ public:
     RCLCPP_SMART_PTR_ALIASES_ONLY(NodeDiagnostics)
 
     RCLCPP_PUBLIC
-    explicit NodeDiagnostics(
-        const std::shared_ptr<diagnostic_updater::Updater>& updater,
-        const std::string& hardware_id);
+    NodeDiagnostics(
+        rclcpp::node_interfaces::NodeBaseInterface::SharedPtr base_interface,
+        rclcpp::node_interfaces::NodeClockInterface::SharedPtr clock_interface,
+        rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr
+            logging_interface,
+        rclcpp::node_interfaces::NodeParametersInterface::SharedPtr
+            parameters_interface,
+        rclcpp::node_interfaces::NodeTimersInterface::SharedPtr
+            timers_interface,
+        rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr
+            topics_interface);
 
     RCLCPP_PUBLIC
     ~NodeDiagnostics() override;
@@ -34,9 +48,6 @@ public:
 
     RCLCPP_PUBLIC
     void force_update() override;
-
-    RCLCPP_PUBLIC
-    std::shared_ptr<diagnostic_updater::Updater> get_updater() override;
 
 private:
     RCLCPP_DISABLE_COPY(NodeDiagnostics)

@@ -16,30 +16,40 @@ class CamFeatureDiagnostics
 public:
     RCLCPP_SMART_PTR_ALIASES_ONLY(CamFeatureDiagnostics)
 
-    enum class error {
+    enum class diagnostic {
         missing_camera_info,
         invalid_map,
+        topic_marker_hz,
     };
 
     using callback =
         std::function<void(diagnostic_updater::DiagnosticStatusWrapper&)>;
 
-    explicit CamFeatureDiagnostics(
-        const std::shared_ptr<diagnostic_updater::Updater>& updater,
-        const std::string& hardware_id);
+    CamFeatureDiagnostics(
+        rclcpp::node_interfaces::NodeBaseInterface::SharedPtr base_interface,
+        rclcpp::node_interfaces::NodeClockInterface::SharedPtr clock_interface,
+        rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr
+            logging_interface,
+        rclcpp::node_interfaces::NodeParametersInterface::SharedPtr
+            parameters_interface,
+        rclcpp::node_interfaces::NodeTimersInterface::SharedPtr
+            timers_interface,
+        rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr
+            topics_interface);
 
     virtual ~CamFeatureDiagnostics();
 
-    void set_error_callback(error error_code, callback callback);
-    void remove_error_callback(error error_code);
-    bool apply_error_callback(
-        error error_code,
+    void set_diagnostic_callback(diagnostic diagnostic_code, callback callback);
+    void remove_diagnostic_callback(diagnostic diagnostic_code);
+    bool apply_diagnostic_callback(
+        diagnostic diagnostic_code,
         diagnostic_updater::DiagnosticStatusWrapper& status) const;
 
 private:
     RCLCPP_DISABLE_COPY(CamFeatureDiagnostics)
 
-    std::unordered_map<error, callback> m_error_callbacks;
+    std::unordered_map<diagnostic, callback> m_diagnostic_callbacks;
+    std::unordered_map<diagnostic, std::string> m_diagnostic_names;
 };
 
 }  // namespace clover2::cam_feature

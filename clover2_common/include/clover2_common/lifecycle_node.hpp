@@ -44,8 +44,6 @@ public:
             additional_constraints, read_only, ignore_override);
     }
 
-    std::shared_ptr<diagnostic_updater::Updater> get_diagnostic_updater() const;
-
     // Custom node interfaces getters
     clover2_common::node_interfaces::NodeDiagnosticsInterface::SharedPtr
     get_node_diagnostics_interface();
@@ -55,6 +53,8 @@ public:
 
 protected:
     void enable_diagnostic_updater();
+
+    void add_lifecycle_diagnostics();
 
     void set_node_diagnostics_interface(
         clover2_common::node_interfaces::NodeDiagnosticsInterface::SharedPtr

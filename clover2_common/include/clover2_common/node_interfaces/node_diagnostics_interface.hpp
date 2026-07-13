@@ -32,9 +32,6 @@ public:
 
     RCLCPP_PUBLIC
     virtual void force_update() = 0;
-
-    RCLCPP_PUBLIC
-    virtual std::shared_ptr<diagnostic_updater::Updater> get_updater() = 0;
 };
 
 }  // namespace clover2_common::node_interfaces

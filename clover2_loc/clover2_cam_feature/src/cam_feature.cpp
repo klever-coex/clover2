@@ -8,21 +8,21 @@
 #include <cv_bridge/cv_bridge.hpp>
 
 // ROS2
+#include <diagnostic_msgs/msg/diagnostic_status.hpp>
 #include <rclcpp/executor.hpp>
 #include <rclcpp/logging.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 
 // STL
-#include <chrono>
 #include <exception>
 #include <functional>
+#include <list>
 #include <memory>
 #include <string>
 #include <vector>
 
 namespace {
 
-constexpr const char* cam_feature_diagnostic_name = "Cam feature status";
 const std::vector<std::string> default_plugin_ids = {"aruco"};
 const std::vector<std::string> default_plugin_types = {
     "clover2::cam_feature::plugins::aruco"};
@@ -34,7 +34,9 @@ namespace clover2::cam_feature {
 cam_feature::cam_feature(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("cam_feature", options) {
     m_diagnostics = std::make_shared<CamFeatureDiagnostics>(
-        get_diagnostic_updater(), get_name());
+        get_node_base_interface(), get_node_clock_interface(),
+        get_node_logging_interface(), get_node_parameters_interface(),
+        get_node_timers_interface(), get_node_topics_interface());
     set_node_diagnostics_interface(m_diagnostics);
 
     declare_parameter("feature_plugins", default_plugin_ids);
@@ -60,14 +62,7 @@ cam_feature::~cam_feature() = default;
 
 cam_feature::CallbackReturn cam_feature::on_configure(
     const rclcpp_lifecycle::State& state) {
-
     auto node_context = std::make_shared<clover2_common::node_context>(*this);
-
-    m_diagnostics->set_error_callback(
-        CamFeatureDiagnostics::error::missing_camera_info,
-        [](diagnostic_updater::DiagnosticStatusWrapper& stat) {
-            // проверка camera_info
-        });
 
     try {
         m_map_client = std::make_shared<clover2::map::client>(this);
@@ -113,6 +108,19 @@ cam_feature::CallbackReturn cam_feature::on_configure(
             return CallbackReturn::FAILURE;
         }
     }
+
+    m_diagnostics->set_diagnostic_callback(
+        CamFeatureDiagnostics::diagnostic::missing_camera_info,
+        std::bind(&cam_feature::produce_camera_info_diagnostics, this,
+                  std::placeholders::_1));
+    m_diagnostics->set_diagnostic_callback(
+        CamFeatureDiagnostics::diagnostic::invalid_map,
+        std::bind(&cam_feature::produce_map_diagnostics, this,
+                  std::placeholders::_1));
+    m_diagnostics->set_diagnostic_callback(
+        CamFeatureDiagnostics::diagnostic::topic_marker_hz,
+        std::bind(&cam_feature::produce_marker_hz_diagnostics, this,
+                  std::placeholders::_1));
 
     RCLCPP_INFO(get_logger(), "Configure");
     return CallbackReturn::SUCCESS;
@@ -175,8 +183,6 @@ cam_feature::CallbackReturn cam_feature::on_deactivate(
 
 cam_feature::CallbackReturn cam_feature::on_cleanup(
     const rclcpp_lifecycle::State& /* state */) {
-    // get_diagnostic_updater()->removeByName(cam_feature_diagnostic_name);
-
     for (auto it = m_plugins.begin(); it != m_plugins.end(); ++it) {
         it->second->cleanup();
     }
@@ -196,27 +202,8 @@ cam_feature::CallbackReturn cam_feature::on_shutdown(
 
 void cam_feature::image_callback(
     const sensor_msgs::msg::Image::ConstSharedPtr msg) {
-    std::lock_guard<std::mutex> guard(m_camera_info_mtx);
-
-    // monitoring info for diagnostic
-    m_last_image_stamp = msg->header.stamp;
-    m_last_image_width = msg->width;
-    m_last_image_height = msg->height;
-    m_last_image_encoding = msg->encoding;
-
-    if (!m_camera_model.initialized()) {
-        ++m_skipped_frames;
-        RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000,
-                             "Camera info not initialized");
-        return;
-    }
-
-    auto start = std::chrono::steady_clock::now();
     cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg);
     const cv::Mat& image = cv_ptr->image;
-
-    const cv::Matx33d& km = m_camera_model.fullIntrinsicMatrix();
-    cv::Mat_<double> distortion = m_camera_model.distortionCoeffs();
 
     std::shared_ptr<cv::Mat> debug;
     if (m_image_debug_pub->get_subscription_count() != 0) {
@@ -224,24 +211,41 @@ void cam_feature::image_callback(
     }
 
     clover2_pose_msgs::msg::MarkerArray markers;
-    markers.header.frame_id = m_camera_model.tfFrame();
-    markers.header.stamp = msg->header.stamp;
+    cv::Matx33d km;
+    cv::Mat_<double> distortion;
+
+    {
+        std::lock_guard<std::mutex> guard(m_camera_info_mtx);
+
+        if (!m_camera_model.initialized()) {
+            RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000,
+                                 "Camera info not initialized");
+            return;
+        }
+
+        km = m_camera_model.fullIntrinsicMatrix();
+        distortion = m_camera_model.distortionCoeffs();
+
+        markers.header.frame_id = m_camera_model.tfFrame();
+        markers.header.stamp = msg->header.stamp;
+    }
 
     std::list<clover2_pose_msgs::msg::Marker> marker_list;
     for (const auto& [name, plugin] : m_plugins) {
         auto poses = plugin->process(msg->header, image, km, distortion, debug);
-        markers.markers.reserve(markers.markers.size() + poses.size());
         marker_list.insert(marker_list.end(), poses.begin(), poses.end());
     }
 
-    m_last_pose_count = marker_list.size();
-
-    markers.markers.reserve(m_last_pose_count);
+    markers.markers.reserve(marker_list.size());
     markers.markers.insert(markers.markers.begin(), marker_list.begin(),
                            marker_list.end());
 
     m_markers_pub->publish(markers);
-    ++m_processed_frames;
+
+    {
+        std::lock_guard<std::mutex> guard(m_camera_info_mtx);
+        ++m_processed_frames;
+    }
 
     if (debug && m_image_debug_pub->get_subscription_count() != 0) {
         cv_bridge::CvImage cv_out;
@@ -251,9 +255,6 @@ void cam_feature::image_callback(
         cv_out.image = *debug;
         m_image_debug_pub->publish(*cv_out.toImageMsg());
     }
-    m_last_processing_ms = std::chrono::duration<double, std::milli>(
-                               std::chrono::steady_clock::now() - start)
-                               .count();
 }
 
 void cam_feature::camera_info_callback(
@@ -265,64 +266,69 @@ void cam_feature::camera_info_callback(
     }
 
     m_camera_model.fromCameraInfo(*msg);
-    m_last_camera_info_stamp = msg->header.stamp;
 }
 
-// легаси
-void cam_feature::produce_diagnostics(
+void cam_feature::produce_camera_info_diagnostics(
     diagnostic_updater::DiagnosticStatusWrapper& stat) {
     std::lock_guard<std::mutex> guard(m_camera_info_mtx);
 
-    const bool camera_ready = m_camera_model.initialized();
-    const bool map_valid = m_map_client && m_map_client->valid();
-
-    if (!camera_ready) {
+    if (m_camera_model.initialized()) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
+                     "Camera info received");
+    } else {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Waiting for Camera Info");
-    } else if (!map_valid) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "Map invalid or missing");
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "Running");
     }
-
-    stat.add("Map valid", map_valid ? "true" : "false");
-    stat.add("Plugins loaded", std::to_string(m_plugins.size()));
-    stat.add("Processed frames", std::to_string(m_processed_frames));
-    stat.add("Skipped frames", std::to_string(m_skipped_frames));
-    stat.add("Last marker count", std::to_string(m_last_pose_count));
-    stat.add("Last processing time, ms", m_last_processing_ms);
-
-    if (camera_ready) {
-        stat.add("Camera frame", m_camera_model.tfFrame());
-    } else {
-        stat.add("Camera frame", "unknown");
-    }
-
-    if (m_last_image_stamp.nanoseconds() == 0) {
-        stat.add("Last image age, sec", "never");
-    } else {
-        const auto age = (now() - m_last_image_stamp).seconds();
-        stat.add("Last image age, sec", age);
-    }
-
-    if (m_last_camera_info_stamp.nanoseconds() == 0) {
-        stat.add("Last camera info age, sec", "never");
-    } else {
-        const auto age = (now() - m_last_camera_info_stamp).seconds();
-        stat.add("Last camera info age, sec", age);
-    }
-
-    if (m_last_image_width == 0 || m_last_image_height == 0) {
-        stat.add("Last image size", "unknown");
-    } else {
-        stat.add("Last image size", std::to_string(m_last_image_width) + "x" +
-                                        std::to_string(m_last_image_height));
-    }
-
-    stat.add("Last image encoding",
-             m_last_image_encoding.empty() ? "unknown" : m_last_image_encoding);
 }
+
+void cam_feature::produce_map_diagnostics(
+    diagnostic_updater::DiagnosticStatusWrapper& stat) {
+    const bool map_valid = m_map_client && m_map_client->valid();
+
+    stat.summary(map_valid ? diagnostic_msgs::msg::DiagnosticStatus::OK
+                           : diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+                 map_valid ? "Map valid" : "Map invalid or missing");
+}
+
+void cam_feature::produce_marker_hz_diagnostics(
+    diagnostic_updater::DiagnosticStatusWrapper& stat) {
+    std::lock_guard<std::mutex> guard(m_camera_info_mtx);
+
+    constexpr double min_marker_hz = 25.0;
+    const auto current_time = now();
+
+    if (m_last_marker_hz_stamp.nanoseconds() == 0) {
+        m_last_marker_hz_stamp = current_time;
+        m_last_marker_processed_frames = m_processed_frames;
+
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Waiting for marker processing samples");
+        return;
+    }
+
+    const auto dt = (current_time - m_last_marker_hz_stamp).seconds();
+    const auto frame_delta =
+        m_processed_frames - m_last_marker_processed_frames;
+
+    if (dt > 0.0) {
+        m_marker_hz = static_cast<double>(frame_delta) / dt;
+    }
+
+    m_last_marker_hz_stamp = current_time;
+    m_last_marker_processed_frames = m_processed_frames;
+
+    if (frame_delta == 0) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+                     "Marker processing stopped");
+    } else if (m_marker_hz >= min_marker_hz) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
+                     "Marker processing frequency OK");
+    } else {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Marker processing is slow");
+    }
+}
+
 }  // namespace clover2::cam_feature
 
 #include <rclcpp_components/register_node_macro.hpp>
