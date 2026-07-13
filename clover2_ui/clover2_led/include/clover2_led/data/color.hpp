@@ -1,6 +1,6 @@
 #pragma once
 
-#include <clover2_led/msg/color.hpp>
+#include <clover2_led_msgs/msg/color.hpp>
 
 #include <cmath>
 
@@ -14,13 +14,13 @@ struct color {
         , g(g)
         , b(b){}
 
-    constexpr color(const clover2_led::msg::Color& color)
+    constexpr color(const clover2_led_msgs::msg::Color& color)
         : r(color.r)
         , g(color.g)
         , b(color.b) {}
 
-    clover2_led::msg::Color to_msg() const {
-        clover2_led::msg::Color msg;
+    clover2_led_msgs::msg::Color to_msg() const {
+        clover2_led_msgs::msg::Color msg;
         msg.r = r;
         msg.g = g;
         msg.b = b;

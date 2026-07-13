@@ -1,0 +1,7 @@
+<class_libraries>
+    <library path="led_plugins">
+        <class
+            type="clover2_led::device::ws2812_spi"
+            base_class_type="clover2_led::device::base_device" />
+    </library>
+</class_libraries>

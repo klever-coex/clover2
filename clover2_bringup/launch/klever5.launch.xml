@@ -78,6 +78,11 @@
         <arg name="map" value="$(var localization.map_server.map_filename)" />
     </include>
 
+    <include file="$(find-pkg-share clover2_bringup)/launch/snippets/indication.launch.xml">
+        <arg name="use_sim_time" value="$(var use_sim_time)" />
+        <arg name="ns" value="$(var root_ns)" />
+    </include>
+
     <include file="$(find-pkg-share clover2_bringup)/launch/web_support.launch.xml">
         <arg name="use_sim_time" value="$(var use_sim_time)" />
         <arg name="param_file" value="$(var param_file)" />

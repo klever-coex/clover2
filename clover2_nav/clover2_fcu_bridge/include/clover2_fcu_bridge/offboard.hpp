@@ -75,6 +75,7 @@ public:
 
     bool in_idle() const;
     bool in_error() const;
+    std::string current_fsm_state_str() const;
     void reset_state();
     void set_process_callback(process_callback&& cb);
 

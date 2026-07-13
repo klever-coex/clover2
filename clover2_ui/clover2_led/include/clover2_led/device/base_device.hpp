@@ -26,7 +26,7 @@ public:
 
     void write(const clover2_led::data::led_frame& frame);
 
-    void set_brightness(float brightness);
+    bool set_brightness(float brightness);
     float brightness() const;
 
     const std::string& get_name() const;
@@ -46,6 +46,7 @@ protected:
 
     rclcpp::Logger get_logger() const;
     rclcpp::Clock::SharedPtr get_clock() const;
+    std::shared_ptr<clover2_common::node_context> get_node_context() const;
 
 private:
     clover2_led::data::driver_info m_info;

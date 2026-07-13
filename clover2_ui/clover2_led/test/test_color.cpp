@@ -1,5 +1,5 @@
 #include <clover2_led/data/color.hpp>
-#include <clover2_led/msg/color.hpp>
+#include <clover2_led_msgs/msg/color.hpp>
 #include <gtest/gtest.h>
 
 using clover2_led::data::color;
@@ -19,7 +19,7 @@ TEST(ColorTest, ValueConstructorSetsFields) {
 }
 
 TEST(ColorTest, FromMsgCopiesRGB) {
-    clover2_led::msg::Color msg;
+    clover2_led_msgs::msg::Color msg;
     msg.r = 10;
     msg.g = 20;
     msg.b = 30;

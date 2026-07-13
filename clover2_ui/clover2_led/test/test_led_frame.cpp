@@ -20,12 +20,12 @@ TEST(LedFrameTest, SizeMatchesPixelCount) {
 }
 
 TEST(LedFrameTest, FromMsgCopiesFrame) {
-    clover2_led::msg::Color c;
+    clover2_led_msgs::msg::Color c;
     c.r = 10;
     c.g = 20;
     c.b = 30;
 
-    clover2_led::msg::LedFrame msg;
+    clover2_led_msgs::msg::LedFrame msg;
     msg.colors.push_back(c);
     msg.brightness = 0.5;
 

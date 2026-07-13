@@ -8,21 +8,19 @@ endif()
 # Find ROS 2 build system packages
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_auto REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
 
 ament_auto_find_build_dependencies()
 
-file(GLOB msg_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "msg/*.msg")
-
-rosidl_generate_interfaces(${PROJECT_NAME}
-  ${msg_files}
-)
-
-rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME}
-    "rosidl_typesupport_cpp")
-
 ament_auto_add_library(${PROJECT_NAME}_device SHARED DIRECTORY "src/device")
 target_link_libraries(${PROJECT_NAME}_device ${cpp_typesupport_target})
+
+ament_auto_add_library(led_plugins SHARED DIRECTORY "src/plugins")
+target_link_libraries(led_plugins
+  ${cpp_typesupport_target}
+  ${PROJECT_NAME}_device
+)
+
+pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)
 
 ament_auto_add_library(${PROJECT_NAME}_driver src/driver.cpp)
 target_link_libraries(${PROJECT_NAME}_driver

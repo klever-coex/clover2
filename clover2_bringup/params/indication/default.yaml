@@ -1,0 +1,110 @@
+/indication_manager:
+  ros__parameters:
+    update_rate: 30.0
+    state_publish_rate: 5.0
+    tracker_timeout: 2.0
+
+    # --- State → Effect mappings ---
+    # Each state maps to an effect with its parameters.
+    # Available effects: solid, blink, pulse
+    # Common params for all effects: brightness (0.0-1.0)
+    # solid: primary_color_r, primary_color_g, primary_color_b
+    # blink: primary_color_r, primary_color_g, primary_color_b, period_ms, duty_cycle
+    # pulse: primary_color_r, primary_color_g, primary_color_b,
+    #         secondary_color_r, secondary_color_g, secondary_color_b, period_ms
+
+    patterns:
+      off:
+        effect: solid
+        primary_color_r: 0
+        primary_color_g: 0
+        primary_color_b: 0
+        brightness: 1.0
+
+      booting:
+        effect: pulse
+        primary_color_r: 255
+        primary_color_g: 255
+        primary_color_b: 255
+        secondary_color_r: 0
+        secondary_color_g: 0
+        secondary_color_b: 0
+        period_ms: 1500
+        brightness: 1.0
+
+      idle:
+        effect: pulse
+        primary_color_r: 0
+        primary_color_g: 255
+        primary_color_b: 0
+        secondary_color_r: 0
+        secondary_color_g: 30
+        secondary_color_b: 0
+        period_ms: 2000
+        brightness: 1.0
+
+      armed:
+        effect: solid
+        primary_color_r: 0
+        primary_color_g: 255
+        primary_color_b: 0
+        brightness: 1.0
+
+      navigating:
+        effect: blink
+        primary_color_r: 0
+        primary_color_g: 0
+        primary_color_b: 255
+        period_ms: 1000
+        duty_cycle: 0.8
+        brightness: 1.0
+
+      landing:
+        effect: blink
+        primary_color_r: 255
+        primary_color_g: 140
+        primary_color_b: 0
+        period_ms: 500
+        duty_cycle: 0.5
+        brightness: 1.0
+
+      error:
+        effect: blink
+        primary_color_r: 255
+        primary_color_g: 0
+        primary_color_b: 0
+        period_ms: 200
+        duty_cycle: 0.3
+        brightness: 1.0
+
+      low_battery:
+        effect: blink
+        primary_color_r: 255
+        primary_color_g: 255
+        primary_color_b: 0
+        period_ms: 1000
+        duty_cycle: 0.25
+        brightness: 1.0
+
+      no_position_estimate:
+        effect: blink
+        primary_color_r: 255
+        primary_color_g: 255
+        primary_color_b: 0
+        period_ms: 500
+        duty_cycle: 0.5
+        brightness: 1.0
+
+      manual_control:
+        effect: solid
+        primary_color_r: 0
+        primary_color_g: 255
+        primary_color_b: 255
+        brightness: 1.0
+
+      unknown:
+        effect: solid
+        primary_color_r: 0
+        primary_color_g: 0
+        primary_color_b: 0
+        brightness: 1.0

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <clover2_led/data/color.hpp>
-#include <clover2_led/msg/led_frame.hpp>
+#include <clover2_led_msgs/msg/led_frame.hpp>
 
 #include <vector>
 
@@ -10,12 +10,12 @@ namespace clover2_led::data {
 struct led_frame {
     constexpr led_frame() = default;
 
-    led_frame(const clover2_led::msg::LedFrame& frame)
+    led_frame(const clover2_led_msgs::msg::LedFrame& frame)
         : pixels(frame.colors.begin(), frame.colors.end())
         , brightness(frame.brightness) {}
 
-    clover2_led::msg::LedFrame to_msg() const {
-        clover2_led::msg::LedFrame msg;
+    clover2_led_msgs::msg::LedFrame to_msg() const {
+        clover2_led_msgs::msg::LedFrame msg;
         msg.colors.reserve(pixels.size());
         for (const auto& pixel : pixels) {
             msg.colors.push_back(pixel.to_msg());

@@ -13,6 +13,11 @@ using clover2_led::device::base_device;
 
 namespace {
 
+uint8_t apply_brightness(uint8_t c, double b) {
+    auto t = std::clamp(static_cast<double>(c) * b, 0.0, 255.0);
+    return static_cast<uint8_t>(t);
+}
+
 class mock_device : public base_device {
 public:
     mock_device() = default;
@@ -27,18 +32,26 @@ public:
     float last_hardware_brightness{0.0f};
 
 protected:
-    void on_initialize(size_t led_count) override {
+    void on_initialize(size_t led_count) override final {
         initialized = true;
         init_led_count = led_count;
     }
 
     void on_cleanup() override { cleaned_up = true; }
 
-    void write_raw_frame(const std::vector<color>& colors) override {
+    void write_raw_frame(const std::vector<color>& colors) override final {
         last_written_frame.pixels = colors;
+
+        if (hardware_brightness_set) {
+            for (auto& pixel : last_written_frame.pixels) {
+                pixel.r = apply_brightness(pixel.r, last_hardware_brightness);
+                pixel.g = apply_brightness(pixel.g, last_hardware_brightness);
+                pixel.b = apply_brightness(pixel.b, last_hardware_brightness);
+            }
+        }
     }
 
-    bool set_hardware_brightness(float brightness) override {
+    bool set_hardware_brightness(float brightness) override final {
         hardware_brightness_set = true;
         last_hardware_brightness = brightness;
         return true;
@@ -61,7 +74,7 @@ protected:
     }
 
     void init_device(mock_device& dev, size_t led_count) {
-        dev.set_mock_info({false, false, led_count, 1e9f});
+        dev.set_mock_info({led_count, 1e9f});
         dev.initialize("test_device", led_count, m_node_context);
     }
 
@@ -73,12 +86,10 @@ protected:
 
 TEST(BaseDeviceTest, InfoStoredAndRetrieved) {
     mock_device dev;
-    const driver_info info{true, true, 64, 60.0f};
+    const driver_info info{64, 60.0f};
     dev.set_mock_info(info);
 
     const auto& cdev = dev;
-    EXPECT_EQ(cdev.info().rgbw, true);
-    EXPECT_EQ(cdev.info().hardware_brightness, true);
     EXPECT_EQ(cdev.info().led_count, 64u);
     EXPECT_FLOAT_EQ(cdev.info().max_fps, 60.0f);
 }
@@ -153,10 +164,10 @@ TEST_F(BaseDeviceFixture, WriteForwardsFrame) {
 TEST_F(BaseDeviceFixture, WriteAppliesMasterBrightness) {
     mock_device dev;
     init_device(dev, 1);
-    dev.set_brightness(0.5f);
 
     led_frame frame;
     frame.pixels = {color{200, 100, 50}};
+    frame.brightness = 0.5f;
 
     dev.write(frame);
 
@@ -169,10 +180,10 @@ TEST_F(BaseDeviceFixture, WriteAppliesMasterBrightness) {
 TEST_F(BaseDeviceFixture, WriteWithZeroBrightnessBlacksOut) {
     mock_device dev;
     init_device(dev, 1);
-    dev.set_brightness(0.0f);
 
     led_frame frame;
     frame.pixels = {color{255, 255, 255}};
+    frame.brightness = 0.0f;
 
     dev.write(frame);
 
