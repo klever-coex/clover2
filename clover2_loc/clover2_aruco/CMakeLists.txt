@@ -42,7 +42,9 @@ set(dependencies
 
 clover2_add_component_library(
   TARGET clover2_aruco_tracker
-  SOURCES src/tracker/tracker.cpp
+  SOURCES
+    src/tracker/tracker.cpp
+    src/tracker/tracker_diagnostics.cpp
   DEFINES CLOVER2_ARUCO_TRACKER_NODE_BUILDING_LIBRARY
   DEPENDENCIES ${dependencies}
   COMPONENT_CLASS "clover2::aruco::tracker"
