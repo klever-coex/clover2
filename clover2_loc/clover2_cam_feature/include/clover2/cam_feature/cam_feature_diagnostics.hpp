@@ -17,9 +17,9 @@ public:
     RCLCPP_SMART_PTR_ALIASES_ONLY(CamFeatureDiagnostics)
 
     enum class diagnostic {
-        missing_camera_info,
-        invalid_map,
-        topic_marker_hz,
+        camera_info,
+        map,
+        marker_frequency,
     };
 
     using callback =

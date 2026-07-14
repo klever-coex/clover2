@@ -85,8 +85,13 @@ private:
         m_camera_info_sub;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr m_image_sub;
 
+    rclcpp::Time m_last_camera_info_stamp;
+    uint32_t m_last_camera_info_width{0};
+    uint32_t m_last_camera_info_height{0};
     size_t m_processed_frames{0};
 
+    double m_min_marker_hz{25.0};
+    double m_max_marker_hz{35.0};
     rclcpp::Time m_last_marker_hz_stamp;
     size_t m_last_marker_processed_frames{0};
     double m_marker_hz{0.0};

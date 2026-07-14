@@ -14,9 +14,9 @@ CamFeatureDiagnostics::CamFeatureDiagnostics(
           base_interface, clock_interface, logging_interface,
           parameters_interface, timers_interface, topics_interface)
     , m_diagnostic_names(
-          {{diagnostic::missing_camera_info, "missing_camera_info"},
-           {diagnostic::invalid_map, "invalid_map"},
-           {diagnostic::topic_marker_hz, "topic_marker_hz"}}) {
+          {{diagnostic::camera_info, "camera_info"},
+           {diagnostic::map, "map"},
+           {diagnostic::marker_frequency, "marker_frequency"}}) {
     for (const auto& [code, name] : m_diagnostic_names) {
         add(name,
             [this, code](diagnostic_updater::DiagnosticStatusWrapper& stat) {

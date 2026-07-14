@@ -110,15 +110,15 @@ cam_feature::CallbackReturn cam_feature::on_configure(
     }
 
     m_diagnostics->set_diagnostic_callback(
-        CamFeatureDiagnostics::diagnostic::missing_camera_info,
+        CamFeatureDiagnostics::diagnostic::camera_info,
         std::bind(&cam_feature::produce_camera_info_diagnostics, this,
                   std::placeholders::_1));
     m_diagnostics->set_diagnostic_callback(
-        CamFeatureDiagnostics::diagnostic::invalid_map,
+        CamFeatureDiagnostics::diagnostic::map,
         std::bind(&cam_feature::produce_map_diagnostics, this,
                   std::placeholders::_1));
     m_diagnostics->set_diagnostic_callback(
-        CamFeatureDiagnostics::diagnostic::topic_marker_hz,
+        CamFeatureDiagnostics::diagnostic::marker_frequency,
         std::bind(&cam_feature::produce_marker_hz_diagnostics, this,
                   std::placeholders::_1));
 
@@ -266,6 +266,10 @@ void cam_feature::camera_info_callback(
     }
 
     m_camera_model.fromCameraInfo(*msg);
+    m_last_camera_info_stamp =
+        rclcpp::Time(msg->header.stamp, get_clock()->get_clock_type());
+    m_last_camera_info_width = msg->width;
+    m_last_camera_info_height = msg->height;
 }
 
 void cam_feature::produce_camera_info_diagnostics(
@@ -275,9 +279,21 @@ void cam_feature::produce_camera_info_diagnostics(
     if (m_camera_model.initialized()) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
                      "Camera info received");
+        stat.add("Camera frame", m_camera_model.tfFrame());
     } else {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Waiting for Camera Info");
+        stat.add("Camera frame", "unknown");
+    }
+
+    stat.add("Image width", std::to_string(m_last_camera_info_width));
+    stat.add("Image height", std::to_string(m_last_camera_info_height));
+
+    if (m_last_camera_info_stamp.nanoseconds() == 0) {
+        stat.add("Camera info age, sec", "never");
+    } else {
+        stat.add("Camera info age, sec",
+                 (now() - m_last_camera_info_stamp).seconds());
     }
 }
 
@@ -288,13 +304,17 @@ void cam_feature::produce_map_diagnostics(
     stat.summary(map_valid ? diagnostic_msgs::msg::DiagnosticStatus::OK
                            : diagnostic_msgs::msg::DiagnosticStatus::ERROR,
                  map_valid ? "Map valid" : "Map invalid or missing");
+
+    stat.add("Map name", map_valid ? m_map_client->get_name() : "unknown");
+    stat.add("Map frame", map_valid ? m_map_client->get_map_id() : "unknown");
+    stat.add("Marker count",
+             map_valid ? std::to_string(m_map_client->get_count()) : "0");
 }
 
 void cam_feature::produce_marker_hz_diagnostics(
     diagnostic_updater::DiagnosticStatusWrapper& stat) {
     std::lock_guard<std::mutex> guard(m_camera_info_mtx);
 
-    constexpr double min_marker_hz = 25.0;
     const auto current_time = now();
 
     if (m_last_marker_hz_stamp.nanoseconds() == 0) {
@@ -303,6 +323,9 @@ void cam_feature::produce_marker_hz_diagnostics(
 
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Waiting for marker processing samples");
+        stat.add("Actual frequency, Hz", m_marker_hz);
+        stat.add("Minimum frequency, Hz", m_min_marker_hz);
+        stat.add("Maximum frequency, Hz", m_max_marker_hz);
         return;
     }
 
@@ -320,13 +343,21 @@ void cam_feature::produce_marker_hz_diagnostics(
     if (frame_delta == 0) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
                      "Marker processing stopped");
-    } else if (m_marker_hz >= min_marker_hz) {
+    } else if (m_marker_hz >= m_min_marker_hz &&
+               m_marker_hz <= m_max_marker_hz) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
                      "Marker processing frequency OK");
+    } else if (m_marker_hz > m_max_marker_hz) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Marker processing is too fast");
     } else {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Marker processing is slow");
     }
+
+    stat.add("Actual frequency, Hz", m_marker_hz);
+    stat.add("Minimum frequency, Hz", m_min_marker_hz);
+    stat.add("Maximum frequency, Hz", m_max_marker_hz);
 }
 
 }  // namespace clover2::cam_feature
