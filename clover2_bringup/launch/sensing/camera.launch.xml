@@ -4,7 +4,7 @@
     <arg name="container_name" default="camera_container" />
     <arg name="frame_id" default="$(var camera_name)_link" />
     <arg name="ns" default="" />
-    <arg name="param_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
+    <arg name="params_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
     <arg name="use_composition" default="false" />
 
     <node
@@ -19,7 +19,7 @@
         <param name="frame_id" value="$(var frame_id)" />
 
         <param from="$(find-pkg-share clover2_bringup)/params/libcamera/default.yaml" />
-        <param from="$(var param_file)" />
+        <param from="$(var params_file)" />
     </node>
 
     <load_composable_node target="$(var container_name)">
@@ -35,7 +35,7 @@
             <param name="frame_id" value="$(var frame_id)" />
 
             <param from="$(find-pkg-share clover2_bringup)/params/libcamera/default.yaml" />
-            <param from="$(var param_file)" />
+            <param from="$(var params_file)" />
         </composable_node>
     </load_composable_node>
 </launch>

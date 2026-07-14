@@ -96,6 +96,13 @@ class FCUBridgeAction(Action):
 
         return cls, kwargs
 
+    def _has_use_sim_time_in_extra(self) -> bool:
+        """Check if extra_parameters already contains use_sim_time."""
+        for p in self.__extra_parameters:
+            if isinstance(p, dict) and "use_sim_time" in p:
+                return True
+        return False
+
     def execute(self, context: LaunchContext) -> Optional[List[Action]]:
         actions: List[Action] = []
 
@@ -109,7 +116,8 @@ class FCUBridgeAction(Action):
 
             mavros_params: List = list(self.__params_files)
             mavros_params.append(self.__mavros_params_file)
-            mavros_params.append({"use_sim_time": self.__use_sim_time})
+            if not self._has_use_sim_time_in_extra():
+                mavros_params.append({"use_sim_time": self.__use_sim_time})
             mavros_params.append(
                 {
                     "gcs_url": "tcp-l://0.0.0.0:5760",
