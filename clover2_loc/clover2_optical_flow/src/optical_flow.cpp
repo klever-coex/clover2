@@ -9,17 +9,11 @@
 #include <sensor_msgs/image_encodings.hpp>
 
 // STL
-#include <chrono>
 #include <cmath>
 #include <memory>
 #include <string>
 #include <vector>
 
-namespace {
-
-constexpr const char* optical_flow_diagnostic_name = "Optical flow status";
-
-}  // namespace
 
 namespace clover2::optical_flow {
 
@@ -30,7 +24,25 @@ optical_flow::optical_flow(const rclcpp::NodeOptions& options)
     , m_prev_stamp(rclcpp::Time(0))
     , m_last_vpe_time(rclcpp::Time(0)) {
 
-    m_diagnostic_updater = get_diagnostic_updater();
+    auto diagnostics = std::make_shared<OpticalFlowDiagnostics>(
+        get_node_base_interface(), get_node_clock_interface(),
+        get_node_logging_interface(), get_node_parameters_interface(),
+        get_node_timers_interface(), get_node_topics_interface());
+
+    diagnostics->set_diagnostic_callback(
+        OpticalFlowDiagnostics::diagnostic::camera_info,
+        std::bind(&optical_flow::produce_camera_info_diagnostics, this,
+                  std::placeholders::_1));
+    diagnostics->set_diagnostic_callback(
+        OpticalFlowDiagnostics::diagnostic::flow,
+        std::bind(&optical_flow::produce_flow_diagnostics, this,
+                  std::placeholders::_1));
+    diagnostics->set_diagnostic_callback(
+        OpticalFlowDiagnostics::diagnostic::flow_frequency,
+        std::bind(&optical_flow::produce_flow_hz_diagnostics, this,
+                  std::placeholders::_1));
+
+    set_node_diagnostics_interface(std::move(diagnostics));
 
     // Declare parameters
     declare_and_watch_parameter<int>(
@@ -80,9 +92,6 @@ optical_flow::CallbackReturn optical_flow::on_configure(
     m_tf_listener = std::make_unique<tf2_ros::TransformListener>(
         *m_tf_buffer, shared_from_this());
 
-    get_diagnostic_updater()->add(optical_flow_diagnostic_name, this,
-                                  &optical_flow::produce_diagnostics);
-
     RCLCPP_INFO(get_logger(), "Optical Flow configured");
 
     return CallbackReturn::SUCCESS;
@@ -124,8 +133,6 @@ optical_flow::CallbackReturn optical_flow::on_deactivate(
 
 optical_flow::CallbackReturn optical_flow::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
-    get_diagnostic_updater()->removeByName(optical_flow_diagnostic_name);
-
     // Cleanup TF
     m_tf_buffer.reset();
     m_tf_listener.reset();
@@ -186,17 +193,12 @@ void optical_flow::flow_callback(
     m_last_image_stamp = msg->header.stamp;
     m_last_image_width = msg->width;
     m_last_image_height = msg->height;
-    m_last_image_encoding = msg->encoding;
-    ++m_received_frames;
 
     if (!m_camera_model.initialized()) {
-        ++m_skipped_frames;
         RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000,
                              "Camera info not initialized");
         return;
     }
-
-    const auto start = std::chrono::steady_clock::now();
 
     auto img = cv_bridge::toCvShare(msg, "mono8")->image;
 
@@ -219,8 +221,6 @@ void optical_flow::flow_callback(
         m_prev = m_curr.clone();
         m_prev_stamp = current_stamp;
         cv::createHanningWindow(m_hann, m_curr.size(), CV_32F);
-
-        ++m_skipped_frames;
 
         return;
     }
@@ -264,7 +264,6 @@ void optical_flow::flow_callback(
     try {
         m_tf_buffer->transform(flow_camera, flow_fcu, m_fcu_frame_id);
     } catch (const tf2::TransformException& e) {
-        ++m_skipped_frames;
         m_last_required_tf_ok = false;
         return;
     }
@@ -320,13 +319,40 @@ void optical_flow::flow_callback(
         out_msg.image = img;
         m_debug_pub->publish(*out_msg.toImageMsg());
     }
-
-    m_last_processing_ms = std::chrono::duration<double, std::milli>(
-                               std::chrono::steady_clock::now() - start)
-                               .count();
 }
 
-void optical_flow::produce_diagnostics(
+void optical_flow::produce_camera_info_diagnostics(
+    diagnostic_updater::DiagnosticStatusWrapper& stat) {
+    std::lock_guard<std::mutex> guard(m_camera_info_mtx);
+
+    const bool camera_ready = m_camera_model.initialized();
+    if (camera_ready) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
+                     "Camera info received");
+        stat.add("Camera frame", m_camera_model.tfFrame());
+    } else {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Waiting for Camera Info");
+        stat.add("Camera frame", "unknown");
+    }
+
+    if (m_last_image_width == 0 || m_last_image_height == 0) {
+        stat.add("Image width", "unknown");
+        stat.add("Image height", "unknown");
+    } else {
+        stat.add("Image width", std::to_string(m_last_image_width));
+        stat.add("Image height", std::to_string(m_last_image_height));
+    }
+
+    if (m_last_camera_info_stamp.nanoseconds() == 0) {
+        stat.add("Camera info age, sec", "never");
+    } else {
+        stat.add("Camera info age, sec",
+                 (now() - m_last_camera_info_stamp).seconds());
+    }
+}
+
+void optical_flow::produce_flow_diagnostics(
     diagnostic_updater::DiagnosticStatusWrapper& stat) {
     std::lock_guard<std::mutex> guard(m_camera_info_mtx);
 
@@ -344,27 +370,8 @@ void optical_flow::produce_diagnostics(
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "Running");
     }
 
-    stat.add("Camera info initialized", camera_ready ? "true" : "false");
-    stat.add("Received frames", std::to_string(m_received_frames));
-    stat.add("Processed frames", std::to_string(m_processed_frames));
-    stat.add("Skipped frames", std::to_string(m_skipped_frames));
     stat.add("Required TF ok", m_last_required_tf_ok ? "true" : "false");
-    stat.add("Last processing time, ms", m_last_processing_ms);
     stat.add("Last quality", m_last_quality);
-    stat.add("ROI size, px", m_roi_px);
-    stat.add("Calculate flow gyro", m_calc_flow_gyro ? "true" : "false");
-    stat.add("Local frame", m_local_frame_id);
-    stat.add("FCU frame", m_fcu_frame_id);
-    stat.add("Flow publisher subscribers",
-             m_flow_pub ? m_flow_pub->get_subscription_count() : 0);
-    stat.add("Debug subscribers",
-             m_debug_pub ? m_debug_pub->get_subscription_count() : 0);
-
-    if (camera_ready) {
-        stat.add("Camera frame", m_camera_model.tfFrame());
-    } else {
-        stat.add("Camera frame", "unknown");
-    }
 
     if (m_last_image_stamp.nanoseconds() == 0) {
         stat.add("Last image age, sec", "never");
@@ -373,29 +380,60 @@ void optical_flow::produce_diagnostics(
                  (now() - m_last_image_stamp).seconds());
     }
 
-    if (m_last_camera_info_stamp.nanoseconds() == 0) {
-        stat.add("Last camera info age, sec", "never");
-    } else {
-        stat.add("Last camera info age, sec",
-                 (now() - m_last_camera_info_stamp).seconds());
-    }
-
     if (m_last_flow_publish_stamp.nanoseconds() == 0) {
         stat.add("Last flow publish age, sec", "never");
     } else {
         stat.add("Last flow publish age, sec",
                  (now() - m_last_flow_publish_stamp).seconds());
     }
+}
 
-    if (m_last_image_width == 0 || m_last_image_height == 0) {
-        stat.add("Last image size", "unknown");
-    } else {
-        stat.add("Last image size", std::to_string(m_last_image_width) + "x" +
-                                        std::to_string(m_last_image_height));
+void optical_flow::produce_flow_hz_diagnostics(
+    diagnostic_updater::DiagnosticStatusWrapper& stat) {
+    std::lock_guard<std::mutex> guard(m_camera_info_mtx);
+
+    const auto current_time = now();
+
+    if (m_last_flow_hz_stamp.nanoseconds() == 0) {
+        m_last_flow_hz_stamp = current_time;
+        m_last_flow_processed_frames = m_processed_frames;
+
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Waiting for optical flow processing samples");
+        stat.add("Actual frequency, Hz", m_flow_hz);
+        stat.add("Minimum frequency, Hz", m_min_flow_hz);
+        stat.add("Maximum frequency, Hz", m_max_flow_hz);
+        return;
     }
 
-    stat.add("Last image encoding",
-             m_last_image_encoding.empty() ? "unknown" : m_last_image_encoding);
+    const auto dt = (current_time - m_last_flow_hz_stamp).seconds();
+    const auto frame_delta =
+        m_processed_frames - m_last_flow_processed_frames;
+
+    if (dt > 0.0) {
+        m_flow_hz = static_cast<double>(frame_delta) / dt;
+    }
+
+    m_last_flow_hz_stamp = current_time;
+    m_last_flow_processed_frames = m_processed_frames;
+
+    if (frame_delta == 0) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+                     "Optical flow processing stopped");
+    } else if (m_flow_hz >= m_min_flow_hz && m_flow_hz <= m_max_flow_hz) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
+                     "Optical flow processing frequency OK");
+    } else if (m_flow_hz > m_max_flow_hz) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Optical flow processing is too fast");
+    } else {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Optical flow processing is slow");
+    }
+
+    stat.add("Actual frequency, Hz", m_flow_hz);
+    stat.add("Minimum frequency, Hz", m_min_flow_hz);
+    stat.add("Maximum frequency, Hz", m_max_flow_hz);
 }
 
 geometry_msgs::msg::Vector3Stamped optical_flow::calc_flow_gyro(

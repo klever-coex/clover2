@@ -51,7 +51,9 @@ set(dependencies
 # ============================================================================
 clover2_add_component_library(
   TARGET clover2_optical_flow_component
-  SOURCES src/optical_flow.cpp
+  SOURCES
+    src/optical_flow.cpp
+    src/optical_flow_diagnostics.cpp
   LINK_LIBS ${OpenCV_LIBS}
   DEPENDENCIES ${dependencies}
   COMPONENT_CLASS "clover2::optical_flow::optical_flow"

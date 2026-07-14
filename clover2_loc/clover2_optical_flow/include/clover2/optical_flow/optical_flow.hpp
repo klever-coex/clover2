@@ -1,6 +1,7 @@
 #pragma once
 
 // clover2
+#include <clover2/optical_flow/optical_flow_diagnostics.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 
 // ROS2
@@ -93,7 +94,11 @@ public:
         const rclcpp::Time& curr);
 
 private:
-    void produce_diagnostics(
+    void produce_camera_info_diagnostics(
+        diagnostic_updater::DiagnosticStatusWrapper& stat);
+    void produce_flow_diagnostics(
+        diagnostic_updater::DiagnosticStatusWrapper& stat);
+    void produce_flow_hz_diagnostics(
         diagnostic_updater::DiagnosticStatusWrapper& stat);
 
     // Parameters
@@ -120,19 +125,19 @@ private:
     std::unique_ptr<tf2_ros::TransformListener> m_tf_listener;  ///< TF listener
 
     // Diagnostics
-    std::shared_ptr<diagnostic_updater::Updater> m_diagnostic_updater;
     rclcpp::Time m_last_image_stamp;
     rclcpp::Time m_last_camera_info_stamp;
     rclcpp::Time m_last_flow_publish_stamp;
-    double m_last_processing_ms{0.0};
     double m_last_quality{0.0};
-    size_t m_received_frames{0};
     size_t m_processed_frames{0};
-    size_t m_skipped_frames{0};
     uint32_t m_last_image_width{0};
     uint32_t m_last_image_height{0};
-    std::string m_last_image_encoding;
     bool m_last_required_tf_ok{true};
+    double m_min_flow_hz{25.0};
+    double m_max_flow_hz{35.0};
+    rclcpp::Time m_last_flow_hz_stamp;
+    size_t m_last_flow_processed_frames{0};
+    double m_flow_hz{0.0};
 
     // Publishers and subscribers
     rclcpp::Publisher<mavros_msgs::msg::OpticalFlowRad>::SharedPtr
