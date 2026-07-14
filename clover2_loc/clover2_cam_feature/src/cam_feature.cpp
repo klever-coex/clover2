@@ -19,6 +19,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -33,11 +34,25 @@ namespace clover2::cam_feature {
 
 cam_feature::cam_feature(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("cam_feature", options) {
-    m_diagnostics = std::make_shared<CamFeatureDiagnostics>(
+    auto diagnostics = std::make_shared<CamFeatureDiagnostics>(
         get_node_base_interface(), get_node_clock_interface(),
         get_node_logging_interface(), get_node_parameters_interface(),
         get_node_timers_interface(), get_node_topics_interface());
-    set_node_diagnostics_interface(m_diagnostics);
+
+    diagnostics->set_diagnostic_callback(
+        CamFeatureDiagnostics::diagnostic::camera_info,
+        std::bind(&cam_feature::produce_camera_info_diagnostics, this,
+                  std::placeholders::_1));
+    diagnostics->set_diagnostic_callback(
+        CamFeatureDiagnostics::diagnostic::map,
+        std::bind(&cam_feature::produce_map_diagnostics, this,
+                  std::placeholders::_1));
+    diagnostics->set_diagnostic_callback(
+        CamFeatureDiagnostics::diagnostic::marker_frequency,
+        std::bind(&cam_feature::produce_marker_hz_diagnostics, this,
+                  std::placeholders::_1));
+
+    set_node_diagnostics_interface(std::move(diagnostics));
 
     declare_parameter("feature_plugins", default_plugin_ids);
 
@@ -108,19 +123,6 @@ cam_feature::CallbackReturn cam_feature::on_configure(
             return CallbackReturn::FAILURE;
         }
     }
-
-    m_diagnostics->set_diagnostic_callback(
-        CamFeatureDiagnostics::diagnostic::camera_info,
-        std::bind(&cam_feature::produce_camera_info_diagnostics, this,
-                  std::placeholders::_1));
-    m_diagnostics->set_diagnostic_callback(
-        CamFeatureDiagnostics::diagnostic::map,
-        std::bind(&cam_feature::produce_map_diagnostics, this,
-                  std::placeholders::_1));
-    m_diagnostics->set_diagnostic_callback(
-        CamFeatureDiagnostics::diagnostic::marker_frequency,
-        std::bind(&cam_feature::produce_marker_hz_diagnostics, this,
-                  std::placeholders::_1));
 
     RCLCPP_INFO(get_logger(), "Configure");
     return CallbackReturn::SUCCESS;

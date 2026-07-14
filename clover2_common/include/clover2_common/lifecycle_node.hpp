@@ -52,10 +52,6 @@ public:
     get_node_parameters_watcher_interface();
 
 protected:
-    void enable_diagnostic_updater();
-
-    void add_lifecycle_diagnostics();
-
     void set_node_diagnostics_interface(
         clover2_common::node_interfaces::NodeDiagnosticsInterface::SharedPtr
             diagnostics);
