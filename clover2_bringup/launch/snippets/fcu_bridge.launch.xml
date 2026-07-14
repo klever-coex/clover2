@@ -6,10 +6,14 @@
     <arg name="ns" default="" />
     <arg name="params_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
 
-    <fcu_bridge fcu_conn="$(var fcu_conn)" protocol="$(var protocol)" backend="$(var protocol)" namespace="$(var ns)">
+    <fcu_bridge
+        fcu_conn="$(var fcu_conn)"
+        mavros_params_file="$(find-pkg-share clover2_bringup)/params/mavros_default.yaml"
+        protocol="$(var protocol)"
+        backend="$(var protocol)"
+        namespace="$(var ns)">
+
         <!-- TODO: check if needed -->
         <param name="use_sim_time" value="$(var use_sim_time)" />
-
-        <param from="$(var params_file)" />
     </fcu_bridge>
 </launch>
