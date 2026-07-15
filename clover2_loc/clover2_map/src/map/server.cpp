@@ -10,12 +10,6 @@
 #include <stdexcept>
 #include <string>
 
-namespace {
-
-constexpr const char* map_server_diagnostic_name = "Map server status";
-
-}  // namespace
-
 namespace clover2::map {
 
 server::server(const rclcpp::NodeOptions& options)
@@ -54,10 +48,18 @@ server::server(const rclcpp::NodeOptions& options)
         "~/get_map", std::bind(&server::map_callback, this,
                                std::placeholders::_1, std::placeholders::_2));
 
-    m_diagnostic_updater = std::make_shared<diagnostic_updater::Updater>(this);
-    m_diagnostic_updater->setHardwareID(get_name());
-    m_diagnostic_updater->add(map_server_diagnostic_name, this,
-                              &server::produce_diagnostics);
+    m_diagnostics = std::make_shared<MapServerDiagnostics>(
+        get_node_base_interface(), get_node_clock_interface(),
+        get_node_logging_interface(), get_node_parameters_interface(),
+        get_node_timers_interface(), get_node_topics_interface());
+    m_diagnostics->set_diagnostic_callback(
+        MapServerDiagnostics::diagnostic::map,
+        std::bind(&server::produce_map_diagnostics, this,
+                  std::placeholders::_1));
+    m_diagnostics->set_diagnostic_callback(
+        MapServerDiagnostics::diagnostic::interface,
+        std::bind(&server::produce_interface_diagnostics, this,
+                  std::placeholders::_1));
 
     try {
         RCLCPP_INFO(get_logger(), "Using map '%s'",
@@ -126,7 +128,7 @@ void server::update_diagnostic_map_state() {
     m_marker_count = map.markers.size();
 }
 
-void server::produce_diagnostics(
+void server::produce_map_diagnostics(
     diagnostic_updater::DiagnosticStatusWrapper& stat) {
     std::lock_guard<std::recursive_mutex> guard(m_map_mtx);
 
@@ -137,13 +139,32 @@ void server::produce_diagnostics(
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Map loaded but empty");
     } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "Running");
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "Map loaded");
     }
 
-    stat.add("Map loaded", m_map_loaded ? "true" : "false");
     stat.add("Map frame", m_map_frame_id.empty() ? "unknown" : m_map_frame_id);
     stat.add("Map path", m_map_path.empty() ? "unknown" : m_map_path);
     stat.add("Marker count", std::to_string(m_marker_count));
+}
+
+void server::produce_interface_diagnostics(
+    diagnostic_updater::DiagnosticStatusWrapper& stat) {
+    std::lock_guard<std::recursive_mutex> guard(m_map_mtx);
+
+    const bool service_available = static_cast<bool>(m_map_service);
+    const bool map_update_available = static_cast<bool>(m_map_update_pub);
+
+    if (!service_available || !map_update_available) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+                     "Map server interface is not available");
+    } else if (m_map_loaded && m_static_tf_count != m_marker_count) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Static TF transform count mismatch");
+    } else {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
+                     "Interfaces available");
+    }
+
     stat.add("Get map requests", std::to_string(m_get_map_requests));
     stat.add("Map updates", std::to_string(m_map_updates));
     stat.add("Static TF transforms", std::to_string(m_static_tf_count));

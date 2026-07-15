@@ -2,12 +2,12 @@
 
 // clover2
 #include <clover2/map/io/fs_provider.hpp>
+#include <clover2/map/server_diagnostics.hpp>
 #include <clover2_common/node.hpp>
 
 // ROS2
 #include <clover2_pose_msgs/msg/marker_map.hpp>
 #include <clover2_pose_msgs/srv/get_map.hpp>
-#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/empty.hpp>
 #include <tf2_ros/static_transform_broadcaster.hpp>
@@ -35,7 +35,9 @@ private:
 
     void update_diagnostic_map_state();
 
-    void produce_diagnostics(
+    void produce_map_diagnostics(
+        diagnostic_updater::DiagnosticStatusWrapper& stat);
+    void produce_interface_diagnostics(
         diagnostic_updater::DiagnosticStatusWrapper& stat);
 
     std::recursive_mutex m_map_mtx;
@@ -50,7 +52,6 @@ private:
     rclcpp::Service<clover2_pose_msgs::srv::GetMap>::SharedPtr m_map_service;
     rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr m_map_update_pub;
 
-    std::shared_ptr<diagnostic_updater::Updater> m_diagnostic_updater;
     bool m_map_loaded{false};
     std::string m_map_frame_id;
     std::string m_map_path;
