@@ -5,6 +5,7 @@
 #include <clover2_fcu_bridge/server.hpp>
 
 // ROS2
+#include <diagnostic_msgs/msg/diagnostic_status.hpp>
 #include <rclcpp/node_options.hpp>
 #include <rclcpp/qos.hpp>
 #include <tf2/utils.hpp>
@@ -48,7 +49,23 @@ namespace clover2_fcu_bridge {
 server::server(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("fcu_bridge", options)
     , m_backend_name("mavros") {
-    enable_diagnostic_updater();
+    auto diagnostics = std::make_shared<ServerDiagnostics>(
+        get_node_base_interface(), get_node_clock_interface(),
+        get_node_logging_interface(), get_node_parameters_interface(),
+        get_node_timers_interface(), get_node_topics_interface());
+    diagnostics->set_diagnostic_callback(
+        ServerDiagnostics::diagnostic::backend,
+        std::bind(&server::produce_backend_diagnostics, this,
+                  std::placeholders::_1));
+    diagnostics->set_diagnostic_callback(
+        ServerDiagnostics::diagnostic::interfaces,
+        std::bind(&server::produce_interfaces_diagnostics, this,
+                  std::placeholders::_1));
+    diagnostics->set_diagnostic_callback(
+        ServerDiagnostics::diagnostic::navigation,
+        std::bind(&server::produce_navigation_diagnostics, this,
+                  std::placeholders::_1));
+    set_node_diagnostics_interface(std::move(diagnostics));
 
     m_service_callback_group =
         create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
@@ -214,6 +231,94 @@ server::CallbackReturn server::on_shutdown(
 
     RCLCPP_INFO(get_logger(), "shutdown");
     return CallbackReturn::SUCCESS;
+}
+
+void server::produce_backend_diagnostics(
+    diagnostic_updater::DiagnosticStatusWrapper& stat) {
+    const bool backend_initialized = static_cast<bool>(m_backend);
+    const bool connected = backend_initialized && m_backend->connected();
+    const bool ready = backend_initialized && m_backend->ready();
+    const bool armed = backend_initialized && m_backend->is_armed();
+    const std::string mode =
+        backend_initialized ? m_backend->get_mode().to_str() : "unknown";
+
+    if (!backend_initialized) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+                     "Backend is not initialized");
+    } else if (!connected) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+                     "Backend is not connected");
+    } else if (!ready) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Backend is not ready");
+    } else {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
+                     "Backend ready");
+    }
+
+    stat.add("Backend name", m_backend_name);
+    stat.add("Backend initialized", backend_initialized ? "true" : "false");
+    stat.add("Connected", connected ? "true" : "false");
+    stat.add("Ready", ready ? "true" : "false");
+    stat.add("Armed", armed ? "true" : "false");
+    stat.add("Mode", mode);
+}
+
+void server::produce_interfaces_diagnostics(
+    diagnostic_updater::DiagnosticStatusWrapper& stat) {
+    const bool state_publisher = static_cast<bool>(m_state_pub);
+    const bool arm_disarm_service = static_cast<bool>(m_arm_disarm_srv);
+    const bool land_service = static_cast<bool>(m_land_srv);
+    const bool set_position_service = static_cast<bool>(m_set_position_srv);
+    const bool navigate_service = static_cast<bool>(m_navigate_srv);
+    const bool navigate_async_action = static_cast<bool>(m_navigate_async_action);
+    const bool state_timer = static_cast<bool>(m_state_publish_timer);
+
+    if (state_publisher && arm_disarm_service && land_service &&
+        set_position_service && navigate_service && navigate_async_action &&
+        state_timer) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
+                     "Interfaces available");
+    } else {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Interfaces are not active");
+    }
+
+    stat.add("State publisher", state_publisher ? "true" : "false");
+    stat.add("Arm/disarm service", arm_disarm_service ? "true" : "false");
+    stat.add("Land service", land_service ? "true" : "false");
+    stat.add("Set position service", set_position_service ? "true" : "false");
+    stat.add("Navigate service", navigate_service ? "true" : "false");
+    stat.add("Navigate async action",
+             navigate_async_action ? "true" : "false");
+    stat.add("State timer", state_timer ? "true" : "false");
+}
+
+void server::produce_navigation_diagnostics(
+    diagnostic_updater::DiagnosticStatusWrapper& stat) {
+    const bool goal_pending = m_navigate_goal_pending.load();
+    const bool active_goal = static_cast<bool>(m_active_navigate_goal);
+    const bool bond_active = static_cast<bool>(m_navigate_bond);
+
+    if (active_goal && !bond_active) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+                     "Active navigation goal has no bond");
+    } else if (goal_pending) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Navigation goal is pending");
+    } else if (active_goal) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Navigation goal is active");
+    } else {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
+                     "Navigation idle");
+    }
+
+    stat.add("Goal pending", goal_pending ? "true" : "false");
+    stat.add("Active goal", active_goal ? "true" : "false");
+    stat.add("Navigate bond active", bond_active ? "true" : "false");
+    stat.add("Navigate bond id",
+             m_navigate_bond_id.empty() ? "none" : m_navigate_bond_id);
 }
 
 void server::start_navigate_bond(
