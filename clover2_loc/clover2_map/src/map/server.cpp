@@ -48,18 +48,19 @@ server::server(const rclcpp::NodeOptions& options)
         "~/get_map", std::bind(&server::map_callback, this,
                                std::placeholders::_1, std::placeholders::_2));
 
-    m_diagnostics = std::make_shared<MapServerDiagnostics>(
+    auto diagnostics = std::make_shared<MapServerDiagnostics>(
         get_node_base_interface(), get_node_clock_interface(),
         get_node_logging_interface(), get_node_parameters_interface(),
         get_node_timers_interface(), get_node_topics_interface());
-    m_diagnostics->set_diagnostic_callback(
+    diagnostics->set_diagnostic_callback(
         MapServerDiagnostics::diagnostic::map,
         std::bind(&server::produce_map_diagnostics, this,
                   std::placeholders::_1));
-    m_diagnostics->set_diagnostic_callback(
+    diagnostics->set_diagnostic_callback(
         MapServerDiagnostics::diagnostic::interface,
         std::bind(&server::produce_interface_diagnostics, this,
                   std::placeholders::_1));
+    set_node_diagnostics_interface(std::move(diagnostics));
 
     try {
         RCLCPP_INFO(get_logger(), "Using map '%s'",

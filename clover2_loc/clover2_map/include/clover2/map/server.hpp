@@ -52,7 +52,6 @@ private:
     rclcpp::Service<clover2_pose_msgs::srv::GetMap>::SharedPtr m_map_service;
     rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr m_map_update_pub;
 
-    MapServerDiagnostics::SharedPtr m_diagnostics;
     bool m_map_loaded{false};
     std::string m_map_frame_id;
     std::string m_map_path;
