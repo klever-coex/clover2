@@ -164,7 +164,6 @@ server::CallbackReturn server::on_activate(
             clover2_nav_msgs::msg::State state;
             state.is_armed = m_backend->is_armed();
             state.mode = m_backend->get_mode().to_str();
-            state.fsm_state = m_offboard->current_fsm_state_str();
             m_state_pub->publish(state);
         });
 

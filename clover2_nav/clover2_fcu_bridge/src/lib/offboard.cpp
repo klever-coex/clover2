@@ -36,20 +36,6 @@ bool offboard::in_error() const {
     return m_fsm.current_state() == offboard_fsm::state::error;
 }
 
-std::string offboard::current_fsm_state_str() const {
-    switch (m_fsm.current_state()) {
-    case offboard_fsm::state::idle: return "idle";
-    case offboard_fsm::state::streaming_setpoints: return "streaming_setpoints";
-    case offboard_fsm::state::waiting_offboard: return "waiting_offboard";
-    case offboard_fsm::state::waiting_arm: return "waiting_arm";
-    case offboard_fsm::state::hold: return "hold";
-    case offboard_fsm::state::position: return "position";
-    case offboard_fsm::state::navigation: return "navigation";
-    case offboard_fsm::state::error: return "error";
-    }
-    return "unknown";
-}
-
 void offboard::reset_state() {
     m_nav.reset();
     m_fsm.reset();
