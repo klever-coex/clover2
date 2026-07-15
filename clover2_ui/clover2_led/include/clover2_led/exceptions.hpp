@@ -24,9 +24,9 @@ namespace device {
 class frame_size_mismatch : public clover2_led::exception {
 public:
     frame_size_mismatch(size_t expected, size_t actual)
-        : clover2_led::exception(
-              "frame size mismatch: expected " + std::to_string(expected) +
-              ", got " + std::to_string(actual)) {}
+        : clover2_led::exception("frame size mismatch: expected " +
+                                 std::to_string(expected) + ", got " +
+                                 std::to_string(actual)) {}
 };
 
 }  // namespace device

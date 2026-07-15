@@ -1,33 +1,15 @@
 <launch>
     <arg name="use_sim_time" default="false" />
     <arg name="ns" default="" />
-    <arg name="use_composition" default="false" />
-    <arg name="container_name" default="indication_container" />
 
-    <!-- Indication manager — lifecycle node, maps system state to LED patterns -->
-    <node
-        pkg="clover2_indication"
-        exec="indication_manager"
-        name="indication_manager"
-        namespace="$(var ns)"
-        unless="$(var use_composition)"
-    >
+    <arg name="led_strip" default="false" />
+
+    <arg name="param_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
+
+    <node pkg="clover2_led" exec="driver" name="led_strip" namespace="$(var ns)" if="$(var led_strip)">
         <param name="use_sim_time" value="$(var use_sim_time)" />
 
-        <param from="$(find-pkg-share clover2_bringup)/params/indication/default.yaml" />
+        <param from="$(var param_file)" />
     </node>
 
-    <load_composable_node target="$(var container_name)">
-        <composable_node
-            pkg="clover2_indication"
-            plugin="clover2_indication::indication_manager"
-            name="indication_manager"
-            namespace="$(var ns)"
-            if="$(var use_composition)"
-        >
-            <param name="use_sim_time" value="$(var use_sim_time)" />
-
-            <param from="$(find-pkg-share clover2_bringup)/params/indication/default.yaml" />
-        </composable_node>
-    </load_composable_node>
 </launch>

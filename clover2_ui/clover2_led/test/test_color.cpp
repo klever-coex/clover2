@@ -87,3 +87,58 @@ TEST(ColorTest, CompileTimeConstruction) {
     static_assert(c.g == 43);
     static_assert(c.b == 44);
 }
+
+TEST(ColorTest, FromHUERed) {
+    double hue = 0.0;
+    double saturation = 1.0;
+    double value = 1.0;
+
+    auto c = color::from_hue(hue, saturation, value);
+    EXPECT_EQ(c.r, 255);
+    EXPECT_EQ(c.g, 0);
+    EXPECT_EQ(c.b, 0);
+}
+
+TEST(ColorTest, FromHUEGreen) {
+    double hue = 120.0;
+    double saturation = 1.0;
+    double value = 1.0;
+
+    auto c = color::from_hue(hue, saturation, value);
+    EXPECT_EQ(c.r, 0);
+    EXPECT_EQ(c.g, 255);
+    EXPECT_EQ(c.b, 0);
+}
+
+TEST(ColorTest, FromHUEBlue) {
+    double hue = 240.0;
+    double saturation = 1.0;
+    double value = 1.0;
+
+    auto c = color::from_hue(hue, saturation, value);
+    EXPECT_EQ(c.r, 0);
+    EXPECT_EQ(c.g, 0);
+    EXPECT_EQ(c.b, 255);
+}
+
+TEST(ColorTest, FromHUEBlack) {
+    double hue = 0.0;
+    double saturation = 0.0;
+    double value = 0.0;
+
+    auto c = color::from_hue(hue, saturation, value);
+    EXPECT_EQ(c.r, 0);
+    EXPECT_EQ(c.g, 0);
+    EXPECT_EQ(c.b, 0);
+}
+
+TEST(ColorTest, FromHUEWhite) {
+    double hue = 0.0;
+    double saturation = 0.0;
+    double value = 1.0;
+
+    auto c = color::from_hue(hue, saturation, value);
+    EXPECT_EQ(c.r, 255);
+    EXPECT_EQ(c.g, 255);
+    EXPECT_EQ(c.b, 255);
+}

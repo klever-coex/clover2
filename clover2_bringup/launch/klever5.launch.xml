@@ -12,6 +12,8 @@
     <arg name="fcu_bridge.fcu_conn" default="uart" />
 
     <arg name="front_camera.enable" default="false" />
+
+    <arg name="indication.led_strip" default="false" />
     <arg name="2d_lidar.enable" default="false" />
 
     <!-- Launch common arguments -->
@@ -81,6 +83,8 @@
     <include file="$(find-pkg-share clover2_bringup)/launch/snippets/indication.launch.xml">
         <arg name="use_sim_time" value="$(var use_sim_time)" />
         <arg name="ns" value="$(var root_ns)" />
+
+        <arg name="led_strip" value="$(var indication.led_strip)" />
     </include>
 
     <include file="$(find-pkg-share clover2_bringup)/launch/web_support.launch.xml">

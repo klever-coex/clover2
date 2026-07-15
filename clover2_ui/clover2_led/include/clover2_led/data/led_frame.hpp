@@ -24,13 +24,9 @@ struct led_frame {
         return msg;
     }
 
-    size_t size() const noexcept {
-        return pixels.size();
-    }
+    size_t size() const noexcept { return pixels.size(); }
 
-    bool empty() const noexcept {
-        return pixels.empty();
-    }
+    bool empty() const noexcept { return pixels.empty(); }
 
     color& operator[](size_t index) noexcept { return pixels[index]; }
 

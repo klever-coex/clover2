@@ -22,10 +22,15 @@ target_link_libraries(led_plugins
 
 pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)
 
-ament_auto_add_library(${PROJECT_NAME}_driver src/driver.cpp)
+file(GLOB_RECURSE animation_sources "src/animation/*.cpp")
+ament_auto_add_library(${PROJECT_NAME}_animation ${animation_sources})
+target_link_libraries(${PROJECT_NAME}_animation ${cpp_typesupport_target})
+
+ament_auto_add_library(${PROJECT_NAME}_driver src/driver.cpp src/animation_server.cpp)
 target_link_libraries(${PROJECT_NAME}_driver
   ${cpp_typesupport_target}
   ${PROJECT_NAME}_device
+  ${PROJECT_NAME}_animation
 )
 
 ament_auto_add_executable(driver src/main.cpp)

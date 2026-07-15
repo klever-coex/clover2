@@ -64,6 +64,15 @@ localization:
           default: true
           description: "Enable ArUco tracker"
 
+indication:
+  type: object
+  description: "Indication settings"
+  fields:
+    led_strip:
+      type: bool
+      default: true
+      description: "Enable LED Strip driver"
+
 2d_lidar:
   type: object
   description: "RPLidar Driver Settings"
