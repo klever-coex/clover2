@@ -8,13 +8,13 @@
 
     <arg name="use_sim_time" default="false" />
     <arg name="ns" default="" description="Should starts with / or be empty" />
-    <arg name="param_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
+    <arg name="params_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
 
     <map_server map="$(var map)" namespace="$(var ns)" use_sim_time="$(var use_sim_time)" if="$(var map_server)">
         <resource_path value="/opt/clover2/map" />
         <resource_path value="$(find-pkg-share clover2_map)/map" />
 
-        <param from="$(var param_file)" />
+        <param from="$(var params_file)" />
     </map_server>
 
     <node pkg="clover2_aruco" exec="tracker" name="aruco_tracker" namespace="$(var ns)" if="$(var aruco_tracker)">
@@ -26,6 +26,6 @@
         <remap from="~/markers" to="$(var feature_detector_node)/output/markers" />
         <remap from="~/pose_cov" to="$(var output_pose_topic)" />
 
-        <param from="$(var param_file)" />
+        <param from="$(var params_file)" />
     </node>
 </launch>

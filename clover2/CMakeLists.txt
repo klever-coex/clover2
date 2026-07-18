@@ -12,7 +12,7 @@ find_package(clover2_nav_msgs REQUIRED)
 ament_python_install_package(${PROJECT_NAME})
 
 install(
-  DIRECTORY params examples
+  DIRECTORY examples
   DESTINATION share/${PROJECT_NAME}
 )
 
