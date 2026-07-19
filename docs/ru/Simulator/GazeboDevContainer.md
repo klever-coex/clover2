@@ -1,82 +1,68 @@
 # Gazebo Dev Container
 
-Эта инструкция поможет запустить симулятор Clover2 в Visual Studio Code через Dev Container.
+:::{warning}
+Текущая инструкция прeдназначена для пользователей операционной системы Ubuntu и на других системах не проверялась.
+:::
 
-Dev Container - заранее подготовленная среда разработки внутри Docker, где уже установлены нужные программы.
+Эта инструкция поможет запустить симулятор Gazebo для разработки Clover2 в Visual Studio Code через Dev Container.
 
----
+## Dev Container
 
-## 1. Что мы будем делать
-
-Мы подготовим компьютер и запустим проект `clover2-dev` в Dev Container.
-
-В результате вы:
-
-1. Откроете проект `clover2-dev` в Visual Studio Code.
-2. Запустите Dev Container `clover2-dev:universe-devel` или `clover2-dev:universe-devel (NVIDIA)`.
-3. Загрузите исходные коды симулятора и Clover2.
-4. Соберёте проект командой `colcon build`.
-5. Запустите симулятор командой:
-
-```bash
-ros2 launch clover2_sim gz_simple.launch.py
-```
-
-### Зачем нужен Dev Container
-
-Без Dev Container пришлось бы вручную устанавливать ROS 2 Jazzy, Gazebo, MAVROS, PX4-зависимости и инструменты сборки. Dev Container запускает готовую среду внутри Docker.
+Dev Container - заранее подготовленная среда разработки внутри Docker, где уже установлены нужные программы. Без него пришлось бы вручную устанавливать ROS 2 Jazzy, Gazebo, MAVROS, PX4-зависимости и инструменты сборки. Dev Container запускает готовую среду внутри Docker.
 
 ---
 
-## 2. Подготовка
+## 1. Подготовка
 
 :::{important}
 Команды из этого раздела выполняются на вашем компьютере, а не внутри Dev Container.
 Если вы уже установили Docker, VS Code и расширение Dev Containers, этот раздел можно использовать как проверку.
 :::
 
-### 2.1. Установка Docker
+### 1.1. Установка Docker
 
 Воспользуйтесь [документацией по установке Docker](../Programming/Docker.md).
 
 ---
 
-### 2.2. Установка Visual Studio Code
+### 1.2. Установка Visual Studio Code
 
-Скачайте Visual Studio Code с официального сайта:
+Скачайте Visual Studio Code с [официального сайта](https://code.visualstudio.com/download/) и установите версию для вашей операционной системы.
 
-<https://code.visualstudio.com/download/>
-
-Установите версию для вашей операционной системы.
+```{figure} @assets@/common/simulator/gazebo-dev-container/vscode-downloads.webp
+:alt: VS Code загрузки
+:width: 90%
+:align: center
+```
 
 Для Linux скачайте файл `.deb` для вашей системы, например x64, и выполните:
 
 ```bash
-sudo apt install ./путь-до-файла/code_*.deb
+sudo apt install -f ./путь-до-файла/code_*.deb
 ```
 
 ---
 
-### 2.3. Установка расширения Dev Containers
-
-Откройте страницу расширения:
-
-<https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers>
-
-Или установите его внутри VS Code:
+### 1.3. Установка расширения Dev Containers
 
 1. Откройте VS Code.
 2. Нажмите значок Extensions.
 3. Найдите `Dev Containers`.
 4. Установите расширение от Microsoft.
 
+```{figure} @assets@/common/simulator/gazebo-dev-container/dev-container-extension.webp
+:alt: Dev Containers расширение
+:width: 90%
+:align: center
+```
+
 ---
 
-## 3. Клонирование проекта
+## 2. Клонирование проекта
 
 Команды из этого раздела выполняются на компьютере, не внутри контейнера.
 
-### 3.1. Перейти в папку для проектов
+### 2.1. Перейти в папку для проектов
 
 Например, можно использовать папку `~/projects`:
 
@@ -87,7 +73,7 @@ cd ~/projects
 
 ---
 
-### 3.2. Склонировать `clover2-dev`
+### 2.2. Склонировать `clover2-dev`
 
 Склонируйте репозиторий:
 
@@ -98,11 +84,11 @@ cd clover2-dev
 
 ---
 
-## 4. Первый запуск Dev Container
+## 3. Первый запуск Dev Container
 
 Команды и действия из этого раздела выполняются на компьютере в VS Code.
 
-### 4.1. Открыть проект в VS Code
+### 3.1. Открыть проект в VS Code
 
 Если вы находитесь в папке `clover2-dev`, можно открыть её командой:
 
@@ -114,7 +100,7 @@ code .
 
 ---
 
-### 4.2. Запустить Dev Container
+### 3.2. Запустить Dev Container
 
 В VS Code:
 
@@ -126,35 +112,25 @@ code .
    - `clover2-dev:universe-devel`;
    - `clover2-dev:universe-devel (NVIDIA)` - если у вас NVIDIA-видеокарта.
 
-VS Code прочитает файл `.devcontainer/universe-devel/devcontainer.json` или `.devcontainer/universe-devel-nvidia/devcontainer.json`, затем Docker Compose запустит окружение из `docker/devcontainer`.
+:::{important}
+При первом запуске VS Code скачает необходимые зависимости, это может занять 5-10 минут.
+:::
 
-Docker попытается использовать образ:
+Когда `VS Code` подключен к контейнеру в левом нижнем углу окна, это помечается.
 
-```text
-ghcr.io/klever-coex/clover2-dev/clover2-core:test
-```
-
-Проект будет подключён внутри контейнера в папку:
-
-```text
-/home/dev/clover2-dev
-```
-
-Терминал внутри VS Code будет работать от пользователя `dev`.
-
-### Сколько это может занять
-
-Первый запуск может занять некоторое время: Docker-образ большой, скачивается из интернета, а VS Code настраивает расширения внутри контейнера.
-
+```{figure} @assets@/common/simulator/gazebo-dev-container/runned-dev-container.webp
+:alt: Запушенный Dev Container
+:width: 90%
+:align: center
 ```
 
 ---
 
-## 5. Загрузка зависимостей
+## 4. Загрузка зависимостей
 
 Теперь нужно скачать исходные коды, из которых собирается симулятор. Команды выполняются внутри Dev Container.
 
-### 5.1. Файл со списком зависимостей
+### 4.1. Файл со списком зависимостей
 
 В проекте используется файл:
 
@@ -181,7 +157,7 @@ repositories:
 
 ---
 
-### 5.2. Скачать зависимости
+### 4.2. Скачать зависимости
 
 В терминале Dev Container выполните:
 
@@ -189,24 +165,17 @@ repositories:
 vcs import src --recursive < repos/simulation.yaml
 ```
 
-**Результат:**
-
-- в папке `src` появятся папки `clover2-sim` и `clover2`;
-- команда завершится без ошибки Git.
-
-Проверить можно командой:
-
-```bash
-ls src
-```
+:::{important}
+Загрузка может занять много времени так как скачивается исходный код PX4.
+:::
 
 ---
 
-## 6. Сборка проекта
+## 5. Сборка проекта
 
 Сборка подготавливает исходный код и создаёт готовые ROS 2-пакеты. Команды выполняются внутри Dev Container.
 
-### 6.1. Подключить ROS 2 Jazzy
+### 5.1. Подключить ROS 2 Jazzy
 
 В терминале Dev Container выполните:
 
@@ -214,37 +183,31 @@ ls src
 source /opt/ros/jazzy/setup.bash
 ```
 
-**Результат:** команда обычно ничего не выводит, после неё должна работать команда `ros2`.
-
-Проверить можно так:
-
-```bash
-ros2 --help
-```
-
 ---
 
-### 6.2. Собрать workspace
+### 5.2. Собрать workspace
 
 В терминале Dev Container выполните:
 
 ```bash
-colcon build --symlink-install --cmake-args  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+colcon build --symlink-install
 ```
 
-**Результат:**
+Если все сделанно верно, то вывод в терминале будет выглядить примерно так:
 
-- сборка завершится без строки `Failed`;
-- появятся папки `build`, `install` и `log`;
-- в конце будет сообщение о завершении сборки пакетов.
+```{figure} @assets@/common/simulator/gazebo-dev-container/build-success.webp
+:alt: Успешная сборка
+:width: 90%
+:align: center
+```
 
 ---
 
-## 7. Запуск симулятора
+## 6. Запуск симулятора
 
 После сборки нужно подключить собранные пакеты. Команды выполняются внутри Dev Container.
 
-### 7.1. Подключить собранный проект
+### 6.1. Подключить собранный проект
 
 В терминале Dev Container выполните:
 
@@ -260,11 +223,15 @@ source ./install/setup.bash
 ros2 pkg list | grep clover
 ```
 
-**Результат:** в списке должны быть пакеты Clover2, включая пакет симуляции, если он успешно скачан и собран.
+```{figure} @assets@/common/simulator/gazebo-dev-container/list-builded-packages.webp
+:alt: Успешная настройка clover2 пакетов
+:width: 90%
+:align: center
+```
 
 ---
 
-### 7.2. Запустить симулятор
+### 6.2. Запустить симулятор
 
 В терминале Dev Container, где уже выполнено `source ./install/setup.bash`, выполните:
 
@@ -279,26 +246,29 @@ ros2 launch clover2_sim gz_simple.launch.py
 - откроется графическое окно симулятора;
 - процесс не должен сразу завершиться с ошибкой.
 
+```{figure} @assets@/common/simulator/gazebo-dev-container/runned-gazebo.webp
+:alt: Работа симулятора
+:width: 90%
+:align: center
+```
+
 ---
 
-## 8. Повторный запуск
+## 7. Повторный запуск
 
 После перезагрузки компьютера всё устанавливать заново не нужно.
 
-### 8.1. Что делать после перезагрузки
+### 7.1. Что делать после перезагрузки
 
-1. Запустите Docker.
-2. Откройте VS Code.
-3. Откройте папку `clover2-dev`.
-4. Выберите `Dev Containers: Reopen in Container`.
-5. Откройте терминал внутри контейнера.
-6. Подключите собранный проект:
+1. Откройте VS Code.
+2. Откройте папку `clover2-dev`.
+3. Выберите `Dev Containers: Reopen in Container`.
+4. Откройте терминал внутри контейнера.
+5. Подключите собранный проект:
 
 ```bash
 source ./install/setup.bash
 ```
-
-**Результат:** ROS 2 снова видит пакеты проекта.
 
 После этого можно запускать симулятор:
 
@@ -308,7 +278,7 @@ ros2 launch clover2_sim gz_simple.launch.py
 
 ---
 
-### 8.2. Когда нужно пересобирать проект
+### 7.2. Когда нужно пересобирать проект
 
 Пересборка нужна, если:
 
@@ -323,14 +293,12 @@ ros2 launch clover2_sim gz_simple.launch.py
 
 ```bash
 source /opt/ros/jazzy/setup.bash
-colcon build --symlink-install --cmake-args  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+colcon build --symlink-install
 ```
-
-**Результат:** сборка завершается без ошибок, папка `install` обновляется.
 
 ---
 
-### 8.3. Когда достаточно только `source ./install/setup.bash`
+### 7.3. Когда достаточно только `source ./install/setup.bash`
 
 Достаточно выполнить только:
 
@@ -344,5 +312,3 @@ source ./install/setup.bash
 - вы просто открыли новый терминал;
 - вы перезапустили контейнер;
 - вы хотите снова запустить симулятор без изменения кода.
-
-**Результат:** ROS 2 видит уже собранные пакеты.
