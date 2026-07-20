@@ -17,7 +17,10 @@ public:
     RCLCPP_SMART_PTR_ALIASES_ONLY(ServerDiagnostics)
 
     enum class diagnostic {
-        backend,
+        fcu_state,
+        power,
+        imu,
+        barometer,
         interfaces,
         navigation,
     };

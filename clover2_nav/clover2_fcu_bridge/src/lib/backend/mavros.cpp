@@ -1,6 +1,8 @@
 // clover2
 #include <clover2_common/rclcpp_trails.hpp>
 #include <clover2_fcu_bridge/backend/mavros.hpp>
+
+// ROS2
 #include <rclcpp/logging.hpp>
 
 #include <cmath>
@@ -108,6 +110,7 @@ mavros::mavros(const context& ctx)
     m_pose_sub = rclcpp::create_subscription<geometry_msgs::msg::PoseStamped>(
         m_ctx, "/mavros/local_position/pose", rclcpp::SensorDataQoS(),
         [&](const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
+            std::lock_guard<std::mutex> guard(m_state_mtx);
             m_pose = *msg;
             m_pose_received = true;
         });
@@ -115,9 +118,42 @@ mavros::mavros(const context& ctx)
     m_state_sub = rclcpp::create_subscription<mavros_msgs::msg::State>(
         m_ctx, "/mavros/state", rclcpp::QoS(10),
         [&](const mavros_msgs::msg::State::SharedPtr msg) {
-            m_mavros_state = *msg;
-            m_mode = mode_from_mavros(m_mavros_state.mode);
+            std::lock_guard<std::mutex> guard(m_state_mtx);
+            m_fcu_state.received = true;
+            m_fcu_state.connected = msg->connected;
+            m_fcu_state.armed = msg->armed;
+            m_fcu_state.mode = msg->mode;
+            m_mode = mode_from_mavros(msg->mode);
         });
+
+    m_battery_sub =
+        rclcpp::create_subscription<sensor_msgs::msg::BatteryState>(
+            m_ctx, "/mavros/battery", rclcpp::SensorDataQoS(),
+            [&](const sensor_msgs::msg::BatteryState::SharedPtr msg) {
+                std::lock_guard<std::mutex> guard(m_state_mtx);
+                m_power.received = true;
+                m_power.voltage = msg->voltage;
+                m_power.percentage = msg->percentage;
+            });
+
+    m_imu_sub = rclcpp::create_subscription<sensor_msgs::msg::Imu>(
+        m_ctx, "/mavros/imu/data", rclcpp::SensorDataQoS(),
+        [&](const sensor_msgs::msg::Imu::SharedPtr msg) {
+            std::lock_guard<std::mutex> guard(m_state_mtx);
+            m_imu.received = true;
+            m_imu.stamp = get_clock()->now();
+            m_imu.msg = *msg;
+        });
+
+    m_barometer_sub =
+        rclcpp::create_subscription<sensor_msgs::msg::FluidPressure>(
+            m_ctx, "/mavros/imu/static_pressure", rclcpp::SensorDataQoS(),
+            [&](const sensor_msgs::msg::FluidPressure::SharedPtr msg) {
+                std::lock_guard<std::mutex> guard(m_state_mtx);
+                m_barometer.received = true;
+                m_barometer.stamp = get_clock()->now();
+                m_barometer.msg = *msg;
+            });
 
     m_arming_client = rclcpp::create_client<mavros_msgs::srv::CommandBool>(
         m_ctx, "/mavros/cmd/arming");
@@ -128,10 +164,19 @@ mavros::mavros(const context& ctx)
 }
 
 bool mavros::ready() const {
-    return m_pose_received && m_mavros_state.connected;
+    std::lock_guard<std::mutex> guard(m_state_mtx);
+    return m_pose_received && m_fcu_state.connected;
 }
 
-bool mavros::connected() const { return m_mavros_state.connected; }
+bool mavros::connected() const {
+    std::lock_guard<std::mutex> guard(m_state_mtx);
+    return m_fcu_state.connected;
+}
+
+bool mavros::is_armed() const {
+    std::lock_guard<std::mutex> guard(m_state_mtx);
+    return m_fcu_state.armed;
+}
 
 void mavros::arm() {
     if (!m_arming_client->service_is_ready()) {
@@ -227,7 +272,30 @@ void mavros::set_mode(const data::mode& mode) {
         });
 }
 
-data::mode mavros::get_mode() const { return m_mode; }
+data::mode mavros::get_mode() const {
+    std::lock_guard<std::mutex> guard(m_state_mtx);
+    return m_mode;
+}
+
+fcu_state_snapshot mavros::get_fcu_state_snapshot() const {
+    std::lock_guard<std::mutex> guard(m_state_mtx);
+    return m_fcu_state;
+}
+
+power_snapshot mavros::get_power_snapshot() const {
+    std::lock_guard<std::mutex> guard(m_state_mtx);
+    return m_power;
+}
+
+imu_snapshot mavros::get_imu_snapshot() const {
+    std::lock_guard<std::mutex> guard(m_state_mtx);
+    return m_imu;
+}
+
+barometer_snapshot mavros::get_barometer_snapshot() const {
+    std::lock_guard<std::mutex> guard(m_state_mtx);
+    return m_barometer;
+}
 
 void mavros::set_setpoint(const std::optional<tf2::Vector3> p,
                           const std::optional<tf2::Vector3> v,

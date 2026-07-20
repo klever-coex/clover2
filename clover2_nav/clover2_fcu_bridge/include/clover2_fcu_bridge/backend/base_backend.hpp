@@ -7,11 +7,40 @@
 // ROS2
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/battery_state.hpp>
+#include <sensor_msgs/msg/fluid_pressure.hpp>
+#include <sensor_msgs/msg/imu.hpp>
 #include <tf2/LinearMath/Vector3.hpp>
 
+#include <cmath>
+#include <cstdint>
 #include <optional>
+#include <string>
 
 namespace clover2_fcu_bridge::backend {
+
+template <typename T>
+struct stamped_snapshot {
+    bool received{false};
+    rclcpp::Time stamp;
+    T msg;
+};
+
+struct fcu_state_snapshot {
+    bool received{false};
+    bool connected{false};
+    bool armed{false};
+    std::string mode{"unknown"};
+};
+
+struct power_snapshot {
+    bool received{false};
+    float voltage{NAN};
+    float percentage{NAN};
+};
+
+using imu_snapshot = stamped_snapshot<sensor_msgs::msg::Imu>;
+using barometer_snapshot = stamped_snapshot<sensor_msgs::msg::FluidPressure>;
 
 class base_backend {
 public:
@@ -31,6 +60,11 @@ public:
 
     virtual void set_mode(const data::mode& mode) = 0;
     virtual data::mode get_mode() const = 0;
+
+    virtual fcu_state_snapshot get_fcu_state_snapshot() const;
+    virtual power_snapshot get_power_snapshot() const;
+    virtual imu_snapshot get_imu_snapshot() const;
+    virtual barometer_snapshot get_barometer_snapshot() const;
 
     virtual void set_setpoint(const std::optional<tf2::Vector3> p,
                               const std::optional<tf2::Vector3> v,

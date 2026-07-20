@@ -96,7 +96,13 @@ private:
     /// @brief Stops navigation and lands the vehicle when the action is lost.
     void handle_navigate_bond_broken(const std::string& bond_id);
 
-    void produce_backend_diagnostics(
+    void produce_fcu_state_diagnostics(
+        diagnostic_updater::DiagnosticStatusWrapper& stat);
+    void produce_power_diagnostics(
+        diagnostic_updater::DiagnosticStatusWrapper& stat);
+    void produce_imu_diagnostics(
+        diagnostic_updater::DiagnosticStatusWrapper& stat);
+    void produce_barometer_diagnostics(
         diagnostic_updater::DiagnosticStatusWrapper& stat);
     void produce_interfaces_diagnostics(
         diagnostic_updater::DiagnosticStatusWrapper& stat);

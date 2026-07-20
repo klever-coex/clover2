@@ -13,7 +13,10 @@ ServerDiagnostics::ServerDiagnostics(
     : clover2_common::node_interfaces::NodeDiagnostics(
           base_interface, clock_interface, logging_interface,
           parameters_interface, timers_interface, topics_interface)
-    , m_diagnostic_names({{diagnostic::backend, "backend"},
+    , m_diagnostic_names({{diagnostic::fcu_state, "fcu_state"},
+                          {diagnostic::power, "power"},
+                          {diagnostic::imu, "imu"},
+                          {diagnostic::barometer, "barometer"},
                           {diagnostic::interfaces, "interfaces"},
                           {diagnostic::navigation, "navigation"}}) {
     for (const auto& [code, name] : m_diagnostic_names) {

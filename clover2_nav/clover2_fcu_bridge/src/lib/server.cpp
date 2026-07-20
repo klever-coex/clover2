@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <exception>
 #include <memory>
 #include <optional>
@@ -25,6 +26,9 @@ namespace {
 constexpr double kNavigateBondConnectTimeout = 2.0;
 constexpr double kNavigateBondHeartbeatPeriod = 0.2;
 constexpr double kNavigateBondHeartbeatTimeout = 1.0;
+constexpr double kSensorStaleTimeoutSec = 1.0;
+constexpr float kBatteryWarnPercentage = 0.20F;
+constexpr float kBatteryErrorPercentage = 0.10F;
 constexpr auto kNavigateCompletionGracePeriod = std::chrono::milliseconds(1200);
 
 void ensure_backend_registered(const std::string& name) {
@@ -54,8 +58,20 @@ server::server(const rclcpp::NodeOptions& options)
         get_node_logging_interface(), get_node_parameters_interface(),
         get_node_timers_interface(), get_node_topics_interface());
     diagnostics->set_diagnostic_callback(
-        ServerDiagnostics::diagnostic::backend,
-        std::bind(&server::produce_backend_diagnostics, this,
+        ServerDiagnostics::diagnostic::fcu_state,
+        std::bind(&server::produce_fcu_state_diagnostics, this,
+                  std::placeholders::_1));
+    diagnostics->set_diagnostic_callback(
+        ServerDiagnostics::diagnostic::power,
+        std::bind(&server::produce_power_diagnostics, this,
+                  std::placeholders::_1));
+    diagnostics->set_diagnostic_callback(
+        ServerDiagnostics::diagnostic::imu,
+        std::bind(&server::produce_imu_diagnostics, this,
+                  std::placeholders::_1));
+    diagnostics->set_diagnostic_callback(
+        ServerDiagnostics::diagnostic::barometer,
+        std::bind(&server::produce_barometer_diagnostics, this,
                   std::placeholders::_1));
     diagnostics->set_diagnostic_callback(
         ServerDiagnostics::diagnostic::interfaces,
@@ -233,35 +249,118 @@ server::CallbackReturn server::on_shutdown(
     return CallbackReturn::SUCCESS;
 }
 
-void server::produce_backend_diagnostics(
+void server::produce_fcu_state_diagnostics(
     diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    const bool backend_initialized = static_cast<bool>(m_backend);
-    const bool connected = backend_initialized && m_backend->connected();
-    const bool ready = backend_initialized && m_backend->ready();
-    const bool armed = backend_initialized && m_backend->is_armed();
-    const std::string mode =
-        backend_initialized ? m_backend->get_mode().to_str() : "unknown";
-
-    if (!backend_initialized) {
+    if (!m_backend) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
                      "Backend is not initialized");
-    } else if (!connected) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "Backend is not connected");
-    } else if (!ready) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Backend is not ready");
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
-                     "Backend ready");
+        return;
     }
 
-    stat.add("Backend name", m_backend_name);
-    stat.add("Backend initialized", backend_initialized ? "true" : "false");
-    stat.add("Connected", connected ? "true" : "false");
-    stat.add("Ready", ready ? "true" : "false");
-    stat.add("Armed", armed ? "true" : "false");
-    stat.add("Mode", mode);
+    const auto state = m_backend->get_fcu_state_snapshot();
+
+    if (!state.received) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+                     "FCU state is not received");
+    } else if (!state.connected) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+                     "FCU is not connected");
+    } else {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
+                     "FCU connected");
+    }
+
+    stat.add("Connected", state.connected ? "true" : "false");
+    stat.add("State received", state.received ? "true" : "false");
+    stat.add("Armed", state.armed ? "true" : "false");
+    stat.add("Mode", state.mode);
+}
+
+void server::produce_power_diagnostics(
+    diagnostic_updater::DiagnosticStatusWrapper& stat) {
+    if (!m_backend) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+                     "Backend is not initialized");
+        return;
+    }
+
+    const auto power = m_backend->get_power_snapshot();
+
+    if (!power.received) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Battery status is not received");
+    } else if (!std::isfinite(power.percentage)) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Battery percentage is not available");
+    } else if (power.percentage <= kBatteryErrorPercentage) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+                     "Battery charge is critically low");
+    } else if (power.percentage <= kBatteryWarnPercentage) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Battery charge is low");
+    } else {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
+                     "Battery charge is normal");
+    }
+
+    stat.add("Battery received", power.received ? "true" : "false");
+    stat.add("Voltage", power.received ? power.voltage : NAN);
+    stat.add("Percentage", power.received ? power.percentage : NAN);
+}
+
+void server::produce_imu_diagnostics(
+    diagnostic_updater::DiagnosticStatusWrapper& stat) {
+    if (!m_backend) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+                     "Backend is not initialized");
+        return;
+    }
+
+    const auto imu = m_backend->get_imu_snapshot();
+    const double age = imu.received ? (now() - imu.stamp).seconds() : NAN;
+
+    if (!imu.received) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "IMU is not received");
+    } else if (age > kSensorStaleTimeoutSec) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "IMU data is stale");
+    } else {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
+                     "IMU data is fresh");
+    }
+
+    stat.add("IMU received", imu.received ? "true" : "false");
+    stat.add("IMU age, sec", imu.received ? age : NAN);
+}
+
+void server::produce_barometer_diagnostics(
+    diagnostic_updater::DiagnosticStatusWrapper& stat) {
+    if (!m_backend) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+                     "Backend is not initialized");
+        return;
+    }
+
+    const auto barometer = m_backend->get_barometer_snapshot();
+    const double age =
+        barometer.received ? (now() - barometer.stamp).seconds() : NAN;
+
+    if (!barometer.received) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Barometer is not received");
+    } else if (age > kSensorStaleTimeoutSec) {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
+                     "Barometer data is stale");
+    } else {
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
+                     "Barometer data is fresh");
+    }
+
+    stat.add("Barometer received", barometer.received ? "true" : "false");
+    stat.add("Barometer age, sec", barometer.received ? age : NAN);
+    stat.add("Pressure, Pa",
+             barometer.received ? barometer.msg.fluid_pressure : NAN);
 }
 
 void server::produce_interfaces_diagnostics(
