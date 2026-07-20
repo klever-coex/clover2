@@ -1,5 +1,5 @@
 #include <clover2_led/animation/blink.hpp>
-#include <clover2_led/animation/fabric.hpp>
+#include <clover2_led/animation/factory.hpp>
 #include <clover2_led/animation/rainbow.hpp>
 #include <clover2_led/animation/solid_color.hpp>
 
@@ -8,18 +8,18 @@
 
 namespace clover2_led::animation {
 
-fabric::fabric() {
+factory::factory() {
     add<solid_color>();
     add<blink>();
     add<rainbow>();
 }
 
-fabric& fabric::instance() {
-    static fabric inst;
+factory& factory::instance() {
+    static factory inst;
     return inst;
 }
 
-fabric::value_type fabric::create(const std::string& name,
+factory::value_type factory::create(const std::string& name,
                                   const base_animation::Request& req,
                                   int led_count,
                                   rclcpp::Clock::SharedPtr clock) const {
@@ -36,7 +36,7 @@ fabric::value_type fabric::create(const std::string& name,
     return it->second(req, led_count, std::move(clock));
 }
 
-std::vector<std::string> fabric::list_animations() const {
+std::vector<std::string> factory::list_animations() const {
     std::vector<std::string> names;
     names.reserve(m_builders.size());
     for (const auto& pair : m_builders) {

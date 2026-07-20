@@ -1,7 +1,7 @@
 #include <clover2_led/animation_server.hpp>
 
 // clover2
-#include <clover2_led/animation/fabric.hpp>
+#include <clover2_led/animation/factory.hpp>
 #include <clover2_led/data/color.hpp>
 #include <rclcpp/logging.hpp>
 
@@ -46,7 +46,7 @@ void animation_server::tick() {
 }
 
 void animation_server::start(const animation::base_animation::Request& req) {
-    m_animation = animation::fabric::instance().create(req.animation_name, req,
+    m_animation = animation::factory::instance().create(req.animation_name, req,
                                                        m_led_count, m_clock);
 
     RCLCPP_DEBUG(m_logger, "Started animation: %s", req.animation_name.c_str());

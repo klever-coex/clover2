@@ -12,14 +12,14 @@
 
 namespace clover2_led::animation {
 
-class fabric {
+class factory {
 public:
     using value_type = std::unique_ptr<base_animation>;
     using builder_type =
         std::function<value_type(const base_animation::Request&, int led_count,
                                  rclcpp::Clock::SharedPtr)>;
 
-    static fabric& instance();
+    static factory& instance();
 
     template <typename T>
     void add() {
@@ -39,7 +39,7 @@ public:
     std::vector<std::string> list_animations() const;
 
 private:
-    fabric();
+    factory();
     std::unordered_map<std::string, builder_type> m_builders;
 };
 

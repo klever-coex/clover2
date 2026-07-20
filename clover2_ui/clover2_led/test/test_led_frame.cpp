@@ -105,7 +105,7 @@ TEST(LedFrameTest, SinglePixelFrame) {
     EXPECT_FALSE(frame.empty());
 }
 
-TEST(LedFrameTest, FilledFabric) {
+TEST(LedFrameTest, Filledfactory) {
     led_frame frame = led_frame::filled(color{128, 128, 128}, 2);
 
     EXPECT_EQ(frame.pixels[0].r, 128);
