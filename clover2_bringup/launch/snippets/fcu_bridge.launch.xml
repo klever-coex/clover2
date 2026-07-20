@@ -15,5 +15,6 @@
 
         <!-- TODO: check if needed -->
         <param name="use_sim_time" value="$(var use_sim_time)" />
+        <param from="$(var params_file)" />
     </fcu_bridge>
 </launch>

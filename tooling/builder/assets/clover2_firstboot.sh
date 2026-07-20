@@ -27,11 +27,6 @@ chown pi:pi /opt/clover2/docker-compose.yaml
 
 sudo systemctl enable codium-server@pi
 
-echo "---> Remove firstboot scrip <---"
-systemctl disable clover2-firstboot.service
-rm /etc/systemd/system/clover2-firstboot.service
-systemctl daemon-reload
-
 echo "---> Install docker images <---"
 for f in /root/*.tar; do
     cat $f | docker load
@@ -39,6 +34,11 @@ done
 
 echo "---> Expand filesystem <---"
 sudo raspi-config nonint do_expand_rootfs | true
+
+echo "---> Remove firstboot script <---"
+systemctl disable clover2-firstboot.service
+rm /etc/systemd/system/clover2-firstboot.service
+systemctl daemon-reload
 
 rm /root/*.tar
 rm /root/clover2_firstboot.sh
