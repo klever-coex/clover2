@@ -8,6 +8,7 @@ ARG ROS_DISTRO
 COPY tooling/docker/* /clover2/
 
 WORKDIR /ws
+
 COPY clover2/package.xml /ws/src/clover2/package.xml
 COPY clover2_bringup/package.xml /ws/src/clover2_bringup/package.xml
 COPY clover2_common/package.xml /ws/src/clover2_common/package.xml
@@ -20,7 +21,9 @@ COPY clover2_loc/clover2_pose_msgs/package.xml /ws/src/clover2_loc/clover2_pose_
 COPY clover2_nav/clover2_fcu_bridge/package.xml /ws/src/clover2_nav/clover2_fcu_bridge/package.xml
 COPY clover2_nav/clover2_mavros/package.xml /ws/src/clover2_nav/clover2_mavros/package.xml
 COPY clover2_nav/clover2_nav_msgs/package.xml /ws/src/clover2_nav/clover2_nav_msgs/package.xml
-COPY clover2_ui/package.xml /ws/src/clover2_ui/package.xml
+COPY clover2_ui/clover2_led/package.xml /ws/src/clover2_ui/clover2_led/package.xml
+COPY clover2_ui/clover2_led_msgs/package.xml /ws/src/clover2_ui/clover2_led_msgs/package.xml
+COPY clover2_ui/clover2_ui/package.xml /ws/src/clover2_ui/clover2_ui/package.xml
 
 RUN /clover2/rosdep-parse.sh /ws/src $ROS_DISTRO --dependency-types=exec > /clover2/apt-depends.txt && \
     cat /clover2/apt-depends.txt

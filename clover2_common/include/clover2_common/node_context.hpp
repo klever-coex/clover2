@@ -41,6 +41,10 @@ public:
     template <typename NodeT>
     explicit node_context(NodeT& node)
         : NodeInterfaces(node) {}
+
+    rclcpp::Logger get_logger() const {
+        return get_node_logging_interface()->get_logger();
+    }
 };
 
 }  // namespace clover2_common
