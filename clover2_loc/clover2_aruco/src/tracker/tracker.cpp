@@ -14,11 +14,13 @@
 namespace clover2::aruco {
 
 tracker::tracker(const rclcpp::NodeOptions& options)
-    : clover2_common::lifecycle_node("tracker", options) {
-    auto diagnostics = std::make_shared<TrackerDiagnostics>(
-        get_node_base_interface(), get_node_clock_interface(),
-        get_node_logging_interface(), get_node_parameters_interface(),
-        get_node_timers_interface(), get_node_topics_interface());
+    : clover2_common::lifecycle_node(
+          "tracker", options,
+          std::make_shared<clover2_common::node_interfaces::
+                               NodeDiagnosticsFactoryTemplate<
+                                   TrackerDiagnostics>>()) {
+    auto diagnostics = std::static_pointer_cast<TrackerDiagnostics>(
+        get_node_diagnostics_interface());
 
     diagnostics->set_diagnostic_callback(
         TrackerDiagnostics::diagnostic::map,
@@ -36,8 +38,6 @@ tracker::tracker(const rclcpp::NodeOptions& options)
         TrackerDiagnostics::diagnostic::pose_frequency,
         std::bind(&tracker::produce_pose_hz_diagnostics, this,
                   std::placeholders::_1));
-
-    set_node_diagnostics_interface(std::move(diagnostics));
 
     declare_and_watch_parameter<std::string>(
         "frame_id", "base_link",

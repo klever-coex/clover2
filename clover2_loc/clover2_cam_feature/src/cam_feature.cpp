@@ -33,11 +33,13 @@ const std::vector<std::string> default_plugin_types = {
 namespace clover2::cam_feature {
 
 cam_feature::cam_feature(const rclcpp::NodeOptions& options)
-    : clover2_common::lifecycle_node("cam_feature", options) {
-    auto diagnostics = std::make_shared<CamFeatureDiagnostics>(
-        get_node_base_interface(), get_node_clock_interface(),
-        get_node_logging_interface(), get_node_parameters_interface(),
-        get_node_timers_interface(), get_node_topics_interface());
+    : clover2_common::lifecycle_node(
+          "cam_feature", options,
+          std::make_shared<clover2_common::node_interfaces::
+                               NodeDiagnosticsFactoryTemplate<
+                                   CamFeatureDiagnostics>>()) {
+    auto diagnostics = std::static_pointer_cast<CamFeatureDiagnostics>(
+        get_node_diagnostics_interface());
 
     diagnostics->set_diagnostic_callback(
         CamFeatureDiagnostics::diagnostic::camera_info,
@@ -51,8 +53,6 @@ cam_feature::cam_feature(const rclcpp::NodeOptions& options)
         CamFeatureDiagnostics::diagnostic::marker_frequency,
         std::bind(&cam_feature::produce_marker_hz_diagnostics, this,
                   std::placeholders::_1));
-
-    set_node_diagnostics_interface(std::move(diagnostics));
 
     declare_parameter("feature_plugins", default_plugin_ids);
 

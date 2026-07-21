@@ -1,6 +1,7 @@
 #pragma once
 
 // clover2
+#include <clover2_common/node_interfaces/node_diagnostics_factory.hpp>
 #include <clover2_common/node_interfaces/node_diagnostics_interface.hpp>
 #include <clover2_common/node_interfaces/node_parameters_watcher_interface.hpp>
 #include <clover2_common/util/parameter.hpp>
@@ -27,6 +28,10 @@ public:
 
     lifecycle_node(const std::string& node_name,
                    const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
+    lifecycle_node(
+        const std::string& node_name, const rclcpp::NodeOptions& options,
+        clover2_common::node_interfaces::NodeDiagnosticsFactory::SharedPtr
+            diagnostics_factory);
 
     virtual ~lifecycle_node();
 
@@ -52,10 +57,6 @@ public:
     get_node_parameters_watcher_interface();
 
 protected:
-    void set_node_diagnostics_interface(
-        clover2_common::node_interfaces::NodeDiagnosticsInterface::SharedPtr
-            diagnostics);
-
     void produce_lifecycle_diagnostics(
         diagnostic_updater::DiagnosticStatusWrapper& status);
 
@@ -63,6 +64,8 @@ protected:
 
 private:
     RCLCPP_DISABLE_COPY(lifecycle_node)
+
+    void init_lifecycle_node();
 
     // Custom node interfaces
     clover2_common::node_interfaces::NodeDiagnosticsInterface::SharedPtr

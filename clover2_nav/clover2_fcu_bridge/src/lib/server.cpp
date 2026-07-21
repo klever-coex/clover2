@@ -51,12 +51,14 @@ void ensure_backend_registered(const std::string& name) {
 namespace clover2_fcu_bridge {
 
 server::server(const rclcpp::NodeOptions& options)
-    : clover2_common::lifecycle_node("fcu_bridge", options)
+    : clover2_common::lifecycle_node(
+          "fcu_bridge", options,
+          std::make_shared<clover2_common::node_interfaces::
+                               NodeDiagnosticsFactoryTemplate<
+                                   ServerDiagnostics>>())
     , m_backend_name("mavros") {
-    auto diagnostics = std::make_shared<ServerDiagnostics>(
-        get_node_base_interface(), get_node_clock_interface(),
-        get_node_logging_interface(), get_node_parameters_interface(),
-        get_node_timers_interface(), get_node_topics_interface());
+    auto diagnostics = std::static_pointer_cast<ServerDiagnostics>(
+        get_node_diagnostics_interface());
     diagnostics->set_diagnostic_callback(
         ServerDiagnostics::diagnostic::fcu_state,
         std::bind(&server::produce_fcu_state_diagnostics, this,
@@ -81,8 +83,6 @@ server::server(const rclcpp::NodeOptions& options)
         ServerDiagnostics::diagnostic::navigation,
         std::bind(&server::produce_navigation_diagnostics, this,
                   std::placeholders::_1));
-    set_node_diagnostics_interface(std::move(diagnostics));
-
     m_service_callback_group =
         create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 

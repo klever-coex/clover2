@@ -14,8 +14,34 @@ namespace clover2_common {
 lifecycle_node::lifecycle_node(const std::string& node_name,
                                const rclcpp::NodeOptions& options)
     : rclcpp_lifecycle::LifecycleNode(node_name, options)
+    , m_diagnostics(std::make_shared<node_interfaces::NodeDiagnostics>(
+          get_node_base_interface(), get_node_clock_interface(),
+          get_node_logging_interface(), get_node_parameters_interface(),
+          get_node_timers_interface(), get_node_topics_interface()))
     , m_parameters_watcher(new node_interfaces::NodeParametersWatcher(
           get_node_parameters_interface())) {
+    init_lifecycle_node();
+}
+
+lifecycle_node::lifecycle_node(
+    const std::string& node_name, const rclcpp::NodeOptions& options,
+    clover2_common::node_interfaces::NodeDiagnosticsFactory::SharedPtr
+        diagnostics_factory)
+    : rclcpp_lifecycle::LifecycleNode(node_name, options)
+    , m_diagnostics(diagnostics_factory->create(
+          get_node_base_interface(), get_node_clock_interface(),
+          get_node_logging_interface(), get_node_parameters_interface(),
+          get_node_timers_interface(), get_node_topics_interface()))
+    , m_parameters_watcher(new node_interfaces::NodeParametersWatcher(
+          get_node_parameters_interface())) {
+    init_lifecycle_node();
+}
+
+void lifecycle_node::init_lifecycle_node() {
+    m_diagnostics->add("Lifecycle State",
+                       std::bind(&lifecycle_node::produce_lifecycle_diagnostics,
+                                 this, std::placeholders::_1));
+
     declare_parameter("autostart", true);
 
     if (get_parameter("autostart").as_bool()) {
@@ -34,15 +60,6 @@ lifecycle_node::lifecycle_node(const std::string& node_name,
 }
 
 lifecycle_node::~lifecycle_node() { RCLCPP_INFO(get_logger(), "Destroying"); }
-
-void lifecycle_node::set_node_diagnostics_interface(
-    clover2_common::node_interfaces::NodeDiagnosticsInterface::SharedPtr
-        diagnostics) {
-    m_diagnostics = std::move(diagnostics);
-    m_diagnostics->add("Lifecycle State",
-                       std::bind(&lifecycle_node::produce_lifecycle_diagnostics,
-                                 this, std::placeholders::_1));
-}
 
 void lifecycle_node::produce_lifecycle_diagnostics(
     diagnostic_updater::DiagnosticStatusWrapper& status) {

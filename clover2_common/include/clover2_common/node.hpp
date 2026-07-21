@@ -1,6 +1,7 @@
 #pragma once
 
 // clover2
+#include <clover2_common/node_interfaces/node_diagnostics_factory.hpp>
 #include <clover2_common/node_interfaces/node_diagnostics_interface.hpp>
 #include <clover2_common/node_interfaces/node_parameters_watcher_interface.hpp>
 #include <clover2_common/util/parameter.hpp>
@@ -17,6 +18,9 @@ class node : public rclcpp::Node {
 public:
     node(const std::string& node_name,
          const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
+    node(const std::string& node_name, const rclcpp::NodeOptions& options,
+         clover2_common::node_interfaces::NodeDiagnosticsFactory::SharedPtr
+             diagnostics_factory);
 
     virtual ~node() = default;
 
@@ -42,10 +46,6 @@ public:
     get_node_parameters_watcher_interface();
 
 protected:
-    void set_node_diagnostics_interface(
-        clover2_common::node_interfaces::NodeDiagnosticsInterface::SharedPtr
-            diagnostics);
-
     void produce_lifecycle_diagnostics(
         diagnostic_updater::DiagnosticStatusWrapper& status);
 
