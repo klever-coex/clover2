@@ -11,19 +11,22 @@
 
 namespace clover2::cam_feature {
 
+enum class CamFeatureDiagnostic {
+    camera_info,
+    map,
+    marker_frequency,
+};
+
 class CamFeatureDiagnostics
-    : public clover2_common::node_interfaces::NodeDiagnostics {
+    : public clover2_common::node_interfaces::TypedNodeDiagnostics<
+          CamFeatureDiagnostic> {
 public:
     RCLCPP_SMART_PTR_ALIASES_ONLY(CamFeatureDiagnostics)
 
-    enum class diagnostic {
-        camera_info,
-        map,
-        marker_frequency,
-    };
-
-    using callback =
-        std::function<void(diagnostic_updater::DiagnosticStatusWrapper&)>;
+    using diagnostic = CamFeatureDiagnostic;
+    using Base = clover2_common::node_interfaces::TypedNodeDiagnostics<
+        diagnostic>;
+    using callback = Base::callback;
 
     CamFeatureDiagnostics(
         rclcpp::node_interfaces::NodeBaseInterface::SharedPtr base_interface,
@@ -39,18 +42,10 @@ public:
 
     virtual ~CamFeatureDiagnostics();
 
-    void set_diagnostic_callback(diagnostic diagnostic_code, callback callback);
-    void remove_diagnostic_callback(diagnostic diagnostic_code);
-    bool apply_diagnostic_callback(
-        diagnostic diagnostic_code,
-        diagnostic_updater::DiagnosticStatusWrapper& status) const;
-
 private:
     RCLCPP_DISABLE_COPY(CamFeatureDiagnostics)
 
-    static const std::unordered_map<diagnostic, std::string> diagnostic_names;
-
-    std::unordered_map<diagnostic, callback> m_diagnostic_callbacks;
+    static const Base::DiagnosticNamesT diagnostic_names;
 };
 
 }  // namespace clover2::cam_feature

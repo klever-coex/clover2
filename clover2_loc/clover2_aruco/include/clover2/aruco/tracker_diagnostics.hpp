@@ -11,20 +11,23 @@
 
 namespace clover2::aruco {
 
+enum class TrackerDiagnostic {
+    map,
+    markers,
+    pose,
+    pose_frequency,
+};
+
 class TrackerDiagnostics
-    : public clover2_common::node_interfaces::NodeDiagnostics {
+    : public clover2_common::node_interfaces::TypedNodeDiagnostics<
+          TrackerDiagnostic> {
 public:
     RCLCPP_SMART_PTR_ALIASES_ONLY(TrackerDiagnostics)
 
-    enum class diagnostic {
-        map,
-        markers,
-        pose,
-        pose_frequency,
-    };
-
-    using callback =
-        std::function<void(diagnostic_updater::DiagnosticStatusWrapper&)>;
+    using diagnostic = TrackerDiagnostic;
+    using Base = clover2_common::node_interfaces::TypedNodeDiagnostics<
+        diagnostic>;
+    using callback = Base::callback;
 
     TrackerDiagnostics(
         rclcpp::node_interfaces::NodeBaseInterface::SharedPtr base_interface,
@@ -40,18 +43,10 @@ public:
 
     virtual ~TrackerDiagnostics();
 
-    void set_diagnostic_callback(diagnostic diagnostic_code, callback callback);
-    void remove_diagnostic_callback(diagnostic diagnostic_code);
-    bool apply_diagnostic_callback(
-        diagnostic diagnostic_code,
-        diagnostic_updater::DiagnosticStatusWrapper& status) const;
-
 private:
     RCLCPP_DISABLE_COPY(TrackerDiagnostics)
 
-    static const std::unordered_map<diagnostic, std::string> diagnostic_names;
-
-    std::unordered_map<diagnostic, callback> m_diagnostic_callbacks;
+    static const Base::DiagnosticNamesT diagnostic_names;
 };
 
 }  // namespace clover2::aruco

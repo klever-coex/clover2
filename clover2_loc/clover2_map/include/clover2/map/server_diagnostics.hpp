@@ -11,18 +11,21 @@
 
 namespace clover2::map {
 
+enum class MapServerDiagnostic {
+    map,
+    interface,
+};
+
 class MapServerDiagnostics
-    : public clover2_common::node_interfaces::NodeDiagnostics {
+    : public clover2_common::node_interfaces::TypedNodeDiagnostics<
+          MapServerDiagnostic> {
 public:
     RCLCPP_SMART_PTR_ALIASES_ONLY(MapServerDiagnostics)
 
-    enum class diagnostic {
-        map,
-        interface,
-    };
-
-    using callback =
-        std::function<void(diagnostic_updater::DiagnosticStatusWrapper&)>;
+    using diagnostic = MapServerDiagnostic;
+    using Base = clover2_common::node_interfaces::TypedNodeDiagnostics<
+        diagnostic>;
+    using callback = Base::callback;
 
     MapServerDiagnostics(
         rclcpp::node_interfaces::NodeBaseInterface::SharedPtr base_interface,
@@ -38,18 +41,10 @@ public:
 
     virtual ~MapServerDiagnostics();
 
-    void set_diagnostic_callback(diagnostic diagnostic_code, callback callback);
-    void remove_diagnostic_callback(diagnostic diagnostic_code);
-    bool apply_diagnostic_callback(
-        diagnostic diagnostic_code,
-        diagnostic_updater::DiagnosticStatusWrapper& status) const;
-
 private:
     RCLCPP_DISABLE_COPY(MapServerDiagnostics)
 
-    static const std::unordered_map<diagnostic, std::string> diagnostic_names;
-
-    std::unordered_map<diagnostic, callback> m_diagnostic_callbacks;
+    static const Base::DiagnosticNamesT diagnostic_names;
 };
 
 }  // namespace clover2::map

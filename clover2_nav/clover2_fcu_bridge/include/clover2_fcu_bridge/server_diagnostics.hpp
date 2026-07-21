@@ -11,22 +11,25 @@
 
 namespace clover2_fcu_bridge {
 
+enum class ServerDiagnostic {
+    fcu_state,
+    power,
+    imu,
+    barometer,
+    interfaces,
+    navigation,
+};
+
 class ServerDiagnostics
-    : public clover2_common::node_interfaces::NodeDiagnostics {
+    : public clover2_common::node_interfaces::TypedNodeDiagnostics<
+          ServerDiagnostic> {
 public:
     RCLCPP_SMART_PTR_ALIASES_ONLY(ServerDiagnostics)
 
-    enum class diagnostic {
-        fcu_state,
-        power,
-        imu,
-        barometer,
-        interfaces,
-        navigation,
-    };
-
-    using callback =
-        std::function<void(diagnostic_updater::DiagnosticStatusWrapper&)>;
+    using diagnostic = ServerDiagnostic;
+    using Base = clover2_common::node_interfaces::TypedNodeDiagnostics<
+        diagnostic>;
+    using callback = Base::callback;
 
     ServerDiagnostics(
         rclcpp::node_interfaces::NodeBaseInterface::SharedPtr base_interface,
@@ -42,18 +45,10 @@ public:
 
     virtual ~ServerDiagnostics();
 
-    void set_diagnostic_callback(diagnostic diagnostic_code, callback callback);
-    void remove_diagnostic_callback(diagnostic diagnostic_code);
-    bool apply_diagnostic_callback(
-        diagnostic diagnostic_code,
-        diagnostic_updater::DiagnosticStatusWrapper& status) const;
-
 private:
     RCLCPP_DISABLE_COPY(ServerDiagnostics)
 
-    static const std::unordered_map<diagnostic, std::string> diagnostic_names;
-
-    std::unordered_map<diagnostic, callback> m_diagnostic_callbacks;
+    static const Base::DiagnosticNamesT diagnostic_names;
 };
 
 }  // namespace clover2_fcu_bridge
