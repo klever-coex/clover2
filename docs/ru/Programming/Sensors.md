@@ -7,4 +7,6 @@
 
 Sensors/RPLidar
 Sensors/ThermalCamera
+Sensors/Hailo
+Sensors/HailoModel
 ```
