@@ -11,6 +11,7 @@ sudo apt-get install -qy \
     avahi-daemon \
     cmake \
     curl \
+    figlet \
     libboost-dev \
     libjpeg-dev \
     liblttng-ust-dev \
@@ -23,6 +24,7 @@ sudo apt-get install -qy \
     libyaml-dev \
     libyuv-dev \
     locales \
+    lolcat \
     lttng-tools \
     meson \
     network-manager \
@@ -32,8 +34,7 @@ sudo apt-get install -qy \
     pkg-config \
     pybind11-dev \
     python3-jinja2 \
-    lolcat \
-    figlet \
+    python3-pip \
     raspi-config
 
 log_info "Copy build variables into image"

@@ -28,6 +28,7 @@ class Clover2(Node):
             self._led = LEDClient(self, "/led_strip")
         except Exception as e:
             self._led = None
+            self.get_logger().warning(f"Led strip not found")
 
     def __getattr__(self, name: str):
 

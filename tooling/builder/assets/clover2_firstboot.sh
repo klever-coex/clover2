@@ -2,6 +2,8 @@
 
 source /root/.clover2-env
 
+mkdir -p /var/log/clover2
+
 echo "---> Fix home directory permissions <---"
 chmod +rx /home/pi
 
@@ -27,21 +29,23 @@ chown pi:pi /opt/clover2/docker-compose.yaml
 
 sudo systemctl enable codium-server@pi
 
-echo "---> Remove firstboot scrip <---"
-systemctl disable clover2-firstboot.service
-rm /etc/systemd/system/clover2-firstboot.service
-systemctl daemon-reload
-
 echo "---> Install docker images <---"
 for f in /root/*.tar; do
+    echo "---> Loading docker image $f <---"
     cat $f | docker load
 done
 
 echo "---> Expand filesystem <---"
 sudo raspi-config nonint do_expand_rootfs | true
 
+echo "---> Remove firstboot script <---"
+systemctl disable clover2-firstboot.service
+rm /etc/systemd/system/clover2-firstboot.service
+systemctl daemon-reload
+
 rm /root/*.tar
 rm /root/clover2_firstboot.sh
 
 echo "---> Reboot <---"
+sync
 reboot
