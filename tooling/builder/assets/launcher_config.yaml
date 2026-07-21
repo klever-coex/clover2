@@ -14,5 +14,7 @@ localization:
     map_filename: example-1.yaml
   aruco_tracker:
     enable: true
+indication:
+  led_strip: true
 2d_lidar:
   enable: false

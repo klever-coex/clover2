@@ -15,7 +15,7 @@ To standardize the startup method, device drivers have been moved to separate fi
 | container_name  | False    | camera_container     | ROS2 container name to load camera driver as component                                                  |
 | frame_id        | False    | $(camera_name)\_link | TF2 vision frame id                                                                                     |
 | ns              | False    | -                    | Camera ROS2 namespace                                                                                   |
-| param_file      | False    | params/klever5.yaml  | Path to extra params file                                                                               |
+| param_files      | False    | params/klever5.yaml  | Path to extra params file                                                                               |
 | use_composition | False    | false                | If true - camera driver loading as componnet to container $(container_name). Else run as separated node |
 
 ### 2D Lidar driver launch template
@@ -25,7 +25,7 @@ To standardize the startup method, device drivers have been moved to separate fi
 | lidar_id    | False    | /dev/rplidar0                                              | Path to lidar serial device                                  |
 | lidar_name  | False    | lidar                                                      | Lidar node name                                              |
 | ns          | False    | -                                                          | Lidar ROS2 namespace                                         |
-| param_file  | False    | params/klever5.yaml                                        | Path to extra params file                                    |
+| param_files  | False    | params/klever5.yaml                                        | Path to extra params file                                    |
 
 ### Override sensing package
 

@@ -1,6 +1,7 @@
 // clover2
 #include <clover2/cam_feature/cam_feature.hpp>
 #include <clover2_common/lifecycle_node.hpp>
+#include <clover2_common/node_context.hpp>
 #include <clover2_common/util/parameter.hpp>
 
 // opencv
@@ -54,7 +55,8 @@ cam_feature::~cam_feature() = default;
 
 cam_feature::CallbackReturn cam_feature::on_configure(
     const rclcpp_lifecycle::State& state) {
-    auto node = shared_from_this();
+
+    auto node_context = std::make_shared<clover2_common::node_context>(*this);
 
     get_diagnostic_updater()->add(cam_feature_diagnostic_name, this,
                                   &cam_feature::produce_diagnostics);
@@ -72,7 +74,7 @@ cam_feature::CallbackReturn cam_feature::on_configure(
         for (size_t i = 0; i < m_plugin_ids.size(); i++) {
             std::string param_name = default_plugin_ids[i] + ".plugin";
             clover2_common::util::declare_parameter_if_not_declared(
-                node, param_name, default_plugin_types[i]);
+                this, param_name, default_plugin_types[i]);
         }
     }
 
@@ -93,7 +95,7 @@ cam_feature::CallbackReturn cam_feature::on_configure(
             RCLCPP_INFO(get_logger(), "Created plugin %s with type %s",
                         id.c_str(), plugin_type.c_str());
 
-            plugin->configure(id, node, m_map_client);
+            plugin->configure(id, node_context, m_map_client);
 
             m_plugins.insert({id, plugin});
         } catch (const std::exception& e) {

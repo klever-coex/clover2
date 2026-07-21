@@ -10,9 +10,12 @@
 #include <stdexcept>
 #include <string>
 
-#define READ_PARAM(_node, _name, _struct, _param_name) \
-    clover2_common::util::safe_declare_and_get(       \
-        _node, _name + "." #_param_name, _struct->_param_name)
+#define WATCH_PARAM(_param_name, _type)                                    \
+    declare_and_watch_parameter(                                           \
+        get_name() + "." #_param_name, m_detector_parameters->_param_name, \
+        [&](const rclcpp::Parameter& p) {                                  \
+            m_detector_parameters->_param_name = p.as_##_type();           \
+        });
 
 namespace {
 
@@ -54,17 +57,24 @@ public:
     explicit aruco() = default;
     virtual ~aruco() = default;
 
-    void on_configure(const std::string& name,
-                      const rclcpp_lifecycle::LifecycleNode::WeakPtr& node,
-                      const std::shared_ptr<clover2::map::client>& map_client)
+    void on_configure(
+        const std::string& name,
+        const std::shared_ptr<clover2_common::node_context>& node_context,
+        const std::shared_ptr<clover2::map::client>& map_client)
         override final {
-        _configure(name, node, map_client);
+        _configure(name, node_context, map_client);
 
-        auto node_ptr = node.lock();
+        auto parameters_interface =
+            node_context->get_node_parameters_interface();
 
-        std::string dictionary_id = "4X4_50";  // default value
-        clover2_common::util::safe_declare_and_get(
-            node_ptr, name + ".marker_dict", dictionary_id);
+        clover2_common::util::declare_parameter_if_not_declared(
+            parameters_interface, name + ".marker_dict", "4X4_50");
+
+        rclcpp::Parameter dictionary_id_param;
+        parameters_interface->get_parameter(name + ".marker_dict",
+                                            dictionary_id_param);
+
+        std::string dictionary_id = dictionary_id_param.as_string();
 
         auto id = marker_dictionary_map.find(dictionary_id);
         if (id == marker_dictionary_map.end()) {
@@ -74,10 +84,8 @@ public:
         m_dictionary = cv::makePtr<cv::aruco::Dictionary>(
             cv::aruco::getPredefinedDictionary(id->second));
 
-        m_detector_parameters = declare_detector_params(node_ptr, name);
-        if (!m_detector_parameters) {
-            throw std::runtime_error("Fail to configure detector parameters");
-        }
+        m_detector_parameters = cv::aruco::DetectorParameters::create();
+        declare_detector_params();
     }
 
     void on_activate() override final { _activate(); }
@@ -100,33 +108,27 @@ protected:
     }
 
 private:
-    cv::Ptr<cv::aruco::DetectorParameters> declare_detector_params(
-        const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
-        const std::string& name) {
-        auto p = cv::aruco::DetectorParameters::create();
-
-        READ_PARAM(node, name, p, adaptiveThreshWinSizeMin);
-        READ_PARAM(node, name, p, adaptiveThreshWinSizeMax);
-        READ_PARAM(node, name, p, adaptiveThreshWinSizeStep);
-        READ_PARAM(node, name, p, adaptiveThreshConstant);
-        READ_PARAM(node, name, p, minMarkerPerimeterRate);
-        READ_PARAM(node, name, p, maxMarkerPerimeterRate);
-        READ_PARAM(node, name, p, polygonalApproxAccuracyRate);
-        READ_PARAM(node, name, p, minCornerDistanceRate);
-        READ_PARAM(node, name, p, minDistanceToBorder);
-        READ_PARAM(node, name, p, minMarkerDistanceRate);
-        READ_PARAM(node, name, p, cornerRefinementMethod);
-        READ_PARAM(node, name, p, cornerRefinementWinSize);
-        READ_PARAM(node, name, p, polygonalApproxAccuracyRate);
-        READ_PARAM(node, name, p, cornerRefinementMinAccuracy);
-        READ_PARAM(node, name, p, markerBorderBits);
-        READ_PARAM(node, name, p, perspectiveRemovePixelPerCell);
-        READ_PARAM(node, name, p, perspectiveRemoveIgnoredMarginPerCell);
-        READ_PARAM(node, name, p, maxErroneousBitsInBorderRate);
-        READ_PARAM(node, name, p, minOtsuStdDev);
-        READ_PARAM(node, name, p, errorCorrectionRate);
-
-        return p;
+    void declare_detector_params() {
+        WATCH_PARAM(adaptiveThreshWinSizeMin, int);
+        WATCH_PARAM(adaptiveThreshWinSizeMax, int);
+        WATCH_PARAM(adaptiveThreshWinSizeStep, int);
+        WATCH_PARAM(adaptiveThreshConstant, double);
+        WATCH_PARAM(minMarkerPerimeterRate, double);
+        WATCH_PARAM(maxMarkerPerimeterRate, double);
+        WATCH_PARAM(polygonalApproxAccuracyRate, double);
+        WATCH_PARAM(minCornerDistanceRate, double);
+        WATCH_PARAM(minDistanceToBorder, int);
+        WATCH_PARAM(minMarkerDistanceRate, double);
+        WATCH_PARAM(cornerRefinementMethod, int);
+        WATCH_PARAM(cornerRefinementWinSize, int);
+        WATCH_PARAM(cornerRefinementMaxIterations, int);
+        WATCH_PARAM(cornerRefinementMinAccuracy, double);
+        WATCH_PARAM(markerBorderBits, int);
+        WATCH_PARAM(perspectiveRemovePixelPerCell, int);
+        WATCH_PARAM(perspectiveRemoveIgnoredMarginPerCell, double);
+        WATCH_PARAM(maxErroneousBitsInBorderRate, double);
+        WATCH_PARAM(minOtsuStdDev, double);
+        WATCH_PARAM(errorCorrectionRate, double);
     }
 
     cv::Ptr<cv::aruco::Dictionary> m_dictionary;

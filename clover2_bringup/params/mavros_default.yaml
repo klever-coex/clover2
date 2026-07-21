@@ -5,7 +5,6 @@
     plugin_denylist:
       - camera
       - debug_value
-      - distance_sensor
       - fake_gps
       - geofence
       - gimbal_control
@@ -143,25 +142,6 @@
 # None
 
 # --- mavros extras plugins (same order) ---
-
-# distance_sensor
-## Currently available orientations:
-#    Check http://wiki.ros.org/mavros/Enumerations
-##
-/**/distance_sensor:
-  ros__parameters:
-    config: |
-      distance_sensor/filtred:
-        id: 0
-        frame_id: "camera_link"
-        orientation: "PITCH_270"
-        field_of_view: 0.0
-      distance_sensor/rangefinder:
-        subscriber: true
-        id: 1
-        frame_id: "camera_link"
-        orientation: "PITCH_270"
-        field_of_view: 0.0
 
 # image_pub
 /**/image:
