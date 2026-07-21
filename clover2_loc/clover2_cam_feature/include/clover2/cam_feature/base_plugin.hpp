@@ -1,9 +1,9 @@
 #pragma once
 
 // clover2
+#include <clover2/map/client.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 #include <clover2_common/node_context.hpp>
-#include <clover2/map/client.hpp>
 
 // rclcpp
 #include <rclcpp/clock.hpp>
@@ -34,37 +34,13 @@ public:
     explicit base_plugin();
     virtual ~base_plugin();
 
-    void configure(const std::string& name,
-                   rclcpp_lifecycle::LifecycleNode::WeakPtr node,
-                   const std::shared_ptr<clover2::map::client>& map_client) {
-        auto node_ptr = node.lock();
-        if (!node_ptr) {
-            throw std::runtime_error("Fail to lock node ptr");
-        }
-
-        m_name = name;
-
-        m_node_context =
-            std::make_shared<clover2_common::node_context>(*node_ptr);
-
-        m_logger = m_node_context->get_node_logging_interface()
-                       ->get_logger()
-                       .get_child(name);
-        m_clock = m_node_context->get_node_clock_interface()->get_clock();
-
-        on_configure(name, node, map_client);
-        RCLCPP_DEBUG(get_logger(), "Configured");
-    }
-
-    void activate() { on_activate(); }
-    void deactivate() { on_deactivate(); }
-
-    void cleanup() {
-        on_cleanup();
-        m_node_context.reset();
-
-        RCLCPP_DEBUG(get_logger(), "Cleaned up");
-    }
+    void configure(
+        const std::string& name,
+        const std::shared_ptr<clover2_common::node_context>& node_context,
+        const std::shared_ptr<clover2::map::client>& map_client);
+    void activate();
+    void deactivate();
+    void cleanup();
 
     virtual std::list<clover2_pose_msgs::msg::Marker> process(
         const std_msgs::msg::Header& header, const cv::Mat& image,
@@ -74,21 +50,35 @@ public:
 protected:
     virtual void on_configure(
         const std::string& name,
-        const rclcpp_lifecycle::LifecycleNode::WeakPtr& node,
+        const std::shared_ptr<clover2_common::node_context>& node,
         const std::shared_ptr<clover2::map::client>& map_client) = 0;
     virtual void on_activate() = 0;
     virtual void on_deactivate() = 0;
     virtual void on_cleanup() = 0;
 
-    const std::string& get_name() const { return m_name; }
+    const std::string& get_name() const;
 
-    rclcpp::Logger get_logger() const { return m_logger; }
-    rclcpp::Clock::SharedPtr get_clock() const { return m_clock; }
+    rclcpp::Logger get_logger() const;
+    rclcpp::Clock::SharedPtr get_clock() const;
+
+    template <typename ParameterT>
+    void declare_and_watch_parameter(
+        const std::string& name, const ParameterT& default_value,
+        clover2_common::util::ParameterFunctorT cb,
+        const std::string& description = "",
+        const std::string& additional_constraints = "", bool read_only = false,
+        bool ignore_override = false) {
+        clover2_common::util::declare_and_watch_parameter<ParameterT>(
+            m_parameters_watcher, name, default_value, cb,
+            description, additional_constraints, read_only, ignore_override);
+    }
 
     std::string m_name;
     rclcpp::Logger m_logger;
     rclcpp::Clock::SharedPtr m_clock;
     std::shared_ptr<clover2_common::node_context> m_node_context;
+    clover2_common::node_interfaces::NodeParametersWatcherInterface::SharedPtr
+        m_parameters_watcher{nullptr};
 };
 
 }  // namespace clover2::cam_feature

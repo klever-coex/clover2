@@ -5,7 +5,7 @@ import rclpy
 from rclpy.node import Node
 
 from . import utils
-from .clients import CameraClient, OffboardClient
+from .clients import CameraClient, LEDClient, OffboardClient
 
 
 class Clover2(Node):
@@ -24,10 +24,14 @@ class Clover2(Node):
 
         self._offboard: OffboardClient = OffboardClient(self)
         self._camera: CameraClient = CameraClient(self)
+        try:
+            self._led = LEDClient(self, "/led_strip")
+        except Exception as e:
+            self._led = None
 
     def __getattr__(self, name: str):
 
-        for client in [self._offboard, self._camera]:
+        for client in [self._offboard, self._camera, self._led]:
             ret = getattr(client, name, None)
             if ret:
                 return ret
@@ -41,6 +45,10 @@ class Clover2(Node):
     @property
     def camera(self) -> CameraClient:
         return self._camera
+
+    @property
+    def led(self) -> LEDClient | None:
+        return self._led
 
     def _ros_worker(self) -> None:
         while rclpy.ok():

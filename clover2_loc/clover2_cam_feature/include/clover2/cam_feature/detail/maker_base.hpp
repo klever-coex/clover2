@@ -35,7 +35,7 @@ public:
 
 protected:
     void _configure(const std::string& name,
-                    const rclcpp_lifecycle::LifecycleNode::WeakPtr& node,
+                    const std::shared_ptr<clover2_common::node_context>& node,
                     const std::shared_ptr<clover2::map::client>& map_client);
     void _activate();
     void _deactivate();

@@ -2,7 +2,7 @@
     <arg name="lidar_id" default="/dev/rplidar0" />
     <arg name="lidar_name" default="lidar" />
     <arg name="ns" default="" />
-    <arg name="param_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
+    <arg name="params_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
 
     <node pkg="rplidar_ros" exec="rplidar_composition" name="$(var lidar_name)" namespace="$(var ns)">
         <param name="serial_port" value="$(var lidar_id)" />
@@ -13,7 +13,7 @@
         <param name="scan_mode" value="Standard" />
         <param name="topic_name" value="scan" />
 
-        <param from="$(var param_file)" />
+        <param from="$(var params_file)" />
     </node>
 
 </launch>
