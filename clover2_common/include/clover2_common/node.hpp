@@ -1,9 +1,9 @@
 #pragma once
 
 // clover2
-#include <clover2_common/node_interfaces/node_diagnostics_factory.hpp>
 #include <clover2_common/node_interfaces/node_diagnostics_interface.hpp>
 #include <clover2_common/node_interfaces/node_parameters_watcher_interface.hpp>
+#include <clover2_common/node_diagnostics_factory.hpp>
 #include <clover2_common/util/parameter.hpp>
 
 // ROS2
@@ -19,8 +19,7 @@ public:
     node(const std::string& node_name,
          const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
     node(const std::string& node_name, const rclcpp::NodeOptions& options,
-         clover2_common::node_interfaces::NodeDiagnosticsFactory::SharedPtr
-             diagnostics_factory);
+         clover2_common::NodeDiagnosticsFactory::SharedPtr diagnostics_factory);
 
     virtual ~node() = default;
 

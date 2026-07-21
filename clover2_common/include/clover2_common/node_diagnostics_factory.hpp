@@ -15,7 +15,7 @@
 #include <memory>
 #include <type_traits>
 
-namespace clover2_common::node_interfaces {
+namespace clover2_common {
 
 class NodeDiagnosticsFactory {
 public:
@@ -23,7 +23,7 @@ public:
 
     virtual ~NodeDiagnosticsFactory() = default;
 
-    virtual NodeDiagnosticsInterface::SharedPtr create(
+    virtual node_interfaces::NodeDiagnosticsInterface::SharedPtr create(
         rclcpp::node_interfaces::NodeBaseInterface::SharedPtr base_interface,
         rclcpp::node_interfaces::NodeClockInterface::SharedPtr clock_interface,
         rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr
@@ -43,7 +43,7 @@ public:
     NodeDiagnosticsFactoryTemplate() = default;
     ~NodeDiagnosticsFactoryTemplate() override = default;
 
-    NodeDiagnosticsInterface::SharedPtr create(
+    node_interfaces::NodeDiagnosticsInterface::SharedPtr create(
         rclcpp::node_interfaces::NodeBaseInterface::SharedPtr base_interface,
         rclcpp::node_interfaces::NodeClockInterface::SharedPtr clock_interface,
         rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr
@@ -55,7 +55,8 @@ public:
         rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr
             topics_interface) override {
         static_assert(
-            std::is_base_of<NodeDiagnosticsInterface, DiagnosticsT>::value,
+            std::is_base_of<node_interfaces::NodeDiagnosticsInterface,
+                            DiagnosticsT>::value,
             "DiagnosticsT should be derived from NodeDiagnosticsInterface");
 
         return std::make_shared<DiagnosticsT>(
@@ -64,4 +65,4 @@ public:
     }
 };
 
-}  // namespace clover2_common::node_interfaces
+}  // namespace clover2_common

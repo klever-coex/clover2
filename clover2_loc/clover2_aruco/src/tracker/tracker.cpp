@@ -16,9 +16,8 @@ namespace clover2::aruco {
 tracker::tracker(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node(
           "tracker", options,
-          std::make_shared<clover2_common::node_interfaces::
-                               NodeDiagnosticsFactoryTemplate<
-                                   TrackerDiagnostics>>()) {
+          std::make_shared<clover2_common::NodeDiagnosticsFactoryTemplate<
+              TrackerDiagnostics>>()) {
     auto diagnostics = std::static_pointer_cast<TrackerDiagnostics>(
         get_node_diagnostics_interface());
 

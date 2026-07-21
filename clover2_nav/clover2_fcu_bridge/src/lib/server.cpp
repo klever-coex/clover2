@@ -53,9 +53,8 @@ namespace clover2_fcu_bridge {
 server::server(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node(
           "fcu_bridge", options,
-          std::make_shared<clover2_common::node_interfaces::
-                               NodeDiagnosticsFactoryTemplate<
-                                   ServerDiagnostics>>())
+          std::make_shared<clover2_common::NodeDiagnosticsFactoryTemplate<
+              ServerDiagnostics>>())
     , m_backend_name("mavros") {
     auto diagnostics = std::static_pointer_cast<ServerDiagnostics>(
         get_node_diagnostics_interface());

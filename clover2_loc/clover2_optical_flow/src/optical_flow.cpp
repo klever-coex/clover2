@@ -20,9 +20,8 @@ namespace clover2::optical_flow {
 optical_flow::optical_flow(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node(
           "optical_flow", options,
-          std::make_shared<clover2_common::node_interfaces::
-                               NodeDiagnosticsFactoryTemplate<
-                                   OpticalFlowDiagnostics>>())
+          std::make_shared<clover2_common::NodeDiagnosticsFactoryTemplate<
+              OpticalFlowDiagnostics>>())
     , m_fcu_frame_id("base_link")
     , m_local_frame_id("map")
     , m_prev_stamp(rclcpp::Time(0))

@@ -23,8 +23,7 @@ node::node(const std::string& node_name, const rclcpp::NodeOptions& options)
           get_node_parameters_interface())) {}
 
 node::node(const std::string& node_name, const rclcpp::NodeOptions& options,
-           clover2_common::node_interfaces::NodeDiagnosticsFactory::SharedPtr
-               diagnostics_factory)
+           clover2_common::NodeDiagnosticsFactory::SharedPtr diagnostics_factory)
     : rclcpp::Node(node_name, options)
     , m_diagnostics(diagnostics_factory->create(
           get_node_base_interface(), get_node_clock_interface(),
