@@ -8,14 +8,14 @@
     <arg name="ns" default="" description="Should starts with / or be empty" />
     <arg name="sensing_pkg" />
     <arg name="use_sim_time" default="false" />
-    <arg name="param_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
+    <arg name="params_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
 
     <!-- local variables -->
     <let name="local_ns" value="$(var ns)/$(var camera_name)" />
 
     <include file="$(find-pkg-share $(var sensing_pkg))/launch/sensing/camera.launch.xml">
         <arg name="use_sim_time" value="$(var use_sim_time)" />
-        <arg name="param_file" value="$(var param_file)" />
+        <arg name="params_file" value="$(var params_file)" />
 
         <arg name="camera_id" value="$(var camera_id)" />
         <arg name="container_name" value="$(var local_ns)/container" />
@@ -28,7 +28,7 @@
         if="$(var feature_detector)"
     >
         <arg name="use_sim_time" value="$(var use_sim_time)" />
-        <arg name="param_file" value="$(var param_file)" />
+        <arg name="params_file" value="$(var params_file)" />
 
         <arg name="camera_node" value="camera" />
         <arg name="container_name" value="$(var local_ns)/container" />
@@ -39,7 +39,7 @@
 
     <include file="$(find-pkg-share clover2_bringup)/launch/vision/optical_flow.launch.xml" if="$(var optical_flow)">
         <arg name="use_sim_time" value="$(var use_sim_time)" />
-        <arg name="param_file" value="$(var param_file)" />
+        <arg name="params_file" value="$(var params_file)" />
 
         <arg name="camera_node" value="camera" />
         <arg name="container_name" value="$(var local_ns)/container" />

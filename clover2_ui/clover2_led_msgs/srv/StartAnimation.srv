@@ -1,0 +1,8 @@
+string animation_name
+float32 brightness 1.0
+clover2_led_msgs/Color[] colors
+float32 period 1.0
+float32 duration 0.0
+---
+bool success
+string message

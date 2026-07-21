@@ -32,8 +32,9 @@ log_info "Rosdep"
 sudo rosdep init
 rosdep update
 
-log_info "Add ROS2 source to bashrc"
+log_info "Add ROS2 settings to bashrc"
 echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
+echo "export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST" >> ~/.bashrc
 
 sudo apt-get autoclean
 sudo apt-get clean

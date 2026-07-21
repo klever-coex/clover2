@@ -15,3 +15,11 @@
 /**/web_video_server:
   ros__parameters:
     port: 8081
+
+/**/led_strip:
+  ros__parameters:
+    device_plugin: "ws2812_spi"
+    brightness_scale: 0.5
+    led_count: 80
+    ws2812_spi:
+      spi_device: "/dev/spidev0.0"

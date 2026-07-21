@@ -15,7 +15,7 @@
 | container_name | Нет          | camera_container     | Имя ROS2 контейнера для загрузки драйвера камеры как компонента                                            |
 | frame_id       | Нет          | $(camera_name)\_link | Идентификатор TF2 vision frame                                                                            |
 | ns             | Нет          | -                    | ROS2 namespace камеры                                                                                     |
-| param_file     | Нет          | params/klever5.yaml  | Путь к файлу дополнительных параметров                                                                    |
+| param_files     | Нет          | params/klever5.yaml  | Путь к файлу дополнительных параметров                                                                    |
 | use_composition| Нет          | false                | Если true — драйвер камеры загружается как компонент в контейнер $(container_name). Иначе как отдельная нода |
 
 ### Шаблон аршументов запуска 2D лидара
@@ -25,7 +25,7 @@
 | lidar_id   | Нет          | /dev/rplidar0            | Путь к последовательному устройству лидара |
 | lidar_name | Нет          | lidar                    | Имя ноды лидара                            |
 | ns         | Нет          | -                        | ROS2 namespace лидара                      |
-| param_file | Нет          | params/klever5.yaml      | Путь к файлу дополнительных параметров     |
+| param_files | Нет          | params/klever5.yaml      | Путь к файлу дополнительных параметров     |
 
 ### Подмена пакета сенсоров
 
