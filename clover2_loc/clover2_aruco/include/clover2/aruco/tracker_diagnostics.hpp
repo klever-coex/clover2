@@ -49,8 +49,9 @@ public:
 private:
     RCLCPP_DISABLE_COPY(TrackerDiagnostics)
 
+    static const std::unordered_map<diagnostic, std::string> diagnostic_names;
+
     std::unordered_map<diagnostic, callback> m_diagnostic_callbacks;
-    std::unordered_map<diagnostic, std::string> m_diagnostic_names;
 };
 
 }  // namespace clover2::aruco

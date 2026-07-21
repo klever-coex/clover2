@@ -2,6 +2,13 @@
 
 namespace clover2::optical_flow {
 
+const std::unordered_map<OpticalFlowDiagnostics::diagnostic, std::string>
+    OpticalFlowDiagnostics::diagnostic_names = {
+        {diagnostic::camera_info, "camera_info"},
+        {diagnostic::flow, "flow"},
+        {diagnostic::flow_frequency, "flow_frequency"},
+};
+
 OpticalFlowDiagnostics::OpticalFlowDiagnostics(
     rclcpp::node_interfaces::NodeBaseInterface::SharedPtr base_interface,
     rclcpp::node_interfaces::NodeClockInterface::SharedPtr clock_interface,
@@ -12,12 +19,8 @@ OpticalFlowDiagnostics::OpticalFlowDiagnostics(
     rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface)
     : clover2_common::node_interfaces::NodeDiagnostics(
           base_interface, clock_interface, logging_interface,
-          parameters_interface, timers_interface, topics_interface)
-    , m_diagnostic_names(
-          {{diagnostic::camera_info, "camera_info"},
-           {diagnostic::flow, "flow"},
-           {diagnostic::flow_frequency, "flow_frequency"}}) {
-    for (const auto& [code, name] : m_diagnostic_names) {
+          parameters_interface, timers_interface, topics_interface) {
+    for (const auto& [code, name] : diagnostic_names) {
         add(name,
             [this, code](diagnostic_updater::DiagnosticStatusWrapper& stat) {
                 if (!apply_diagnostic_callback(code, stat)) {
