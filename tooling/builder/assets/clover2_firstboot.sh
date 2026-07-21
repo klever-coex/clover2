@@ -2,6 +2,8 @@
 
 source /root/.clover2-env
 
+mkdir -p /var/log/clover2
+
 echo "---> Fix home directory permissions <---"
 chmod +rx /home/pi
 
@@ -29,6 +31,7 @@ sudo systemctl enable codium-server@pi
 
 echo "---> Install docker images <---"
 for f in /root/*.tar; do
+    echo "---> Loading docker image $f <---"
     cat $f | docker load
 done
 
@@ -44,4 +47,5 @@ rm /root/*.tar
 rm /root/clover2_firstboot.sh
 
 echo "---> Reboot <---"
+sync
 reboot
