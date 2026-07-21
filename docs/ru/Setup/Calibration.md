@@ -4,7 +4,7 @@
 
 ## Гироскоп
 
-```{figure} @assets@/common/setup/qgc-cal-gyro.webp
+```{figure} ../../assets/common/setup/qgc-cal-gyro.webp
 :alt: Калибровка гироскопа в QGroundControl
 :width: 90%
 :align: center
@@ -26,7 +26,7 @@
 
 ## Акселерометр
 
-```{figure} @assets@/common/setup/qgc-cal-acc.webp
+```{figure} ../../assets/common/setup/qgc-cal-acc.webp
 :alt: Калибровка акселерометра в QGroundControl
 :width: 90%
 :align: center
@@ -44,7 +44,7 @@
 
 ## Уровень горизонта
 
-```{figure} @assets@/common/setup/qgc-cal-level.webp
+```{figure} ../../assets/common/setup/qgc-cal-level.webp
 :alt: Калибровка горизонта в QGroundControl
 :width: 90%
 :align: center
