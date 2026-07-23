@@ -2,6 +2,7 @@
 
 export RCUTILS_COLORIZED_OUTPUT=1
 export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
 source /opt/ros/jazzy/setup.bash
 

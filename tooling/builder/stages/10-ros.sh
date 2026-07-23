@@ -33,8 +33,9 @@ sudo rosdep init
 rosdep update
 
 log_info "Add ROS2 settings to bashrc"
-echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
 echo "export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST" >> ~/.bashrc
+echo "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp" >> ~/.bashrc
+echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
 
 sudo apt-get autoclean
 sudo apt-get clean

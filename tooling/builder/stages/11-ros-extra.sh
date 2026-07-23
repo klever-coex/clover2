@@ -17,6 +17,8 @@ sudo apt-get install -yq \
     ros-$ROS_DISTRO-mavros-extras \
     ros-$ROS_DISTRO-mavros-msgs \
     ros-$ROS_DISTRO-tf-transformations \
+    ros-$ROS_DISTRO-v4l2-camera \
+    ros-$ROS_DISTRO-rmw-cyclonedds-cpp \
     ros-$ROS_DISTRO-web-video-server
 
 sudo apt-get autoclean
