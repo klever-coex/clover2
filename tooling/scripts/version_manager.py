@@ -47,6 +47,7 @@ def build_package_list(base_path: pathlib.Path, filter: re.Pattern) -> list[Pack
     for entry in base_path.rglob("package.xml"):
         print(entry)
 
+
 def setup_logging(verbose: bool) -> None:
     level = logging.DEBUG if verbose else logging.INFO
 
@@ -62,7 +63,7 @@ def parse_args() -> argparse.Namespace:
         description="ROS2 package version manager"
     )
 
-    parser.add_argument("filter", type=re.compile,
+    parser.add_argument("-f", "--filter", type=re.compile,
                         help="Package name filter")
 
     return parser.parse_args()
@@ -73,15 +74,13 @@ def main():
     setup_logging(args.verbose)
 
 
-
-
-
 if __name__ == "__main__":
-    # main()
+    main()
 
     setup_logging(True)
 
-    build_package_list(pathlib.Path("/home/motya/own_projects/coex/clover2-dev/src"), "clover2*")
+    build_package_list(pathlib.Path(
+        "/home/motya/own_projects/coex/clover2-dev/src"), "clover2*")
 
     # val = Package(
     #     "/home/motya/own_projects/coex/clover2-dev/src/clover2/clover2/package.xml")
