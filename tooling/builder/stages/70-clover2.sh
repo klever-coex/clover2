@@ -33,6 +33,9 @@ cp $ASSETS_DIR/launcher_config.yaml /opt/clover2/.config.yaml
 ln -s "$(get_ros_pkg_share clover2)/examples" /home/$USER/examples
 cp -r "$(get_ros_pkg_share clover2_map)/map" /opt/clover2/map
 
+sudo mkdir /var/log/clover2
+sudo chmod 755 /var/log/clover2
+
 sudo chmod +x /root/clover2_firstboot.sh
 sudo chmod +x /opt/clover2/ros2_launch.sh
 

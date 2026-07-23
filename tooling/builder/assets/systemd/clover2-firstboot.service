@@ -9,9 +9,6 @@ RemainAfterExit=no
 User=root
 Group=root
 
-LogsDirectory=clover2
-LogsDirectoryMode=0755
-
 StandardOutput=append:/var/log/clover2/firstboot.log
 StandardError=append:/var/log/clover2/firstboot.log
 
