@@ -68,11 +68,3 @@ jobs:
       - uses: ./.github/actions/docker-bake
         with:
           target: ${{ matrix.target }}
-
-  image:
-    if: false
-    needs: docker
-    runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}
-    steps:
-      - name: Placeholder for OS image build
-        run: echo "OS image build not yet implemented"
