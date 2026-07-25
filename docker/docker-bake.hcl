@@ -1,10 +1,8 @@
 variable "BUILD_MODE" { }
 variable "DOCKER_OUTPUT_DIR" { }
-variable "REGISTRY_POLICY" { }
 variable "REGISTRY" { }
 
 variable "CLOVER2_VERSION" { }
-variable "CLOVER2_BASE_VERSION" { }
 variable "CLOVER2_GIT_HASH" { }
 
 variable "LABELS" {
@@ -43,22 +41,12 @@ function "tagged" {
   ])
 }
 
-function "outputs" {
-  params = [name, save-tar]
-  result = compact([
-    REGISTRY_POLICY == "push" ? "type=registry" : null,
-    REGISTRY_POLICY == "load" ? "type=docker" : null,
-    save-tar ? "type=oci,dest=${DOCKER_OUTPUT_DIR}/${name}.tar" : null,
-  ])
-}
-
 target "base" {
   context = "."
   labels = LABELS
 
   args = {
     CLOVER2_VERSION = "${CLOVER2_VERSION}"
-    CLOVER2_BASE_VERSION = "${CLOVER2_BASE_VERSION}"
     CLOVER2_GIT_HASH = "${CLOVER2_GIT_HASH}"
   }
 
@@ -76,7 +64,6 @@ target "project-deploy" {
   dockerfile = item.dockerfile
   name = item.tgt
   tags = tagged(item.tgt)
-  output = outputs(item.tgt, true)
 
   inherits = ["base"]
   platforms = PLATFORMS
@@ -105,7 +92,6 @@ target "ros" {
   dockerfile = "docker/ros/Dockerfile"
   name = tgt
   tags = tagged(tgt)
-  output = outputs(tgt, true)
   target = tgt
 
   inherits = ["base"]
@@ -129,7 +115,6 @@ target "builder" {
   dockerfile = item.dockerfile
   name = item.tgt
   tags = tagged(item.tgt)
-  output = outputs(item.tgt, false)
 
   inherits = ["base"]
 
@@ -152,10 +137,6 @@ target "builder" {
 
 target "_clover2-px4" {
   dockerfile = "docker/px4/Dockerfile"
-  output = compact([
-    REGISTRY_POLICY == "push" ? "type=registry" : null,
-    REGISTRY_POLICY == "load" ? "type=docker" : null,
-  ])
 
   args = {
     PX4_VERSION = "94cb201" # v1.16.1

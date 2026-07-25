@@ -36,7 +36,8 @@ COPY tooling/docker/* /clover2/
 WORKDIR /clover2
 COPY --from=rosdep-depend /clover2/apt-depends.txt /tmp/apt-depends.txt
 
-RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
     apt-get update -y && \
     apt-get install -y \
         geographiclib-tools && \
@@ -44,7 +45,8 @@ RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=lo
 
 RUN wget -qO- https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh | sudo bash
 
-RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
     apt-get update -y && \
     apt-get install -y \
         ros-${ROS_DISTRO}-mavros-msgs \
@@ -56,7 +58,8 @@ RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=lo
         ros-${ROS_DISTRO}-image-geometry && \
     /clover2/cleanup-apt.sh
 
-RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
     apt-get update -y && \
     cat /tmp/apt-depends.txt | xargs apt-get install -y --no-install-recommends && \
     /clover2/cleanup-apt.sh
@@ -72,7 +75,8 @@ ARG ROS_DISTRO
 ARG TARGETPLATFORM
 ENV CCACHE_DIR="/root/.ccache"
 
-RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
     apt-get update -y && \
     apt-get install -y \
         ccache && \
@@ -96,7 +100,8 @@ FROM core AS clover2-sim
 ARG ROS_DISTRO
 ARG TARGETPLATFORM
 
-RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
     apt-get update -y && \
     apt-get install -y --no-install-recommends \
         ros-${ROS_DISTRO}-desktop=0.11.0-1* \

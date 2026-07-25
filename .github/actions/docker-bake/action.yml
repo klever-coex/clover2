@@ -1,14 +1,63 @@
 name: Docker Bake
-description: Build and push a Docker bake target
+description: Build [and push] Docker images using docker/bake-action
 
 inputs:
   target:
-    description: Bake target name (e.g. px4, ros, tooling, clover2-docs)
+    description: Bake target name
     required: true
+  build-mode:
+    description: Build mode (develop, master, release)
+    required: true
+    default: develop
+  git-hash:
+    description: Short git hash
+    required: true
+  version:
+    description: Version string for release builds
+    required: false
+    default: ''
+  push:
+    description: Whether to push images to registry
+    required: false
+    default: 'true'
 
 runs:
   using: composite
   steps:
+    - uses: ./.github/actions/docker-setup
+      with:
+        ghcr-token: ${{ github.token }}
+        login: ${{ inputs.push }}
+
+    - name: Build (no push) ${{ inputs.target }}
+      if: ${{ inputs.push != 'true' }}
+      uses: docker/bake-action@v7
+      with:
+        source: .
+        files: docker/docker-bake.hcl
+        targets: ${{ inputs.target }}
+        push: false
+        set: |
+          *.cache-from=type=gha,scope=clover2-${{ inputs.target }}
+        vars: |
+          REGISTRY=ghcr.io/${{ github.repository_owner }}/clover2/
+          BUILD_MODE=${{ inputs.build-mode }}
+          CLOVER2_GIT_HASH=${{ inputs.git-hash }}
+          CLOVER2_VERSION=${{ inputs.version || inputs.git-hash }}
+
     - name: Build and push ${{ inputs.target }}
-      shell: bash
-      run: make clover2-bake-push-${{ inputs.target }}
+      if: ${{ inputs.push == 'true' }}
+      uses: docker/bake-action@v7
+      with:
+        source: .
+        files: docker/docker-bake.hcl
+        targets: ${{ inputs.target }}
+        push: true
+        set: |
+          *.cache-from=type=gha,scope=clover2-${{ inputs.target }}
+          *.cache-to=type=gha,scope=clover2-${{ inputs.target }},mode=max
+        vars: |
+          REGISTRY=ghcr.io/${{ github.repository_owner }}/clover2/
+          BUILD_MODE=${{ inputs.build-mode }}
+          CLOVER2_GIT_HASH=${{ inputs.git-hash }}
+          CLOVER2_VERSION=${{ inputs.version || inputs.git-hash }}

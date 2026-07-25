@@ -1,0 +1,39 @@
+name: Detect Version
+description: Determine the build type and populate the variables
+
+outputs:
+  build_mode:
+    description: develop or master or release build mode
+    value: ${{ steps.detect.outputs.build_mode }}
+  git_hash:
+    description: Short git hash
+    value: ${{ steps.detect.outputs.git_hash }}
+  version:
+    description: Version from tag
+    value: ${{ steps.detect.outputs.version }}
+
+runs:
+  using: composite
+  steps:
+    - id: detect
+      shell: bash
+      run: |
+        BASE_VERSION=$(cat tooling/VERSION)
+        HASH="${{ github.sha }}"
+        GIT_HASH="${HASH:0:7}"
+        echo "git_hash=${GIT_HASH}" >> "$GITHUB_OUTPUT"
+
+        case "${{ github.ref }}" in
+          refs/heads/master)
+            echo "build_mode=master" >> "$GITHUB_OUTPUT"
+            echo "version=${BASE_VERSION}+${GIT_HASH}" >> "$GITHUB_OUTPUT"
+            ;;
+          refs/tags/v*)
+            echo "build_mode=release" >> "$GITHUB_OUTPUT"
+            echo "version=${BASE_VERSION}" >> "$GITHUB_OUTPUT"
+            ;;
+          *)
+            echo "build_mode=develop" >> "$GITHUB_OUTPUT"
+            echo "version=${BASE_VERSION}+${GIT_HASH}" >> "$GITHUB_OUTPUT"
+            ;;
+        esac
