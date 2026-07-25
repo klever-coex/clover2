@@ -1,10 +1,15 @@
+ARG TARGETPLATFORM
+
 FROM ubuntu:24.04 AS clover2-px4-deps
+ARG TARGETPLATFORM
 
 ENV DEBIAN_FRONTEND=noninteractive
 COPY tooling/docker/* /clover2/
 
 # Install dependencies
-RUN apt-get update && \
+RUN --mount=type=cache,id=apt-px4-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-px4-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
+	apt-get update && \
 	apt-get install -y --no-install-recommends \
 		build-essential \
 		ccache \
@@ -26,20 +31,20 @@ RUN apt-get update && \
 		gnupg \
         lsb-release \
 		libeigen3-dev \
-        ca-certificates && \
-	/clover2/cleanup-apt.sh
+        ca-certificates
 
 # Install gazebo
 RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
     && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" | tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
 
-RUN apt-get update -qq \
+RUN --mount=type=cache,id=apt-px4-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-px4-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
+	apt-get update -qq \
     && apt-get install -y \
         libgz-transport13-dev \
         libgz-msgs10-dev \
         libgz-tools2-dev \
-        libgz-utils2-dev && \
-	/clover2/cleanup-apt.sh
+        libgz-utils2-dev
 
 
 FROM clover2-px4-deps AS clover2-px4-dev
