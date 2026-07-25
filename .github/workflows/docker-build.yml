@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [tooling, web, ros, px4]
+        target: [tooling, web, ros]
     env:
       BUILD_MODE: ${{ needs.detect-mode.outputs.build_mode }}
     steps:

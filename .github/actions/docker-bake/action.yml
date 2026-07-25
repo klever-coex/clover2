@@ -40,6 +40,7 @@ runs:
         set: |
           *.cache-from=type=gha,scope=clover2-${{ inputs.target }}
         vars: |
+          REGISTRY=ghcr.io/${{ github.repository_owner }}/clover2/
           BUILD_MODE=${{ inputs.build-mode }}
           CLOVER2_GIT_HASH=${{ inputs.git-hash }}
           CLOVER2_VERSION=${{ inputs.version || inputs.git-hash }}
@@ -56,6 +57,7 @@ runs:
           *.cache-from=type=gha,scope=clover2-${{ inputs.target }}
           *.cache-to=type=gha,scope=clover2-${{ inputs.target }},mode=max
         vars: |
+          REGISTRY=ghcr.io/${{ github.repository_owner }}/clover2/
           BUILD_MODE=${{ inputs.build-mode }}
           CLOVER2_GIT_HASH=${{ inputs.git-hash }}
           CLOVER2_VERSION=${{ inputs.version || inputs.git-hash }}
