@@ -115,7 +115,6 @@ clean:
 ## version: Show current version information
 version:
 	@echo "BUILD_MODE: $(BUILD_MODE)"
-	@echo "CLOVER2_BASE_VERSION: $(CLOVER2_BASE_VERSION)"
 	@echo "CLOVER2_GIT_HASH: $(CLOVER2_GIT_HASH)"
 	@echo "CLOVER2_VERSION: $(CLOVER2_VERSION)"
 	@echo "REGISTRY: $(REGISTRY)"

@@ -4,7 +4,6 @@ variable "REGISTRY_POLICY" { }
 variable "REGISTRY" { }
 
 variable "CLOVER2_VERSION" { }
-variable "CLOVER2_BASE_VERSION" { }
 variable "CLOVER2_GIT_HASH" { }
 
 variable "LABELS" {
@@ -58,7 +57,6 @@ target "base" {
 
   args = {
     CLOVER2_VERSION = "${CLOVER2_VERSION}"
-    CLOVER2_BASE_VERSION = "${CLOVER2_BASE_VERSION}"
     CLOVER2_GIT_HASH = "${CLOVER2_GIT_HASH}"
   }
 

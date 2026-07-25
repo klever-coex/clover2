@@ -1,0 +1,47 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  actions: write
+
+jobs:
+  detect-mode:
+    if: ${{ github.event.pull_request == null || !github.event.pull_request.draft }}
+    runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}
+    outputs:
+      build_mode: ${{ steps.version.outputs.build_mode }}
+      git_hash: ${{ steps.version.outputs.git_hash }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/version-detect
+        id: version
+
+  docker:
+    needs: detect-mode
+    runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [tooling, web, ros, px4]
+    env:
+      BUILD_MODE: ${{ needs.detect-mode.outputs.build_mode }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/docker-build
+        with:
+          target: ${{ matrix.target }}
+          build-mode: ${{ needs.detect-mode.outputs.build_mode }}
+          git-hash: ${{ needs.detect-mode.outputs.git_hash }}
+          version: ${{ needs.detect-mode.outputs.version }}
+          push: ${{ github.event_name != 'pull_request' }}
