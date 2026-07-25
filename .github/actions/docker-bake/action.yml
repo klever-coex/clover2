@@ -24,7 +24,8 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: ./.github/actions/docker-setup
+    - id: setup
+      uses: ./.github/actions/docker-setup
       with:
         ghcr-token: ${{ github.token }}
         login: ${{ inputs.push }}
@@ -37,6 +38,7 @@ runs:
         files: docker/docker-bake.hcl
         targets: ${{ inputs.target }}
         push: false
+        builder: ${{ steps.setup.outputs.builder-name }}
         set: |
           *.cache-from=type=gha,scope=clover2-${{ inputs.target }}
         vars: |
@@ -53,6 +55,7 @@ runs:
         files: docker/docker-bake.hcl
         targets: ${{ inputs.target }}
         push: true
+        builder: ${{ steps.setup.outputs.builder-name }}
         set: |
           *.cache-from=type=gha,scope=clover2-${{ inputs.target }}
           *.cache-to=type=gha,scope=clover2-${{ inputs.target }},mode=max

@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options: [major, minor, patch]
+        default: patch
+      dry_run:
+        description: 'Dry run (no push, no tag)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check actor permission
+        run: |
+          ALLOWED_ACTORS="${{ vars.RELEASE_ACTORS || 'matveylapin' }}"
+          if echo "$ALLOWED_ACTORS" | grep -q "${{ github.actor }}"; then
+            echo "Actor ${{ github.actor }} is allowed"
+          else
+            echo "Actor ${{ github.actor }} is NOT allowed to run releases"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.GH_PAT }}
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r ./tooling/requirements.txt
+
+      - name: Bump version
+        id: bump
+        run: |
+          CURRENT=$(python3 tooling/scripts/version_manager.py -d . -f '^clover2$' print)
+          echo "Current version: $CURRENT"
+          python3 tooling/scripts/version_manager.py -d . bump ${{ inputs.bump }}
+          NEW_VERSION=$(python3 tooling/scripts/version_manager.py -d . -f '^clover2$' print)
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "previous_tag=v$CURRENT"
+
+      - name: Generate changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v6
+        with:
+          configuration: .github/changelog-config.json
+          fromTag: ${{ steps.bump.outputs.previous_tag || '' }}
+          toTag: ${{ steps.bump.outputs.tag }}
+
+      - name: Commit and push
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add **/package.xml
+          git commit -m "release: ${{ steps.bump.outputs.tag }}"
+          git tag -a "${{ steps.bump.outputs.tag }}" -m "Release ${{ steps.bump.outputs.tag }}"
+          git push origin HEAD:master --follow-tags
+
+      - name: Create GitHub Release
+        if: ${{ !inputs.dry_run }}
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.bump.outputs.tag }}
+          name: Release ${{ steps.bump.outputs.tag }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          prerelease: false
