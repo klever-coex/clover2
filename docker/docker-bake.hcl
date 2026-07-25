@@ -137,10 +137,6 @@ target "builder" {
 
 target "_clover2-px4" {
   dockerfile = "docker/px4/Dockerfile"
-  output = compact([
-    REGISTRY_POLICY == "push" ? "type=registry" : null,
-    REGISTRY_POLICY == "load" ? "type=docker" : null,
-  ])
 
   args = {
     PX4_VERSION = "94cb201" # v1.16.1
