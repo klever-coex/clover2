@@ -38,7 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: ./.github/actions/docker-build
+      - uses: ./.github/actions/docker-bake
         with:
           target: ${{ matrix.target }}
           build-mode: ${{ needs.detect-mode.outputs.build_mode }}
