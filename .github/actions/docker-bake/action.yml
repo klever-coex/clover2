@@ -19,7 +19,7 @@ inputs:
   push:
     description: Whether to push images to registry
     required: false
-    default: true
+    default: 'true'
 
 runs:
   using: composite
@@ -30,7 +30,7 @@ runs:
         login: ${{ inputs.push }}
 
     - name: Build (no push) ${{ inputs.target }}
-      if: ${{ inputs.push }}
+      if: ${{ inputs.push != 'true' }}
       uses: docker/bake-action@v7
       with:
         source: .
@@ -46,7 +46,7 @@ runs:
           CLOVER2_VERSION=${{ inputs.version || inputs.git-hash }}
 
     - name: Build and push ${{ inputs.target }}
-      if: ${{ inputs.push }}
+      if: ${{ inputs.push == 'true' }}
       uses: docker/bake-action@v7
       with:
         source: .

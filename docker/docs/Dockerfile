@@ -1,10 +1,15 @@
 ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+
 FROM --platform=${BUILDPLATFORM} python:3.11-slim AS builder
+ARG TARGETPLATFORM
 
 ARG CLOVER2_VERSION
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && \
+RUN --mount=type=cache,id=apt-docs-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-docs-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && \
     apt-get install -y make && \
     rm -rf /var/lib/apt/lists/*
 
