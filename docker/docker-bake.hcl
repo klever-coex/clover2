@@ -101,7 +101,7 @@ target "ros" {
   }
 
   matrix = {
-    tgt = [ "clover2-ros", "clover2-sim" ]
+    tgt = [ "clover2-ros" ]
   }
 }
 
@@ -176,10 +176,6 @@ group "all" {
 group "px4" {
   targets = ["clover2-px4-deps", "clover2-px4-dev", "clover2-px4-sitl"]
 }
-
-// group "ros" {
-//   targets = ["clover2-ros"]
-// }
 
 group "tooling" {
   targets = ["builder"]
