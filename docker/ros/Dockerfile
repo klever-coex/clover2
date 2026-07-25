@@ -50,7 +50,7 @@ RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharin
 FROM core AS source
 
 WORKDIR /clover2_ws
-COPY ./clover2* /clover2_ws/src/clover2
+COPY ./clover2* /clover2_ws/src/clover2/
 
 FROM source AS builder
 ARG SHORT_NAME
