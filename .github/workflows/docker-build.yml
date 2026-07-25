@@ -22,7 +22,7 @@ jobs:
       git_hash: ${{ steps.version.outputs.git_hash }}
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/version-detect
         id: version
 
@@ -36,7 +36,7 @@ jobs:
     env:
       BUILD_MODE: ${{ needs.detect-mode.outputs.build_mode }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/docker-bake
         with:
