@@ -9,21 +9,7 @@ COPY tooling/docker/* /clover2/
 
 WORKDIR /ws
 
-COPY clover2/package.xml /ws/src/clover2/package.xml
-COPY clover2_bringup/package.xml /ws/src/clover2_bringup/package.xml
-COPY clover2_common/package.xml /ws/src/clover2_common/package.xml
-COPY clover2_description/package.xml /ws/src/clover2_description/package.xml
-COPY clover2_loc/clover2_aruco/package.xml /ws/src/clover2_loc/clover2_aruco/package.xml
-COPY clover2_loc/clover2_cam_feature/package.xml /ws/src/clover2_loc/clover2_cam_feature/package.xml
-COPY clover2_loc/clover2_map/package.xml /ws/src/clover2_loc/clover2_map/package.xml
-COPY clover2_loc/clover2_optical_flow/package.xml /ws/src/clover2_loc/clover2_optical_flow/package.xml
-COPY clover2_loc/clover2_pose_msgs/package.xml /ws/src/clover2_loc/clover2_pose_msgs/package.xml
-COPY clover2_nav/clover2_fcu_bridge/package.xml /ws/src/clover2_nav/clover2_fcu_bridge/package.xml
-COPY clover2_nav/clover2_mavros/package.xml /ws/src/clover2_nav/clover2_mavros/package.xml
-COPY clover2_nav/clover2_nav_msgs/package.xml /ws/src/clover2_nav/clover2_nav_msgs/package.xml
-COPY clover2_ui/clover2_led/package.xml /ws/src/clover2_ui/clover2_led/package.xml
-COPY clover2_ui/clover2_led_msgs/package.xml /ws/src/clover2_ui/clover2_led_msgs/package.xml
-COPY clover2_ui/clover2_ui/package.xml /ws/src/clover2_ui/clover2_ui/package.xml
+COPY --parents ./**/package.xml /ws/src
 
 RUN /clover2/rosdep-parse.sh /ws/src $ROS_DISTRO --dependency-types=exec > /clover2/apt-depends.txt && \
     cat /clover2/apt-depends.txt
@@ -72,6 +58,8 @@ ARG ROS_DISTRO
 ARG TARGETPLATFORM
 ENV CCACHE_DIR="/root/.ccache"
 
+COPY tooling/docker/* /clover2/
+
 RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
     apt-get update -y && \
@@ -80,7 +68,7 @@ RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharin
 
 RUN --mount=type=cache,id=ccache-${SHORT_NAME}-${TARGETPLATFORM},target=${CCACHE_DIR} \
     --mount=type=cache,id=ros-build-${SHORT_NAME}-${TARGETPLATFORM},target=/clover2_ws/build \
-    src/clover2/docker/ros/build.sh ${CCACHE_DIR} /opt/clover2 /clover2_ws/build
+    /clover2/build.sh ${CCACHE_DIR} /opt/clover2 /clover2_ws/build
 
 FROM core AS clover2-ros
 
