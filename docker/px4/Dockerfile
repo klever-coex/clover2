@@ -31,8 +31,7 @@ RUN --mount=type=cache,id=apt-px4-${TARGETPLATFORM},target=/var/cache/apt,sharin
 		gnupg \
         lsb-release \
 		libeigen3-dev \
-        ca-certificates && \
-	/clover2/cleanup-apt.sh
+        ca-certificates
 
 # Install gazebo
 RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
@@ -45,8 +44,7 @@ RUN --mount=type=cache,id=apt-px4-${TARGETPLATFORM},target=/var/cache/apt,sharin
         libgz-transport13-dev \
         libgz-msgs10-dev \
         libgz-tools2-dev \
-        libgz-utils2-dev && \
-	/clover2/cleanup-apt.sh
+        libgz-utils2-dev
 
 
 FROM clover2-px4-deps AS clover2-px4-dev

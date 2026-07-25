@@ -40,8 +40,7 @@ RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharin
     --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
     apt-get update -y && \
     apt-get install -y \
-        geographiclib-tools && \
-    /clover2/cleanup-apt.sh
+        geographiclib-tools
 
 RUN wget -qO- https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh | sudo bash
 
@@ -55,14 +54,12 @@ RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharin
         ros-${ROS_DISTRO}-camera-info-manager \
         ros-${ROS_DISTRO}-cv-bridge \
         ros-${ROS_DISTRO}-image-view \
-        ros-${ROS_DISTRO}-image-geometry && \
-    /clover2/cleanup-apt.sh
+        ros-${ROS_DISTRO}-image-geometry
 
 RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
     apt-get update -y && \
-    cat /tmp/apt-depends.txt | xargs apt-get install -y --no-install-recommends && \
-    /clover2/cleanup-apt.sh
+    cat /tmp/apt-depends.txt | xargs apt-get install -y --no-install-recommends
 
 FROM core AS source
 
@@ -79,8 +76,7 @@ RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharin
     --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
     apt-get update -y && \
     apt-get install -y \
-        ccache && \
-    /clover2/cleanup-apt.sh
+        ccache
 
 RUN --mount=type=cache,id=ccache-${SHORT_NAME}-${TARGETPLATFORM},target=${CCACHE_DIR} \
     --mount=type=cache,id=ros-build-${SHORT_NAME}-${TARGETPLATFORM},target=/clover2_ws/build \
