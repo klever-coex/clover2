@@ -18,7 +18,8 @@ ENV CLOVER2_VERSION=${CLOVER2_VERSION}
 WORKDIR /app
 COPY docs /app
 
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN --mount=type=cache,id=pip-docs,target=/root/.cache/pip \
+    pip3 install --no-cache-dir -r requirements.txt
 
 RUN make check-images
 RUN make html
