@@ -6,7 +6,7 @@ import logging
 import re
 import pathlib
 import semver
-import xml.etree.ElementTree as ET
+from lxml import etree
 
 logger = logging.getLogger("patcher")
 
@@ -15,7 +15,8 @@ class Package:
     def __init__(self, xml: pathlib.Path):
 
         self.__xml = xml
-        self.__xml_obj = ET.parse(xml)
+        parser = etree.XMLParser(remove_blank_text=False)
+        self.__xml_obj = etree.parse(self.__xml, parser)
 
         root = self.__xml_obj.getroot()
         self.__name = root.find("name")
@@ -23,7 +24,7 @@ class Package:
 
     def save(self):
         self.__xml_obj.write(self.__xml, encoding="utf-8",
-                             xml_declaration=True)
+                             xml_declaration=True, pretty_print=True,)
 
     @property
     def path(self) -> pathlib.Path:
@@ -73,8 +74,10 @@ def setup_logging(verbose: bool) -> None:
 
 
 def handle_print(args: argparse.Namespace, packages: list[Package]):
-    if len(packages) == 1:
-        print(packages[0].version)
+    if args.main_only:
+        main_pkg = next((p for p in packages if p.name == "clover2"), None)
+        if main_pkg:
+            print(main_pkg.version)
         return
 
     for package in packages:
@@ -92,12 +95,19 @@ def handle_update(args: argparse.Namespace, packages: list[Package]):
 
 
 def handle_bump(args: argparse.Namespace, packages: list[Package]):
+    main_pkg = next((p for p in packages if p.name == "clover2"), None)
+    if not main_pkg:
+        logger.error("Main package 'clover2' not found")
+        return
+
+    old = str(main_pkg.version)
+    new = getattr(main_pkg.version, f"bump_{args.field}")()
+    logger.info(f"Bumping version from {old} to {new}")
+
     for package in packages:
-        old = str(package.version)
-        new = getattr(package.version, f"bump_{args.field}")()
         package.version = new
         package.save()
-        logger.info(f"Bumped {package.name}: {old} - {package.version}")
+        logger.info(f"Updated {package.name}: {old} -> {package.version}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -134,6 +144,11 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser_print = subparsers.add_parser("print", help="Print packages version")
+    parser_print.add_argument(
+        "--main-only",
+        action="store_true",
+        help="Print only main package (clover2) version"
+    )
     parser_print.set_defaults(func=handle_print)
 
     parser_update = subparsers.add_parser(
@@ -145,7 +160,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser_update.set_defaults(func=handle_update)
 
-    parser_bump = subparsers.add_parser("bump", help="Bump package version")
+    parser_bump = subparsers.add_parser("bump", help="Bump main package version")
     parser_bump.add_argument(
         "field",
         choices=["major", "minor", "patch"],
