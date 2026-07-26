@@ -14,19 +14,16 @@
 #include <string>
 #include <vector>
 
-
 namespace clover2::optical_flow {
 
 optical_flow::optical_flow(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node(
           "optical_flow", options,
-          std::make_shared<clover2_common::NodeDiagnosticsFactoryTemplate<
-              OpticalFlowDiagnostics>>())
+          clover2_common::NodeInterfacesFactory<OpticalFlowDiagnostics>{})
     , m_fcu_frame_id("base_link")
     , m_local_frame_id("map")
     , m_prev_stamp(rclcpp::Time(0))
     , m_last_vpe_time(rclcpp::Time(0)) {
-
     auto diagnostics = std::static_pointer_cast<OpticalFlowDiagnostics>(
         get_node_diagnostics_interface());
 
@@ -375,8 +372,7 @@ void optical_flow::produce_flow_diagnostics(
     if (m_last_image_stamp.nanoseconds() == 0) {
         stat.add("Last image age, sec", "never");
     } else {
-        stat.add("Last image age, sec",
-                 (now() - m_last_image_stamp).seconds());
+        stat.add("Last image age, sec", (now() - m_last_image_stamp).seconds());
     }
 
     if (m_last_flow_publish_stamp.nanoseconds() == 0) {
@@ -406,8 +402,7 @@ void optical_flow::produce_flow_hz_diagnostics(
     }
 
     const auto dt = (current_time - m_last_flow_hz_stamp).seconds();
-    const auto frame_delta =
-        m_processed_frames - m_last_flow_processed_frames;
+    const auto frame_delta = m_processed_frames - m_last_flow_processed_frames;
 
     if (dt > 0.0) {
         m_flow_hz = static_cast<double>(frame_delta) / dt;

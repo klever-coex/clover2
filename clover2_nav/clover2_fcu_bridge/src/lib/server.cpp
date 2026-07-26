@@ -53,8 +53,7 @@ namespace clover2_fcu_bridge {
 server::server(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node(
           "fcu_bridge", options,
-          std::make_shared<clover2_common::NodeDiagnosticsFactoryTemplate<
-              ServerDiagnostics>>())
+          clover2_common::NodeInterfacesFactory<ServerDiagnostics>{})
     , m_backend_name("mavros") {
     auto diagnostics = std::static_pointer_cast<ServerDiagnostics>(
         get_node_diagnostics_interface());
@@ -369,7 +368,8 @@ void server::produce_interfaces_diagnostics(
     const bool land_service = static_cast<bool>(m_land_srv);
     const bool set_position_service = static_cast<bool>(m_set_position_srv);
     const bool navigate_service = static_cast<bool>(m_navigate_srv);
-    const bool navigate_async_action = static_cast<bool>(m_navigate_async_action);
+    const bool navigate_async_action =
+        static_cast<bool>(m_navigate_async_action);
     const bool state_timer = static_cast<bool>(m_state_publish_timer);
 
     if (state_publisher && arm_disarm_service && land_service &&
@@ -387,8 +387,7 @@ void server::produce_interfaces_diagnostics(
     stat.add("Land service", land_service ? "true" : "false");
     stat.add("Set position service", set_position_service ? "true" : "false");
     stat.add("Navigate service", navigate_service ? "true" : "false");
-    stat.add("Navigate async action",
-             navigate_async_action ? "true" : "false");
+    stat.add("Navigate async action", navigate_async_action ? "true" : "false");
     stat.add("State timer", state_timer ? "true" : "false");
 }
 
@@ -702,7 +701,8 @@ void server::process_navigate_async(
         result->message = "navigate canceled";
         goal_handle->canceled(result);
 
-        // On terminal state, remove the callback and the bond owned by this goal.
+        // On terminal state, remove the callback and the bond owned by this
+        // goal.
         m_offboard->set_process_callback(nullptr);
         cleanup_navigate_bond();
         m_active_navigate_goal.reset();

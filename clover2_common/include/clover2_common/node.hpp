@@ -3,7 +3,7 @@
 // clover2
 #include <clover2_common/node_interfaces/node_diagnostics_interface.hpp>
 #include <clover2_common/node_interfaces/node_parameters_watcher_interface.hpp>
-#include <clover2_common/node_diagnostics_factory.hpp>
+#include <clover2_common/node_interfaces_factory.hpp>
 #include <clover2_common/util/parameter.hpp>
 
 // ROS2
@@ -18,8 +18,18 @@ class node : public rclcpp::Node {
 public:
     node(const std::string& node_name,
          const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
+
+    template <typename NodeInterfacesFactoryT>
     node(const std::string& node_name, const rclcpp::NodeOptions& options,
-         clover2_common::NodeDiagnosticsFactory::SharedPtr diagnostics_factory);
+         NodeInterfacesFactoryT)
+        : rclcpp::Node(node_name, options)
+        , m_diagnostics(NodeInterfacesFactoryT::create_diagnostics(
+              get_node_base_interface(), get_node_clock_interface(),
+              get_node_logging_interface(), get_node_parameters_interface(),
+              get_node_timers_interface(), get_node_topics_interface()))
+        , m_parameters_watcher(
+              NodeInterfacesFactoryT::create_parameters_watcher(
+                  get_node_parameters_interface())) {}
 
     virtual ~node() = default;
 

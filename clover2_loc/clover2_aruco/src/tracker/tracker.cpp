@@ -10,14 +10,12 @@
 #include <mutex>
 #include <string>
 
-
 namespace clover2::aruco {
 
 tracker::tracker(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node(
           "tracker", options,
-          std::make_shared<clover2_common::NodeDiagnosticsFactoryTemplate<
-              TrackerDiagnostics>>()) {
+          clover2_common::NodeInterfacesFactory<TrackerDiagnostics>{}) {
     auto diagnostics = std::static_pointer_cast<TrackerDiagnostics>(
         get_node_diagnostics_interface());
 
@@ -57,16 +55,12 @@ tracker::tracker(const rclcpp::NodeOptions& options)
 
     declare_and_watch_parameter<double>(
         "xy_variation", 0.4,
-        [this](const rclcpp::Parameter& p) {
-            m_xy_variation = p.as_double();
-        },
+        [this](const rclcpp::Parameter& p) { m_xy_variation = p.as_double(); },
         "Published variation for x and y");
 
     declare_and_watch_parameter<double>(
         "z_variation", 0.4,
-        [this](const rclcpp::Parameter& p) {
-            m_z_variation = p.as_double();
-        },
+        [this](const rclcpp::Parameter& p) { m_z_variation = p.as_double(); },
         "Published variation for x and y");
 
     register_on_configure(

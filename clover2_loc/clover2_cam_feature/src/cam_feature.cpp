@@ -35,8 +35,7 @@ namespace clover2::cam_feature {
 cam_feature::cam_feature(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node(
           "cam_feature", options,
-          std::make_shared<clover2_common::NodeDiagnosticsFactoryTemplate<
-              CamFeatureDiagnostics>>()) {
+          clover2_common::NodeInterfacesFactory<CamFeatureDiagnostics>{}) {
     auto diagnostics = std::static_pointer_cast<CamFeatureDiagnostics>(
         get_node_diagnostics_interface());
 

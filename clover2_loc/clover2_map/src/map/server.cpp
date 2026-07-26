@@ -15,8 +15,7 @@ namespace clover2::map {
 server::server(const rclcpp::NodeOptions& options)
     : clover2_common::node(
           "map_server", options,
-          std::make_shared<clover2_common::NodeDiagnosticsFactoryTemplate<
-              MapServerDiagnostics>>()) {
+          clover2_common::NodeInterfacesFactory<MapServerDiagnostics>{}) {
     declare_and_watch_parameter<std::string>(
         "map", "",
         [this](const rclcpp::Parameter& p) {  //
