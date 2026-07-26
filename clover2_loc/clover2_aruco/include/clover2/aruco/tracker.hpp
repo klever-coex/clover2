@@ -84,7 +84,6 @@ private:
     size_t m_last_marker_count{0};
     bool m_last_tf_ok{true};
     double m_min_pose_hz{25.0};
-    double m_max_pose_hz{35.0};
     rclcpp::Time m_last_pose_hz_stamp;
     size_t m_last_pose_processed_marker_arrays{0};
     double m_pose_hz{0.0};

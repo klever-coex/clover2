@@ -59,6 +59,11 @@ cam_feature::cam_feature(const rclcpp::NodeOptions& options)
                           default_plugin_types[i]);
     }
 
+    declare_and_watch_parameter<double>(
+        "diagnostics.marker_frequency.min_hz", m_min_marker_hz,
+        [this](const rclcpp::Parameter& p) { m_min_marker_hz = p.as_double(); },
+        "Minimum marker processing frequency");
+
     register_on_configure(
         std::bind(&cam_feature::on_configure, this, std::placeholders::_1));
     register_on_activate(
@@ -325,7 +330,6 @@ void cam_feature::produce_marker_hz_diagnostics(
                      "Waiting for marker processing samples");
         stat.add("Actual frequency, Hz", m_marker_hz);
         stat.add("Minimum frequency, Hz", m_min_marker_hz);
-        stat.add("Maximum frequency, Hz", m_max_marker_hz);
         return;
     }
 
@@ -343,13 +347,9 @@ void cam_feature::produce_marker_hz_diagnostics(
     if (frame_delta == 0) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
                      "Marker processing stopped");
-    } else if (m_marker_hz >= m_min_marker_hz &&
-               m_marker_hz <= m_max_marker_hz) {
+    } else if (m_marker_hz >= m_min_marker_hz) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
                      "Marker processing frequency OK");
-    } else if (m_marker_hz > m_max_marker_hz) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Marker processing is too fast");
     } else {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Marker processing is slow");
@@ -357,7 +357,6 @@ void cam_feature::produce_marker_hz_diagnostics(
 
     stat.add("Actual frequency, Hz", m_marker_hz);
     stat.add("Minimum frequency, Hz", m_min_marker_hz);
-    stat.add("Maximum frequency, Hz", m_max_marker_hz);
 }
 
 }  // namespace clover2::cam_feature

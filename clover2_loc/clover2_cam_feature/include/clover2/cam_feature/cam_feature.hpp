@@ -90,7 +90,6 @@ private:
     size_t m_processed_frames{0};
 
     double m_min_marker_hz{25.0};
-    double m_max_marker_hz{35.0};
     rclcpp::Time m_last_marker_hz_stamp;
     size_t m_last_marker_processed_frames{0};
     double m_marker_hz{0.0};

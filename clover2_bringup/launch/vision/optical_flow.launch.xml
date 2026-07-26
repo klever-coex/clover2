@@ -4,6 +4,7 @@
     <arg name="camera_node" default="camera" />
     <arg name="container_name" default="camera_container" />
     <arg name="ns" default="" />
+    <arg name="params_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
     <arg name="use_composition" default="false" />
 
     <node
@@ -19,6 +20,7 @@
 
         <param name="use_sim_time" value="$(var use_sim_time)" />
         <param name="roi" value="256" />
+        <param from="$(var params_file)" />
     </node>
 
     <load_composable_node target="$(var container_name)">
@@ -35,6 +37,7 @@
 
             <param name="use_sim_time" value="$(var use_sim_time)" />
             <param name="roi" value="256" />
+            <param from="$(var params_file)" />
         </composable_node>
     </load_composable_node>
 </launch>

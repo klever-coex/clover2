@@ -58,6 +58,11 @@ optical_flow::optical_flow(const rclcpp::NodeOptions& options)
         },
         "Default flow gyro value");
 
+    declare_and_watch_parameter<double>(
+        "diagnostics.flow_frequency.min_hz", m_min_flow_hz,
+        [this](const rclcpp::Parameter& p) { m_min_flow_hz = p.as_double(); },
+        "Minimum optical flow processing frequency");
+
     declare_parameter("mavros.local_position.tf.frame_id", m_local_frame_id);
     declare_parameter("mavros.local_position.tf.child_frame_id",
                       m_fcu_frame_id);
@@ -397,7 +402,6 @@ void optical_flow::produce_flow_hz_diagnostics(
                      "Waiting for optical flow processing samples");
         stat.add("Actual frequency, Hz", m_flow_hz);
         stat.add("Minimum frequency, Hz", m_min_flow_hz);
-        stat.add("Maximum frequency, Hz", m_max_flow_hz);
         return;
     }
 
@@ -414,12 +418,9 @@ void optical_flow::produce_flow_hz_diagnostics(
     if (frame_delta == 0) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
                      "Optical flow processing stopped");
-    } else if (m_flow_hz >= m_min_flow_hz && m_flow_hz <= m_max_flow_hz) {
+    } else if (m_flow_hz >= m_min_flow_hz) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
                      "Optical flow processing frequency OK");
-    } else if (m_flow_hz > m_max_flow_hz) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Optical flow processing is too fast");
     } else {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Optical flow processing is slow");
@@ -427,7 +428,6 @@ void optical_flow::produce_flow_hz_diagnostics(
 
     stat.add("Actual frequency, Hz", m_flow_hz);
     stat.add("Minimum frequency, Hz", m_min_flow_hz);
-    stat.add("Maximum frequency, Hz", m_max_flow_hz);
 }
 
 geometry_msgs::msg::Vector3Stamped optical_flow::calc_flow_gyro(

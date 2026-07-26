@@ -26,9 +26,6 @@ namespace {
 constexpr double kNavigateBondConnectTimeout = 2.0;
 constexpr double kNavigateBondHeartbeatPeriod = 0.2;
 constexpr double kNavigateBondHeartbeatTimeout = 1.0;
-constexpr double kSensorStaleTimeoutSec = 1.0;
-constexpr float kBatteryWarnPercentage = 0.20F;
-constexpr float kBatteryErrorPercentage = 0.10F;
 constexpr auto kNavigateCompletionGracePeriod = std::chrono::milliseconds(1200);
 
 void ensure_backend_registered(const std::string& name) {
@@ -129,6 +126,53 @@ server::server(const rclcpp::NodeOptions& options)
             }
         },
         "Controller slowdown distance");
+
+    declare_and_watch_parameter<double>(
+        "diagnostics.battery.warn_percentage", m_battery_warn_percentage,
+        [this](const rclcpp::Parameter& p) {
+            const auto value = p.as_double();
+            if (value < 0.0 || value > 1.0) {
+                throw std::runtime_error(
+                    "Battery warning percentage should be in [0.0, 1.0]");
+            }
+            if (value < m_battery_error_percentage) {
+                throw std::runtime_error(
+                    "Battery warning percentage should be greater than or "
+                    "equal "
+                    "to error percentage");
+            }
+            m_battery_warn_percentage = value;
+        },
+        "Battery warning charge threshold");
+
+    declare_and_watch_parameter<double>(
+        "diagnostics.battery.error_percentage", m_battery_error_percentage,
+        [this](const rclcpp::Parameter& p) {
+            const auto value = p.as_double();
+            if (value < 0.0 || value > 1.0) {
+                throw std::runtime_error(
+                    "Battery error percentage should be in [0.0, 1.0]");
+            }
+            if (value > m_battery_warn_percentage) {
+                throw std::runtime_error(
+                    "Battery error percentage should be less than or equal "
+                    "to warning percentage");
+            }
+            m_battery_error_percentage = value;
+        },
+        "Battery critical charge threshold");
+
+    declare_and_watch_parameter<double>(
+        "diagnostics.sensors.stale_timeout_sec", m_sensor_stale_timeout_sec,
+        [this](const rclcpp::Parameter& p) {
+            const auto value = p.as_double();
+            if (value <= 0.0) {
+                throw std::runtime_error(
+                    "Sensor stale timeout should be greater than 0.0");
+            }
+            m_sensor_stale_timeout_sec = value;
+        },
+        "Sensor data stale timeout for diagnostics");
 
     register_on_configure(
         std::bind(&server::on_configure, this, std::placeholders::_1));
@@ -290,10 +334,10 @@ void server::produce_power_diagnostics(
     } else if (!std::isfinite(power.percentage)) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Battery percentage is not available");
-    } else if (power.percentage <= kBatteryErrorPercentage) {
+    } else if (power.percentage <= m_battery_error_percentage) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
                      "Battery charge is critically low");
-    } else if (power.percentage <= kBatteryWarnPercentage) {
+    } else if (power.percentage <= m_battery_warn_percentage) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Battery charge is low");
     } else {
@@ -320,7 +364,7 @@ void server::produce_imu_diagnostics(
     if (!imu.received) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "IMU is not received");
-    } else if (age > kSensorStaleTimeoutSec) {
+    } else if (age > m_sensor_stale_timeout_sec) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "IMU data is stale");
     } else {
@@ -347,7 +391,7 @@ void server::produce_barometer_diagnostics(
     if (!barometer.received) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Barometer is not received");
-    } else if (age > kSensorStaleTimeoutSec) {
+    } else if (age > m_sensor_stale_timeout_sec) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Barometer data is stale");
     } else {

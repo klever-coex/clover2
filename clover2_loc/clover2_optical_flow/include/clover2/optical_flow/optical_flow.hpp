@@ -134,7 +134,6 @@ private:
     uint32_t m_last_image_height{0};
     bool m_last_required_tf_ok{true};
     double m_min_flow_hz{25.0};
-    double m_max_flow_hz{35.0};
     rclcpp::Time m_last_flow_hz_stamp;
     size_t m_last_flow_processed_frames{0};
     double m_flow_hz{0.0};

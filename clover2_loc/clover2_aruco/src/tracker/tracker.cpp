@@ -63,6 +63,11 @@ tracker::tracker(const rclcpp::NodeOptions& options)
         [this](const rclcpp::Parameter& p) { m_z_variation = p.as_double(); },
         "Published variation for x and y");
 
+    declare_and_watch_parameter<double>(
+        "diagnostics.pose_frequency.min_hz", m_min_pose_hz,
+        [this](const rclcpp::Parameter& p) { m_min_pose_hz = p.as_double(); },
+        "Minimum pose processing frequency");
+
     register_on_configure(
         std::bind(&tracker::on_configure, this, std::placeholders::_1));
     register_on_activate(
@@ -362,7 +367,6 @@ void tracker::produce_pose_hz_diagnostics(
                      "Waiting for pose processing samples");
         stat.add("Actual frequency, Hz", m_pose_hz);
         stat.add("Minimum frequency, Hz", m_min_pose_hz);
-        stat.add("Maximum frequency, Hz", m_max_pose_hz);
         return;
     }
 
@@ -380,12 +384,9 @@ void tracker::produce_pose_hz_diagnostics(
     if (pose_delta == 0) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
                      "Pose processing stopped");
-    } else if (m_pose_hz >= m_min_pose_hz && m_pose_hz <= m_max_pose_hz) {
+    } else if (m_pose_hz >= m_min_pose_hz) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
                      "Pose processing frequency OK");
-    } else if (m_pose_hz > m_max_pose_hz) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Pose processing is too fast");
     } else {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Pose processing is slow");
@@ -393,7 +394,6 @@ void tracker::produce_pose_hz_diagnostics(
 
     stat.add("Actual frequency, Hz", m_pose_hz);
     stat.add("Minimum frequency, Hz", m_min_pose_hz);
-    stat.add("Maximum frequency, Hz", m_max_pose_hz);
 }
 
 void tracker::publish_tf(const std_msgs::msg::Header& header,

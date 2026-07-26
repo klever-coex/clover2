@@ -5,12 +5,27 @@
 /**/aruco_tracker:
   ros__parameters:
     tracking: "base_link"
+    diagnostics:
+      pose_frequency:
+        min_hz: 25.0
+
+/**/optical_flow:
+  ros__parameters:
+    diagnostics:
+      flow_frequency:
+        min_hz: 25.0
 
 /**/fcu_bridge:
   ros__parameters:
     speed_limit: 1.0
     tolerance: 0.15
     slowdown_distance: 0.5
+    diagnostics:
+      battery:
+        warn_percentage: 0.20
+        error_percentage: 0.10
+      sensors:
+        stale_timeout_sec: 1.0
 
 /**/web_video_server:
   ros__parameters:
