@@ -1,32 +1,239 @@
 #include <clover2_display/device/base_device.hpp>
+#include <linux/i2c-dev.h>
+#include <sys/ioctl.h>
+
+#include <algorithm>
+#include <cstdint>
+#include <fcntl.h>
+#include <initializer_list>
+#include <stdexcept>
+#include <string>
+#include <unistd.h>
+#include <vector>
+
+namespace {
+
+constexpr uint32_t k_width = 128;
+constexpr uint32_t k_height = 64;
+constexpr uint8_t k_i2c_address = 0x3C;
+constexpr const char* k_i2c_device = "/dev/i2c-1";
+constexpr size_t k_page_buffer_size = k_width * k_height / 8;
+constexpr double k_max_fps = 10.0;
+
+constexpr uint8_t k_control_command = 0x00;
+constexpr uint8_t k_control_data = 0x40;
+
+}  // namespace
 
 namespace clover2_display::device {
 
 class ssd1306_i2c : public base_device {
 public:
     ssd1306_i2c() = default;
-    ~ssd1306_i2c() override = default;
+    ~ssd1306_i2c() override {
+        if (m_i2c_fd >= 0) {
+            close(m_i2c_fd);
+            m_i2c_fd = -1;
+        }
+    }
 
 protected:
     void on_initialize() override {
-        // TODO: Open /dev/i2c-1, select address 0x3C and send SSD1306 init
-        info().width = 128;
-        info().height = 64;
-        info().max_fps = 10.0;
+        info().width = k_width;
+        info().height = k_height;
+        info().max_fps = k_max_fps;
         info().color_model = "monochrome";
         info().supported_encodings = {"mono8"};
 
-        RCLCPP_INFO(get_logger(), "ssd1306_i2c placeholder initialized");
+        if (m_i2c_fd >= 0) {
+            close(m_i2c_fd);
+            m_i2c_fd = -1;
+        }
+
+        m_i2c_fd = open(k_i2c_device, O_RDWR);
+        if (m_i2c_fd < 0) {
+            throw std::runtime_error("ssd1306_i2c: failed to open " +
+                                     std::string(k_i2c_device));
+        }
+
+        if (ioctl(m_i2c_fd, I2C_SLAVE, k_i2c_address) < 0) {
+            close(m_i2c_fd);
+            m_i2c_fd = -1;
+            throw std::runtime_error(
+                "ssd1306_i2c: failed to select I2C address");
+        }
+
+        m_page_buffer.assign(k_page_buffer_size, 0x00);
+
+        initialize_display();
+        clear_display();
+
+        RCLCPP_INFO(get_logger(), "ssd1306_i2c initialized: %ux%u at %s/0x%02X",
+                    k_width, k_height, k_i2c_device, k_i2c_address);
     }
 
     void on_cleanup() override {
-        // TODO: Clear display and close I2C file descriptor.
+        if (m_i2c_fd >= 0) {
+            clear_display();
+            close(m_i2c_fd);
+            m_i2c_fd = -1;
+        }
+
+        m_page_buffer.clear();
     }
 
     void write_raw_frame(
-        const clover2_display::data::display_frame& /* frame */) override {
-        // TODO: Convert mono8 128x64 to SSD1306 page buffer and write over I2C.
+        const clover2_display::data::display_frame& frame) override {
+        if (m_i2c_fd < 0) {
+            throw std::runtime_error("ssd1306_i2c: device not initialized");
+        }
+
+        if (!convert_mono8_to_pages(frame)) {
+            return;
+        }
+
+        flush();
     }
+
+private:
+    void initialize_display() {
+        write_commands({
+            0xAE,        // Display off
+            0x20, 0x00,  // Horizontal addressing mode
+            0xB0,        // Page start address
+            0xC8,        // COM output scan direction remapped
+            0x00,        // Low column address
+            0x10,        // High column address
+            0x40,        // Start line address
+            0x81, 0x7F,  // Contrast
+            0xA1,        // Segment remap
+            0xA6,        // Normal display
+            0xA8, 0x3F,  // Multiplex ratio for 128x64
+            0xA4,        // Display follows RAM
+            0xD3, 0x00,  // Display offset
+            0xD5, 0x80,  // Display clock divide ratio
+            0xD9, 0xF1,  // Pre-charge period
+            0xDA, 0x12,  // COM pins hardware config for 128x64
+            0xDB, 0x40,  // VCOMH deselect level
+            0x8D, 0x14,  // Charge pump enabled
+            0xAF,        // Display on
+        });
+    }
+
+    void clear_display() {
+        if (m_i2c_fd < 0) {
+            return;
+        }
+
+        if (m_page_buffer.size() != k_page_buffer_size) {
+            m_page_buffer.assign(k_page_buffer_size, 0x00);
+        } else {
+            std::fill(m_page_buffer.begin(), m_page_buffer.end(), 0x00);
+        }
+
+        flush();
+    }
+
+    bool convert_mono8_to_pages(
+        const clover2_display::data::display_frame& frame) {
+        if (frame.width != k_width || frame.height != k_height) {
+            RCLCPP_ERROR(get_logger(),
+                         "ssd1306_i2c: unsupported frame size %ux%u, expected "
+                         "%ux%u",
+                         frame.width, frame.height, k_width, k_height);
+            return false;
+        }
+
+        if (frame.encoding != "mono8") {
+            RCLCPP_ERROR(get_logger(),
+                         "ssd1306_i2c: unsupported encoding '%s', expected "
+                         "'mono8'",
+                         frame.encoding.c_str());
+            return false;
+        }
+
+        if (frame.step < k_width) {
+            RCLCPP_ERROR(get_logger(),
+                         "ssd1306_i2c: invalid step %u, expected at least %u",
+                         frame.step, k_width);
+            return false;
+        }
+
+        const auto required_size =
+            static_cast<size_t>(frame.step) * static_cast<size_t>(frame.height);
+        if (frame.data.size() < required_size) {
+            RCLCPP_ERROR(get_logger(),
+                         "ssd1306_i2c: invalid data size %zu, expected at "
+                         "least %zu",
+                         frame.data.size(), required_size);
+            return false;
+        }
+
+        std::fill(m_page_buffer.begin(), m_page_buffer.end(), 0x00);
+
+        for (uint32_t y = 0; y < k_height; ++y) {
+            for (uint32_t x = 0; x < k_width; ++x) {
+                const auto pixel = frame.data[y * frame.step + x];
+                if (pixel > 0) {
+                    const auto page = y / 8;
+                    const auto bit = y % 8;
+                    const auto offset = page * k_width + x;
+                    m_page_buffer[offset] |= static_cast<uint8_t>(1u << bit);
+                }
+            }
+        }
+
+        return true;
+    }
+
+    void flush() {
+        write_commands({
+            0x21, 0x00, static_cast<uint8_t>(k_width - 1),  // Column address
+            0x22, 0x00, static_cast<uint8_t>((k_height / 8) - 1),  // Page addr
+        });
+
+        write_data(m_page_buffer);
+    }
+
+    void write_command(uint8_t command) {
+        const uint8_t buffer[2] = {k_control_command, command};
+        write_all(buffer, sizeof(buffer));
+    }
+
+    void write_commands(std::initializer_list<uint8_t> commands) {
+        for (const auto command : commands) {
+            write_command(command);
+        }
+    }
+
+    void write_data(const std::vector<uint8_t>& data) {
+        std::vector<uint8_t> buffer;
+        buffer.reserve(data.size() + 1);
+        buffer.push_back(k_control_data);
+        buffer.insert(buffer.end(), data.begin(), data.end());
+
+        write_all(buffer.data(), buffer.size());
+    }
+
+    void write_all(const uint8_t* data, size_t size) {
+        size_t written = 0;
+        while (written < size) {
+            const auto ret = ::write(m_i2c_fd, data + written, size - written);
+            if (ret < 0) {
+                throw std::runtime_error("ssd1306_i2c: I2C write failed");
+            }
+
+            if (ret == 0) {
+                throw std::runtime_error(
+                    "ssd1306_i2c: I2C write returned zero bytes");
+            }
+
+            written += static_cast<size_t>(ret);
+        }
+    }
+
+    int m_i2c_fd{-1};
+    std::vector<uint8_t> m_page_buffer{};
 };
 
 }  // namespace clover2_display::device
