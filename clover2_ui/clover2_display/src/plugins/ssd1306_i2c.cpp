@@ -1,3 +1,4 @@
+#include <clover2_common/util/parameter.hpp>
 #include <clover2_display/device/base_device.hpp>
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
@@ -16,7 +17,6 @@ namespace {
 constexpr uint32_t k_width = 128;
 constexpr uint32_t k_height = 64;
 constexpr uint8_t k_i2c_address = 0x3C;
-constexpr const char* k_i2c_device = "/dev/i2c-1";
 constexpr size_t k_page_buffer_size = k_width * k_height / 8;
 constexpr double k_max_fps = 10.0;
 
@@ -50,10 +50,22 @@ protected:
             m_i2c_fd = -1;
         }
 
-        m_i2c_fd = open(k_i2c_device, O_RDWR);
+        auto parameters_interface =
+            get_node_context()->get_node_parameters_interface();
+
+        clover2_common::util::declare_parameter_if_not_declared(
+            parameters_interface, get_name() + ".i2c_device", "/dev/i2c-1");
+
+        rclcpp::Parameter device_p;
+        parameters_interface->get_parameter(get_name() + ".i2c_device",
+                                            device_p);
+
+        const auto i2c_device = device_p.as_string();
+
+        m_i2c_fd = open(i2c_device.c_str(), O_RDWR);
         if (m_i2c_fd < 0) {
             throw std::runtime_error("ssd1306_i2c: failed to open " +
-                                     std::string(k_i2c_device));
+                                     i2c_device);
         }
 
         if (ioctl(m_i2c_fd, I2C_SLAVE, k_i2c_address) < 0) {
@@ -69,7 +81,7 @@ protected:
         clear_display();
 
         RCLCPP_INFO(get_logger(), "ssd1306_i2c initialized: %ux%u at %s/0x%02X",
-                    k_width, k_height, k_i2c_device, k_i2c_address);
+                    k_width, k_height, i2c_device.c_str(), k_i2c_address);
     }
 
     void on_cleanup() override {

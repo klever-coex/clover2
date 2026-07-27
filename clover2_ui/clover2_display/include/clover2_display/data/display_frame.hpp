@@ -3,7 +3,6 @@
 #include <opencv2/core.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
-#include <cstdint>
 #include <stdexcept>
 #include <string>
 

@@ -21,7 +21,6 @@ void base_device::initialize(
     m_clock = m_node_context->get_node_clock_interface()->get_clock();
 
     on_initialize();
-    m_last_write = std::chrono::steady_clock::now();
 }
 
 void base_device::cleanup() noexcept {
@@ -59,7 +58,6 @@ void base_device::write(const data::display_frame& frame) {
     }
 
     write_raw_frame(frame);
-    m_last_write = std::chrono::steady_clock::now();
 }
 
 const std::string& base_device::get_name() const { return m_name; }
