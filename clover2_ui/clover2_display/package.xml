@@ -14,6 +14,7 @@
   <depend>rclcpp_components</depend>
   <depend>sensor_msgs</depend>
   <depend>pluginlib</depend>
+  <depend>libopencv-dev</depend>
   <depend>clover2_common</depend>
   <depend>clover2_display_msgs</depend>
 

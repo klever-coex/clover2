@@ -51,8 +51,13 @@ void driver::on_image(const sensor_msgs::msg::Image& msg) {
         return;
     }
 
-    // TODO: Keep ROS-specific conversion here
-    m_device->write(data::display_frame{msg});
+    try {
+        m_device->write(data::display_frame{msg});
+    } catch (const std::exception& e) {
+        RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 5000,
+                             "Display driver: failed to write image: %s",
+                             e.what());
+    }
 }
 
 void driver::handle_get_driver_info(
@@ -65,7 +70,8 @@ void driver::handle_get_driver_info(
         return;
     }
 
-    const auto& info = m_device->info();
+    const auto& dev = *m_device;
+    const auto& info = dev.info();
     resp->success = true;
     resp->message = "ok";
     resp->width = info.width;

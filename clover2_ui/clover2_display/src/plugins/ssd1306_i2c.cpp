@@ -88,10 +88,7 @@ protected:
             throw std::runtime_error("ssd1306_i2c: device not initialized");
         }
 
-        if (!convert_mono8_to_pages(frame)) {
-            return;
-        }
-
+        pack_mono8_to_page_buffer(frame);
         flush();
     }
 
@@ -134,46 +131,14 @@ private:
         flush();
     }
 
-    bool convert_mono8_to_pages(
+    void pack_mono8_to_page_buffer(
         const clover2_display::data::display_frame& frame) {
-        if (frame.width != k_width || frame.height != k_height) {
-            RCLCPP_ERROR(get_logger(),
-                         "ssd1306_i2c: unsupported frame size %ux%u, expected "
-                         "%ux%u",
-                         frame.width, frame.height, k_width, k_height);
-            return false;
-        }
-
-        if (frame.encoding != "mono8") {
-            RCLCPP_ERROR(get_logger(),
-                         "ssd1306_i2c: unsupported encoding '%s', expected "
-                         "'mono8'",
-                         frame.encoding.c_str());
-            return false;
-        }
-
-        if (frame.step < k_width) {
-            RCLCPP_ERROR(get_logger(),
-                         "ssd1306_i2c: invalid step %u, expected at least %u",
-                         frame.step, k_width);
-            return false;
-        }
-
-        const auto required_size =
-            static_cast<size_t>(frame.step) * static_cast<size_t>(frame.height);
-        if (frame.data.size() < required_size) {
-            RCLCPP_ERROR(get_logger(),
-                         "ssd1306_i2c: invalid data size %zu, expected at "
-                         "least %zu",
-                         frame.data.size(), required_size);
-            return false;
-        }
-
         std::fill(m_page_buffer.begin(), m_page_buffer.end(), 0x00);
 
         for (uint32_t y = 0; y < k_height; ++y) {
+            const auto* row = frame.image.ptr<uint8_t>(static_cast<int>(y));
             for (uint32_t x = 0; x < k_width; ++x) {
-                const auto pixel = frame.data[y * frame.step + x];
+                const auto pixel = row[x];
                 if (pixel > 0) {
                     const auto page = y / 8;
                     const auto bit = y % 8;
@@ -182,8 +147,6 @@ private:
                 }
             }
         }
-
-        return true;
     }
 
     void flush() {

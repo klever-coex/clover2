@@ -1,29 +1,38 @@
 #pragma once
 
+#include <opencv2/core.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
 #include <cstdint>
+#include <stdexcept>
 #include <string>
-#include <vector>
 
 namespace clover2_display::data {
 
+inline int encoding_to_cv_type(const std::string& encoding) {
+    if (encoding == "mono8") {
+        return CV_8UC1;
+    }
+
+    throw std::runtime_error("display_frame: unsupported encoding '" +
+                             encoding + "'");
+}
+
 struct display_frame {
-    // Internal frame model copied from sensor_msgs/Image by the driver.
-    // TODO: Add validation helpers.
-    uint32_t width{0};
-    uint32_t height{0};
     std::string encoding;
-    uint32_t step{0};
-    std::vector<uint8_t> data;
+    cv::Mat image;
 
     display_frame() = default;
     explicit display_frame(const sensor_msgs::msg::Image& msg)
-        : width(msg.width)
-        , height(msg.height)
-        , encoding(msg.encoding)
-        , step(msg.step)
-        , data(msg.data) {}
+        : encoding(msg.encoding)
+        , image(cv::Mat(static_cast<int>(msg.height),
+                        static_cast<int>(msg.width),
+                        encoding_to_cv_type(msg.encoding),
+                        const_cast<uint8_t*>(msg.data.data()), msg.step)
+                    .clone()) {}
+
+    int width() const noexcept { return image.cols; }
+    int height() const noexcept { return image.rows; }
 };
 
 }  // namespace clover2_display::data

@@ -1,5 +1,9 @@
 #include <clover2_display/device/base_device.hpp>
 
+#include <algorithm>
+#include <stdexcept>
+#include <string>
+
 namespace clover2_display::device {
 
 base_device::base_device()
@@ -29,7 +33,31 @@ const data::display_info& base_device::info() const noexcept { return m_info; }
 data::display_info& base_device::info() noexcept { return m_info; }
 
 void base_device::write(const data::display_frame& frame) {
-    // TODO: Validate params
+    if (frame.image.empty()) {
+        throw std::runtime_error("display: empty frame image");
+    }
+
+    if (std::find(m_info.supported_encodings.begin(),
+                  m_info.supported_encodings.end(),
+                  frame.encoding) == m_info.supported_encodings.end()) {
+        throw std::runtime_error("display: unsupported frame encoding '" +
+                                 frame.encoding + "'");
+    }
+
+    if (frame.width() != static_cast<int>(m_info.width) ||
+        frame.height() != static_cast<int>(m_info.height)) {
+        throw std::runtime_error(
+            "display: unsupported frame size " + std::to_string(frame.width()) +
+            "x" + std::to_string(frame.height()) + ", expected " +
+            std::to_string(m_info.width) + "x" + std::to_string(m_info.height));
+    }
+
+    if (frame.image.type() != data::encoding_to_cv_type(frame.encoding)) {
+        throw std::runtime_error(
+            "display: image matrix type does not match "
+            "frame encoding");
+    }
+
     write_raw_frame(frame);
     m_last_write = std::chrono::steady_clock::now();
 }
