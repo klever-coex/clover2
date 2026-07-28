@@ -109,6 +109,7 @@ protected:
         info().height = height;
         m_multiplex_ratio = multiplex_ratio;
         m_com_pins_config = com_pins_config;
+        m_page_buffer_size = static_cast<size_t>(width) * height / 8;
 
         m_i2c_fd = open(i2c_device.c_str(), O_RDWR);
         if (m_i2c_fd < 0) {
@@ -123,7 +124,7 @@ protected:
                 "ssd1306_i2c: failed to select I2C address");
         }
 
-        m_page_buffer.assign(page_buffer_size(), 0x00);
+        m_page_buffer.assign(m_page_buffer_size, 0x00);
 
         initialize_display();
         clear_display();
@@ -140,6 +141,7 @@ protected:
         }
 
         m_page_buffer.clear();
+        m_page_buffer_size = 0;
     }
 
     void write_raw_frame(
@@ -182,8 +184,8 @@ private:
             return;
         }
 
-        if (m_page_buffer.size() != page_buffer_size()) {
-            m_page_buffer.assign(page_buffer_size(), 0x00);
+        if (m_page_buffer.size() != m_page_buffer_size) {
+            m_page_buffer.assign(m_page_buffer_size, 0x00);
         } else {
             std::fill(m_page_buffer.begin(), m_page_buffer.end(), 0x00);
         }
@@ -218,10 +220,6 @@ private:
         });
 
         write_data(m_page_buffer);
-    }
-
-    size_t page_buffer_size() const {
-        return static_cast<size_t>(info().width) * info().height / 8;
     }
 
     void write_command(uint8_t command) {
@@ -264,6 +262,7 @@ private:
     int m_i2c_fd{-1};
     uint8_t m_multiplex_ratio{0x3F};
     uint8_t m_com_pins_config{0x12};
+    size_t m_page_buffer_size{0};
     std::vector<uint8_t> m_page_buffer{};
 };
 
