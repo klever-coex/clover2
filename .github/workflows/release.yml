@@ -46,13 +46,12 @@ jobs:
       - name: Bump version
         id: bump
         run: |
-          CURRENT=$(python3 tooling/scripts/version_manager.py -d . -f '^clover2$' print)
+          CURRENT=$(python3 tooling/scripts/version_manager.py -d . print --main-only)
           echo "Current version: $CURRENT"
-          python3 tooling/scripts/version_manager.py -d . bump ${{ inputs.bump }}
-          NEW_VERSION=$(python3 tooling/scripts/version_manager.py -d . -f '^clover2$' print)
+          python3 tooling/scripts/version_manager.py -vvv -d . bump ${{ inputs.bump }}
+          NEW_VERSION=$(python3 tooling/scripts/version_manager.py -d . print --main-only)
           echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$NEW_VERSION" >> "$GITHUB_OUTPUT"
-          echo "previous_tag=v$CURRENT"
 
       - name: Generate changelog
         id: changelog
@@ -60,7 +59,6 @@ jobs:
         with:
           configuration: .github/changelog-config.json
           fromTag: ${{ steps.bump.outputs.previous_tag || '' }}
-          toTag: ${{ steps.bump.outputs.tag }}
 
       - name: Commit and push
         if: ${{ !inputs.dry_run }}
