@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <package format="3">
   <name>clover2_mavros</name>
-  <version>0.1.6</version>
+  <version>0.1.7</version>
   <description>Clover2 MAVROS plugins (VIO pose to MAVLink ODOMETRY)</description>
   <maintainer email="2663161@main.com">l_motya</maintainer>
   <license>TODO</license>
