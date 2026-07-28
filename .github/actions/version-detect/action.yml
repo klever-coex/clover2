@@ -32,13 +32,13 @@ runs:
         echo "git_hash=${GIT_HASH}" >> "$GITHUB_OUTPUT"
 
         case "${{ github.ref }}" in
-          refs/heads/master)
-            echo "build_mode=master" >> "$GITHUB_OUTPUT"
-            echo "version=${BASE_VERSION}+${GIT_HASH}" >> "$GITHUB_OUTPUT"
-            ;;
           refs/tags/v*)
             echo "build_mode=release" >> "$GITHUB_OUTPUT"
             echo "version=${BASE_VERSION}" >> "$GITHUB_OUTPUT"
+            ;;
+          refs/heads/master)
+            echo "build_mode=master" >> "$GITHUB_OUTPUT"
+            echo "version=${BASE_VERSION}+${GIT_HASH}" >> "$GITHUB_OUTPUT"
             ;;
           *)
             echo "build_mode=develop" >> "$GITHUB_OUTPUT"
