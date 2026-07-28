@@ -52,13 +52,16 @@ jobs:
           NEW_VERSION=$(python3 tooling/scripts/version_manager.py -d . print --main-only)
           echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          PREVIOUS_TAG=$(git tag --sort=-creatordate | head -1)
+          echo "previous_tag=${PREVIOUS_TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Generate changelog
         id: changelog
         uses: mikepenz/release-changelog-builder-action@v6
         with:
           configuration: .github/changelog-config.json
-          fromTag: ${{ steps.bump.outputs.previous_tag || '' }}
+          fromTag: ${{ steps.bump.outputs.previous_tag }}
+          toTag: HEAD
 
       - name: Commit and push
         if: ${{ !inputs.dry_run }}
