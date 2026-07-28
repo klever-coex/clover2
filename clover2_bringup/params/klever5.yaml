@@ -23,3 +23,11 @@
     led_count: 80
     ws2812_spi:
       spi_device: "/dev/spidev0.0"
+
+/**/display:
+  ros__parameters:
+    device_plugin: "ssd1306_i2c"
+    ssd1306_i2c:
+      i2c_device: "/dev/i2c-1"
+      resolution: "128x64"
+      i2c_addres: 0x3C

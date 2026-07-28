@@ -9,19 +9,36 @@
 #include <initializer_list>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <unistd.h>
+#include <unordered_map>
 #include <vector>
 
 namespace {
 
-constexpr uint32_t k_width = 128;
-constexpr uint32_t k_height = 64;
-constexpr uint8_t k_i2c_address = 0x3C;
-constexpr size_t k_page_buffer_size = k_width * k_height / 8;
 constexpr double k_max_fps = 10.0;
 
 constexpr uint8_t k_control_command = 0x00;
 constexpr uint8_t k_control_data = 0x40;
+
+using resolution_config = std::tuple<uint32_t, uint32_t, uint8_t, uint8_t>;
+
+const std::unordered_map<std::string, resolution_config> k_resolutions{
+    // width, height, multiplex ratio, COM pins hardware config
+    {"128x64", {128, 64, 0x3F, 0x12}},
+    {"128x32", {128, 32, 0x1F, 0x02}},
+};
+
+std::string supported_resolutions() {
+    std::string result;
+    for (const auto& resolution : k_resolutions) {
+        if (!result.empty()) {
+            result += ", ";
+        }
+        result += resolution.first;
+    }
+    return result;
+}
 
 }  // namespace
 
@@ -39,8 +56,6 @@ public:
 
 protected:
     void on_initialize() override {
-        info().width = k_width;
-        info().height = k_height;
         info().max_fps = k_max_fps;
         info().color_model = "monochrome";
         info().supported_encodings = {"mono8"};
@@ -53,14 +68,47 @@ protected:
         auto parameters_interface =
             get_node_context()->get_node_parameters_interface();
 
+        const auto i2c_device_param_name = get_name() + ".i2c_device";
         clover2_common::util::declare_parameter_if_not_declared(
-            parameters_interface, get_name() + ".i2c_device", "/dev/i2c-1");
+            parameters_interface, i2c_device_param_name, "/dev/i2c-1");
 
         rclcpp::Parameter device_p;
-        parameters_interface->get_parameter(get_name() + ".i2c_device",
-                                            device_p);
+        parameters_interface->get_parameter(i2c_device_param_name, device_p);
 
         const auto i2c_device = device_p.as_string();
+
+        const auto resolution_param_name = get_name() + ".resolution";
+        clover2_common::util::declare_parameter_if_not_declared(
+            parameters_interface, resolution_param_name, "128x64");
+
+        rclcpp::Parameter resolution_p;
+        parameters_interface->get_parameter(resolution_param_name,
+                                            resolution_p);
+
+        const auto resolution = resolution_p.as_string();
+        const auto resolution_it = k_resolutions.find(resolution);
+        if (resolution_it == k_resolutions.end()) {
+            throw std::runtime_error(
+                "ssd1306_i2c: unsupported resolution '" + resolution +
+                "', supported: " + supported_resolutions());
+        }
+
+        const auto i2c_addres_param_name = get_name() + ".i2c_addres";
+        clover2_common::util::declare_parameter_if_not_declared(
+            parameters_interface, i2c_addres_param_name, 0x3C);
+
+        rclcpp::Parameter i2c_addres_p;
+        parameters_interface->get_parameter(i2c_addres_param_name,
+                                            i2c_addres_p);
+
+        const auto i2c_addres = i2c_addres_p.as_int();
+
+        const auto& [width, height, multiplex_ratio, com_pins_config] =
+            resolution_it->second;
+        info().width = width;
+        info().height = height;
+        m_multiplex_ratio = multiplex_ratio;
+        m_com_pins_config = com_pins_config;
 
         m_i2c_fd = open(i2c_device.c_str(), O_RDWR);
         if (m_i2c_fd < 0) {
@@ -68,20 +116,20 @@ protected:
                                      i2c_device);
         }
 
-        if (ioctl(m_i2c_fd, I2C_SLAVE, k_i2c_address) < 0) {
+        if (ioctl(m_i2c_fd, I2C_SLAVE, i2c_addres) < 0) {
             close(m_i2c_fd);
             m_i2c_fd = -1;
             throw std::runtime_error(
                 "ssd1306_i2c: failed to select I2C address");
         }
 
-        m_page_buffer.assign(k_page_buffer_size, 0x00);
+        m_page_buffer.assign(page_buffer_size(), 0x00);
 
         initialize_display();
         clear_display();
 
-        RCLCPP_INFO(get_logger(), "ssd1306_i2c initialized: %ux%u at %s/0x%02X",
-                    k_width, k_height, i2c_device.c_str(), k_i2c_address);
+        RCLCPP_INFO(get_logger(), "ssd1306_i2c initialized: %ux%u at %s/0x%lu",
+                    width, height, i2c_device.c_str(), i2c_addres);
     }
 
     void on_cleanup() override {
@@ -107,25 +155,25 @@ protected:
 private:
     void initialize_display() {
         write_commands({
-            0xAE,        // Display off
-            0x20, 0x00,  // Horizontal addressing mode
-            0xB0,        // Page start address
-            0xC8,        // COM output scan direction remapped
-            0x00,        // Low column address
-            0x10,        // High column address
-            0x40,        // Start line address
-            0x81, 0x7F,  // Contrast
-            0xA1,        // Segment remap
-            0xA6,        // Normal display
-            0xA8, 0x3F,  // Multiplex ratio for 128x64
-            0xA4,        // Display follows RAM
-            0xD3, 0x00,  // Display offset
-            0xD5, 0x80,  // Display clock divide ratio
-            0xD9, 0xF1,  // Pre-charge period
-            0xDA, 0x12,  // COM pins hardware config for 128x64
-            0xDB, 0x40,  // VCOMH deselect level
-            0x8D, 0x14,  // Charge pump enabled
-            0xAF,        // Display on
+            0xAE,                     // Display off
+            0x20, 0x00,               // Horizontal addressing mode
+            0xB0,                     // Page start address
+            0xC8,                     // COM output scan direction remapped
+            0x00,                     // Low column address
+            0x10,                     // High column address
+            0x40,                     // Start line address
+            0x81, 0x7F,               // Contrast
+            0xA1,                     // Segment remap
+            0xA6,                     // Normal display
+            0xA8, m_multiplex_ratio,  // Multiplex ratio
+            0xA4,                     // Display follows RAM
+            0xD3, 0x00,               // Display offset
+            0xD5, 0x80,               // Display clock divide ratio
+            0xD9, 0xF1,               // Pre-charge period
+            0xDA, m_com_pins_config,  // COM pins hardware config
+            0xDB, 0x40,               // VCOMH deselect level
+            0x8D, 0x14,               // Charge pump enabled
+            0xAF,                     // Display on
         });
     }
 
@@ -134,8 +182,8 @@ private:
             return;
         }
 
-        if (m_page_buffer.size() != k_page_buffer_size) {
-            m_page_buffer.assign(k_page_buffer_size, 0x00);
+        if (m_page_buffer.size() != page_buffer_size()) {
+            m_page_buffer.assign(page_buffer_size(), 0x00);
         } else {
             std::fill(m_page_buffer.begin(), m_page_buffer.end(), 0x00);
         }
@@ -147,14 +195,14 @@ private:
         const clover2_display::data::display_frame& frame) {
         std::fill(m_page_buffer.begin(), m_page_buffer.end(), 0x00);
 
-        for (uint32_t y = 0; y < k_height; ++y) {
+        for (uint32_t y = 0; y < info().height; ++y) {
             const auto* row = frame.image.ptr<uint8_t>(static_cast<int>(y));
-            for (uint32_t x = 0; x < k_width; ++x) {
+            for (uint32_t x = 0; x < info().width; ++x) {
                 const auto pixel = row[x];
                 if (pixel > 0) {
                     const auto page = y / 8;
                     const auto bit = y % 8;
-                    const auto offset = page * k_width + x;
+                    const auto offset = page * info().width + x;
                     m_page_buffer[offset] |= static_cast<uint8_t>(1u << bit);
                 }
             }
@@ -163,11 +211,17 @@ private:
 
     void flush() {
         write_commands({
-            0x21, 0x00, static_cast<uint8_t>(k_width - 1),  // Column address
-            0x22, 0x00, static_cast<uint8_t>((k_height / 8) - 1),  // Page addr
+            0x21, 0x00,
+            static_cast<uint8_t>(info().width - 1),  // Column address
+            0x22, 0x00,
+            static_cast<uint8_t>((info().height / 8) - 1),  // Page addr
         });
 
         write_data(m_page_buffer);
+    }
+
+    size_t page_buffer_size() const {
+        return static_cast<size_t>(info().width) * info().height / 8;
     }
 
     void write_command(uint8_t command) {
@@ -208,6 +262,8 @@ private:
     }
 
     int m_i2c_fd{-1};
+    uint8_t m_multiplex_ratio{0x3F};
+    uint8_t m_com_pins_config{0x12};
     std::vector<uint8_t> m_page_buffer{};
 };
 
