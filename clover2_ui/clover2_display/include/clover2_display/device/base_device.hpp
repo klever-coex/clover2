@@ -41,6 +41,7 @@ protected:
 
 private:
     clover2_display::data::display_info m_info;
+    std::chrono::steady_clock::time_point m_last_write{};
 
     std::string m_name;
     rclcpp::Logger m_logger;

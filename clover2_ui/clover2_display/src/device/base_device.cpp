@@ -1,7 +1,9 @@
 #include <clover2_display/device/base_device.hpp>
+#include <clover2_display/exceptions.hpp>
+#include <cv_bridge/cv_bridge.hpp>
 
 #include <algorithm>
-#include <stdexcept>
+#include <chrono>
 #include <string>
 
 namespace clover2_display::device {
@@ -33,31 +35,34 @@ data::display_info& base_device::info() noexcept { return m_info; }
 
 void base_device::write(const data::display_frame& frame) {
     if (frame.image.empty()) {
-        throw std::runtime_error("display: empty frame image");
+        throw data::empty_frame();
     }
 
     if (std::find(m_info.supported_encodings.begin(),
                   m_info.supported_encodings.end(),
                   frame.encoding) == m_info.supported_encodings.end()) {
-        throw std::runtime_error("display: unsupported frame encoding '" +
-                                 frame.encoding + "'");
+        throw data::unsupported_encoding(frame.encoding);
     }
 
     if (frame.width() != static_cast<int>(m_info.width) ||
         frame.height() != static_cast<int>(m_info.height)) {
-        throw std::runtime_error(
-            "display: unsupported frame size " + std::to_string(frame.width()) +
-            "x" + std::to_string(frame.height()) + ", expected " +
-            std::to_string(m_info.width) + "x" + std::to_string(m_info.height));
+        throw frame_size_mismatch(static_cast<int>(m_info.width),
+                                  static_cast<int>(m_info.height),
+                                  frame.width(), frame.height());
     }
 
-    if (frame.image.type() != data::encoding_to_cv_type(frame.encoding)) {
-        throw std::runtime_error(
-            "display: image matrix type does not match "
-            "frame encoding");
+    if (frame.image.type() != cv_bridge::getCvType(frame.encoding)) {
+        throw data::encoding_type_mismatch(frame.encoding);
+    }
+
+    const auto now = std::chrono::steady_clock::now();
+    const auto frame_period = std::chrono::duration<double>(1.0 / m_info.max_fps);
+    if (now - m_last_write < frame_period) {
+        throw data::frequency_to_high();
     }
 
     write_raw_frame(frame);
+    m_last_write = now;
 }
 
 const std::string& base_device::get_name() const { return m_name; }
