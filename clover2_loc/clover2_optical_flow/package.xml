@@ -1,8 +1,8 @@
-<?xml version="1.0"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>clover2_optical_flow</name>
-  <version>0.0.0</version>
+  <version>0.1.6</version>
   <description>Optical flow calculation using phase correlation</description>
   <maintainer email="2663161@mail.ru">l_motya</maintainer>
   <license>TODO: License declaration</license>
