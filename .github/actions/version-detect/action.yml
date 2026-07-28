@@ -15,10 +15,17 @@ outputs:
 runs:
   using: composite
   steps:
+    - uses: actions/setup-python@v7
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: pip install -r ./tooling/requirements.txt
+
     - id: detect
       shell: bash
       run: |
-        BASE_VERSION=$(cat tooling/VERSION)
+        BASE_VERSION=$(python3 tooling/scripts/version_manager.py -vvv -d . print --main-only)
         HASH="${{ github.sha }}"
         GIT_HASH="${HASH:0:7}"
         echo "git_hash=${GIT_HASH}" >> "$GITHUB_OUTPUT"
