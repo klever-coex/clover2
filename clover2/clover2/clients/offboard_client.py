@@ -1,6 +1,6 @@
 import uuid as uuid_lib
+from dataclasses import dataclass
 
-import rclpy
 from bondpy import bondpy
 from clover2_nav_msgs.action import NavigateAsync
 from clover2_nav_msgs.msg import State
@@ -8,7 +8,10 @@ from clover2_nav_msgs.srv import ArmDisarm, Land, Navigate, SetPosition
 from geometry_msgs.msg import Pose
 from rclpy.action import ActionClient
 from rclpy.node import Node
-from tf_transformations import quaternion_from_euler
+from rclpy.time import Time
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_listener import TransformListener
+from tf_transformations import quaternion_from_euler, euler_from_quaternion
 from unique_identifier_msgs.msg import UUID
 
 from ..utils import ActionHelper, ActionStatus, wait_future
@@ -18,6 +21,16 @@ NAVIGATE_BOND_TOPIC = "/fcu_bridge/bond"
 NAVIGATE_BOND_CONNECT_TIMEOUT = 2.0
 NAVIGATE_BOND_HEARTBEAT_PERIOD = 0.2
 NAVIGATE_BOND_HEARTBEAT_TIMEOUT = 1.0
+
+
+@dataclass
+class DronePosition:
+    x: float = NAN
+    y: float = NAN
+    z: float = NAN
+    roll: float = NAN
+    pitch: float = NAN
+    yaw: float = NAN
 
 
 class OffboardClient:
@@ -45,6 +58,9 @@ class OffboardClient:
         self._navigate_client = self._node.create_client(
             Navigate, "/fcu_bridge/navigate"
         )
+
+        self._tf_buffer = Buffer()
+        self._tf_listener = TransformListener(self._tf_buffer, node)
 
     def is_armed(self) -> bool:
         return self._state.is_armed
@@ -122,7 +138,7 @@ class OffboardClient:
 
         goal_uuid = UUID(uuid=list(uuid_lib.uuid4().bytes))
         goal_uuid_string = str(uuid_lib.UUID(bytes=bytes(goal_uuid.uuid)))
-        self._logger.info(f"Navigate async goal UUID: {goal_uuid_string}")
+        self._logger.debug(f"Navigate async goal UUID: {goal_uuid_string}")
 
         # The same UUID binds the bond to this action only.
         bond_id = f"navigate_async:{goal_uuid_string}"
@@ -133,14 +149,16 @@ class OffboardClient:
         navigate_bond.start()
 
         try:
-            helper = ActionHelper(self._navigate_async_aclient, goal, goal_uuid)
+            helper = ActionHelper(
+                self._navigate_async_aclient, goal, goal_uuid)
             status = helper.wait()
 
             if status is ActionStatus.REJECTED:
                 raise RuntimeError(helper.message)
 
             if status is not ActionStatus.SUCCEEDED:
-                raise RuntimeError(f"NavigateAsync {status.name}: {helper.message}")
+                raise RuntimeError(
+                    f"NavigateAsync {status.name}: {helper.message}")
 
             if not helper.result.success:
                 raise RuntimeError(helper.result.message)
@@ -148,6 +166,25 @@ class OffboardClient:
             return helper.result.success
         finally:
             navigate_bond.break_bond()
+
+    def get_position(self, from_frame: str = "map") -> DronePosition:
+        t = self._tf_buffer.lookup_transform(from_frame, "base_link", Time())
+
+        rpy = euler_from_quaternion((
+            t.transform.rotation.x,
+            t.transform.rotation.y,
+            t.transform.rotation.z,
+            t.transform.rotation.w,
+        ))
+
+        return DronePosition(
+            x=t.transform.translation.x,
+            y=t.transform.translation.y,
+            z=t.transform.translation.z,
+            roll=rpy[0],
+            pitch=rpy[1],
+            yaw=rpy[2]
+        )
 
     def __fill_pose(self, x, y, z, yaw) -> Pose:
         pose = Pose()
@@ -178,6 +215,7 @@ class OffboardClient:
             return False
 
         if not result.success:
-            self._node.get_logger().error(f"`{srv.service_name}`: {result.message}")
+            self._node.get_logger().error(
+                f"`{srv.service_name}`: {result.message}")
 
         return result.success

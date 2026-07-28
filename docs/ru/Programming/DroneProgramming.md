@@ -5,6 +5,7 @@
 :maxdepth: 1
 :hidden:
 
+DroneProgramming/DroneConnection
 DroneProgramming/ArucoMap
 DroneProgramming/Flight
 DroneProgramming/LED

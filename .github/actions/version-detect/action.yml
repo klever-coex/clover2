@@ -1,0 +1,54 @@
+name: Detect Version
+description: Determine the build type and populate the variables
+
+outputs:
+  build_mode:
+    description: develop or master or release build mode
+    value: ${{ steps.release.outputs.build_mode || steps.master.outputs.build_mode || steps.develop.outputs.build_mode }}
+  git_hash:
+    description: Short git hash
+    value: ${{ steps.common.outputs.git_hash }}
+  version:
+    description: Version from tag
+    value: ${{ steps.release.outputs.version || steps.master.outputs.version || steps.develop.outputs.version }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v7
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      shell: bash
+      run: pip install -r ./tooling/requirements.txt
+
+    - id: common
+      shell: bash
+      run: |
+        BASE_VERSION=$(python3 tooling/scripts/version_manager.py -d . print --main-only)
+        HASH="${{ github.sha }}"
+        GIT_HASH="${HASH:0:7}"
+        echo "git_hash=${GIT_HASH}" >> "$GITHUB_OUTPUT"
+        echo "base_version=${BASE_VERSION}" >> "$GITHUB_OUTPUT"
+
+    - id: release
+      if: startsWith(github.ref, 'refs/tags/v')
+      shell: bash
+      run: |
+        echo "build_mode=release" >> "$GITHUB_OUTPUT"
+        echo "version=${{ steps.common.outputs.base_version }}" >> "$GITHUB_OUTPUT"
+
+    - id: master
+      if: github.ref == 'refs/heads/master'
+      shell: bash
+      run: |
+        echo "build_mode=master" >> "$GITHUB_OUTPUT"
+        echo "version=${{ steps.common.outputs.base_version }}+${{ steps.common.outputs.git_hash }}" >> "$GITHUB_OUTPUT"
+
+    - id: develop
+      if: github.ref != 'refs/heads/master' && !startsWith(github.ref, 'refs/tags/v')
+      shell: bash
+      run: |
+        echo "build_mode=develop" >> "$GITHUB_OUTPUT"
+        echo "version=${{ steps.common.outputs.base_version }}+${{ steps.common.outputs.git_hash }}" >> "$GITHUB_OUTPUT"

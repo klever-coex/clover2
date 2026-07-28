@@ -18,7 +18,7 @@ UID ?= $(shell id -u)
 GID ?= $(shell id -g)
 
 # Calculate CLOVER2_VERSION based on BUILD_MODE
-CLOVER2_BASE_VERSION := $(shell cat $(PROJECT_DIR)/tooling/VERSION 2>/dev/null)
+CLOVER2_BASE_VERSION := $(shell python3 tooling/scripts/version_manager.py -d . print --main-only)
 CLOVER2_GIT_HASH := $(shell git -C $(PROJECT_DIR) rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 ifeq ($(BUILD_MODE),release)
@@ -115,7 +115,6 @@ clean:
 ## version: Show current version information
 version:
 	@echo "BUILD_MODE: $(BUILD_MODE)"
-	@echo "CLOVER2_BASE_VERSION: $(CLOVER2_BASE_VERSION)"
 	@echo "CLOVER2_GIT_HASH: $(CLOVER2_GIT_HASH)"
 	@echo "CLOVER2_VERSION: $(CLOVER2_VERSION)"
 	@echo "REGISTRY: $(REGISTRY)"

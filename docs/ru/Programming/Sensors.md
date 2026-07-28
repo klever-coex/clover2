@@ -5,6 +5,8 @@
 :maxdepth: 1
 :hidden:
 
-Sensors/rplidar
+Sensors/RPLidar
 Sensors/ThermalCamera
+Sensors/Hailo
+Sensors/HailoModel
 ```

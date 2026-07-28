@@ -8,8 +8,8 @@ ExecStart=/bin/bash /root/clover2_firstboot.sh
 RemainAfterExit=no
 User=root
 Group=root
-StandardOutput=journal
-StandardError=journal
+StandardOutput=append:/var/log/clover2/firstboot.log
+StandardError=append:/var/log/clover2/firstboot.log
 
 [Install]
 WantedBy=multi-user.target

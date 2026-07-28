@@ -45,8 +45,7 @@ class CameraClient:
                 f"No image received from '{camera_name}' within {timeout}s"
             )
 
-        with self._lock:
-            return self._latest_img[camera_name]
+        return self._latest_img[camera_name]
 
     def get_camera_info(
         self, camera_name: str = "main_camera", timeout: float = 5.0
@@ -61,8 +60,7 @@ class CameraClient:
                 f"No camera_info received from '{camera_name}' within {timeout}s"
             )
 
-        with self._lock:
-            return self._latest_info[camera_name]
+        return self._latest_info[camera_name]
 
     def _create_img_subscription(self, camera_name: str):
         topic = f"/{camera_name}/camera/image_raw"

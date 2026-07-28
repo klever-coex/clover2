@@ -48,7 +48,7 @@ struct color {
         double q = value * (1.0f - fractionalSector * saturation);
         double t = value * (1.0f - (1.0f - fractionalSector) * saturation);
 
-        double r, g, b;
+        double r{0}, g{0}, b{0};
 
         // clang-format off
         switch (sector) {
