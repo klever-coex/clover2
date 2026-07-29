@@ -36,6 +36,17 @@ target_include_directories(${PROJECT_NAME}_driver PUBLIC ${OpenCV_INCLUDE_DIRS})
 
 ament_auto_add_executable(driver src/main.cpp)
 
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+
+  file(GLOB test_source RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "test/*.cpp")
+  ament_auto_add_gtest(test_${PROJECT_NAME}
+    ${test_source}
+  )
+
+  target_link_libraries(test_${PROJECT_NAME} ${cpp_typesupport_target})
+endif()
+
 ament_auto_package(
   USE_SCOPED_HEADER_INSTALL_DIR
 )

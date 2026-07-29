@@ -73,6 +73,15 @@ indication:
       default: true
       description: "Enable LED Strip driver"
 
+display:
+  type: object
+  description: "Display settings"
+  fields:
+    display:
+      type: bool
+      default: true
+      description: "Enable display driver"
+
 2d_lidar:
   type: object
   description: "RPLidar Driver Settings"

@@ -10,7 +10,6 @@ struct display_info {
     uint32_t width{128};
     uint32_t height{64};
     double max_fps{10.0};
-    std::string color_model{"monochrome"};
     std::vector<std::string> supported_encodings{"mono8"};
 };
 

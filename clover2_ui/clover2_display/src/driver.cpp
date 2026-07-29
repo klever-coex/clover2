@@ -77,7 +77,6 @@ void driver::handle_get_driver_info(
     resp->width = info.width;
     resp->height = info.height;
     resp->max_fps = info.max_fps;
-    resp->color_model = info.color_model;
     resp->supported_encodings = info.supported_encodings;
 }
 

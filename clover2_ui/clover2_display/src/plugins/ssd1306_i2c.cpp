@@ -57,7 +57,6 @@ public:
 protected:
     void on_initialize() override {
         info().max_fps = k_max_fps;
-        info().color_model = "monochrome";
         info().supported_encodings = {"mono8"};
 
         if (m_i2c_fd >= 0) {
