@@ -27,11 +27,18 @@ public:
         rclcpp::PublisherOptions pub_options;
         pub_options.callback_group = cb_group;
 
-        m_image_pub = node->template create_publisher<sensor_msgs::msg::Image>(
-            make_topic("image"), rclcpp::SystemDefaultsQoS(), pub_options);
+        auto node_parameters = node->get_node_parameters_interface();
+        auto node_topics = node->get_node_topics_interface();
+
+        m_image_pub = rclcpp::create_publisher<sensor_msgs::msg::Image>(
+            node_parameters, node_topics, make_topic("image"),
+            rclcpp::SystemDefaultsQoS(), pub_options);
 
         m_get_info_client =
-            node->template create_client<clover2_display_msgs::srv::GetDriverInfo>(
+            rclcpp::create_client<clover2_display_msgs::srv::GetDriverInfo>(
+                node->get_node_base_interface(),
+                node->get_node_graph_interface(),
+                node->get_node_services_interface(),
                 make_service("get_driver_info"), rclcpp::ServicesQoS(),
                 cb_group);
 
