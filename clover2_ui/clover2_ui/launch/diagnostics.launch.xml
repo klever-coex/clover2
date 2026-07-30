@@ -1,0 +1,8 @@
+<launch>
+    <arg name="use_sim_time" default="false" />
+
+    <node pkg="diagnostic_aggregator" exec="aggregator_node" name="analyzers">
+        <param name="use_sim_time" value="$(var use_sim_time)" />
+        <param from="$(find-pkg-share clover2_ui)/config/diagnostic_aggregator.yaml" />
+    </node>
+</launch>

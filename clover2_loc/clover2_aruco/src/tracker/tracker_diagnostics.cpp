@@ -4,10 +4,11 @@ namespace clover2::aruco {
 
 const std::unordered_map<TrackerDiagnostics::diagnostic, std::string>
     TrackerDiagnostics::diagnostic_names = {
-        {diagnostic::map, "map"},
-        {diagnostic::markers, "markers"},
-        {diagnostic::pose, "pose"},
-        {diagnostic::pose_frequency, "pose_frequency"},
+        {diagnostic::map, "/localization/aruco_tracker/map"},
+        {diagnostic::markers, "/localization/aruco_tracker/markers"},
+        {diagnostic::pose, "/localization/aruco_tracker/pose"},
+        {diagnostic::pose_frequency,
+         "/localization/aruco_tracker/pose_frequency"},
 };
 
 TrackerDiagnostics::TrackerDiagnostics(

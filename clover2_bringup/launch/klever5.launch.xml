@@ -93,6 +93,10 @@
         <arg name="ns" value="$(var root_ns)" />
     </include>
 
+    <include file="$(find-pkg-share clover2_ui)/launch/diagnostics.launch.xml">
+        <arg name="use_sim_time" value="$(var use_sim_time)" />
+    </include>
+
     <include file="$(find-pkg-share $(var sensing_pkg))/launch/sensing/2d_lidar.launch.xml" if="$(var 2d_lidar.enable)">
         <arg name="params_file" value="$(var params_file)" />
         <arg name="ns" value="$(var root_ns)" />

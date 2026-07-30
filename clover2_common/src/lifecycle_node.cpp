@@ -14,7 +14,7 @@ lifecycle_node::lifecycle_node(const std::string& node_name,
     : lifecycle_node(node_name, options, NodeInterfacesFactory<>{}) {}
 
 void lifecycle_node::init_lifecycle_node() {
-    m_diagnostics->add("Lifecycle State",
+    m_diagnostics->add("/system/lifecycle_state",
                        std::bind(&lifecycle_node::produce_lifecycle_diagnostics,
                                  this, std::placeholders::_1));
 

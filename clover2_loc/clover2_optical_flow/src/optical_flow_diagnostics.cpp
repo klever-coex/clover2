@@ -4,9 +4,11 @@ namespace clover2::optical_flow {
 
 const std::unordered_map<OpticalFlowDiagnostics::diagnostic, std::string>
     OpticalFlowDiagnostics::diagnostic_names = {
-        {diagnostic::camera_info, "camera_info"},
-        {diagnostic::flow, "flow"},
-        {diagnostic::flow_frequency, "flow_frequency"},
+        {diagnostic::camera_info,
+         "/sensors/camera/front/optical_flow/camera_info"},
+        {diagnostic::flow, "/sensors/camera/front/optical_flow/flow"},
+        {diagnostic::flow_frequency,
+         "/sensors/camera/front/optical_flow/flow_frequency"},
 };
 
 OpticalFlowDiagnostics::OpticalFlowDiagnostics(

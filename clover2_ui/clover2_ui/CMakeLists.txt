@@ -20,6 +20,10 @@ ament_auto_add_library(${PROJECT_NAME}_tui SHARED DIRECTORY "src/tui")
 
 ament_auto_add_executable(settings src/commands/settings.cpp)
 
+install(DIRECTORY config launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
 ament_auto_package(
   USE_SCOPED_HEADER_INSTALL_DIR
 )

@@ -4,8 +4,8 @@ namespace clover2::map {
 
 const std::unordered_map<MapServerDiagnostics::diagnostic, std::string>
     MapServerDiagnostics::diagnostic_names = {
-        {diagnostic::map, "map"},
-        {diagnostic::interface, "interface"},
+        {diagnostic::map, "/localization/map_server/map"},
+        {diagnostic::interface, "/localization/map_server/interface"},
 };
 
 MapServerDiagnostics::MapServerDiagnostics(

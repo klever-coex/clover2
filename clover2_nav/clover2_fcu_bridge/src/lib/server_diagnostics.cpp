@@ -4,12 +4,12 @@ namespace clover2_fcu_bridge {
 
 const std::unordered_map<ServerDiagnostics::diagnostic, std::string>
     ServerDiagnostics::diagnostic_names = {
-        {diagnostic::fcu_state, "fcu_state"},
-        {diagnostic::power, "power"},
-        {diagnostic::imu, "imu"},
-        {diagnostic::barometer, "barometer"},
-        {diagnostic::interfaces, "interfaces"},
-        {diagnostic::navigation, "navigation"},
+        {diagnostic::fcu_state, "/fcu/state"},
+        {diagnostic::power, "/fcu/power"},
+        {diagnostic::imu, "/fcu/sensors/imu"},
+        {diagnostic::barometer, "/fcu/sensors/barometer"},
+        {diagnostic::interfaces, "/fcu/interfaces"},
+        {diagnostic::navigation, "/fcu/navigation"},
 };
 
 ServerDiagnostics::ServerDiagnostics(

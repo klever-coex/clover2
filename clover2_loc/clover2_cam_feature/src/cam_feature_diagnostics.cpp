@@ -4,9 +4,11 @@ namespace clover2::cam_feature {
 
 const std::unordered_map<CamFeatureDiagnostics::diagnostic, std::string>
     CamFeatureDiagnostics::diagnostic_names = {
-        {diagnostic::camera_info, "camera_info"},
-        {diagnostic::map, "map"},
-        {diagnostic::marker_frequency, "marker_frequency"},
+        {diagnostic::camera_info,
+         "/sensors/camera/main/cam_feature/camera_info"},
+        {diagnostic::map, "/sensors/camera/main/cam_feature/map"},
+        {diagnostic::marker_frequency,
+         "/sensors/camera/main/cam_feature/marker_frequency"},
 };
 
 CamFeatureDiagnostics::CamFeatureDiagnostics(
