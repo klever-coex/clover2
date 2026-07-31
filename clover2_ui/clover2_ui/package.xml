@@ -11,6 +11,8 @@
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
   <depend>clover2_common</depend>
+  <depend>diagnostic_msgs</depend>
+  <depend>rclcpp</depend>
   <depend>yaml-cpp</depend>
 
   <exec_depend>diagnostic_aggregator</exec_depend>
