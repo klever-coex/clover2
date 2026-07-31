@@ -4,7 +4,8 @@ namespace clover2_ui::api::diagnostics {
 
 diagnostic_monitor::diagnostic_monitor(const std::string& topic)
     : m_topic(topic)
-    , m_node(std::make_shared<rclcpp::Node>("clover2_diagnostics_tui")) {
+    , m_node(
+          std::make_shared<clover2_common::node>("clover2_diagnostics_tui")) {
     m_sub = m_node->create_subscription<diagnostic_msgs::msg::DiagnosticArray>(
         m_topic, rclcpp::QoS(10),
         [this](diagnostic_msgs::msg::DiagnosticArray::SharedPtr msg) {

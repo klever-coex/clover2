@@ -101,20 +101,6 @@ cpptui::Color diagnostics_screen::level_color(std::uint8_t level) {
     }
 }
 
-std::string diagnostics_screen::level_icon(std::uint8_t level) {
-    switch (level) {
-        case diagnostic_msgs::msg::DiagnosticStatus::OK:
-            return "✓";
-        case diagnostic_msgs::msg::DiagnosticStatus::WARN:
-            return "!";
-        case diagnostic_msgs::msg::DiagnosticStatus::ERROR:
-            return "✗";
-        case diagnostic_msgs::msg::DiagnosticStatus::STALE:
-        default:
-            return "?";
-    }
-}
-
 bool diagnostics_screen::is_group(
     const diagnostics_api::diagnostic_node& node) {
     return !node.children.empty();
@@ -187,8 +173,6 @@ void diagnostics_screen::update_list_buttons() {
         auto text =
             cpptui::StyledText()
                 .add(prefix)
-                .colored(level_icon(item.node.level) + " ",
-                         level_color(item.node.level))
                 .add(item.node.name + " ")
                 .colored(
                     "[" + diagnostics_api::level_name(item.node.level) + "]",

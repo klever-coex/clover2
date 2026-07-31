@@ -33,7 +33,6 @@ private:
     };
 
     static cpptui::Color level_color(std::uint8_t level);
-    static std::string level_icon(std::uint8_t level);
     static bool is_group(const api::diagnostics::diagnostic_node& node);
 
     void rebuild_view();
