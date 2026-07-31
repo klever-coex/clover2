@@ -2,7 +2,6 @@
 #include <clover2_ui/tui/core/navigator.hpp>
 #include <diagnostic_msgs/msg/diagnostic_status.hpp>
 
-#include <algorithm>
 #include <iomanip>
 #include <sstream>
 

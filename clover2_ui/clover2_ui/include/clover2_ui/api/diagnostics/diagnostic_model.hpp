@@ -6,19 +6,10 @@
 
 #include <array>
 #include <cstdint>
-#include <map>
 #include <string>
 #include <vector>
 
 namespace clover2_ui::api::diagnostics {
-
-struct diagnostic_item {
-    std::string name;
-    std::string message;
-    std::string hardware_id;
-    std::uint8_t level = diagnostic_msgs::msg::DiagnosticStatus::STALE;
-    std::vector<diagnostic_msgs::msg::KeyValue> values;
-};
 
 struct diagnostic_node {
     std::string name;

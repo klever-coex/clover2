@@ -5,7 +5,6 @@
 #include <clover2_ui/tui/core/screen.hpp>
 #include <cpptui/cpptui.hpp>
 
-#include <array>
 #include <memory>
 #include <set>
 #include <string>
