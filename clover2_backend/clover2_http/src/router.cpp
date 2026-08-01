@@ -115,8 +115,9 @@ void router::add_http_route(boost::beast::http::verb method,
     m_http_routes.push_back(std::move(entry));
 }
 
-void router::add_ws_route(const std::string& pattern,
-                          std::unique_ptr<transport::ws_handler_interface> handler) {
+void router::add_ws_route(
+    const std::string& pattern,
+    std::unique_ptr<transport::ws_handler_interface> handler) {
     ws_route_entry entry;
     entry.pattern = pattern;
     entry.parsed = parse_pattern(pattern);

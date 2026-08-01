@@ -18,13 +18,15 @@ namespace http = boost::beast::http;
 using namespace clover2_http;
 
 endpoint::http_request make_get(std::string target) {
-    endpoint::http_request req{http::verb::get, std::move(target), endpoint::kHttpVersion11};
+    endpoint::http_request req{http::verb::get, std::move(target),
+                               endpoint::kHttpVersion11};
     req.prepare_payload();
     return req;
 }
 
 endpoint::http_request make_post(std::string target, std::string body = "") {
-    endpoint::http_request req{http::verb::post, std::move(target), endpoint::kHttpVersion11};
+    endpoint::http_request req{http::verb::post, std::move(target),
+                               endpoint::kHttpVersion11};
     req.body() = std::move(body);
     req.prepare_payload();
     return req;
@@ -343,7 +345,8 @@ TEST(ResponseSender, EndpointInvokedWithResponse) {
     r.add_http_route(http::verb::get, "/ok", std::move(ep));
 
     core::request_context ctx;
-    http::response<http::string_body> captured{http::status::unknown, endpoint::kHttpVersion11};
+    http::response<http::string_body> captured{http::status::unknown,
+                                               endpoint::kHttpVersion11};
     r.dispatch_http(http::verb::get, "/ok", ctx, make_get("/ok"),
                     [&](auto resp) { captured = std::move(resp); });
     EXPECT_EQ(captured.result(), http::status::ok);

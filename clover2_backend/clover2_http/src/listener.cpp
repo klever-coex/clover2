@@ -7,7 +7,8 @@ namespace clover2_http::transport {
 
 listener::listener(boost::asio::io_context& io,
                    const boost::asio::ip::tcp::endpoint& endpoint,
-                   routing::router& router, std::shared_ptr<clover2_http::core::logger> log)
+                   routing::router& router,
+                   std::shared_ptr<clover2_http::core::logger> log)
     : m_io(io)
     , m_acceptor(io)
     , m_socket(io)
