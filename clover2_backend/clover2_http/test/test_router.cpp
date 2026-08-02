@@ -1,6 +1,6 @@
-#include <clover2_http/endpoint/interface.hpp>
-#include <clover2_http/routing/router.hpp>
-#include <clover2_http/transport/ws_handler.hpp>
+#include <clover2_http/http/endpoint/interface.hpp>
+#include <clover2_http/http/routing/router.hpp>
+#include <clover2_http/http/transport/ws_handler.hpp>
 
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/string_body.hpp>
@@ -15,7 +15,7 @@
 namespace {
 
 namespace http = boost::beast::http;
-using namespace clover2_http;
+using namespace clover2_http::http;
 
 endpoint::http_request make_get(std::string target) {
     endpoint::http_request req{http::verb::get, std::move(target),

@@ -4,9 +4,9 @@
 // curl -X POST http://0.0.0.0:8080/echo -d '{"text":"hi"}'
 // websocat ws://0.0.0.0:8080/ws/chat
 
-#include <clover2_http/core/logger.hpp>
-#include <clover2_http/serialization/json_traits.hpp>
-#include <clover2_http/server.hpp>
+#include <clover2_http/http/core/logger.hpp>
+#include <clover2_http/http/serialization/json_traits.hpp>
+#include <clover2_http/http/server.hpp>
 
 #include <boost/asio/signal_set.hpp>
 
@@ -34,7 +34,7 @@ struct ChatMessage {
 };
 
 template <>
-struct clover2_http::serialization::json_traits<EchoRequest> {
+struct clover2_http::http::serialization::json_traits<EchoRequest> {
     static EchoRequest from_json(const nlohmann::json& jv) {
         return {.text = jv.at("text").get<std::string>()};
     }
@@ -44,7 +44,7 @@ struct clover2_http::serialization::json_traits<EchoRequest> {
 };
 
 template <>
-struct clover2_http::serialization::json_traits<EchoResponse> {
+struct clover2_http::http::serialization::json_traits<EchoResponse> {
     static EchoResponse from_json(const nlohmann::json& jv) {
         return {.echoed = jv.at("echoed").get<std::string>(),
                 .length = jv.at("length").get<int>()};
@@ -56,7 +56,7 @@ struct clover2_http::serialization::json_traits<EchoResponse> {
 };
 
 template <>
-struct clover2_http::serialization::json_traits<UserResponse> {
+struct clover2_http::http::serialization::json_traits<UserResponse> {
     static UserResponse from_json(const nlohmann::json& jv) {
         return {.id = jv.at("id").get<int>(),
                 .name = jv.at("name").get<std::string>()};
@@ -68,7 +68,7 @@ struct clover2_http::serialization::json_traits<UserResponse> {
 };
 
 template <>
-struct clover2_http::serialization::json_traits<ChatMessage> {
+struct clover2_http::http::serialization::json_traits<ChatMessage> {
     static ChatMessage from_json(const nlohmann::json& jv) {
         return {.user = jv.at("user").get<std::string>(),
                 .body = jv.at("body").get<std::string>()};
@@ -80,7 +80,7 @@ struct clover2_http::serialization::json_traits<ChatMessage> {
     }
 };
 
-namespace c2 = clover2_http;
+namespace c2 = clover2_http::http;
 
 void handle_hello(c2::core::request_context /*ctx*/,
                   c2::endpoint::reply<EchoResponse> reply) {

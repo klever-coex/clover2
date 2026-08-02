@@ -14,8 +14,10 @@ find_package(ament_cmake_auto REQUIRED)
 
 ament_auto_find_build_dependencies()
 
-ament_auto_add_library(${PROJECT_NAME} SHARED DIRECTORY "src")
+ament_auto_add_library(${PROJECT_NAME}_http SHARED DIRECTORY "src/http")
+
 ament_auto_add_executable(example examples/example.cpp)
+ament_auto_add_executable(bridge src/main.cpp)
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
