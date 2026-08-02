@@ -1,7 +1,5 @@
 #pragma once
 
-#include <clover2_http/http/serialization/json_traits.hpp>
-
 #include <boost/beast/http/field.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/status.hpp>
@@ -66,7 +64,8 @@ public:
         if (m_sent) return;
         m_sent = true;
 
-        auto body = serialization::impl::serialize(resp).dump();
+        nlohmann::json jv(std::forward<const T>(resp));
+        std::string body = jv.dump();
 
         http_response response{static_cast<boost::beast::http::status>(status),
                                kHttpVersion11};

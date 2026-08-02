@@ -3,6 +3,7 @@
 #include <clover2_http/http/core/exceptions.hpp>
 
 #include <any>
+#include <format>
 #include <string>
 #include <unordered_map>
 
@@ -20,8 +21,8 @@ public:
         try {
             return std::any_cast<T>(m_values.at(key));
         } catch (const std::bad_any_cast&) {
-            throw parsing_error(
-                std::format("Unable cat {} to type {}", key, typeid(T).name()));
+            throw parsing_error("Unable cat {} to type {}", key,
+                                typeid(T).name());
         }
     }
 

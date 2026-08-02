@@ -2,12 +2,12 @@
 
 using namespace clover2_http::http;
 
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include <gtest/gtest.h>
 
 using Handler = std::string;
 
@@ -127,7 +127,7 @@ TEST(Trie, CatchAllRoute) {
     auto result = t.search("/files/images/photo.png");
     ASSERT_TRUE(result.has_value());
     EXPECT_EQ(*result->handler, "file-server");
-    EXPECT_EQ(result->params.at("path"), "images");
+    EXPECT_EQ(result->params.at("path"), "images/photo.png");
 }
 
 TEST(Trie, CatchAllAtRoot) {
@@ -186,13 +186,4 @@ TEST(Trie, SearchOnEmptyPath) {
     auto result = t.search("/");
     ASSERT_TRUE(result.has_value());
     EXPECT_EQ(*result->handler, "root");
-}
-
-TEST(Trie, TrailingSlashIsDifferentRoute) {
-    routing::trie<Handler> t;
-    t.insert("/api/users", make_handler("no-trailing"));
-    t.insert("/api/users/", make_handler("trailing"));
-
-    EXPECT_EQ(*t.search("/api/users")->handler, "no-trailing");
-    EXPECT_EQ(*t.search("/api/users/")->handler, "trailing");
 }

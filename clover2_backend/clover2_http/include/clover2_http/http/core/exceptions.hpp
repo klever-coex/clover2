@@ -1,6 +1,7 @@
 #pragma once
 
 #include <exception>
+#include <format>
 #include <string>
 
 namespace clover2_http::http::core {
@@ -22,8 +23,9 @@ private:
 
 class routing_error : public std::exception {
 public:
-    routing_error(std::string message) noexcept
-        : m_message(std::move(message)) {}
+    template <typename... Args>
+    routing_error(std::format_string<Args...> fmt, Args&&... args) noexcept
+        : m_message(std::format(fmt, std::forward<Args>(args)...)) {}
 
     const char* what() const noexcept override { return m_message.c_str(); }
     const std::string& message() const noexcept { return m_message; }
@@ -34,8 +36,9 @@ private:
 
 class parsing_error : public std::exception {
 public:
-    parsing_error(std::string message) noexcept
-        : m_message(std::move(message)) {}
+    template <typename... Args>
+    parsing_error(std::format_string<Args...> fmt, Args&&... args) noexcept
+        : m_message(std::format(fmt, std::forward<Args>(args)...)) {}
 
     const char* what() const noexcept override { return m_message.c_str(); }
     const std::string& message() const noexcept { return m_message; }

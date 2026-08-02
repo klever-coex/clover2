@@ -23,8 +23,7 @@ public:
         try {
             Req request{};
             if (!req.body().empty()) {
-                auto jv = nlohmann::json::parse(req.body());
-                request = serialization::impl::deserialize<Req>(jv);
+                request = nlohmann::json::parse(req.body()).get<Req>();
             }
 
             m_handler(std::move(ctx), std::move(request),
@@ -83,7 +82,7 @@ public:
             Req request{};
             if (!req.body().empty()) {
                 auto jv = nlohmann::json::parse(req.body());
-                request = serialization::impl::deserialize<Req>(jv);
+                request = jv.get<Req>(jv);
             }
 
             m_handler(std::move(ctx), std::move(request),

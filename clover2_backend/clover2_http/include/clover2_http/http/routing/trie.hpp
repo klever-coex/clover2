@@ -5,8 +5,8 @@
 
 #include <format>
 #include <memory>
-#include <string>
 #include <optional>
+#include <string>
 #include <unordered_map>
 
 namespace clover2_http::http::routing {
@@ -49,7 +49,7 @@ public:
         for (const auto& token : tokens) {
             if (!is_token_valid(token)) {
                 throw clover2_http::http::core::routing_error(
-                    std::format("Invalid path token {}.", token));
+                    "Invalid path token {}.", token);
             }
 
             if (is_parameter(token)) {
@@ -64,8 +64,10 @@ public:
                 cur = fill_catch_all(token, cur);
                 break;
             } else {
-                if (cur->children.find(std::string(token)) == cur->children.end()) {
-                    cur->children[std::string(token)] = std::make_unique<node>();
+                if (cur->children.find(std::string(token)) ==
+                    cur->children.end()) {
+                    cur->children[std::string(token)] =
+                        std::make_unique<node>();
                 }
 
                 cur = cur->children[std::string(token)].get();
@@ -74,7 +76,7 @@ public:
 
         if (cur->is_end) {
             throw clover2_http::http::core::routing_error(
-                std::format("Route {} already exists", route));
+                "Route {} already exists", route);
         }
 
         cur->is_end = true;
@@ -86,27 +88,28 @@ public:
         const auto tokens = tokenize_sv(route);
 
         match_result result;
+        std::string_view route_copy = route;
 
-        for (const auto& token : tokens) {
-            if (!is_token_valid(token)) {
+        while(auto token = extract_next_token(route_copy)) {
+            if (!is_token_valid(*token)) {
                 throw clover2_http::http::core::routing_error(
-                    std::format("Invalid path token {}.", token));
+                    "Invalid path token {}.", *token);
             }
 
-            auto it = cur->children.find(std::string(token));
+            auto it = cur->children.find(std::string(*token));
             if (it != cur->children.end()) {
                 cur = it->second.get();
                 continue;
             }
 
             if (cur->parameter) {
-                result.params[cur->parameter_name] = token;
+                result.params[cur->parameter_name] = *token;
                 cur = cur->parameter.get();
                 continue;
             }
 
             if (cur->catch_all) {
-                result.params[cur->catch_all_name] = token;
+                result.params[cur->catch_all_name] = *token + "/" + route_copy;
                 cur = cur->catch_all.get();
                 break;
             }
@@ -129,8 +132,8 @@ private:
 
         if (cur->parameter && name != cur->parameter_name) {
             throw clover2_http::http::core::routing_error(
-                std::format("Same path for {} and {} parameters.", name,
-                            cur->parameter_name));
+                "Same path for {} and {} parameters.", name,
+                cur->parameter_name);
         }
 
         cur->parameter = std::make_unique<node>();
@@ -144,8 +147,7 @@ private:
 
         if (cur->catch_all && name != cur->catch_all_name) {
             throw clover2_http::http::core::routing_error(
-                std::format("Path already exits for {} and {}.", name,
-                            cur->catch_all_name));
+                "Path already exits for {} and {}.", name, cur->catch_all_name);
         }
 
         cur->catch_all = std::make_unique<node>();

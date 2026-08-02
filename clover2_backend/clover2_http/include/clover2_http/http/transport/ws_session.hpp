@@ -1,7 +1,6 @@
 #pragma once
 
 #include <clover2_http/http/core/request_context.hpp>
-#include <clover2_http/http/serialization/json_traits.hpp>
 
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/io_context.hpp>
@@ -69,8 +68,8 @@ public:
     void write(T message) {
         boost::asio::post(m_strand, [self = this->shared_from_this(),
                                      msg = std::move(message)]() mutable {
-            nlohmann::json jv;
-            serialization::json_traits<T>::to_json(jv, msg);
+            nlohmann::json jv = msg;
+
             self->m_write_queue.push_back(jv.dump());
             if (!self->m_writing) {
                 self->m_writing = true;
@@ -117,8 +116,8 @@ private:
 
         try {
             auto data = boost::beast::buffers_to_string(m_buffer.data());
-            auto jv = nlohmann::json::parse(data);
-            auto msg = serialization::impl::deserialize<T>(jv);
+            // auto jv = nlohmann::json::parse(data);
+            T msg = nlohmann::json::parse(data).get<T>();
 
             if (m_msg_handler) {
                 m_msg_handler(this->shared_from_this(), std::move(msg));

@@ -24,6 +24,46 @@ std::vector<std::string_view> tokenize_sv(
     return segs;
 }
 
+std::optional<std::string_view> extract_next_token(
+    const std::string_view& path) noexcept {
+    while (!path.empty() && path.front() == '/') {
+        path.remove_prefix(1);
+    }
+
+    if (path.empty()) {
+        return std::nullopt;
+    }
+
+    size_t end = path.find('/');
+
+    std::string_view token;
+    if (end == std::string_view::npos) {
+        token = path;
+    } else {
+        token = path.substr(0, end);
+    }
+
+    return token;
+}
+
+void remove_first_token(std::string_view& path) noexcept {
+    while (!path.empty() && path.front() == '/') {
+        path.remove_prefix(1);
+    }
+
+    if (path.empty()) {
+        return;
+    }
+
+    size_t end = path.find('/');
+
+    if (end == std::string_view::npos) {
+        path = {};
+    } else {
+        path.remove_prefix(end + 1);
+    }
+}
+
 bool is_token_valid(const std::string_view token) noexcept {
     return (is_parameter(token) && token.size() > 2) ||  //
            (is_catch_all(token) && token.size() > 5) ||  //

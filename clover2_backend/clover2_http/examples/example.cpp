@@ -5,7 +5,6 @@
 // websocat ws://0.0.0.0:8080/ws/chat
 
 #include <clover2_http/http/core/logger.hpp>
-#include <clover2_http/http/serialization/json_traits.hpp>
 #include <clover2_http/http/server.hpp>
 
 #include <boost/asio/signal_set.hpp>
@@ -18,67 +17,28 @@ struct EchoRequest {
     std::string text;
 };
 
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EchoRequest, text)
+
 struct EchoResponse {
     std::string echoed;
     int length;
 };
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EchoResponse, echoed, length)
 
 struct UserResponse {
     int id;
     std::string name;
 };
 
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(UserResponse, id, name)
+
 struct ChatMessage {
     std::string user;
     std::string body;
 };
 
-template <>
-struct clover2_http::http::serialization::json_traits<EchoRequest> {
-    static EchoRequest from_json(const nlohmann::json& jv) {
-        return {.text = jv.at("text").get<std::string>()};
-    }
-    static void to_json(nlohmann::json& jv, const EchoRequest& obj) {
-        jv["text"] = obj.text;
-    }
-};
-
-template <>
-struct clover2_http::http::serialization::json_traits<EchoResponse> {
-    static EchoResponse from_json(const nlohmann::json& jv) {
-        return {.echoed = jv.at("echoed").get<std::string>(),
-                .length = jv.at("length").get<int>()};
-    }
-    static void to_json(nlohmann::json& jv, const EchoResponse& obj) {
-        jv["echoed"] = obj.echoed;
-        jv["length"] = obj.length;
-    }
-};
-
-template <>
-struct clover2_http::http::serialization::json_traits<UserResponse> {
-    static UserResponse from_json(const nlohmann::json& jv) {
-        return {.id = jv.at("id").get<int>(),
-                .name = jv.at("name").get<std::string>()};
-    }
-    static void to_json(nlohmann::json& jv, const UserResponse& obj) {
-        jv["id"] = obj.id;
-        jv["name"] = obj.name;
-    }
-};
-
-template <>
-struct clover2_http::http::serialization::json_traits<ChatMessage> {
-    static ChatMessage from_json(const nlohmann::json& jv) {
-        return {.user = jv.at("user").get<std::string>(),
-                .body = jv.at("body").get<std::string>()};
-    }
-
-    static void to_json(nlohmann::json& jv, const ChatMessage& obj) {
-        jv["user"] = obj.user;
-        jv["body"] = obj.body;
-    }
-};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ChatMessage, user, body)
 
 namespace c2 = clover2_http::http;
 

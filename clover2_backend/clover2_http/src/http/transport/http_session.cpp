@@ -123,6 +123,10 @@ void http_session::handle_request() {
         auto pt = parse_target(target_str);
         auto ctx = make_context(pt);
 
+        m_logger->debug("Handling request: {} {} from {}",
+                         std::string(m_request.method_string()), target_str,
+                         ctx.remote_endpoint.address().to_string());
+
         auto found = m_router.dispatch_http(
             m_request.method(), target_str, ctx, m_request,
             [self = shared_from_this()](
@@ -142,7 +146,8 @@ void http_session::handle_request() {
         }
     } catch (const core::http_error& e) {
         send_error(e.status(), e.message());
-    } catch (const std::exception&) {
+    } catch (const std::exception& e) {
+        m_logger->error("Exception in request handling: {}", e.what());
         send_error(500, "Internal Server Error");
     }
 }
