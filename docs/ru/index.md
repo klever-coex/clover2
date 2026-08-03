@@ -8,6 +8,7 @@
 Setup
 Programming
 Simulator
+Events
 UsefulInfo
 ```
 
