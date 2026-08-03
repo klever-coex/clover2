@@ -12,7 +12,7 @@ drone = Clover2("my_drone")
 
 `Clover2` - обёртка над ROS 2 Node. Внутри происходит вся магия: создаётся нода и запускается фоновый поток для работы ROS 2.
 
-## Взлёт и посадка
+## Полезные команды
 
 ```python
 drone.arm()          # запуск моторов
@@ -63,4 +63,25 @@ for x, y in square_points:
 
 time.sleep(5.0)
 drone.land()
+```
+
+## Получение текущией координаты относитльно карты
+
+```python
+print(drone.get_position())
+```
+
+Результат:
+```python
+DronePosition(x=-0.2, y=-0.05, z=1.0, roll=0.0, pitch=0.0, yaw=-0.4)
+```
+
+Также можно получить координату дрона относительно любой системы координат(например конкретного маркера):
+```python
+print(drone.get_position("map_aruco_1"))
+```
+
+Результат:
+```python
+DronePosition(x=-1.0, y=-0.2, z=1.0, roll=0.0, pitch=0.0, yaw=1.17)
 ```

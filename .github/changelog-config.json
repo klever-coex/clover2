@@ -1,0 +1,26 @@
+{
+  "categories": [
+    {
+      "title": "## Features",
+      "labels": ["feature", "feat"]
+    },
+    {
+      "title": "## Bug Fixes",
+      "labels": ["fix", "bug"]
+    },
+    {
+      "title": "## Documentation",
+      "labels": ["docs", "documentation"]
+    }
+  ],
+  "sort": "ASC",
+  "template": "${{CHANGELOG}}",
+  "pr_template": "- ${{TITLE}} (#${{NUMBER}})",
+  "empty_template": "no changes ;(",
+  "label_extractor": [
+    {
+      "pattern": "^(feature|feat|fix|bug|docs|documentation)(\\(.+\\))?:",
+      "target": "$1"
+    }
+  ]
+}

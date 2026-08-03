@@ -1,5 +1,20 @@
 name: Docker Setup
-description: Set up QEMU, Docker Buildx, and authenticate to GHCR
+description: Set up QEMU, Docker Buildx and login if needed
+
+inputs:
+  ghcr-token:
+    description: Token for GHCR authentication
+    required: false
+    default: ${{ github.token }}
+  login:
+    description: Whether to log in to GHCR
+    required: false
+    default: 'true'
+
+outputs:
+  builder-name:
+    description: Name of the Buildx instance
+    value: ${{ steps.setup-buildx.outputs.name }}
 
 runs:
   using: composite
@@ -8,11 +23,15 @@ runs:
       uses: docker/setup-qemu-action@v4
 
     - name: Set up Docker Buildx
+      id: setup-buildx
       uses: docker/setup-buildx-action@v4
+      with:
+        driver: docker-container
 
     - name: Log in to GitHub Container Registry
+      if: ${{ inputs.login == 'true' }}
       uses: docker/login-action@v4
       with:
         registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ github.token }}
+        username: ${{ github.repository_owner }}
+        password: ${{ inputs.ghcr-token }}

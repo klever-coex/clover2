@@ -9,21 +9,7 @@ COPY tooling/docker/* /clover2/
 
 WORKDIR /ws
 
-COPY clover2/package.xml /ws/src/clover2/package.xml
-COPY clover2_bringup/package.xml /ws/src/clover2_bringup/package.xml
-COPY clover2_common/package.xml /ws/src/clover2_common/package.xml
-COPY clover2_description/package.xml /ws/src/clover2_description/package.xml
-COPY clover2_loc/clover2_aruco/package.xml /ws/src/clover2_loc/clover2_aruco/package.xml
-COPY clover2_loc/clover2_cam_feature/package.xml /ws/src/clover2_loc/clover2_cam_feature/package.xml
-COPY clover2_loc/clover2_map/package.xml /ws/src/clover2_loc/clover2_map/package.xml
-COPY clover2_loc/clover2_optical_flow/package.xml /ws/src/clover2_loc/clover2_optical_flow/package.xml
-COPY clover2_loc/clover2_pose_msgs/package.xml /ws/src/clover2_loc/clover2_pose_msgs/package.xml
-COPY clover2_nav/clover2_fcu_bridge/package.xml /ws/src/clover2_nav/clover2_fcu_bridge/package.xml
-COPY clover2_nav/clover2_mavros/package.xml /ws/src/clover2_nav/clover2_mavros/package.xml
-COPY clover2_nav/clover2_nav_msgs/package.xml /ws/src/clover2_nav/clover2_nav_msgs/package.xml
-COPY clover2_ui/clover2_led/package.xml /ws/src/clover2_ui/clover2_led/package.xml
-COPY clover2_ui/clover2_led_msgs/package.xml /ws/src/clover2_ui/clover2_led_msgs/package.xml
-COPY clover2_ui/clover2_ui/package.xml /ws/src/clover2_ui/clover2_ui/package.xml
+COPY --parents ./**/package.xml /ws/src
 
 RUN /clover2/rosdep-parse.sh /ws/src $ROS_DISTRO --dependency-types=exec > /clover2/apt-depends.txt && \
     cat /clover2/apt-depends.txt
@@ -36,15 +22,16 @@ COPY tooling/docker/* /clover2/
 WORKDIR /clover2
 COPY --from=rosdep-depend /clover2/apt-depends.txt /tmp/apt-depends.txt
 
-RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
     apt-get update -y && \
     apt-get install -y \
-        geographiclib-tools && \
-    /clover2/cleanup-apt.sh
+        geographiclib-tools
 
 RUN wget -qO- https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh | sudo bash
 
-RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
     apt-get update -y && \
     apt-get install -y \
         ros-${ROS_DISTRO}-mavros-msgs \
@@ -53,18 +40,17 @@ RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=lo
         ros-${ROS_DISTRO}-camera-info-manager \
         ros-${ROS_DISTRO}-cv-bridge \
         ros-${ROS_DISTRO}-image-view \
-        ros-${ROS_DISTRO}-image-geometry && \
-    /clover2/cleanup-apt.sh
+        ros-${ROS_DISTRO}-image-geometry
 
-RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
     apt-get update -y && \
-    cat /tmp/apt-depends.txt | xargs apt-get install -y --no-install-recommends && \
-    /clover2/cleanup-apt.sh
+    cat /tmp/apt-depends.txt | xargs apt-get install -y --no-install-recommends
 
 FROM core AS source
 
 WORKDIR /clover2_ws
-COPY . /clover2_ws/src/clover2
+COPY ./clover2* /clover2_ws/src/clover2/
 
 FROM source AS builder
 ARG SHORT_NAME
@@ -72,15 +58,17 @@ ARG ROS_DISTRO
 ARG TARGETPLATFORM
 ENV CCACHE_DIR="/root/.ccache"
 
-RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+COPY tooling/docker/* /clover2/
+
+RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
     apt-get update -y && \
     apt-get install -y \
-        ccache && \
-    /clover2/cleanup-apt.sh
+        ccache
 
 RUN --mount=type=cache,id=ccache-${SHORT_NAME}-${TARGETPLATFORM},target=${CCACHE_DIR} \
     --mount=type=cache,id=ros-build-${SHORT_NAME}-${TARGETPLATFORM},target=/clover2_ws/build \
-    src/clover2/docker/ros/build.sh ${CCACHE_DIR} /opt/clover2 /clover2_ws/build
+    /clover2/build.sh ${CCACHE_DIR} /opt/clover2 /clover2_ws/build
 
 FROM core AS clover2-ros
 
@@ -92,21 +80,3 @@ COPY docker/ros/entrypoint.sh  /
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["bash"]
 
-FROM core AS clover2-sim
-ARG ROS_DISTRO
-ARG TARGETPLATFORM
-
-RUN --mount=type=cache,id=apt-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
-    apt-get update -y && \
-    apt-get install -y --no-install-recommends \
-        ros-${ROS_DISTRO}-desktop=0.11.0-1* \
-        ros-${ROS_DISTRO}-simulation=0.11.0-1* && \
-    /clover2/cleanup-apt.sh
-
-WORKDIR /clover2_ws
-COPY --from=builder /opt/clover2 /opt/clover2
-
-COPY docker/ros/entrypoint.sh  /
-
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["bash"]
