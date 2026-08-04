@@ -146,7 +146,9 @@ private:
                         self->do_close_ws();
                         return;
                     }
+
                     self->m_write_queue.pop_front();
+
                     if (!self->m_write_queue.empty()) {
                         self->do_write();
                     } else {

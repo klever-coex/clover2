@@ -12,7 +12,7 @@
 
 namespace clover2_http::http::transport {
 
-parsed_target parse_target(const std::string& target) {
+parsed_target parse_target(const std::string_view target) {
     parsed_target pt;
     auto qpos = target.find('?');
     if (qpos != std::string::npos) {
@@ -100,8 +100,9 @@ void http_session::on_read(boost::beast::error_code ec, std::size_t) {
 
 void http_session::handle_request() {
     try {
+        const std::string_view target_str = m_request.target();
+
         if (boost::beast::websocket::is_upgrade(m_request)) {
-            auto target_str = std::string(m_request.target());
             auto pt = parse_target(target_str);
 
             std::unordered_map<std::string, std::string> path_params;
@@ -119,8 +120,7 @@ void http_session::handle_request() {
             return;
         }
 
-        auto target_str = std::string(m_request.target());
-        auto pt = parse_target(target_str);
+        auto pt = parse_target(m_request.target());
         auto ctx = make_context(pt);
 
         m_logger->debug("Handling request: {} {} from {}",
