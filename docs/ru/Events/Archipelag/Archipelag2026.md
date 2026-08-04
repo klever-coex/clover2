@@ -135,5 +135,5 @@ panels.append({
 
 ### Контакты команды
 
-- GitHub: `<https://github.com/Izek1234>`
-- Электронная почта: `<workprogrammingmlback@gmail.com>`
+- GitHub: `https://github.com/Izek1234`
+- Электронная почта: `workprogrammingmlback@gmail.com`
