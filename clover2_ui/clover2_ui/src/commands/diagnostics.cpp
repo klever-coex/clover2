@@ -1,18 +1,14 @@
-#include <clover2_ui/api/diagnostics/diagnostic_monitor.hpp>
+#include <clover2_ui/commands/diagnostics_runtime.hpp>
 #include <clover2_ui/tui/components/diagnostics_screen.hpp>
 #include <clover2_ui/tui/core/navigator.hpp>
 #include <cpptui/cpptui.hpp>
 #include <rclcpp/rclcpp.hpp>
 
-#include <atomic>
-#include <chrono>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <thread>
 
 using namespace clover2_ui;
-using namespace std::chrono_literals;
 
 namespace {
 
@@ -54,32 +50,22 @@ int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
 
     cpptui::App app;
-    auto monitor =
-        std::make_shared<api::diagnostics::diagnostic_monitor>(opts.topic);
+    commands::diagnostics_runtime runtime(opts.topic);
     auto nav =
         std::make_shared<tui::core::navigator>(app, "Clover2 diagnostics");
-    auto screen =
-        std::make_shared<tui::components::diagnostics_screen>(monitor, nav);
+    auto screen = std::make_shared<tui::components::diagnostics_screen>(
+        runtime.monitor(), nav);
 
-    std::atomic_bool running = true;
-
-    std::thread ros_thread([&]() { rclcpp::spin(monitor->node()); });
-
-    std::thread refresh_thread([&]() {
-        while (running && rclcpp::ok()) {
-            app.post([screen]() { screen->refresh_from_monitor(); });
-            std::this_thread::sleep_for(500ms);
-        }
-    });
+    runtime.start();
+    const auto refresh_timer =
+        app.add_timer(500, [screen]() { screen->refresh_from_monitor(); });
 
     nav->push(screen);
     app.run(nav);
 
-    running = false;
+    app.remove_timer(refresh_timer);
+    runtime.stop();
     rclcpp::shutdown();
-
-    if (refresh_thread.joinable()) refresh_thread.join();
-    if (ros_thread.joinable()) ros_thread.join();
 
     return 0;
 }

@@ -101,7 +101,7 @@ cpptui::Color diagnostics_screen::level_color(std::uint8_t level) {
 }
 
 bool diagnostics_screen::is_group(
-    const diagnostics_api::diagnostic_node& node) {
+    const diagnostics_api::diagnostic_tree_node& node) {
     return !node.children.empty();
 }
 
@@ -121,8 +121,8 @@ void diagnostics_screen::rebuild_view() {
         summary.str(), level_color(m_snapshot.worst_level)));
 
     m_visible_items.clear();
-    if (m_snapshot.received) {
-        for (const auto& child : m_snapshot.root.children) {
+    if (m_snapshot.received && m_snapshot.root) {
+        for (const auto& child : m_snapshot.root->children) {
             rebuild_visible_items(child, 0);
         }
     }
@@ -137,10 +137,10 @@ void diagnostics_screen::rebuild_view() {
 }
 
 void diagnostics_screen::rebuild_visible_items(
-    const diagnostics_api::diagnostic_node& node, int depth) {
+    const diagnostics_api::diagnostic_tree_node& node, int depth) {
     const bool group = is_group(node);
     if (filter_accepts(node.level) || group) {
-        m_visible_items.push_back({node, depth, group});
+        m_visible_items.push_back({&node, depth, group});
     }
 
     if (group && m_collapsed.count(node.path) == 0) {
@@ -165,17 +165,19 @@ void diagnostics_screen::update_list_buttons() {
 
     for (std::size_t i = 0; i < m_visible_items.size(); ++i) {
         const auto& item = m_visible_items[i];
-        const bool collapsed = m_collapsed.count(item.node.path) > 0;
+        if (!item.node) continue;
+
+        const bool collapsed = m_collapsed.count(item.node->path) > 0;
         std::string prefix(item.depth * 2, ' ');
         prefix += item.has_children ? (collapsed ? "> " : "v ") : "  ";
 
         auto text =
             cpptui::StyledText()
                 .add(prefix)
-                .add(item.node.name + " ")
+                .add(item.node->name + " ")
                 .colored(
-                    "[" + diagnostics_api::level_name(item.node.level) + "]",
-                    level_color(item.node.level));
+                    "[" + diagnostics_api::level_name(item.node->level) + "]",
+                    level_color(item.node->level));
 
         auto button = std::make_shared<cpptui::Button>(text, [this, i]() {
             m_selected = static_cast<int>(i);
@@ -193,27 +195,28 @@ void diagnostics_screen::update_list_buttons() {
 
 void diagnostics_screen::update_details() {
     const auto* item = selected_item();
-    if (!item) {
+    if (!item || !item->node) {
         m_details->set_text("Select a diagnostic item to see details.");
         return;
     }
 
+    const auto& node = *item->node;
     std::ostringstream out;
-    out << "Name: " << item->node.path << "\n";
-    out << "Level: " << diagnostics_api::level_name(item->node.level) << "\n";
-    if (!item->node.message.empty())
-        out << "Message: " << item->node.message << "\n";
-    if (!item->node.hardware_id.empty()) {
-        out << "Hardware ID: " << item->node.hardware_id << "\n";
+    out << "Name: " << node.path << std::endl;
+    out << "Level: " << diagnostics_api::level_name(node.level) << std::endl;
+    if (!node.message.empty()) out << "Message: " << node.message << std::endl;
+    if (!node.hardware_id.empty()) {
+        out << "Hardware ID: " << node.hardware_id << std::endl;
     }
 
-    if (!item->node.values.empty()) {
-        out << "\nValues:\n";
-        for (const auto& kv : item->node.values) {
-            out << "  " << kv.key << ": " << kv.value << "\n";
+    if (!node.values.empty()) {
+        out << std::endl << "Values:" << std::endl;
+        for (const auto& kv : node.values) {
+            out << "  " << kv.key << ": " << kv.value << std::endl;
         }
     } else if (item->has_children) {
-        out << "\nGroup contains " << item->node.children.size()
+        out << std::endl
+            << "Group contains " << node.children.size()
             << " child diagnostics.";
     }
 
@@ -259,10 +262,12 @@ void diagnostics_screen::toggle_selected() {
     const auto* item = selected_item();
     if (!item || !item->has_children) return;
 
-    if (m_collapsed.count(item->node.path)) {
-        m_collapsed.erase(item->node.path);
+    if (!item->node) return;
+
+    if (m_collapsed.count(item->node->path)) {
+        m_collapsed.erase(item->node->path);
     } else {
-        m_collapsed.insert(item->node.path);
+        m_collapsed.insert(item->node->path);
     }
     rebuild_view();
 }

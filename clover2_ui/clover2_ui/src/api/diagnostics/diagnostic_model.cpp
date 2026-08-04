@@ -1,7 +1,9 @@
 #include <clover2_ui/api/diagnostics/diagnostic_model.hpp>
 
 #include <algorithm>
+#include <memory>
 #include <sstream>
+#include <utility>
 
 namespace clover2_ui::api::diagnostics {
 
@@ -52,7 +54,7 @@ std::uint8_t diagnostic_model::worst(std::uint8_t lhs, std::uint8_t rhs) {
     return rank(lhs) >= rank(rhs) ? lhs : rhs;
 }
 
-void diagnostic_model::update_worst_levels(diagnostic_node& node) {
+void diagnostic_model::update_worst_levels(diagnostic_tree_node& node) {
     for (auto& child : node.children) {
         update_worst_levels(child);
         node.level = worst(node.level, child.level);
@@ -61,10 +63,10 @@ void diagnostic_model::update_worst_levels(diagnostic_node& node) {
 
 void diagnostic_model::update(
     const diagnostic_msgs::msg::DiagnosticArray& msg) {
-    m_root = diagnostic_node{};
-    m_root.name = "Diagnostics";
-    m_root.path = "";
-    m_root.level = diagnostic_msgs::msg::DiagnosticStatus::OK;
+    diagnostic_tree_node root;
+    root.name = "Diagnostics";
+    root.path = "";
+    root.level = diagnostic_msgs::msg::DiagnosticStatus::OK;
     m_counts = {0, 0, 0, 0};
     m_worst_level = diagnostic_msgs::msg::DiagnosticStatus::OK;
     m_received = true;
@@ -73,16 +75,16 @@ void diagnostic_model::update(
         if (status.level < m_counts.size()) m_counts[status.level]++;
         m_worst_level = worst(m_worst_level, status.level);
 
-        auto* current = &m_root;
+        auto* current = &root;
         std::string path;
         for (const auto& part : split_path(status.name)) {
             path += "/" + part;
             auto it = std::find_if(
                 current->children.begin(), current->children.end(),
-                [&](const diagnostic_node& n) { return n.name == part; });
+                [&](const diagnostic_tree_node& n) { return n.name == part; });
 
             if (it == current->children.end()) {
-                diagnostic_node child;
+                diagnostic_tree_node child;
                 child.name = part;
                 child.path = path;
                 child.level = diagnostic_msgs::msg::DiagnosticStatus::OK;
@@ -100,7 +102,8 @@ void diagnostic_model::update(
         current->values = status.values;
     }
 
-    update_worst_levels(m_root);
+    update_worst_levels(root);
+    m_root = std::make_shared<diagnostic_tree_node>(std::move(root));
 }
 
 diagnostic_snapshot diagnostic_model::snapshot() const {

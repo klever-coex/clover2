@@ -26,17 +26,17 @@ public:
 
 private:
     struct visible_item {
-        api::diagnostics::diagnostic_node node;
+        const api::diagnostics::diagnostic_tree_node* node = nullptr;
         int depth = 0;
         bool has_children = false;
     };
 
     static cpptui::Color level_color(std::uint8_t level);
-    static bool is_group(const api::diagnostics::diagnostic_node& node);
+    static bool is_group(const api::diagnostics::diagnostic_tree_node& node);
 
     void rebuild_view();
-    void rebuild_visible_items(const api::diagnostics::diagnostic_node& node,
-                               int depth);
+    void rebuild_visible_items(
+        const api::diagnostics::diagnostic_tree_node& node, int depth);
     void update_list_buttons();
     void update_details();
     bool filter_accepts(std::uint8_t level) const;

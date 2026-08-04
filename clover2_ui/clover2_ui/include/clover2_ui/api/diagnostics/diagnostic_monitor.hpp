@@ -1,6 +1,6 @@
 #pragma once
 
-#include <clover2_common/node.hpp>
+#include <clover2_common/node_context.hpp>
 #include <clover2_ui/api/diagnostics/diagnostic_model.hpp>
 #include <diagnostic_msgs/msg/diagnostic_array.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -13,9 +13,10 @@ namespace clover2_ui::api::diagnostics {
 
 class diagnostic_monitor {
 public:
-    explicit diagnostic_monitor(const std::string& topic = "/diagnostics_agg");
+    explicit diagnostic_monitor(
+        std::shared_ptr<clover2_common::node_context> node_context,
+        const std::string& topic = "/diagnostics_agg");
 
-    std::shared_ptr<clover2_common::node> node() const { return m_node; }
     diagnostic_snapshot snapshot() const;
     const std::string& topic() const noexcept { return m_topic; }
 
@@ -23,7 +24,7 @@ private:
     void on_diagnostics(diagnostic_msgs::msg::DiagnosticArray::SharedPtr msg);
 
     std::string m_topic;
-    std::shared_ptr<clover2_common::node> m_node;
+    std::shared_ptr<clover2_common::node_context> m_node_context;
     rclcpp::Subscription<diagnostic_msgs::msg::DiagnosticArray>::SharedPtr
         m_sub;
 
