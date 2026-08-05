@@ -16,26 +16,6 @@ tracker::tracker(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node(
           "tracker", options,
           clover2_common::NodeInterfacesFactory<TrackerDiagnostics>{}) {
-    auto diagnostics = std::static_pointer_cast<TrackerDiagnostics>(
-        get_node_diagnostics_interface());
-
-    diagnostics->set_diagnostic_callback(
-        TrackerDiagnostics::diagnostic::map,
-        std::bind(&tracker::produce_map_diagnostics, this,
-                  std::placeholders::_1));
-    diagnostics->set_diagnostic_callback(
-        TrackerDiagnostics::diagnostic::markers,
-        std::bind(&tracker::produce_markers_diagnostics, this,
-                  std::placeholders::_1));
-    diagnostics->set_diagnostic_callback(
-        TrackerDiagnostics::diagnostic::pose,
-        std::bind(&tracker::produce_pose_diagnostics, this,
-                  std::placeholders::_1));
-    diagnostics->set_diagnostic_callback(
-        TrackerDiagnostics::diagnostic::pose_frequency,
-        std::bind(&tracker::produce_pose_hz_diagnostics, this,
-                  std::placeholders::_1));
-
     declare_and_watch_parameter<std::string>(
         "frame_id", "base_link",
         [this](const rclcpp::Parameter& p) { m_frame_id = p.as_string(); },
@@ -90,6 +70,12 @@ tracker::CallbackReturn tracker::on_configure(
     try {
         m_map_client = std::make_shared<clover2::map::client>(
             shared_from_this(), m_callback_group);
+
+        auto diagnostics = std::static_pointer_cast<TrackerDiagnostics>(
+            get_node_diagnostics_interface());
+        diagnostics->get<diagnostic::map>().set_map_data(
+            m_map_client->valid(), m_map_client->get_name(),
+            m_map_client->get_count(), m_map_client->get_map_id());
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map client. Exception: %s",
                      e.what());
@@ -146,6 +132,9 @@ tracker::CallbackReturn tracker::on_deactivate(
 
 tracker::CallbackReturn tracker::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
+    auto diagnostics = std::static_pointer_cast<TrackerDiagnostics>(
+        get_node_diagnostics_interface());
+    diagnostics->get<diagnostic::map>().reset();
     m_map_client.reset();
 
     RCLCPP_INFO(get_logger(), "Cleaned up");
@@ -262,20 +251,6 @@ void tracker::markers_callback(
     if (m_poses_debug_pub->get_subscription_count() != 0) {
         m_poses_debug_pub->publish(poses_debug);
     }
-}
-
-void tracker::produce_map_diagnostics(
-    diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    const bool map_valid = m_map_client && m_map_client->valid();
-
-    stat.summary(map_valid ? diagnostic_msgs::msg::DiagnosticStatus::OK
-                           : diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                 map_valid ? "Map valid" : "Map invalid or missing");
-
-    stat.add("Map name", map_valid ? m_map_client->get_name() : "unknown");
-    stat.add("Map frame", map_valid ? m_map_client->get_map_id() : "unknown");
-    stat.add("Marker count",
-             map_valid ? std::to_string(m_map_client->get_count()) : "0");
 }
 
 void tracker::produce_markers_diagnostics(

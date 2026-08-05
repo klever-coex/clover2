@@ -51,8 +51,6 @@ private:
     void publish_tf(const std_msgs::msg::Header& header,
                     Eigen::Isometry3d pose);
 
-    void produce_map_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& stat);
     void produce_markers_diagnostics(
         diagnostic_updater::DiagnosticStatusWrapper& stat);
     void produce_pose_diagnostics(

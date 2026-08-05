@@ -3,32 +3,17 @@
 // clover2
 #include <clover2_common/node_interfaces/node_diagnostics.hpp>
 
-// STL
-#include <functional>
-#include <memory>
-#include <string>
-#include <unordered_map>
+// clover2_aruco
+#include "diagnostics/map_task.hpp"
 
 namespace clover2::aruco {
 
-enum class TrackerDiagnostic {
-    map,
-    markers,
-    pose,
-    pose_frequency,
-};
-
 class TrackerDiagnostics
-    : public clover2_common::node_interfaces::TypedNodeDiagnostics<
-          TrackerDiagnostic> {
+    : public clover2_common::node_interfaces::NodeDiagnostics {
 public:
     RCLCPP_SMART_PTR_ALIASES_ONLY(TrackerDiagnostics)
 
-    using diagnostic = TrackerDiagnostic;
-    using Base = clover2_common::node_interfaces::TypedNodeDiagnostics<
-        diagnostic>;
-    using callback = Base::callback;
-
+    RCLCPP_PUBLIC
     TrackerDiagnostics(
         rclcpp::node_interfaces::NodeBaseInterface::SharedPtr base_interface,
         rclcpp::node_interfaces::NodeClockInterface::SharedPtr clock_interface,
@@ -39,14 +24,12 @@ public:
         rclcpp::node_interfaces::NodeTimersInterface::SharedPtr
             timers_interface,
         rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr
-            topics_interface);
-
-    virtual ~TrackerDiagnostics();
-
-private:
-    RCLCPP_DISABLE_COPY(TrackerDiagnostics)
-
-    static const Base::DiagnosticNamesT diagnostic_names;
+            topics_interface)
+        : NodeDiagnostics(base_interface, clock_interface, logging_interface,
+                          parameters_interface, timers_interface,
+                          topics_interface) {
+        add<diagnostic::map>();
+    }
 };
 
 }  // namespace clover2::aruco

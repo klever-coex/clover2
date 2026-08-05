@@ -7,7 +7,6 @@
 #include <rclcpp/visibility_control.hpp>
 
 // STL
-#include <functional>
 #include <memory>
 #include <string>
 
@@ -17,15 +16,11 @@ class NodeDiagnosticsInterface {
 public:
     RCLCPP_SMART_PTR_ALIASES_ONLY(NodeDiagnosticsInterface)
 
-    using DiagnosticTaskCallbackT =
-        std::function<void(diagnostic_updater::DiagnosticStatusWrapper&)>;
-
     RCLCPP_PUBLIC
     virtual ~NodeDiagnosticsInterface() = default;
 
     RCLCPP_PUBLIC
-    virtual void add(const std::string& name,
-                     DiagnosticTaskCallbackT callback) = 0;
+    virtual void add(diagnostic_updater::DiagnosticTask& task) = 0;
 
     RCLCPP_PUBLIC
     virtual void remove_by_name(const std::string& name) = 0;
