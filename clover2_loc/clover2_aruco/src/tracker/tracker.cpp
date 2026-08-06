@@ -1,4 +1,10 @@
+// clover2
+#include <clover2/aruco/diagnostics/map_task.hpp>
+#include <clover2/aruco/diagnostics/markers_task.hpp>
+#include <clover2/aruco/diagnostics/pose_task.hpp>
 #include <clover2/aruco/tracker.hpp>
+
+// ROS2
 #include <lifecycle_msgs/msg/state.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2/LinearMath/Transform.hpp>
@@ -7,14 +13,19 @@
 #include <tf2_msgs/msg/tf_message.hpp>
 
 // STL
-#include <mutex>
 #include <string>
 
 namespace clover2::aruco {
 
 tracker::tracker(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("tracker", options) {
-    get_node_diagnostics_interface()->add<diagnostics::map_task>();
+    auto diagnostics = get_node_diagnostics_interface();
+    diagnostics->add<diagnostics::map_task>();
+    diagnostics->add<diagnostics::markers_task>();
+    diagnostics->add<diagnostics::pose_task>();
+
+    diagnostics->get<diagnostics::markers_task>().set_clock(get_clock());
+    diagnostics->get<diagnostics::pose_task>().set_clock(get_clock());
 
     declare_and_watch_parameter<std::string>(
         "frame_id", "base_link",
@@ -43,11 +54,6 @@ tracker::tracker(const rclcpp::NodeOptions& options)
         [this](const rclcpp::Parameter& p) { m_z_variation = p.as_double(); },
         "Published variation for x and y");
 
-    declare_and_watch_parameter<double>(
-        "diagnostics.pose_frequency.min_hz", m_min_pose_hz,
-        [this](const rclcpp::Parameter& p) { m_min_pose_hz = p.as_double(); },
-        "Minimum pose processing frequency");
-
     register_on_configure(
         std::bind(&tracker::on_configure, this, std::placeholders::_1));
     register_on_activate(
@@ -71,10 +77,11 @@ tracker::CallbackReturn tracker::on_configure(
         m_map_client = std::make_shared<clover2::map::client>(
             shared_from_this(), m_callback_group);
 
-        auto diagnostics = get_node_diagnostics_interface();
-        diagnostics->get<diagnostics::map_task>().set_map_data(
-            m_map_client->valid(), m_map_client->get_name(),
-            m_map_client->get_count(), m_map_client->get_map_id());
+        get_node_diagnostics_interface()
+            ->get<diagnostics::map_task>()
+            .set_map_data(m_map_client->valid(), m_map_client->get_name(),
+                          m_map_client->get_count(),
+                          m_map_client->get_map_id());
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map client. Exception: %s",
                      e.what());
@@ -133,6 +140,8 @@ tracker::CallbackReturn tracker::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     auto diagnostics = get_node_diagnostics_interface();
     diagnostics->get<diagnostics::map_task>().reset();
+    diagnostics->get<diagnostics::markers_task>().reset();
+    diagnostics->get<diagnostics::pose_task>().reset();
     m_map_client.reset();
 
     RCLCPP_INFO(get_logger(), "Cleaned up");
@@ -146,11 +155,9 @@ tracker::CallbackReturn tracker::on_shutdown(
 
 void tracker::markers_callback(
     const clover2_pose_msgs::msg::MarkerArray::SharedPtr msg) {
-    {
-        std::lock_guard<std::mutex> guard(m_diagnostics_mtx);
-        m_last_markers_stamp = msg->header.stamp;
-        m_last_marker_count = msg->markers.size();
-    }
+    auto diagnostics = get_node_diagnostics_interface();
+    diagnostics->get<diagnostics::markers_task>().update_markers(
+        msg->header.stamp, msg->markers.size());
 
     if (msg->markers.size() == 0) {
         return;
@@ -167,13 +174,7 @@ void tracker::markers_callback(
         RCLCPP_ERROR(get_logger(), "Unable got transform %s to %s: %s",
                      m_frame_id.c_str(), msg->header.frame_id.c_str(),
                      ex.what());
-        std::lock_guard<std::mutex> guard(m_diagnostics_mtx);
-        m_last_tf_ok = false;
         return;
-    }
-    {
-        std::lock_guard<std::mutex> guard(m_diagnostics_mtx);
-        m_last_tf_ok = true;
     }
 
     // tracking position
@@ -238,135 +239,13 @@ void tracker::markers_callback(
     m_pose_cov_pub->publish(estimated_pose_cov);
 
     publish_tf(estimated_pose.header, result_pose.inverse());
-
-    {
-        std::lock_guard<std::mutex> guard(m_diagnostics_mtx);
-        ++m_processed_marker_arrays;
-        m_last_pose_publish_stamp = msg->header.stamp;
-    }
+    diagnostics->get<diagnostics::pose_task>().update_pose(
+        estimated_pose.header.stamp, estimated_pose.pose);
 
     // publish tracker id poses form each marker
     if (m_poses_debug_pub->get_subscription_count() != 0) {
         m_poses_debug_pub->publish(poses_debug);
     }
-}
-
-void tracker::produce_markers_diagnostics(
-    diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    rclcpp::Time last_markers_stamp;
-    size_t last_marker_count;
-
-    {
-        std::lock_guard<std::mutex> guard(m_diagnostics_mtx);
-        last_markers_stamp = m_last_markers_stamp;
-        last_marker_count = m_last_marker_count;
-    }
-
-    if (last_markers_stamp.nanoseconds() == 0) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Waiting for markers");
-    } else if (last_marker_count == 0) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "No visible markers");
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
-                     "Markers received");
-    }
-
-    stat.add("Last marker count", std::to_string(last_marker_count));
-
-    if (last_markers_stamp.nanoseconds() == 0) {
-        stat.add("Last markers age, sec", "never");
-    } else {
-        stat.add("Last markers age, sec",
-                 (now() - last_markers_stamp).seconds());
-    }
-}
-
-void tracker::produce_pose_diagnostics(
-    diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    rclcpp::Time last_markers_stamp;
-    rclcpp::Time last_pose_publish_stamp;
-    size_t processed_marker_arrays;
-    size_t last_marker_count;
-    bool last_tf_ok;
-
-    {
-        std::lock_guard<std::mutex> guard(m_diagnostics_mtx);
-        last_markers_stamp = m_last_markers_stamp;
-        last_pose_publish_stamp = m_last_pose_publish_stamp;
-        processed_marker_arrays = m_processed_marker_arrays;
-        last_marker_count = m_last_marker_count;
-        last_tf_ok = m_last_tf_ok;
-    }
-
-    if (last_markers_stamp.nanoseconds() == 0) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Waiting for markers");
-    } else if (last_marker_count == 0) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "No visible markers");
-    } else if (!last_tf_ok) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "Required TF transform failed");
-    } else if (processed_marker_arrays == 0) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Waiting for pose output");
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "Running");
-    }
-
-    stat.add("Camera/base TF ok", last_tf_ok ? "true" : "false");
-
-    if (last_pose_publish_stamp.nanoseconds() == 0) {
-        stat.add("Last pose publish age, sec", "never");
-    } else {
-        stat.add("Last pose publish age, sec",
-                 (now() - last_pose_publish_stamp).seconds());
-    }
-}
-
-void tracker::produce_pose_hz_diagnostics(
-    diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    std::lock_guard<std::mutex> guard(m_diagnostics_mtx);
-
-    const auto current_time = now();
-
-    if (m_last_pose_hz_stamp.nanoseconds() == 0) {
-        m_last_pose_hz_stamp = current_time;
-        m_last_pose_processed_marker_arrays = m_processed_marker_arrays;
-
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Waiting for pose processing samples");
-        stat.add("Actual frequency, Hz", m_pose_hz);
-        stat.add("Minimum frequency, Hz", m_min_pose_hz);
-        return;
-    }
-
-    const auto dt = (current_time - m_last_pose_hz_stamp).seconds();
-    const auto pose_delta =
-        m_processed_marker_arrays - m_last_pose_processed_marker_arrays;
-
-    if (dt > 0.0) {
-        m_pose_hz = static_cast<double>(pose_delta) / dt;
-    }
-
-    m_last_pose_hz_stamp = current_time;
-    m_last_pose_processed_marker_arrays = m_processed_marker_arrays;
-
-    if (pose_delta == 0) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "Pose processing stopped");
-    } else if (m_pose_hz >= m_min_pose_hz) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
-                     "Pose processing frequency OK");
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Pose processing is slow");
-    }
-
-    stat.add("Actual frequency, Hz", m_pose_hz);
-    stat.add("Minimum frequency, Hz", m_min_pose_hz);
 }
 
 void tracker::publish_tf(const std_msgs::msg::Header& header,

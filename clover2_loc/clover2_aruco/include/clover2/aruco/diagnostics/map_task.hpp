@@ -11,7 +11,7 @@ namespace clover2::aruco::diagnostics {
 class map_task : public diagnostic_updater::DiagnosticTask {
 public:
     map_task()
-        : diagnostic_updater::DiagnosticTask("map") {}
+        : diagnostic_updater::DiagnosticTask("Map") {}
 
     void set_map_data(bool valid, const std::string& name, size_t count,
                       const std::string& frame);

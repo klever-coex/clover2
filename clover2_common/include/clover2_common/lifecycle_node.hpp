@@ -52,9 +52,6 @@ public:
     get_node_parameters_watcher_interface();
 
 protected:
-    void produce_lifecycle_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& status);
-
     rclcpp::TimerBase::SharedPtr m_init_timer;
 
 private:

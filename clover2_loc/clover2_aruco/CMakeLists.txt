@@ -45,6 +45,8 @@ clover2_add_component_library(
   SOURCES
     src/tracker/tracker.cpp
     src/tracker/diagnostics/map_task.cpp
+    src/tracker/diagnostics/markers_task.cpp
+    src/tracker/diagnostics/pose_task.cpp
   DEFINES CLOVER2_ARUCO_TRACKER_NODE_BUILDING_LIBRARY
   DEPENDENCIES ${dependencies}
   COMPONENT_CLASS "clover2::aruco::tracker"
