@@ -13,9 +13,9 @@
 namespace clover2::aruco {
 
 tracker::tracker(const rclcpp::NodeOptions& options)
-    : clover2_common::lifecycle_node(
-          "tracker", options,
-          clover2_common::NodeInterfacesFactory<TrackerDiagnostics>{}) {
+    : clover2_common::lifecycle_node("tracker", options) {
+    get_node_diagnostics_interface()->add<diagnostics::map_task>();
+
     declare_and_watch_parameter<std::string>(
         "frame_id", "base_link",
         [this](const rclcpp::Parameter& p) { m_frame_id = p.as_string(); },
@@ -71,9 +71,8 @@ tracker::CallbackReturn tracker::on_configure(
         m_map_client = std::make_shared<clover2::map::client>(
             shared_from_this(), m_callback_group);
 
-        auto diagnostics = std::static_pointer_cast<TrackerDiagnostics>(
-            get_node_diagnostics_interface());
-        diagnostics->get<diagnostic::map>().set_map_data(
+        auto diagnostics = get_node_diagnostics_interface();
+        diagnostics->get<diagnostics::map_task>().set_map_data(
             m_map_client->valid(), m_map_client->get_name(),
             m_map_client->get_count(), m_map_client->get_map_id());
     } catch (const std::exception& e) {
@@ -132,9 +131,8 @@ tracker::CallbackReturn tracker::on_deactivate(
 
 tracker::CallbackReturn tracker::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
-    auto diagnostics = std::static_pointer_cast<TrackerDiagnostics>(
-        get_node_diagnostics_interface());
-    diagnostics->get<diagnostic::map>().reset();
+    auto diagnostics = get_node_diagnostics_interface();
+    diagnostics->get<diagnostics::map_task>().reset();
     m_map_client.reset();
 
     RCLCPP_INFO(get_logger(), "Cleaned up");

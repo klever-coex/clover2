@@ -1,5 +1,8 @@
 #include <clover2_common/node_interfaces/node_diagnostics.hpp>
 
+// STL
+#include <stdexcept>
+
 namespace clover2_common::node_interfaces {
 
 NodeDiagnostics::NodeDiagnostics(
@@ -20,6 +23,35 @@ NodeDiagnostics::~NodeDiagnostics() = default;
 
 void NodeDiagnostics::add(diagnostic_updater::DiagnosticTask& task) {
     m_updater->add(task);
+}
+
+void NodeDiagnostics::add_by_type(
+    std::type_index type,
+    std::unique_ptr<diagnostic_updater::DiagnosticTask> task) {
+    if (!task) {
+        throw std::invalid_argument("Diagnostic task is null");
+    }
+
+    auto& task_ref = *task;
+
+    const auto [_, inserted] =
+        m_diagnostic_tasks.emplace(type, std::move(task));
+
+    if (!inserted) {
+        throw std::runtime_error("Diagnostic task is already registered");
+    }
+
+    add(task_ref);
+}
+
+diagnostic_updater::DiagnosticTask& NodeDiagnostics::get_by_type(
+    std::type_index type) {
+    const auto it = m_diagnostic_tasks.find(type);
+    if (it == m_diagnostic_tasks.end()) {
+        throw std::out_of_range("Diagnostic task is not registered");
+    }
+
+    return *it->second;
 }
 
 void NodeDiagnostics::remove_by_name(const std::string& name) {

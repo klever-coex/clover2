@@ -16,12 +16,9 @@
 
 // STL
 #include <memory>
-#include <stdexcept>
 #include <string>
-#include <type_traits>
 #include <typeindex>
 #include <unordered_map>
-#include <utility>
 
 namespace clover2_common::node_interfaces {
 
@@ -48,20 +45,6 @@ public:
     RCLCPP_PUBLIC
     void add(diagnostic_updater::DiagnosticTask& task) override;
 
-    template <typename T>
-    T& get() {
-        static_assert(
-            std::is_base_of_v<diagnostic_updater::DiagnosticTask, T>,
-            "T must inherit from diagnostic_updater::DiagnosticTask");
-
-        const auto it = m_diagnostic_tasks.find(std::type_index(typeid(T)));
-        if (it == m_diagnostic_tasks.end()) {
-            throw std::out_of_range("Diagnostic task is not registered");
-        }
-
-        return dynamic_cast<T&>(*it->second);
-    }
-
     RCLCPP_PUBLIC
     void remove_by_name(const std::string& name) override;
 
@@ -69,33 +52,23 @@ public:
     void force_update() override;
 
 protected:
-    template <typename T>
-    void add() {
-        static_assert(
-            std::is_base_of_v<diagnostic_updater::DiagnosticTask, T>,
-            "T must inherit from diagnostic_updater::DiagnosticTask");
+    RCLCPP_PUBLIC
+    void add_by_type(
+        std::type_index type,
+        std::unique_ptr<diagnostic_updater::DiagnosticTask> task) override;
 
-        auto task = std::make_unique<T>();
-        auto& task_ref = *task;
-
-        const auto [_, inserted] = m_diagnostic_tasks.emplace(
-            std::type_index(typeid(T)), std::move(task));
-
-        if (!inserted) {
-            throw std::runtime_error("Diagnostic task is already registered");
-        }
-
-        add(task_ref);
-    }
+    RCLCPP_PUBLIC
+    diagnostic_updater::DiagnosticTask& get_by_type(
+        std::type_index type) override;
 
 private:
     RCLCPP_DISABLE_COPY(NodeDiagnostics)
 
     std::shared_ptr<diagnostic_updater::Updater> m_updater;
 
-    std::unordered_map<
-        std::type_index,
-        std::unique_ptr<diagnostic_updater::DiagnosticTask>> m_diagnostic_tasks;
+    std::unordered_map<std::type_index,
+                       std::unique_ptr<diagnostic_updater::DiagnosticTask>>
+        m_diagnostic_tasks;
 };
 
 }  // namespace clover2_common::node_interfaces

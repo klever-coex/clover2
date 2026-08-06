@@ -9,6 +9,8 @@
 // STL
 #include <memory>
 #include <string>
+#include <type_traits>
+#include <typeindex>
 
 namespace clover2_common::node_interfaces {
 
@@ -22,11 +24,37 @@ public:
     RCLCPP_PUBLIC
     virtual void add(diagnostic_updater::DiagnosticTask& task) = 0;
 
+    template <typename T>
+    void add() {
+        static_assert(std::is_base_of_v<diagnostic_updater::DiagnosticTask, T>,
+                      "T must inherit from diagnostic_updater::DiagnosticTask");
+
+        add_by_type(std::type_index(typeid(T)), std::make_unique<T>());
+    }
+
+    template <typename T>
+    T& get() {
+        static_assert(std::is_base_of_v<diagnostic_updater::DiagnosticTask, T>,
+                      "T must inherit from diagnostic_updater::DiagnosticTask");
+
+        return dynamic_cast<T&>(get_by_type(std::type_index(typeid(T))));
+    }
+
     RCLCPP_PUBLIC
     virtual void remove_by_name(const std::string& name) = 0;
 
     RCLCPP_PUBLIC
     virtual void force_update() = 0;
+
+protected:
+    RCLCPP_PUBLIC
+    virtual void add_by_type(
+        std::type_index type,
+        std::unique_ptr<diagnostic_updater::DiagnosticTask> task) = 0;
+
+    RCLCPP_PUBLIC
+    virtual diagnostic_updater::DiagnosticTask& get_by_type(
+        std::type_index type) = 0;
 };
 
 }  // namespace clover2_common::node_interfaces

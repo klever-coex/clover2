@@ -1,5 +1,7 @@
 // clover2
 #include <clover2_common/lifecycle_node.hpp>
+#include <clover2_common/node_interfaces/node_diagnostics.hpp>
+#include <clover2_common/node_interfaces/node_parameters_watcher.hpp>
 
 // msgs
 #include <lifecycle_msgs/msg/state.hpp>
@@ -11,7 +13,16 @@ namespace clover2_common {
 
 lifecycle_node::lifecycle_node(const std::string& node_name,
                                const rclcpp::NodeOptions& options)
-    : lifecycle_node(node_name, options, NodeInterfacesFactory<>{}) {}
+    : rclcpp_lifecycle::LifecycleNode(node_name, options)
+    , m_diagnostics(std::make_shared<node_interfaces::NodeDiagnostics>(
+          get_node_base_interface(), get_node_clock_interface(),
+          get_node_logging_interface(), get_node_parameters_interface(),
+          get_node_timers_interface(), get_node_topics_interface()))
+    , m_parameters_watcher(
+          std::make_shared<node_interfaces::NodeParametersWatcher>(
+              get_node_parameters_interface())) {
+    init_lifecycle_node();
+}
 
 void lifecycle_node::init_lifecycle_node() {
     m_diagnostics->add("Lifecycle State",

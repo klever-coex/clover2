@@ -8,7 +8,7 @@
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
 // Clover2 includes
-#include <clover2/aruco/tracker_diagnostics.hpp>
+#include <clover2/aruco/diagnostics/map_task.hpp>
 #include <clover2/map/client.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 

@@ -6,11 +6,11 @@
 // STL
 #include <string>
 
-namespace clover2::aruco::diagnostic {
+namespace clover2::aruco::diagnostics {
 
-class map : public diagnostic_updater::DiagnosticTask {
+class map_task : public diagnostic_updater::DiagnosticTask {
 public:
-    map()
+    map_task()
         : diagnostic_updater::DiagnosticTask("map") {}
 
     void set_map_data(bool valid, const std::string& name, size_t count,
@@ -21,10 +21,10 @@ public:
 private:
     void run(diagnostic_updater::DiagnosticStatusWrapper& status) override;
 
-    bool map_valid{false};
-    std::string map_name;
-    size_t map_count{0};
-    std::string map_frame;
+    bool m_map_valid{false};
+    std::string m_map_name;
+    size_t m_map_count{0};
+    std::string m_map_frame;
 };
 
-}  // namespace clover2::aruco::diagnostic
+}  // namespace clover2::aruco::diagnostics
