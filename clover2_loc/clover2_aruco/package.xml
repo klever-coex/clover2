@@ -15,6 +15,7 @@
   <depend>clover2_common</depend>
   <depend>clover2_map</depend>
   <depend>clover2_pose_msgs</depend>
+  <depend>diagnostic_msgs</depend>
   <depend>diagnostic_updater</depend>
   <depend>geometry_msgs</depend>
   <depend>rclcpp_components</depend>
@@ -28,7 +29,6 @@
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
   <test_depend>ament_cmake_gtest</test_depend>
-  <test_depend>diagnostic_msgs</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

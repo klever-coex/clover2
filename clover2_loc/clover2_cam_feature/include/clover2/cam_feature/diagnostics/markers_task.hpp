@@ -8,7 +8,7 @@
 // STL
 #include <memory>
 
-namespace clover2::aruco::diagnostics {
+namespace clover2::cam_feature::diagnostics {
 
 class markers_task : public diagnostic_updater::DiagnosticTask {
 public:
@@ -27,4 +27,4 @@ private:
     size_t m_last_marker_count{0};
 };
 
-}  // namespace clover2::aruco::diagnostics
+}  // namespace clover2::cam_feature::diagnostics

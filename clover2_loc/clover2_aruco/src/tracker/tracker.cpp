@@ -1,8 +1,7 @@
 // clover2
-#include <clover2/aruco/diagnostics/map_task.hpp>
-#include <clover2/aruco/diagnostics/markers_task.hpp>
 #include <clover2/aruco/diagnostics/pose_task.hpp>
 #include <clover2/aruco/tracker.hpp>
+#include <clover2/map/diagnostics/map_client_task.hpp>
 
 // ROS2
 #include <lifecycle_msgs/msg/state.hpp>
@@ -20,11 +19,9 @@ namespace clover2::aruco {
 tracker::tracker(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("tracker", options) {
     auto diagnostics = get_node_diagnostics_interface();
-    diagnostics->add<diagnostics::map_task>();
-    diagnostics->add<diagnostics::markers_task>();
+    diagnostics->add<clover2::map::diagnostics::map_client_task>();
     diagnostics->add<diagnostics::pose_task>();
 
-    diagnostics->get<diagnostics::markers_task>().set_clock(get_clock());
     diagnostics->get<diagnostics::pose_task>().set_clock(get_clock());
 
     declare_and_watch_parameter<std::string>(
@@ -78,10 +75,8 @@ tracker::CallbackReturn tracker::on_configure(
             shared_from_this(), m_callback_group);
 
         get_node_diagnostics_interface()
-            ->get<diagnostics::map_task>()
-            .set_map_data(m_map_client->valid(), m_map_client->get_name(),
-                          m_map_client->get_count(),
-                          m_map_client->get_map_id());
+            ->get<clover2::map::diagnostics::map_client_task>()
+            .set_client(m_map_client);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map client. Exception: %s",
                      e.what());
@@ -139,8 +134,7 @@ tracker::CallbackReturn tracker::on_deactivate(
 tracker::CallbackReturn tracker::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     auto diagnostics = get_node_diagnostics_interface();
-    diagnostics->get<diagnostics::map_task>().reset();
-    diagnostics->get<diagnostics::markers_task>().reset();
+    diagnostics->get<clover2::map::diagnostics::map_client_task>().reset();
     diagnostics->get<diagnostics::pose_task>().reset();
     m_map_client.reset();
 
@@ -156,8 +150,6 @@ tracker::CallbackReturn tracker::on_shutdown(
 void tracker::markers_callback(
     const clover2_pose_msgs::msg::MarkerArray::SharedPtr msg) {
     auto diagnostics = get_node_diagnostics_interface();
-    diagnostics->get<diagnostics::markers_task>().update_markers(
-        msg->header.stamp, msg->markers.size());
 
     if (msg->markers.size() == 0) {
         return;
