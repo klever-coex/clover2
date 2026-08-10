@@ -4,7 +4,6 @@
 #include <clover2_common/lifecycle_node.hpp>
 #include <clover2_fcu_bridge/backend/base_backend.hpp>
 #include <clover2_fcu_bridge/offboard.hpp>
-#include <clover2_fcu_bridge/server_diagnostics.hpp>
 #include <clover2_nav_msgs/action/navigate_async.hpp>
 #include <clover2_nav_msgs/msg/state.hpp>
 #include <clover2_nav_msgs/srv/arm_disarm.hpp>
@@ -97,25 +96,9 @@ private:
     /// @brief Stops navigation and lands the vehicle when the action is lost.
     void handle_navigate_bond_broken(const std::string& bond_id);
 
-    void produce_fcu_state_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& stat);
-    void produce_power_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& stat);
-    void produce_imu_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& stat);
-    void produce_barometer_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& stat);
-    void produce_interfaces_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& stat);
-    void produce_navigation_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& stat);
-
     double m_speed_limit{1.0};
     double m_tolerance{0.15};
     double m_slowdown{0.5};
-    double m_sensor_stale_timeout_sec{1.0};
-    double m_battery_warn_percentage{0.20};
-    double m_battery_error_percentage{0.10};
 
     std::string m_backend_name;
 
