@@ -24,12 +24,13 @@ void backend_task::run(diagnostic_updater::DiagnosticStatusWrapper& stat) {
         return;
     }
 
-    const auto state = backend->get_fcu_state_snapshot();
+    const auto state = backend->get_fcu_state();
 
-    if (!state.received) {
+    if (!state.value) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
                      "FCU state is not received");
-    } else if (!state.connected) {
+        return;
+    } else if (!state.value->connected) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
                      "FCU is not connected");
     } else {
@@ -37,10 +38,9 @@ void backend_task::run(diagnostic_updater::DiagnosticStatusWrapper& stat) {
                      "FCU connected");
     }
 
-    stat.add("Connected", state.connected ? "true" : "false");
-    stat.add("State received", state.received ? "true" : "false");
-    stat.add("Armed", state.armed ? "true" : "false");
-    stat.add("Mode", state.mode);
+    stat.add("Connected", state.value->connected ? "true" : "false");
+    stat.add("Armed", state.value->armed ? "true" : "false");
+    stat.add("Mode", state.value->flight_mode.to_str());
 }
 
 }  // namespace clover2_fcu_bridge::diagnostics

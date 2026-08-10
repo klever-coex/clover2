@@ -99,6 +99,9 @@ private:
     double m_speed_limit{1.0};
     double m_tolerance{0.15};
     double m_slowdown{0.5};
+    double m_battery_warn_percentage{0.20};
+    double m_battery_error_percentage{0.10};
+    double m_sensor_stale_timeout_sec{1.0};
 
     std::string m_backend_name;
 
