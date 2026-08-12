@@ -23,10 +23,6 @@ optical_flow::optical_flow(const rclcpp::NodeOptions& options)
     , m_local_frame_id("map")
     , m_prev_stamp(rclcpp::Time(0))
     , m_last_vpe_time(rclcpp::Time(0)) {
-    auto diagnostic_interface = get_node_diagnostics_interface();
-    diagnostic_interface->add<diagnostics::flow_task>();
-    diagnostic_interface->get<diagnostics::flow_task>().set_clock(get_clock());
-
     // Declare parameters
     declare_and_watch_parameter<int>(
         "roi", 256,
@@ -82,6 +78,10 @@ optical_flow::CallbackReturn optical_flow::on_configure(
 
 optical_flow::CallbackReturn optical_flow::on_activate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
+    auto diagnostics = get_node_diagnostics_interface();
+    diagnostics->add<diagnostics::flow_task>();
+    diagnostics->get<diagnostics::flow_task>().set_clock(get_clock());
+
     // Create publishers
     m_flow_pub = this->create_publisher<mavros_msgs::msg::OpticalFlowRad>(
         "mavros/px4flow/raw/send", rclcpp::SystemDefaultsQoS());
@@ -111,13 +111,13 @@ optical_flow::CallbackReturn optical_flow::on_deactivate(
     m_camera_info_sub.reset();
     m_image_sub.reset();
 
+    get_node_diagnostics_interface()->remove<diagnostics::flow_task>();
+
     return CallbackReturn::SUCCESS;
 }
 
 optical_flow::CallbackReturn optical_flow::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
-    get_node_diagnostics_interface()->get<diagnostics::flow_task>().reset();
-
     // Cleanup TF
     m_tf_buffer.reset();
     m_tf_listener.reset();

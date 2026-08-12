@@ -53,12 +53,6 @@ namespace clover2_fcu_bridge {
 server::server(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("fcu_bridge", options)
     , m_backend_name("mavros") {
-    auto diagnostic_interface = get_node_diagnostics_interface();
-    diagnostic_interface->add<diagnostics::backend_task>();
-    diagnostic_interface->add<diagnostics::power_task>();
-    diagnostic_interface->add<diagnostics::imu_task>();
-    diagnostic_interface->add<diagnostics::barometer_task>();
-
     m_service_callback_group =
         create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
@@ -118,10 +112,12 @@ server::server(const rclcpp::NodeOptions& options)
                     "Battery warning percentage should be in (error, 1]");
             }
             m_battery_warn_percentage = value;
-            get_node_diagnostics_interface()
-                ->get<diagnostics::power_task>()
-                .set_thresholds(m_battery_warn_percentage,
-                                m_battery_error_percentage);
+            if (m_backend) {
+                get_node_diagnostics_interface()
+                    ->get<diagnostics::power_task>()
+                    .set_thresholds(m_battery_warn_percentage,
+                                    m_battery_error_percentage);
+            }
         },
         "Battery warning threshold as a fraction");
 
@@ -134,10 +130,12 @@ server::server(const rclcpp::NodeOptions& options)
                     "Battery error percentage should be in [0, warn)");
             }
             m_battery_error_percentage = value;
-            get_node_diagnostics_interface()
-                ->get<diagnostics::power_task>()
-                .set_thresholds(m_battery_warn_percentage,
-                                m_battery_error_percentage);
+            if (m_backend) {
+                get_node_diagnostics_interface()
+                    ->get<diagnostics::power_task>()
+                    .set_thresholds(m_battery_warn_percentage,
+                                    m_battery_error_percentage);
+            }
         },
         "Battery error threshold as a fraction");
 
@@ -150,12 +148,14 @@ server::server(const rclcpp::NodeOptions& options)
                     "Sensor stale timeout should be positive");
             }
             m_sensor_stale_timeout_sec = value;
-            const auto timeout = std::chrono::duration<double>(value);
-            auto diagnostics = get_node_diagnostics_interface();
-            diagnostics->get<diagnostics::imu_task>().set_stale_timeout(
-                timeout);
-            diagnostics->get<diagnostics::barometer_task>().set_stale_timeout(
-                timeout);
+            if (m_backend) {
+                const auto timeout = std::chrono::duration<double>(value);
+                auto diagnostics = get_node_diagnostics_interface();
+                diagnostics->get<diagnostics::imu_task>().set_stale_timeout(
+                    timeout);
+                diagnostics->get<diagnostics::barometer_task>()
+                    .set_stale_timeout(timeout);
+            }
         },
         "Sensor stream stale timeout in seconds");
 
@@ -176,10 +176,14 @@ server::CallbackReturn server::on_configure(
     try {
         clover2_fcu_bridge::backend::context ctx(*this);
         m_backend = backend::fabric::instance().create(m_backend_name, ctx);
-        get_node_diagnostics_interface()
-            ->get<diagnostics::backend_task>()
-            .set_backend(m_backend);
+
         auto diagnostics = get_node_diagnostics_interface();
+        diagnostics->add<diagnostics::backend_task>();
+        diagnostics->add<diagnostics::power_task>();
+        diagnostics->add<diagnostics::imu_task>();
+        diagnostics->add<diagnostics::barometer_task>();
+
+        diagnostics->get<diagnostics::backend_task>().set_backend(m_backend);
         diagnostics->get<diagnostics::power_task>().set_backend(m_backend);
         diagnostics->get<diagnostics::imu_task>().set_backend(m_backend);
         diagnostics->get<diagnostics::barometer_task>().set_backend(m_backend);
@@ -198,6 +202,14 @@ server::CallbackReturn server::on_configure(
         m_offboard->set_tolerance(m_tolerance);
         m_offboard->set_slowdown_distance(m_slowdown);
     } catch (const std::runtime_error& e) {
+        auto diagnostics = get_node_diagnostics_interface();
+        diagnostics->remove<diagnostics::backend_task>();
+        diagnostics->remove<diagnostics::power_task>();
+        diagnostics->remove<diagnostics::imu_task>();
+        diagnostics->remove<diagnostics::barometer_task>();
+        m_offboard.reset();
+        m_backend.reset();
+
         RCLCPP_ERROR(get_logger(), "Failed to create backend '%s': %s",
                      m_backend_name.c_str(), e.what());
         return CallbackReturn::FAILURE;
@@ -275,13 +287,13 @@ server::CallbackReturn server::on_cleanup(
     m_active_navigate_goal.reset();
     m_navigate_completion_started_at.reset();
 
+    auto diagnostics = get_node_diagnostics_interface();
+    diagnostics->remove<diagnostics::backend_task>();
+    diagnostics->remove<diagnostics::power_task>();
+    diagnostics->remove<diagnostics::imu_task>();
+    diagnostics->remove<diagnostics::barometer_task>();
     m_offboard.reset();
     m_backend.reset();
-    auto diagnostics = get_node_diagnostics_interface();
-    diagnostics->get<diagnostics::backend_task>().reset();
-    diagnostics->get<diagnostics::power_task>().reset();
-    diagnostics->get<diagnostics::imu_task>().reset();
-    diagnostics->get<diagnostics::barometer_task>().reset();
 
     RCLCPP_INFO(get_logger(), "cleanup");
     return CallbackReturn::SUCCESS;

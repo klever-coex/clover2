@@ -18,12 +18,6 @@ namespace clover2::aruco {
 
 tracker::tracker(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("tracker", options) {
-    auto diagnostics = get_node_diagnostics_interface();
-    diagnostics->add<clover2::map::diagnostics::map_client_task>();
-    diagnostics->add<diagnostics::pose_task>();
-
-    diagnostics->get<diagnostics::pose_task>().set_clock(get_clock());
-
     declare_and_watch_parameter<std::string>(
         "frame_id", "base_link",
         [this](const rclcpp::Parameter& p) { m_frame_id = p.as_string(); },
@@ -74,8 +68,9 @@ tracker::CallbackReturn tracker::on_configure(
         m_map_client = std::make_shared<clover2::map::client>(
             shared_from_this(), m_callback_group);
 
-        get_node_diagnostics_interface()
-            ->get<clover2::map::diagnostics::map_client_task>()
+        auto diagnostic_interface = get_node_diagnostics_interface();
+        diagnostic_interface->add<clover2::map::diagnostics::map_client_task>();
+        diagnostic_interface->get<clover2::map::diagnostics::map_client_task>()
             .set_client(m_map_client);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map client. Exception: %s",
@@ -90,6 +85,10 @@ tracker::CallbackReturn tracker::on_configure(
 
 tracker::CallbackReturn tracker::on_activate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
+    auto diagnostic_interface = get_node_diagnostics_interface();
+    diagnostic_interface->add<diagnostics::pose_task>();
+    diagnostic_interface->get<diagnostics::pose_task>().set_clock(get_clock());
+
     m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
     m_tf_buffer = std::make_shared<tf2_ros::Buffer>(this->get_clock());
     m_tf_listener = std::make_shared<tf2_ros::TransformListener>(*m_tf_buffer);
@@ -125,6 +124,8 @@ tracker::CallbackReturn tracker::on_deactivate(
 
     m_tf_listener.reset();
     m_tf_buffer.reset();
+
+    get_node_diagnostics_interface()->remove<diagnostics::pose_task>();
     m_tf_broadcaster.reset();
 
     RCLCPP_INFO(get_logger(), "Deactivated");
@@ -133,9 +134,8 @@ tracker::CallbackReturn tracker::on_deactivate(
 
 tracker::CallbackReturn tracker::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
-    auto diagnostics = get_node_diagnostics_interface();
-    diagnostics->get<clover2::map::diagnostics::map_client_task>().clear_client();
-    diagnostics->get<diagnostics::pose_task>().reset();
+    get_node_diagnostics_interface()
+        ->remove<clover2::map::diagnostics::map_client_task>();
     m_map_client.reset();
 
     RCLCPP_INFO(get_logger(), "Cleaned up");
@@ -149,7 +149,7 @@ tracker::CallbackReturn tracker::on_shutdown(
 
 void tracker::markers_callback(
     const clover2_pose_msgs::msg::MarkerArray::SharedPtr msg) {
-    auto diagnostics = get_node_diagnostics_interface();
+    auto diagnostic_interface = get_node_diagnostics_interface();
 
     if (msg->markers.size() == 0) {
         return;
@@ -231,7 +231,7 @@ void tracker::markers_callback(
     m_pose_cov_pub->publish(estimated_pose_cov);
 
     publish_tf(estimated_pose.header, result_pose.inverse());
-    diagnostics->get<diagnostics::pose_task>().update_pose(
+    diagnostic_interface->get<diagnostics::pose_task>().update_pose(
         estimated_pose.header.stamp, estimated_pose.pose);
 
     // publish tracker id poses form each marker

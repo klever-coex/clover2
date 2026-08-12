@@ -35,12 +35,6 @@ namespace clover2::cam_feature {
 
 cam_feature::cam_feature(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("cam_feature", options) {
-    auto diagnostics = get_node_diagnostics_interface();
-    diagnostics->add<clover2::map::diagnostics::map_client_task>();
-    diagnostics->add<diagnostics::markers_task>();
-
-    diagnostics->get<diagnostics::markers_task>().set_clock(get_clock());
-
     declare_parameter("feature_plugins", default_plugin_ids);
 
     for (size_t i = 0; i < default_plugin_ids.size(); i++) {
@@ -69,8 +63,9 @@ cam_feature::CallbackReturn cam_feature::on_configure(
     try {
         m_map_client = std::make_shared<clover2::map::client>(this);
 
-        get_node_diagnostics_interface()
-            ->get<clover2::map::diagnostics::map_client_task>()
+        auto diagnostics = get_node_diagnostics_interface();
+        diagnostics->add<clover2::map::diagnostics::map_client_task>();
+        diagnostics->get<clover2::map::diagnostics::map_client_task>()
             .set_client(m_map_client);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map: %s", e.what());
@@ -121,6 +116,10 @@ cam_feature::CallbackReturn cam_feature::on_configure(
 
 cam_feature::CallbackReturn cam_feature::on_activate(
     const rclcpp_lifecycle::State& state) {
+    auto diagnostics = get_node_diagnostics_interface();
+    diagnostics->add<diagnostics::markers_task>();
+    diagnostics->get<diagnostics::markers_task>().set_clock(get_clock());
+
     for (const auto& [name, id] : m_plugins) {
         try {
             id->activate();
@@ -170,6 +169,8 @@ cam_feature::CallbackReturn cam_feature::on_deactivate(
         it->second->deactivate();
     }
 
+    get_node_diagnostics_interface()->remove<diagnostics::markers_task>();
+
     RCLCPP_INFO(get_logger(), "Deactivate.");
     return CallbackReturn::SUCCESS;
 }
@@ -182,9 +183,7 @@ cam_feature::CallbackReturn cam_feature::on_cleanup(
     m_plugins.clear();
 
     get_node_diagnostics_interface()
-        ->get<clover2::map::diagnostics::map_client_task>()
-        .clear_client();
-    get_node_diagnostics_interface()->get<diagnostics::markers_task>().reset();
+        ->remove<clover2::map::diagnostics::map_client_task>();
     m_map_client.reset();
 
     RCLCPP_INFO(get_logger(), "Cleaned up.");
