@@ -18,7 +18,7 @@
 
 После настройки переключайте тумблер на пульте управления и проверяйте в QGroundControl, что активируется правильный режим (он подсвечивается).
 
-```{figure} @assets@/common/setup/qgc-modes.webp
+```{figure} ../../assets/common/setup/qgc-modes.webp
 :alt: Настройка полётных режимов в QGroundControl
 :width: 90%
 :align: center

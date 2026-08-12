@@ -1,0 +1,16 @@
+<launch>
+    <arg name="use_sim_time" default="false" />
+    <arg name="ns" default="" />
+
+    <arg name="display" default="false" />
+
+    <arg name="params_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
+
+    <node pkg="clover2_display" exec="driver" name="display" namespace="$(var ns)"
+        if="$(var display)">
+        <param name="use_sim_time" value="$(var use_sim_time)" />
+
+        <param from="$(var params_file)" />
+    </node>
+
+</launch>
