@@ -21,7 +21,6 @@ ament_auto_add_library(${PROJECT_NAME}_tui SHARED DIRECTORY "src/tui")
 ament_auto_add_executable(settings src/commands/settings.cpp)
 ament_auto_add_executable(diagnostics
   src/commands/diagnostics.cpp
-  src/commands/diagnostics_runtime.cpp
 )
 
 install(DIRECTORY config launch

@@ -11,13 +11,13 @@
 
 namespace clover2_ui::api::diagnostics {
 
-class diagnostic_monitor {
+class monitor {
 public:
-    explicit diagnostic_monitor(
+    explicit monitor(
         std::shared_ptr<clover2_common::node_context> node_context,
         const std::string& topic = "/diagnostics_agg");
 
-    diagnostic_snapshot snapshot() const;
+    snapshot get_snapshot() const;
     const std::string& topic() const noexcept { return m_topic; }
 
 private:
@@ -29,7 +29,7 @@ private:
         m_sub;
 
     mutable std::mutex m_mutex;
-    diagnostic_model m_model;
+    model m_model;
     rclcpp::Time m_last_update;
 };
 

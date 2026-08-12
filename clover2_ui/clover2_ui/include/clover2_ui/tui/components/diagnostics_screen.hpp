@@ -15,7 +15,7 @@ namespace clover2_ui::tui::components {
 class diagnostics_screen : public core::screen {
 public:
     explicit diagnostics_screen(
-        std::shared_ptr<api::diagnostics::diagnostic_monitor> monitor,
+        std::shared_ptr<api::diagnostics::monitor> monitor,
         std::shared_ptr<core::navigator> nav);
 
     void on_enter() override;
@@ -26,17 +26,17 @@ public:
 
 private:
     struct visible_item {
-        const api::diagnostics::diagnostic_tree_node* node = nullptr;
+        const api::diagnostics::tree_node* node = nullptr;
         int depth = 0;
         bool has_children = false;
     };
 
     static cpptui::Color level_color(std::uint8_t level);
-    static bool is_group(const api::diagnostics::diagnostic_tree_node& node);
+    static bool is_group(const api::diagnostics::tree_node& node);
 
     void rebuild_view();
     void rebuild_visible_items(
-        const api::diagnostics::diagnostic_tree_node& node, int depth);
+        const api::diagnostics::tree_node& node, int depth);
     void update_list_buttons();
     void update_details();
     bool filter_accepts(std::uint8_t level) const;
@@ -44,8 +44,8 @@ private:
     void move_selection(int delta);
     void toggle_selected();
 
-    std::shared_ptr<api::diagnostics::diagnostic_monitor> m_monitor;
-    api::diagnostics::diagnostic_snapshot m_snapshot;
+    std::shared_ptr<api::diagnostics::monitor> m_monitor;
+    api::diagnostics::snapshot m_snapshot;
 
     std::shared_ptr<cpptui::Label> m_summary_label;
     std::shared_ptr<cpptui::CheckboxList> m_filters;

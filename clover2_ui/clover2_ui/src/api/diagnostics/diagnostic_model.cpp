@@ -22,7 +22,7 @@ std::string level_name(std::uint8_t level) {
     }
 }
 
-std::vector<std::string> diagnostic_model::split_path(const std::string& name) {
+std::vector<std::string> model::split_path(const std::string& name) {
     std::vector<std::string> result;
     std::stringstream ss(name);
     std::string part;
@@ -35,7 +35,7 @@ std::vector<std::string> diagnostic_model::split_path(const std::string& name) {
     return result;
 }
 
-std::uint8_t diagnostic_model::worst(std::uint8_t lhs, std::uint8_t rhs) {
+std::uint8_t model::worst(std::uint8_t lhs, std::uint8_t rhs) {
     auto rank = [](std::uint8_t level) {
         switch (level) {
             case diagnostic_msgs::msg::DiagnosticStatus::ERROR:
@@ -54,16 +54,16 @@ std::uint8_t diagnostic_model::worst(std::uint8_t lhs, std::uint8_t rhs) {
     return rank(lhs) >= rank(rhs) ? lhs : rhs;
 }
 
-void diagnostic_model::update_worst_levels(diagnostic_tree_node& node) {
+void model::update_worst_levels(tree_node& node) {
     for (auto& child : node.children) {
         update_worst_levels(child);
         node.level = worst(node.level, child.level);
     }
 }
 
-void diagnostic_model::update(
+void model::update(
     const diagnostic_msgs::msg::DiagnosticArray& msg) {
-    diagnostic_tree_node root;
+    tree_node root;
     root.name = "Diagnostics";
     root.path = "";
     root.level = diagnostic_msgs::msg::DiagnosticStatus::OK;
@@ -81,10 +81,10 @@ void diagnostic_model::update(
             path += "/" + part;
             auto it = std::find_if(
                 current->children.begin(), current->children.end(),
-                [&](const diagnostic_tree_node& n) { return n.name == part; });
+                [&](const tree_node& n) { return n.name == part; });
 
             if (it == current->children.end()) {
-                diagnostic_tree_node child;
+                tree_node child;
                 child.name = part;
                 child.path = path;
                 child.level = diagnostic_msgs::msg::DiagnosticStatus::OK;
@@ -103,11 +103,11 @@ void diagnostic_model::update(
     }
 
     update_worst_levels(root);
-    m_root = std::make_shared<diagnostic_tree_node>(std::move(root));
+    m_root = std::make_shared<tree_node>(std::move(root));
 }
 
-diagnostic_snapshot diagnostic_model::snapshot() const {
-    diagnostic_snapshot out;
+snapshot model::get_snapshot() const {
+    snapshot out;
     out.root = m_root;
     out.counts = m_counts;
     out.worst_level = m_worst_level;

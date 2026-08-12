@@ -1,4 +1,5 @@
-#include <clover2_ui/commands/diagnostics_runtime.hpp>
+#include <clover2_common/node_runtime.hpp>
+#include <clover2_ui/api/diagnostics/diagnostic_monitor.hpp>
 #include <clover2_ui/tui/components/diagnostics_screen.hpp>
 #include <clover2_ui/tui/core/navigator.hpp>
 #include <cpptui/cpptui.hpp>
@@ -50,11 +51,13 @@ int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
 
     cpptui::App app;
-    commands::diagnostics_runtime runtime(opts.topic);
+    clover2_common::node_runtime runtime("clover2_diagnostics_tui");
+    auto monitor = std::make_shared<api::diagnostics::monitor>(
+        runtime.get_node_context(), opts.topic);
     auto nav =
         std::make_shared<tui::core::navigator>(app, "Clover2 diagnostics");
     auto screen = std::make_shared<tui::components::diagnostics_screen>(
-        runtime.monitor(), nav);
+        monitor, nav);
 
     runtime.start();
     const auto refresh_timer =

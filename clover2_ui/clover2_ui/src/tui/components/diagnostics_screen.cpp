@@ -10,7 +10,7 @@ namespace clover2_ui::tui::components {
 namespace diagnostics_api = clover2_ui::api::diagnostics;
 
 diagnostics_screen::diagnostics_screen(
-    std::shared_ptr<diagnostics_api::diagnostic_monitor> monitor,
+    std::shared_ptr<diagnostics_api::monitor> monitor,
     std::shared_ptr<core::navigator> nav)
     : core::screen("Diagnostics", std::move(nav))
     , m_monitor(std::move(monitor)) {
@@ -82,7 +82,7 @@ std::vector<std::pair<std::string, std::string>> diagnostics_screen::shortcuts()
 
 void diagnostics_screen::refresh_from_monitor() {
     if (!m_monitor) return;
-    m_snapshot = m_monitor->snapshot();
+    m_snapshot = m_monitor->get_snapshot();
     rebuild_view();
 }
 
@@ -101,7 +101,7 @@ cpptui::Color diagnostics_screen::level_color(std::uint8_t level) {
 }
 
 bool diagnostics_screen::is_group(
-    const diagnostics_api::diagnostic_tree_node& node) {
+    const diagnostics_api::tree_node& node) {
     return !node.children.empty();
 }
 
@@ -137,7 +137,7 @@ void diagnostics_screen::rebuild_view() {
 }
 
 void diagnostics_screen::rebuild_visible_items(
-    const diagnostics_api::diagnostic_tree_node& node, int depth) {
+    const diagnostics_api::tree_node& node, int depth) {
     const bool group = is_group(node);
     if (filter_accepts(node.level) || group) {
         m_visible_items.push_back({&node, depth, group});
