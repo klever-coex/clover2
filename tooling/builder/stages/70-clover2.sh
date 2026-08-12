@@ -43,6 +43,8 @@ sudo systemctl enable clover2.service
 sudo systemctl enable clover2-web.service
 sudo systemctl enable clover2-firstboot.service
 
+sudo mkdir -p /var/log/clover2
+
 log_info "Set image version ${CLOVER2_VERSION}"
 echo "CLOVER2_VERSION=${CLOVER2_VERSION}" | sudo tee -a /usr/lib/os-release
 echo "CLOVER2_GIT_HASH=${CLOVER2_GIT_HASH}" | sudo tee -a /usr/lib/os-release

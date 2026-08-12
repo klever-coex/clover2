@@ -2,8 +2,6 @@
 
 source /root/.clover2-env
 
-mkdir -p /var/log/clover2
-
 echo "---> Fix home directory permissions <---"
 chmod +rx /home/pi
 
