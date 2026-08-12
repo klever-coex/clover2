@@ -9,7 +9,7 @@ cd "$CLOVER2_WS_DIR" || exit
 
 log_info "Add clover2 project to bashrc"
 echo "source $CLOVER2_WS_DIR/install/setup.bash" >> ~/.bashrc
-echo ". /etc/clover2/.ros2.env" >> ~/.bashrc
+echo ". /opt/clover2/.ros2.env" >> ~/.bashrc
 cat >> ~/.bashrc <<'EOF'
 clover2-settings() {
     ros2 run clover2_ui settings \
@@ -30,8 +30,8 @@ get_ros_pkg_share() {
 log_info "Install some scripts"
 sudo cp $ASSETS_DIR/clover2_firstboot.sh /root/
 sudo cp $ASSETS_DIR/ros2_launch.sh /opt/clover2/
-cp $ASSETS_DIR/ros2.env /etc/clover2/.ros2.env
-cp $REPO_DIR/tooling/configs/cyclonedds.xml /etc/clover2/cyclonedds.xml
+cp $ASSETS_DIR/ros2.env /opt/clover2/.ros2.env
+cp $REPO_DIR/tooling/configs/cyclonedds.xml /opt/clover2/cyclonedds.xml
 cp $ASSETS_DIR/launcher_config.yaml /opt/clover2/.config.yaml
 ln -s "$(get_ros_pkg_share clover2)/examples" /home/$USER/examples
 cp -r "$(get_ros_pkg_share clover2_map)/map" /opt/clover2/map

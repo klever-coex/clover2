@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-. /etc/clover2/.ros2.env
+. /opt/clover2/.ros2.env
 
 source /opt/ros/jazzy/setup.bash
 
