@@ -16,7 +16,7 @@ void map_client_task::set_client(
     m_client = client;
 }
 
-void map_client_task::reset() { m_client.reset(); }
+void map_client_task::clear_client() { m_client.reset(); }
 
 void map_client_task::run(diagnostic_updater::DiagnosticStatusWrapper& stat) {
     auto client = m_client.lock();

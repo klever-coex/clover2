@@ -54,8 +54,14 @@ diagnostic_updater::DiagnosticTask& NodeDiagnostics::get_by_type(
     return *it->second;
 }
 
-void NodeDiagnostics::remove_by_name(const std::string& name) {
-    m_updater->removeByName(name);
+void NodeDiagnostics::remove_by_type(std::type_index type) {
+    const auto it = m_diagnostic_tasks.find(type);
+    if (it == m_diagnostic_tasks.end()) {
+        return;
+    }
+
+    m_updater->removeByName(it->second->getName());
+    m_diagnostic_tasks.erase(it);
 }
 
 void NodeDiagnostics::force_update() { m_updater->force_update(); }

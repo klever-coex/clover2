@@ -18,7 +18,7 @@ public:
 
     void set_client(const std::shared_ptr<clover2::map::client>& client);
 
-    void reset();
+    void clear_client();
 
 private:
     void run(diagnostic_updater::DiagnosticStatusWrapper& stat) override;

@@ -183,7 +183,7 @@ cam_feature::CallbackReturn cam_feature::on_cleanup(
 
     get_node_diagnostics_interface()
         ->get<clover2::map::diagnostics::map_client_task>()
-        .reset();
+        .clear_client();
     get_node_diagnostics_interface()->get<diagnostics::markers_task>().reset();
     m_map_client.reset();
 

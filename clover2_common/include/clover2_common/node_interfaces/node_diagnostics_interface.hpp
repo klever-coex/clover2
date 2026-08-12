@@ -40,8 +40,13 @@ public:
         return dynamic_cast<T&>(get_by_type(std::type_index(typeid(T))));
     }
 
-    RCLCPP_PUBLIC
-    virtual void remove_by_name(const std::string& name) = 0;
+    template <typename T>
+    void remove() {
+        static_assert(std::is_base_of_v<diagnostic_updater::DiagnosticTask, T>,
+                      "T must inherit from diagnostic_updater::DiagnosticTask");
+
+        remove_by_type(std::type_index(typeid(T)));
+    }
 
     RCLCPP_PUBLIC
     virtual void force_update() = 0;
@@ -55,6 +60,9 @@ protected:
     RCLCPP_PUBLIC
     virtual diagnostic_updater::DiagnosticTask& get_by_type(
         std::type_index type) = 0;
+
+    RCLCPP_PUBLIC
+    virtual void remove_by_type(std::type_index type) = 0;
 };
 
 }  // namespace clover2_common::node_interfaces

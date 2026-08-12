@@ -46,9 +46,6 @@ public:
     void add(diagnostic_updater::DiagnosticTask& task) override;
 
     RCLCPP_PUBLIC
-    void remove_by_name(const std::string& name) override;
-
-    RCLCPP_PUBLIC
     void force_update() override;
 
 protected:
@@ -60,6 +57,9 @@ protected:
     RCLCPP_PUBLIC
     diagnostic_updater::DiagnosticTask& get_by_type(
         std::type_index type) override;
+
+    RCLCPP_PUBLIC
+    void remove_by_type(std::type_index type) override;
 
 private:
     RCLCPP_DISABLE_COPY(NodeDiagnostics)

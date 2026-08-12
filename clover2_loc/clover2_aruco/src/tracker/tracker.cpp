@@ -134,7 +134,7 @@ tracker::CallbackReturn tracker::on_deactivate(
 tracker::CallbackReturn tracker::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     auto diagnostics = get_node_diagnostics_interface();
-    diagnostics->get<clover2::map::diagnostics::map_client_task>().reset();
+    diagnostics->get<clover2::map::diagnostics::map_client_task>().clear_client();
     diagnostics->get<diagnostics::pose_task>().reset();
     m_map_client.reset();
 

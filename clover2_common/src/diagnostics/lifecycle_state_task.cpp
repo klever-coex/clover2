@@ -4,7 +4,7 @@
 
 namespace clover2_common::diagnostics {
 
-void lifecycle_state_task::set_state_getter(state_getter_t getter) {
+void lifecycle_state_task::set_state_getter(state_getter_fn getter) {
     m_state_getter = getter;
 }
 
