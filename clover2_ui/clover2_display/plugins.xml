@@ -1,0 +1,9 @@
+<class_libraries>
+    <library path="display_plugins">
+        <class
+            name="ssd1306_i2c"
+            type="clover2_display::device::ssd1306_i2c"
+            base_class_type="clover2_display::device::base_device"
+        />
+    </library>
+</class_libraries>

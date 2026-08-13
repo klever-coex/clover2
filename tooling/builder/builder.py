@@ -71,12 +71,14 @@ async def qemu_state(args, image: pathlib.Path):
                 await qemu.copy_to(item, pathlib.Path("/opt/clover2/ws/src/clover2"))
 
         logger.info("Install make")
-        await qemu.execute("sudo apt-get update && sudo apt-get install -y make")
+        await qemu.execute("sudo apt-get update && sudo apt-get install -y make python3-pip")
 
         logger.info("Cleanup git project")
         await qemu.execute(
             "cd /opt/clover2/ws/src/clover2 && git reset --hard HEAD && git clean -fdx"
         )
+
+        await qemu.execute("pip3 install --break-system-packages --no-cache-dir -r /opt/clover2/ws/src/clover2/tooling/requirements.txt")
 
         await qemu.copy_to(
             pathlib.Path(os.environ["BUILD_EXPTRAS_DIR"]),

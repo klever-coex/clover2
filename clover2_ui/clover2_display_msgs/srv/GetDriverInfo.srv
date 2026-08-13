@@ -1,0 +1,7 @@
+---
+bool success
+string message
+uint32 width
+uint32 height
+float64 max_fps
+string[] supported_encodings

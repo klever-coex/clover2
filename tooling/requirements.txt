@@ -1,2 +1,4 @@
-semver
+asyncssh>=2.21.1
 lxml
+requests
+semver

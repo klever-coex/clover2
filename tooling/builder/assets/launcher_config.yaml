@@ -16,5 +16,7 @@ localization:
     enable: true
 indication:
   led_strip: true
+display:
+  display: true
 2d_lidar:
   enable: false

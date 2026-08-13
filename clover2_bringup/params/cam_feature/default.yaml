@@ -5,5 +5,5 @@
     aruco:
       plugin: "clover2::cam_feature::plugins::aruco"
       cornerRefinementMethod: 2
-      minMarkerPerimeterRate: 0.075
+      minMarkerPerimeterRate: 0.0375
       adaptiveThreshConstant: 25.0
