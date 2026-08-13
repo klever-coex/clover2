@@ -64,6 +64,13 @@ public:
         m_router->add_ws_route(path, std::move(ws_handler));
     }
 
+    template <typename Handler>
+    void raw_ws(const std::string& path, Handler handler) {
+        auto ws_handler = std::make_unique<transport::raw_ws_handler>(
+            std::move(handler), m_io);
+        m_router->add_ws_route(path, std::move(ws_handler));
+    }
+
     void listen(const std::string& address, uint16_t port) {
         auto const addr = boost::asio::ip::tcp::endpoint(
             boost::asio::ip::make_address(address), port);

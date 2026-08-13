@@ -12,7 +12,7 @@
 
 namespace clover2_http::http::transport {
 
-parsed_target parse_target(const std::string_view target) {
+parsed_target parse_target(const std::string& target) {
     parsed_target pt;
     auto qpos = target.find('?');
     if (qpos != std::string::npos) {
@@ -86,6 +86,7 @@ void http_session::on_read(boost::beast::error_code ec, std::size_t) {
         do_close();
         return;
     }
+
     if (ec) {
         m_logger->warn("Read error: {}", ec.message());
         do_close();
@@ -100,10 +101,10 @@ void http_session::on_read(boost::beast::error_code ec, std::size_t) {
 
 void http_session::handle_request() {
     try {
-        const std::string_view target_str = m_request.target();
+        const std::string target_str = m_request.target();
+        auto pt = parse_target(target_str);
 
         if (boost::beast::websocket::is_upgrade(m_request)) {
-            auto pt = parse_target(target_str);
 
             std::unordered_map<std::string, std::string> path_params;
             auto* ws_handler = m_router.match_ws(pt.path, path_params);
@@ -120,7 +121,6 @@ void http_session::handle_request() {
             return;
         }
 
-        auto pt = parse_target(m_request.target());
         auto ctx = make_context(pt);
 
         m_logger->debug("Handling request: {} {} from {}",
@@ -205,6 +205,22 @@ core::request_context http_session::make_context(const parsed_target& pt) {
     }
 
     ctx.query_params = pt.query_params;
+    return ctx;
+}
+
+core::request_context http_session::make_context(boost::urls::url_view url) {
+    core::request_context ctx;
+    boost::system::error_code ec;
+    ctx.remote_endpoint = m_socket.remote_endpoint(ec);
+
+    for (const auto& f : m_request) {
+        ctx.headers[std::string(f.name_string())] = std::string(f.value());
+    }
+
+    for (auto q : url.params()) {
+        ctx.query_params[q.key] = q.value;
+    }
+
     return ctx;
 }
 

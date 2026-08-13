@@ -3,6 +3,7 @@
 #include <clover2_http/http/core/logger.hpp>
 #include <clover2_http/http/core/request_context.hpp>
 
+#include <boost/url.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio/strand.hpp>
@@ -29,10 +30,9 @@ parsed_target parse_target(const std::string& target);
 
 class http_session : public std::enable_shared_from_this<http_session> {
 public:
-    http_session(
-        boost::asio::ip::tcp::socket socket, routing::router& router,
-        boost::asio::io_context& io,
-        std::shared_ptr<clover2_http::http::core::logger> log);
+    http_session(boost::asio::ip::tcp::socket socket, routing::router& router,
+                 boost::asio::io_context& io,
+                 std::shared_ptr<clover2_http::http::core::logger> log);
     ~http_session();
 
     void start();
@@ -49,6 +49,7 @@ private:
     void on_write(boost::beast::error_code ec, std::size_t bytes, bool close);
     void do_close();
     core::request_context make_context(const parsed_target& pt);
+    core::request_context make_context(boost::urls::url_view url);
 
     boost::asio::ip::tcp::socket m_socket;
 

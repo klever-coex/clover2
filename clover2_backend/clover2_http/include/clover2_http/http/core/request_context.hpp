@@ -1,7 +1,5 @@
 #pragma once
 
-#include <clover2_http/http/core/dynamic_params.hpp>
-
 #include <boost/asio/ip/tcp.hpp>
 
 #include <string>
@@ -14,8 +12,6 @@ struct request_context {
     std::unordered_map<std::string, std::string> headers;
     std::unordered_map<std::string, std::string> path_params;
     std::unordered_map<std::string, std::string> query_params;
-    // dynamic_params path_params;
-    // dynamic_params query_params;
 };
 
 }  // namespace clover2_http::http::core

@@ -25,43 +25,42 @@ std::vector<std::string_view> tokenize_sv(
 }
 
 std::optional<std::string_view> extract_next_token(
-    const std::string_view& path) noexcept {
-    while (!path.empty() && path.front() == '/') {
-        path.remove_prefix(1);
+    std::string_view path) noexcept {
+    size_t begin = 0;
+
+    while (begin < path.size() && path[begin] == '/') {
+        ++begin;
     }
 
-    if (path.empty()) {
+    if (begin == path.size()) {
         return std::nullopt;
     }
 
-    size_t end = path.find('/');
+    const size_t end = path.find('/', begin);
 
-    std::string_view token;
-    if (end == std::string_view::npos) {
-        token = path;
-    } else {
-        token = path.substr(0, end);
-    }
-
-    return token;
+    return path.substr(begin, end - begin);
 }
 
-void remove_first_token(std::string_view& path) noexcept {
-    while (!path.empty() && path.front() == '/') {
-        path.remove_prefix(1);
+std::string_view without_first_token(std::string_view path) noexcept {
+    const auto begin = path.find_first_not_of('/');
+
+    if (begin == std::string_view::npos) {
+        return {};
     }
 
-    if (path.empty()) {
-        return;
-    }
-
-    size_t end = path.find('/');
+    const auto end = path.find('/', begin);
 
     if (end == std::string_view::npos) {
-        path = {};
-    } else {
-        path.remove_prefix(end + 1);
+        return {};
     }
+
+    const auto next = path.find_first_not_of('/', end);
+
+    if (next == std::string_view::npos) {
+        return {};
+    }
+
+    return path.substr(next);
 }
 
 bool is_token_valid(const std::string_view token) noexcept {

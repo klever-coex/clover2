@@ -88,9 +88,9 @@ public:
         const auto tokens = tokenize_sv(route);
 
         match_result result;
-        std::string_view route_copy = route;
+        std::string route_copy = route;
 
-        while(auto token = extract_next_token(route_copy)) {
+        while (auto token = extract_next_token(route_copy)) {
             if (!is_token_valid(*token)) {
                 throw clover2_http::http::core::routing_error(
                     "Invalid path token {}.", *token);
@@ -109,7 +109,7 @@ public:
             }
 
             if (cur->catch_all) {
-                result.params[cur->catch_all_name] = *token + "/" + route_copy;
+                result.params[cur->catch_all_name] = route_copy;
                 cur = cur->catch_all.get();
                 break;
             }
