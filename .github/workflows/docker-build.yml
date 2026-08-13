@@ -14,6 +14,7 @@ permissions:
 
 jobs:
   detect-mode:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}
     outputs:
       build_mode: ${{ steps.version.outputs.build_mode }}
