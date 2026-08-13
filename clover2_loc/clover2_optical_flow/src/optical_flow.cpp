@@ -1,4 +1,5 @@
 // clover2
+#include <clover2/optical_flow/diagnostics/flow_task.hpp>
 #include <clover2/optical_flow/optical_flow.hpp>
 
 // ROS2
@@ -17,29 +18,11 @@
 namespace clover2::optical_flow {
 
 optical_flow::optical_flow(const rclcpp::NodeOptions& options)
-    : clover2_common::lifecycle_node(
-          "optical_flow", options,
-          clover2_common::NodeInterfacesFactory<OpticalFlowDiagnostics>{})
+    : clover2_common::lifecycle_node("optical_flow", options)
     , m_fcu_frame_id("base_link")
     , m_local_frame_id("map")
     , m_prev_stamp(rclcpp::Time(0))
     , m_last_vpe_time(rclcpp::Time(0)) {
-    auto diagnostics = std::static_pointer_cast<OpticalFlowDiagnostics>(
-        get_node_diagnostics_interface());
-
-    diagnostics->set_diagnostic_callback(
-        OpticalFlowDiagnostics::diagnostic::camera_info,
-        std::bind(&optical_flow::produce_camera_info_diagnostics, this,
-                  std::placeholders::_1));
-    diagnostics->set_diagnostic_callback(
-        OpticalFlowDiagnostics::diagnostic::flow,
-        std::bind(&optical_flow::produce_flow_diagnostics, this,
-                  std::placeholders::_1));
-    diagnostics->set_diagnostic_callback(
-        OpticalFlowDiagnostics::diagnostic::flow_frequency,
-        std::bind(&optical_flow::produce_flow_hz_diagnostics, this,
-                  std::placeholders::_1));
-
     // Declare parameters
     declare_and_watch_parameter<int>(
         "roi", 256,
@@ -57,11 +40,6 @@ optical_flow::optical_flow(const rclcpp::NodeOptions& options)
             m_flow_gyro_default = static_cast<float>(p.as_double());
         },
         "Default flow gyro value");
-
-    declare_and_watch_parameter<double>(
-        "diagnostics.flow_frequency.min_hz", m_min_flow_hz,
-        [this](const rclcpp::Parameter& p) { m_min_flow_hz = p.as_double(); },
-        "Minimum optical flow processing frequency");
 
     declare_parameter("mavros.local_position.tf.frame_id", m_local_frame_id);
     declare_parameter("mavros.local_position.tf.child_frame_id",
@@ -100,6 +78,10 @@ optical_flow::CallbackReturn optical_flow::on_configure(
 
 optical_flow::CallbackReturn optical_flow::on_activate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
+    auto diagnostics = get_node_diagnostics_interface();
+    diagnostics->add<diagnostics::flow_task>();
+    diagnostics->get<diagnostics::flow_task>().set_clock(get_clock());
+
     // Create publishers
     m_flow_pub = this->create_publisher<mavros_msgs::msg::OpticalFlowRad>(
         "mavros/px4flow/raw/send", rclcpp::SystemDefaultsQoS());
@@ -128,6 +110,8 @@ optical_flow::CallbackReturn optical_flow::on_deactivate(
     m_debug_pub.reset();
     m_camera_info_sub.reset();
     m_image_sub.reset();
+
+    get_node_diagnostics_interface()->remove<diagnostics::flow_task>();
 
     return CallbackReturn::SUCCESS;
 }
@@ -169,7 +153,6 @@ void optical_flow::camera_info_callback(
     }
 
     m_camera_model.fromCameraInfo(msg);
-    m_last_camera_info_stamp = msg->header.stamp;
 }
 
 void optical_flow::draw_flow(cv::Mat& frame, double x, double y,
@@ -191,9 +174,8 @@ void optical_flow::flow_callback(
     const sensor_msgs::msg::Image::ConstSharedPtr& msg) {
     std::lock_guard<std::mutex> camera_info_guard(m_camera_info_mtx);
 
-    m_last_image_stamp = msg->header.stamp;
-    m_last_image_width = msg->width;
-    m_last_image_height = msg->height;
+    auto& flow_diagnostics =
+        get_node_diagnostics_interface()->get<diagnostics::flow_task>();
 
     if (!m_camera_model.initialized()) {
         RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000,
@@ -265,10 +247,10 @@ void optical_flow::flow_callback(
     try {
         m_tf_buffer->transform(flow_camera, flow_fcu, m_fcu_frame_id);
     } catch (const tf2::TransformException& e) {
-        m_last_required_tf_ok = false;
+        flow_diagnostics.update_required_tf(false);
         return;
     }
-    m_last_required_tf_ok = true;
+    flow_diagnostics.update_required_tf(true);
 
     // Calculate integration time
     rclcpp::Duration integration_time = current_stamp - m_prev_stamp;
@@ -302,9 +284,7 @@ void optical_flow::flow_callback(
     flow_msg.quality = static_cast<uint8_t>(response * 255);
     m_flow_pub->publish(flow_msg);
 
-    ++m_processed_frames;
-    m_last_flow_publish_stamp = msg->header.stamp;
-    m_last_quality = response;
+    flow_diagnostics.update_flow(msg->header.stamp, response);
 
     m_prev = m_curr.clone();
     m_prev_stamp = current_stamp;
@@ -320,114 +300,6 @@ void optical_flow::flow_callback(
         out_msg.image = img;
         m_debug_pub->publish(*out_msg.toImageMsg());
     }
-}
-
-void optical_flow::produce_camera_info_diagnostics(
-    diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    std::lock_guard<std::mutex> guard(m_camera_info_mtx);
-
-    const bool camera_ready = m_camera_model.initialized();
-    if (camera_ready) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
-                     "Camera info received");
-        stat.add("Camera frame", m_camera_model.tfFrame());
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Waiting for Camera Info");
-        stat.add("Camera frame", "unknown");
-    }
-
-    if (m_last_image_width == 0 || m_last_image_height == 0) {
-        stat.add("Image width", "unknown");
-        stat.add("Image height", "unknown");
-    } else {
-        stat.add("Image width", std::to_string(m_last_image_width));
-        stat.add("Image height", std::to_string(m_last_image_height));
-    }
-
-    if (m_last_camera_info_stamp.nanoseconds() == 0) {
-        stat.add("Camera info age, sec", "never");
-    } else {
-        stat.add("Camera info age, sec",
-                 (now() - m_last_camera_info_stamp).seconds());
-    }
-}
-
-void optical_flow::produce_flow_diagnostics(
-    diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    std::lock_guard<std::mutex> guard(m_camera_info_mtx);
-
-    const bool camera_ready = m_camera_model.initialized();
-    if (!camera_ready) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Waiting for Camera Info");
-    } else if (!m_last_required_tf_ok) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "Required TF transform failed");
-    } else if (m_processed_frames == 0) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Waiting for optical flow output");
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "Running");
-    }
-
-    stat.add("Required TF ok", m_last_required_tf_ok ? "true" : "false");
-    stat.add("Last quality", m_last_quality);
-
-    if (m_last_image_stamp.nanoseconds() == 0) {
-        stat.add("Last image age, sec", "never");
-    } else {
-        stat.add("Last image age, sec", (now() - m_last_image_stamp).seconds());
-    }
-
-    if (m_last_flow_publish_stamp.nanoseconds() == 0) {
-        stat.add("Last flow publish age, sec", "never");
-    } else {
-        stat.add("Last flow publish age, sec",
-                 (now() - m_last_flow_publish_stamp).seconds());
-    }
-}
-
-void optical_flow::produce_flow_hz_diagnostics(
-    diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    std::lock_guard<std::mutex> guard(m_camera_info_mtx);
-
-    const auto current_time = now();
-
-    if (m_last_flow_hz_stamp.nanoseconds() == 0) {
-        m_last_flow_hz_stamp = current_time;
-        m_last_flow_processed_frames = m_processed_frames;
-
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Waiting for optical flow processing samples");
-        stat.add("Actual frequency, Hz", m_flow_hz);
-        stat.add("Minimum frequency, Hz", m_min_flow_hz);
-        return;
-    }
-
-    const auto dt = (current_time - m_last_flow_hz_stamp).seconds();
-    const auto frame_delta = m_processed_frames - m_last_flow_processed_frames;
-
-    if (dt > 0.0) {
-        m_flow_hz = static_cast<double>(frame_delta) / dt;
-    }
-
-    m_last_flow_hz_stamp = current_time;
-    m_last_flow_processed_frames = m_processed_frames;
-
-    if (frame_delta == 0) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "Optical flow processing stopped");
-    } else if (m_flow_hz >= m_min_flow_hz) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
-                     "Optical flow processing frequency OK");
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Optical flow processing is slow");
-    }
-
-    stat.add("Actual frequency, Hz", m_flow_hz);
-    stat.add("Minimum frequency, Hz", m_min_flow_hz);
 }
 
 geometry_msgs::msg::Vector3Stamped optical_flow::calc_flow_gyro(

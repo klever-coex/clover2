@@ -1,11 +1,14 @@
 // clover2
 #include <clover2_fcu_bridge/backend/context.hpp>
 #include <clover2_fcu_bridge/backend/fabric.hpp>
+#include <clover2_fcu_bridge/diagnostics/backend_task.hpp>
+#include <clover2_fcu_bridge/diagnostics/barometer_task.hpp>
+#include <clover2_fcu_bridge/diagnostics/imu_task.hpp>
+#include <clover2_fcu_bridge/diagnostics/power_task.hpp>
 #include <clover2_fcu_bridge/offboard.hpp>
 #include <clover2_fcu_bridge/server.hpp>
 
 // ROS2
-#include <diagnostic_msgs/msg/diagnostic_status.hpp>
 #include <rclcpp/node_options.hpp>
 #include <rclcpp/qos.hpp>
 #include <tf2/utils.hpp>
@@ -48,36 +51,8 @@ void ensure_backend_registered(const std::string& name) {
 namespace clover2_fcu_bridge {
 
 server::server(const rclcpp::NodeOptions& options)
-    : clover2_common::lifecycle_node(
-          "fcu_bridge", options,
-          clover2_common::NodeInterfacesFactory<ServerDiagnostics>{})
+    : clover2_common::lifecycle_node("fcu_bridge", options)
     , m_backend_name("mavros") {
-    auto diagnostics = std::static_pointer_cast<ServerDiagnostics>(
-        get_node_diagnostics_interface());
-    diagnostics->set_diagnostic_callback(
-        ServerDiagnostics::diagnostic::fcu_state,
-        std::bind(&server::produce_fcu_state_diagnostics, this,
-                  std::placeholders::_1));
-    diagnostics->set_diagnostic_callback(
-        ServerDiagnostics::diagnostic::power,
-        std::bind(&server::produce_power_diagnostics, this,
-                  std::placeholders::_1));
-    diagnostics->set_diagnostic_callback(
-        ServerDiagnostics::diagnostic::imu,
-        std::bind(&server::produce_imu_diagnostics, this,
-                  std::placeholders::_1));
-    diagnostics->set_diagnostic_callback(
-        ServerDiagnostics::diagnostic::barometer,
-        std::bind(&server::produce_barometer_diagnostics, this,
-                  std::placeholders::_1));
-    diagnostics->set_diagnostic_callback(
-        ServerDiagnostics::diagnostic::interfaces,
-        std::bind(&server::produce_interfaces_diagnostics, this,
-                  std::placeholders::_1));
-    diagnostics->set_diagnostic_callback(
-        ServerDiagnostics::diagnostic::navigation,
-        std::bind(&server::produce_navigation_diagnostics, this,
-                  std::placeholders::_1));
     m_service_callback_group =
         create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
@@ -130,49 +105,59 @@ server::server(const rclcpp::NodeOptions& options)
     declare_and_watch_parameter<double>(
         "diagnostics.battery.warn_percentage", m_battery_warn_percentage,
         [this](const rclcpp::Parameter& p) {
-            const auto value = p.as_double();
-            if (value < 0.0 || value > 1.0) {
-                throw std::runtime_error(
-                    "Battery warning percentage should be in [0.0, 1.0]");
-            }
-            if (value < m_battery_error_percentage) {
-                throw std::runtime_error(
-                    "Battery warning percentage should be greater than or "
-                    "equal "
-                    "to error percentage");
+            const double value = p.as_double();
+            if (value < 0.0 || value > 1.0 ||
+                value <= m_battery_error_percentage) {
+                throw std::invalid_argument(
+                    "Battery warning percentage should be in (error, 1]");
             }
             m_battery_warn_percentage = value;
+            if (m_backend) {
+                get_node_diagnostics_interface()
+                    ->get<diagnostics::power_task>()
+                    .set_thresholds(m_battery_warn_percentage,
+                                    m_battery_error_percentage);
+            }
         },
-        "Battery warning charge threshold");
+        "Battery warning threshold as a fraction");
 
     declare_and_watch_parameter<double>(
         "diagnostics.battery.error_percentage", m_battery_error_percentage,
         [this](const rclcpp::Parameter& p) {
-            const auto value = p.as_double();
-            if (value < 0.0 || value > 1.0) {
-                throw std::runtime_error(
-                    "Battery error percentage should be in [0.0, 1.0]");
-            }
-            if (value > m_battery_warn_percentage) {
-                throw std::runtime_error(
-                    "Battery error percentage should be less than or equal "
-                    "to warning percentage");
+            const double value = p.as_double();
+            if (value < 0.0 || value >= m_battery_warn_percentage) {
+                throw std::invalid_argument(
+                    "Battery error percentage should be in [0, warn)");
             }
             m_battery_error_percentage = value;
+            if (m_backend) {
+                get_node_diagnostics_interface()
+                    ->get<diagnostics::power_task>()
+                    .set_thresholds(m_battery_warn_percentage,
+                                    m_battery_error_percentage);
+            }
         },
-        "Battery critical charge threshold");
+        "Battery error threshold as a fraction");
 
     declare_and_watch_parameter<double>(
         "diagnostics.sensors.stale_timeout_sec", m_sensor_stale_timeout_sec,
         [this](const rclcpp::Parameter& p) {
-            const auto value = p.as_double();
+            const double value = p.as_double();
             if (value <= 0.0) {
-                throw std::runtime_error(
-                    "Sensor stale timeout should be greater than 0.0");
+                throw std::invalid_argument(
+                    "Sensor stale timeout should be positive");
             }
             m_sensor_stale_timeout_sec = value;
+            if (m_backend) {
+                const auto timeout = std::chrono::duration<double>(value);
+                auto diagnostics = get_node_diagnostics_interface();
+                diagnostics->get<diagnostics::imu_task>().set_stale_timeout(
+                    timeout);
+                diagnostics->get<diagnostics::barometer_task>()
+                    .set_stale_timeout(timeout);
+            }
         },
-        "Sensor data stale timeout for diagnostics");
+        "Sensor stream stale timeout in seconds");
 
     register_on_configure(
         std::bind(&server::on_configure, this, std::placeholders::_1));
@@ -191,11 +176,40 @@ server::CallbackReturn server::on_configure(
     try {
         clover2_fcu_bridge::backend::context ctx(*this);
         m_backend = backend::fabric::instance().create(m_backend_name, ctx);
+
+        auto diagnostics = get_node_diagnostics_interface();
+        diagnostics->add<diagnostics::backend_task>();
+        diagnostics->add<diagnostics::power_task>();
+        diagnostics->add<diagnostics::imu_task>();
+        diagnostics->add<diagnostics::barometer_task>();
+
+        diagnostics->get<diagnostics::backend_task>().set_backend(m_backend);
+        diagnostics->get<diagnostics::power_task>().set_backend(m_backend);
+        diagnostics->get<diagnostics::imu_task>().set_backend(m_backend);
+        diagnostics->get<diagnostics::barometer_task>().set_backend(m_backend);
+        diagnostics->get<diagnostics::imu_task>().set_clock(get_clock());
+        diagnostics->get<diagnostics::barometer_task>().set_clock(get_clock());
+        diagnostics->get<diagnostics::power_task>().set_thresholds(
+            m_battery_warn_percentage, m_battery_error_percentage);
+        const auto timeout =
+            std::chrono::duration<double>(m_sensor_stale_timeout_sec);
+        diagnostics->get<diagnostics::imu_task>().set_stale_timeout(timeout);
+        diagnostics->get<diagnostics::barometer_task>().set_stale_timeout(
+            timeout);
+
         m_offboard = offboard::make_shared(this->shared_from_this(), m_backend);
         m_offboard->set_speed_limit(m_speed_limit);
         m_offboard->set_tolerance(m_tolerance);
         m_offboard->set_slowdown_distance(m_slowdown);
     } catch (const std::runtime_error& e) {
+        auto diagnostics = get_node_diagnostics_interface();
+        diagnostics->remove<diagnostics::backend_task>();
+        diagnostics->remove<diagnostics::power_task>();
+        diagnostics->remove<diagnostics::imu_task>();
+        diagnostics->remove<diagnostics::barometer_task>();
+        m_offboard.reset();
+        m_backend.reset();
+
         RCLCPP_ERROR(get_logger(), "Failed to create backend '%s': %s",
                      m_backend_name.c_str(), e.what());
         return CallbackReturn::FAILURE;
@@ -273,6 +287,11 @@ server::CallbackReturn server::on_cleanup(
     m_active_navigate_goal.reset();
     m_navigate_completion_started_at.reset();
 
+    auto diagnostics = get_node_diagnostics_interface();
+    diagnostics->remove<diagnostics::backend_task>();
+    diagnostics->remove<diagnostics::power_task>();
+    diagnostics->remove<diagnostics::imu_task>();
+    diagnostics->remove<diagnostics::barometer_task>();
     m_offboard.reset();
     m_backend.reset();
 
@@ -289,177 +308,6 @@ server::CallbackReturn server::on_shutdown(
 
     RCLCPP_INFO(get_logger(), "shutdown");
     return CallbackReturn::SUCCESS;
-}
-
-void server::produce_fcu_state_diagnostics(
-    diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    if (!m_backend) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "Backend is not initialized");
-        return;
-    }
-
-    const auto state = m_backend->get_fcu_state_snapshot();
-
-    if (!state.received) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "FCU state is not received");
-    } else if (!state.connected) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "FCU is not connected");
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
-                     "FCU connected");
-    }
-
-    stat.add("Connected", state.connected ? "true" : "false");
-    stat.add("State received", state.received ? "true" : "false");
-    stat.add("Armed", state.armed ? "true" : "false");
-    stat.add("Mode", state.mode);
-}
-
-void server::produce_power_diagnostics(
-    diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    if (!m_backend) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "Backend is not initialized");
-        return;
-    }
-
-    const auto power = m_backend->get_power_snapshot();
-
-    if (!power.received) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Battery status is not received");
-    } else if (!std::isfinite(power.percentage)) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Battery percentage is not available");
-    } else if (power.percentage <= m_battery_error_percentage) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "Battery charge is critically low");
-    } else if (power.percentage <= m_battery_warn_percentage) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Battery charge is low");
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
-                     "Battery charge is normal");
-    }
-
-    stat.add("Battery received", power.received ? "true" : "false");
-    stat.add("Voltage", power.received ? power.voltage : NAN);
-    stat.add("Percentage", power.received ? power.percentage : NAN);
-}
-
-void server::produce_imu_diagnostics(
-    diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    if (!m_backend) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "Backend is not initialized");
-        return;
-    }
-
-    const auto imu = m_backend->get_imu_snapshot();
-    const double age = imu.received ? (now() - imu.stamp).seconds() : NAN;
-
-    if (!imu.received) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "IMU is not received");
-    } else if (age > m_sensor_stale_timeout_sec) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "IMU data is stale");
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
-                     "IMU data is fresh");
-    }
-
-    stat.add("IMU received", imu.received ? "true" : "false");
-    stat.add("IMU age, sec", imu.received ? age : NAN);
-}
-
-void server::produce_barometer_diagnostics(
-    diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    if (!m_backend) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "Backend is not initialized");
-        return;
-    }
-
-    const auto barometer = m_backend->get_barometer_snapshot();
-    const double age =
-        barometer.received ? (now() - barometer.stamp).seconds() : NAN;
-
-    if (!barometer.received) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Barometer is not received");
-    } else if (age > m_sensor_stale_timeout_sec) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Barometer data is stale");
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
-                     "Barometer data is fresh");
-    }
-
-    stat.add("Barometer received", barometer.received ? "true" : "false");
-    stat.add("Barometer age, sec", barometer.received ? age : NAN);
-    stat.add("Pressure, Pa",
-             barometer.received ? barometer.msg.fluid_pressure : NAN);
-}
-
-void server::produce_interfaces_diagnostics(
-    diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    const bool state_publisher = static_cast<bool>(m_state_pub);
-    const bool arm_disarm_service = static_cast<bool>(m_arm_disarm_srv);
-    const bool land_service = static_cast<bool>(m_land_srv);
-    const bool set_position_service = static_cast<bool>(m_set_position_srv);
-    const bool navigate_service = static_cast<bool>(m_navigate_srv);
-    const bool navigate_async_action =
-        static_cast<bool>(m_navigate_async_action);
-    const bool state_timer = static_cast<bool>(m_state_publish_timer);
-
-    if (state_publisher && arm_disarm_service && land_service &&
-        set_position_service && navigate_service && navigate_async_action &&
-        state_timer) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
-                     "Interfaces available");
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Interfaces are not active");
-    }
-
-    stat.add("State publisher", state_publisher ? "true" : "false");
-    stat.add("Arm/disarm service", arm_disarm_service ? "true" : "false");
-    stat.add("Land service", land_service ? "true" : "false");
-    stat.add("Set position service", set_position_service ? "true" : "false");
-    stat.add("Navigate service", navigate_service ? "true" : "false");
-    stat.add("Navigate async action", navigate_async_action ? "true" : "false");
-    stat.add("State timer", state_timer ? "true" : "false");
-}
-
-void server::produce_navigation_diagnostics(
-    diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    const bool goal_pending = m_navigate_goal_pending.load();
-    const bool active_goal = static_cast<bool>(m_active_navigate_goal);
-    const bool bond_active = static_cast<bool>(m_navigate_bond);
-
-    if (active_goal && !bond_active) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "Active navigation goal has no bond");
-    } else if (goal_pending) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Navigation goal is pending");
-    } else if (active_goal) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Navigation goal is active");
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
-                     "Navigation idle");
-    }
-
-    stat.add("Goal pending", goal_pending ? "true" : "false");
-    stat.add("Active goal", active_goal ? "true" : "false");
-    stat.add("Navigate bond active", bond_active ? "true" : "false");
-    stat.add("Navigate bond id",
-             m_navigate_bond_id.empty() ? "none" : m_navigate_bond_id);
 }
 
 void server::start_navigate_bond(

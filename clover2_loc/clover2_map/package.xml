@@ -12,6 +12,7 @@
 
   <depend>clover2_pose_msgs</depend>
   <depend>clover2_common</depend>
+  <depend>diagnostic_msgs</depend>
   <depend>diagnostic_updater</depend>
   <depend>eigen</depend>
   <depend>tf2_eigen</depend>

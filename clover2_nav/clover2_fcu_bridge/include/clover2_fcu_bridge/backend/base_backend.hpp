@@ -2,7 +2,11 @@
 
 // clover2
 #include <clover2_fcu_bridge/backend/context.hpp>
+#include <clover2_fcu_bridge/data/barometer.hpp>
+#include <clover2_fcu_bridge/data/fcu_state.hpp>
+#include <clover2_fcu_bridge/data/imu.hpp>
 #include <clover2_fcu_bridge/data/mode.hpp>
+#include <clover2_fcu_bridge/data/power.hpp>
 
 // ROS2
 #include <geometry_msgs/msg/pose_stamped.hpp>
@@ -18,29 +22,6 @@
 #include <string>
 
 namespace clover2_fcu_bridge::backend {
-
-template <typename T>
-struct stamped_snapshot {
-    bool received{false};
-    rclcpp::Time stamp;
-    T msg;
-};
-
-struct fcu_state_snapshot {
-    bool received{false};
-    bool connected{false};
-    bool armed{false};
-    std::string mode{"unknown"};
-};
-
-struct power_snapshot {
-    bool received{false};
-    float voltage{NAN};
-    float percentage{NAN};
-};
-
-using imu_snapshot = stamped_snapshot<sensor_msgs::msg::Imu>;
-using barometer_snapshot = stamped_snapshot<sensor_msgs::msg::FluidPressure>;
 
 class base_backend {
 public:
@@ -61,10 +42,10 @@ public:
     virtual void set_mode(const data::mode& mode) = 0;
     virtual data::mode get_mode() const = 0;
 
-    virtual fcu_state_snapshot get_fcu_state_snapshot() const;
-    virtual power_snapshot get_power_snapshot() const;
-    virtual imu_snapshot get_imu_snapshot() const;
-    virtual barometer_snapshot get_barometer_snapshot() const;
+    virtual data::fcu_state_data get_fcu_state() const;
+    virtual data::power_data get_power() const;
+    virtual data::imu_data get_imu() const;
+    virtual data::barometer_data get_barometer() const;
 
     virtual void set_setpoint(const std::optional<tf2::Vector3> p,
                               const std::optional<tf2::Vector3> v,
