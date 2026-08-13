@@ -1,7 +1,6 @@
 #! /usr/bin/env bash
 
-export RCUTILS_COLORIZED_OUTPUT=1
-export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
+. /opt/clover2/.ros2.env
 
 source /opt/ros/jazzy/setup.bash
 

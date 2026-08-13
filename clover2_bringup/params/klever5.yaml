@@ -9,7 +9,7 @@
 /**/fcu_bridge:
   ros__parameters:
     speed_limit: 1.0
-    tolerance: 0.15
+    tolerance: 0.35
     slowdown_distance: 0.5
 
 /**/web_video_server:

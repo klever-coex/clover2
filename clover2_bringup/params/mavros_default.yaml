@@ -5,6 +5,7 @@
     plugin_denylist:
       - camera
       - debug_value
+      - distance_sensor
       - fake_gps
       - geofence
       - gimbal_control
@@ -203,3 +204,13 @@
 /**/vibration:
   ros__parameters:
     frame_id: "base_link"
+
+# distance_sensor
+/**/distance_sensor:
+  ros__parameters:
+    config: |
+      distance_sensor/filtred:
+        id: 0
+        frame_id: "base_link"
+        orientation: "PITCH_270"
+        field_of_view: 0.0
