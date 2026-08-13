@@ -36,10 +36,10 @@ public:
     void set_mode(const data::mode& mode) final;
     data::mode get_mode() const final;
 
-    fcu_state_snapshot get_fcu_state_snapshot() const final;
-    power_snapshot get_power_snapshot() const final;
-    imu_snapshot get_imu_snapshot() const final;
-    barometer_snapshot get_barometer_snapshot() const final;
+    data::fcu_state_data get_fcu_state() const final;
+    data::power_data get_power() const final;
+    data::imu_data get_imu() const final;
+    data::barometer_data get_barometer() const final;
 
     void set_setpoint(const std::optional<tf2::Vector3> p,
                       const std::optional<tf2::Vector3> v,
@@ -64,10 +64,10 @@ private:
     rclcpp::Client<mavros_msgs::srv::CommandTOL>::SharedPtr m_land_client;
 
     data::mode m_mode;
-    fcu_state_snapshot m_fcu_state;
-    power_snapshot m_power;
-    imu_snapshot m_imu;
-    barometer_snapshot m_barometer;
+    data::fcu_state_data m_fcu_state;
+    data::power_data m_power;
+    data::imu_data m_imu;
+    data::barometer_data m_barometer;
     mutable std::mutex m_state_mtx;
     bool m_pose_received{false};
 };

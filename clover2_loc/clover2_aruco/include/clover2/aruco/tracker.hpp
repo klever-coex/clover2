@@ -1,14 +1,10 @@
 #pragma once
 
-// STL
-#include <mutex>
-
 // ROS2 includes
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
 // Clover2 includes
-#include <clover2/aruco/tracker_diagnostics.hpp>
 #include <clover2/map/client.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 
@@ -51,15 +47,6 @@ private:
     void publish_tf(const std_msgs::msg::Header& header,
                     Eigen::Isometry3d pose);
 
-    void produce_map_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& stat);
-    void produce_markers_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& stat);
-    void produce_pose_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& stat);
-    void produce_pose_hz_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& stat);
-
     // Camera parameters
     std::string m_frame_id;
 
@@ -75,18 +62,6 @@ private:
     std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
     std::shared_ptr<tf2_ros::Buffer> m_tf_buffer;
     std::shared_ptr<tf2_ros::TransformListener> m_tf_listener;
-
-    // Diagnostics
-    mutable std::mutex m_diagnostics_mtx;
-    rclcpp::Time m_last_markers_stamp;
-    rclcpp::Time m_last_pose_publish_stamp;
-    size_t m_processed_marker_arrays{0};
-    size_t m_last_marker_count{0};
-    bool m_last_tf_ok{true};
-    double m_min_pose_hz{25.0};
-    rclcpp::Time m_last_pose_hz_stamp;
-    size_t m_last_pose_processed_marker_arrays{0};
-    double m_pose_hz{0.0};
 
     // Publishers and subscribers
     rclcpp::CallbackGroup::SharedPtr m_callback_group;

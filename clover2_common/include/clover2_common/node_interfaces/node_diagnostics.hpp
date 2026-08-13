@@ -4,7 +4,7 @@
 #include <clover2_common/node_interfaces/node_diagnostics_interface.hpp>
 
 // ROS2
-#include <diagnostic_msgs/msg/diagnostic_status.hpp>
+#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <rclcpp/macros.hpp>
 #include <rclcpp/node_interfaces/node_base_interface.hpp>
 #include <rclcpp/node_interfaces/node_clock_interface.hpp>
@@ -17,6 +17,7 @@
 // STL
 #include <memory>
 #include <string>
+#include <typeindex>
 #include <unordered_map>
 
 namespace clover2_common::node_interfaces {
@@ -42,85 +43,32 @@ public:
     ~NodeDiagnostics() override;
 
     RCLCPP_PUBLIC
-    void add(const std::string& name,
-             DiagnosticTaskCallbackT callback) override;
-
-    RCLCPP_PUBLIC
-    void remove_by_name(const std::string& name) override;
+    void add(diagnostic_updater::DiagnosticTask& task) override;
 
     RCLCPP_PUBLIC
     void force_update() override;
 
+protected:
+    RCLCPP_PUBLIC
+    void add_by_type(
+        std::type_index type,
+        std::unique_ptr<diagnostic_updater::DiagnosticTask> task) override;
+
+    RCLCPP_PUBLIC
+    diagnostic_updater::DiagnosticTask& get_by_type(
+        std::type_index type) override;
+
+    RCLCPP_PUBLIC
+    void remove_by_type(std::type_index type) override;
+
 private:
     RCLCPP_DISABLE_COPY(NodeDiagnostics)
 
-    class NodeDiagnosticsImpl;
-    std::unique_ptr<NodeDiagnosticsImpl> m_impl;
-};
+    std::shared_ptr<diagnostic_updater::Updater> m_updater;
 
-template <typename DiagnosticCodeT>
-class TypedNodeDiagnostics : public NodeDiagnostics {
-public:
-    using diagnostic = DiagnosticCodeT;
-    using callback = DiagnosticTaskCallbackT;
-    using DiagnosticNamesT = std::unordered_map<diagnostic, std::string>;
-
-    RCLCPP_PUBLIC
-    TypedNodeDiagnostics(
-        rclcpp::node_interfaces::NodeBaseInterface::SharedPtr base_interface,
-        rclcpp::node_interfaces::NodeClockInterface::SharedPtr clock_interface,
-        rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr
-            logging_interface,
-        rclcpp::node_interfaces::NodeParametersInterface::SharedPtr
-            parameters_interface,
-        rclcpp::node_interfaces::NodeTimersInterface::SharedPtr
-            timers_interface,
-        rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
-        const DiagnosticNamesT& diagnostic_names)
-        : NodeDiagnostics(base_interface, clock_interface, logging_interface,
-                          parameters_interface, timers_interface,
-                          topics_interface) {
-        for (const auto& [code, name] : diagnostic_names) {
-            add(name,
-                [this, code](diagnostic_updater::DiagnosticStatusWrapper& stat) {
-                    if (!apply_diagnostic_callback(code, stat)) {
-                        stat.summary(
-                            diagnostic_msgs::msg::DiagnosticStatus::STALE,
-                            "Callback is not set");
-                    }
-                });
-        }
-    }
-
-    RCLCPP_PUBLIC
-    virtual ~TypedNodeDiagnostics() = default;
-
-    RCLCPP_PUBLIC
-    void set_diagnostic_callback(diagnostic diagnostic_code,
-                                 callback callback) {
-        m_diagnostic_callbacks[diagnostic_code] = callback;
-    }
-
-    RCLCPP_PUBLIC
-    void remove_diagnostic_callback(diagnostic diagnostic_code) {
-        m_diagnostic_callbacks.erase(diagnostic_code);
-    }
-
-    RCLCPP_PUBLIC
-    bool apply_diagnostic_callback(
-        diagnostic diagnostic_code,
-        diagnostic_updater::DiagnosticStatusWrapper& status) const {
-        const auto callback_it = m_diagnostic_callbacks.find(diagnostic_code);
-        if (callback_it == m_diagnostic_callbacks.end()) {
-            return false;
-        }
-
-        callback_it->second(status);
-        return true;
-    }
-
-private:
-    std::unordered_map<diagnostic, callback> m_diagnostic_callbacks;
+    std::unordered_map<std::type_index,
+                       std::unique_ptr<diagnostic_updater::DiagnosticTask>>
+        m_diagnostic_tasks;
 };
 
 }  // namespace clover2_common::node_interfaces

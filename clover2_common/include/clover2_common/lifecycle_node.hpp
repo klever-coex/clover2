@@ -3,7 +3,6 @@
 // clover2
 #include <clover2_common/node_interfaces/node_diagnostics_interface.hpp>
 #include <clover2_common/node_interfaces/node_parameters_watcher_interface.hpp>
-#include <clover2_common/node_interfaces_factory.hpp>
 #include <clover2_common/util/parameter.hpp>
 
 // ROS2
@@ -29,20 +28,6 @@ public:
     lifecycle_node(const std::string& node_name,
                    const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
 
-    template <typename NodeInterfacesFactoryT>
-    lifecycle_node(const std::string& node_name,
-                   const rclcpp::NodeOptions& options, NodeInterfacesFactoryT)
-        : rclcpp_lifecycle::LifecycleNode(node_name, options)
-        , m_diagnostics(NodeInterfacesFactoryT::create_diagnostics(
-              get_node_base_interface(), get_node_clock_interface(),
-              get_node_logging_interface(), get_node_parameters_interface(),
-              get_node_timers_interface(), get_node_topics_interface()))
-        , m_parameters_watcher(
-              NodeInterfacesFactoryT::create_parameters_watcher(
-                  get_node_parameters_interface())) {
-        init_lifecycle_node();
-    }
-
     virtual ~lifecycle_node();
 
     template <typename ParameterT>
@@ -67,9 +52,6 @@ public:
     get_node_parameters_watcher_interface();
 
 protected:
-    void produce_lifecycle_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& status);
-
     rclcpp::TimerBase::SharedPtr m_init_timer;
 
 private:

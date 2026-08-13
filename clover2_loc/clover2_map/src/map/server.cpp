@@ -1,5 +1,4 @@
 #include <clover2/map/server.hpp>
-#include <diagnostic_msgs/msg/diagnostic_status.hpp>
 #include <rclcpp/logger.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2/LinearMath/Transform.hpp>
@@ -13,9 +12,10 @@
 namespace clover2::map {
 
 server::server(const rclcpp::NodeOptions& options)
-    : clover2_common::node(
-          "map_server", options,
-          clover2_common::NodeInterfacesFactory<MapServerDiagnostics>{}) {
+    : clover2_common::node("map_server", options) {
+    auto diagnostic_interface = get_node_diagnostics_interface();
+    diagnostic_interface->add<diagnostics::map_server_task>();
+
     declare_and_watch_parameter<std::string>(
         "map", "",
         [this](const rclcpp::Parameter& p) {  //
@@ -35,7 +35,12 @@ server::server(const rclcpp::NodeOptions& options)
                 new_file, get_logger().get_child("fs_provider"));
 
             m_provider->load();
-            update_diagnostic_map_state();
+
+            auto diagnostics = get_node_diagnostics_interface();
+            diagnostics->get<diagnostics::map_server_task>().set_map_path(
+                m_map_path);
+            diagnostics->get<diagnostics::map_server_task>().set_provider(
+                m_provider);
         },
         "Path to map file whit .txt/.yaml/.yml extension.");
 
@@ -50,20 +55,9 @@ server::server(const rclcpp::NodeOptions& options)
         "~/get_map", std::bind(&server::map_callback, this,
                                std::placeholders::_1, std::placeholders::_2));
 
-    auto diagnostics = std::static_pointer_cast<MapServerDiagnostics>(
-        get_node_diagnostics_interface());
-    diagnostics->set_diagnostic_callback(
-        MapServerDiagnostics::diagnostic::map,
-        std::bind(&server::produce_map_diagnostics, this,
-                  std::placeholders::_1));
-    diagnostics->set_diagnostic_callback(
-        MapServerDiagnostics::diagnostic::interface,
-        std::bind(&server::produce_interface_diagnostics, this,
-                  std::placeholders::_1));
     try {
         RCLCPP_INFO(get_logger(), "Using map '%s'",
                     m_provider->get_map().name.c_str());
-        update_diagnostic_map_state();
         update_map();
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Start error: %s", e.what());
@@ -74,8 +68,6 @@ void server::map_callback(
     const clover2_pose_msgs::srv::GetMap::Request::SharedPtr /* request */,
     clover2_pose_msgs::srv::GetMap::Response::SharedPtr response) {
     std::lock_guard<std::recursive_mutex> guard(m_map_mtx);
-
-    ++m_get_map_requests;
 
     response->map = m_provider->get_map();
 }
@@ -106,69 +98,6 @@ void server::update_map() {
 
     m_tf_static_broadcaster->sendTransform(transforms);
     m_map_update_pub->publish(std_msgs::msg::Empty());
-
-    m_static_tf_count = transforms.size();
-    ++m_map_updates;
-}
-
-void server::update_diagnostic_map_state() {
-    std::lock_guard<std::recursive_mutex> guard(m_map_mtx);
-
-    if (!m_provider) {
-        m_map_loaded = false;
-        m_map_frame_id.clear();
-        m_marker_count = 0;
-        return;
-    }
-
-    const auto& map = m_provider->get_map();
-    m_map_loaded = true;
-    m_map_frame_id = map.header.frame_id;
-    m_marker_count = map.markers.size();
-}
-
-void server::produce_map_diagnostics(
-    diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    std::lock_guard<std::recursive_mutex> guard(m_map_mtx);
-
-    if (!m_map_loaded) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "Map not loaded");
-    } else if (m_marker_count == 0) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Map loaded but empty");
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "Map loaded");
-    }
-
-    stat.add("Map frame", m_map_frame_id.empty() ? "unknown" : m_map_frame_id);
-    stat.add("Map path", m_map_path.empty() ? "unknown" : m_map_path);
-    stat.add("Marker count", std::to_string(m_marker_count));
-}
-
-void server::produce_interface_diagnostics(
-    diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    std::lock_guard<std::recursive_mutex> guard(m_map_mtx);
-
-    const bool service_available = static_cast<bool>(m_map_service);
-    const bool map_update_available = static_cast<bool>(m_map_update_pub);
-
-    if (!service_available || !map_update_available) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "Map server interface is not available");
-    } else if (m_map_loaded && m_static_tf_count != m_marker_count) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Static TF transform count mismatch");
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
-                     "Interfaces available");
-    }
-
-    stat.add("Get map requests", std::to_string(m_get_map_requests));
-    stat.add("Map updates", std::to_string(m_map_updates));
-    stat.add("Static TF transforms", std::to_string(m_static_tf_count));
-    stat.add("Map update subscribers",
-             m_map_update_pub ? m_map_update_pub->get_subscription_count() : 0);
 }
 
 }  // namespace clover2::map

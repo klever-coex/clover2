@@ -1,11 +1,9 @@
 #pragma once
 
 // clover2
-#include <clover2/optical_flow/optical_flow_diagnostics.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 
 // ROS2
-#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <image_geometry/pinhole_camera_model.hpp>
 #include <rclcpp/rclcpp.hpp>
 
@@ -94,13 +92,6 @@ public:
         const rclcpp::Time& curr);
 
 private:
-    void produce_camera_info_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& stat);
-    void produce_flow_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& stat);
-    void produce_flow_hz_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& stat);
-
     // Parameters
     int m_roi_px;                  ///< ROI size in pixels
     bool m_calc_flow_gyro;         ///< Calculate flow gyro from TF
@@ -123,20 +114,6 @@ private:
     // TF
     std::unique_ptr<tf2_ros::Buffer> m_tf_buffer;               ///< TF buffer
     std::unique_ptr<tf2_ros::TransformListener> m_tf_listener;  ///< TF listener
-
-    // Diagnostics
-    rclcpp::Time m_last_image_stamp;
-    rclcpp::Time m_last_camera_info_stamp;
-    rclcpp::Time m_last_flow_publish_stamp;
-    double m_last_quality{0.0};
-    size_t m_processed_frames{0};
-    uint32_t m_last_image_width{0};
-    uint32_t m_last_image_height{0};
-    bool m_last_required_tf_ok{true};
-    double m_min_flow_hz{25.0};
-    rclcpp::Time m_last_flow_hz_stamp;
-    size_t m_last_flow_processed_frames{0};
-    double m_flow_hz{0.0};
 
     // Publishers and subscribers
     rclcpp::Publisher<mavros_msgs::msg::OpticalFlowRad>::SharedPtr

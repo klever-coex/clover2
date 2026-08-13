@@ -5,15 +5,6 @@
 /**/aruco_tracker:
   ros__parameters:
     tracking: "base_link"
-    diagnostics:
-      pose_frequency:
-        min_hz: 25.0
-
-/**/optical_flow:
-  ros__parameters:
-    diagnostics:
-      flow_frequency:
-        min_hz: 25.0
 
 /**/fcu_bridge:
   ros__parameters:

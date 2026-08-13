@@ -11,6 +11,7 @@ find_package(clover2_map REQUIRED)
 find_package(clover2_common REQUIRED)
 find_package(clover2_pose_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(diagnostic_msgs REQUIRED)
 find_package(diagnostic_updater REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(image_geometry REQUIRED)
@@ -27,6 +28,7 @@ set(dependencies
   clover2_common
   clover2_pose_msgs
   cv_bridge
+  diagnostic_msgs
   diagnostic_updater
   geometry_msgs
   image_geometry
@@ -60,7 +62,7 @@ clover2_add_component_library(
   TARGET clover2_cam_feature_component
   SOURCES
     src/cam_feature.cpp
-    src/cam_feature_diagnostics.cpp
+    src/diagnostics/markers_task.cpp
   LINK_LIBS cam_feature_plugins cam_feature_base ${OpenCV_LIBRARIES}
   DEPENDENCIES ${dependencies}
   COMPONENT_CLASS "clover2::cam_feature::cam_feature"
