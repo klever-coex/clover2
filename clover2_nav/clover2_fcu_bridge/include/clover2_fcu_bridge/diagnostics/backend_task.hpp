@@ -14,7 +14,7 @@ namespace clover2_fcu_bridge::diagnostics {
 
 class backend_task : public diagnostic_updater::DiagnosticTask {
 public:
-    explicit backend_task(const std::string& name = "backend");
+    explicit backend_task(const std::string& name = "/fcu/backend");
 
     void set_backend(const std::shared_ptr<backend::base_backend>& backend);
     void reset();

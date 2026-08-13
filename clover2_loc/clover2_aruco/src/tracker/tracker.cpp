@@ -69,7 +69,8 @@ tracker::CallbackReturn tracker::on_configure(
             shared_from_this(), m_callback_group);
 
         auto diagnostic_interface = get_node_diagnostics_interface();
-        diagnostic_interface->add<clover2::map::diagnostics::map_client_task>();
+        diagnostic_interface->add<clover2::map::diagnostics::map_client_task>(
+            "/localization/aruco_tracker/map");
         diagnostic_interface->get<clover2::map::diagnostics::map_client_task>()
             .set_client(m_map_client);
     } catch (const std::exception& e) {

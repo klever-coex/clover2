@@ -1,0 +1,29 @@
+analyzers:
+  ros__parameters:
+    path: Aggregation
+
+    fcu:
+      type: diagnostic_aggregator/GenericAnalyzer
+      path: FCU
+      contains: ['/fcu']
+
+    main_camera:
+      type: diagnostic_aggregator/GenericAnalyzer
+      path: Cameras_main
+      contains: ['/sensors/camera/main']
+
+    front_camera:
+      type: diagnostic_aggregator/GenericAnalyzer
+      path: Camera_front
+      contains: ['/sensors/camera/front']
+
+    localization:
+      type: diagnostic_aggregator/GenericAnalyzer
+      path: Localization
+      contains: ['/localization']
+
+    system:
+      type: diagnostic_aggregator/GenericAnalyzer
+      path: System
+      contains: ['/system']
+      

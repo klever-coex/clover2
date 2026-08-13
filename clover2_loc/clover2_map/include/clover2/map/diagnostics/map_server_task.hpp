@@ -14,7 +14,8 @@ namespace clover2::map::diagnostics {
 
 class map_server_task : public diagnostic_updater::DiagnosticTask {
 public:
-    explicit map_server_task(const std::string& name = "map");
+    explicit map_server_task(
+        const std::string& name = "/localization/map_server/map");
 
     void set_provider(const std::shared_ptr<io::fs_provider>& provider);
     void set_map_path(const std::string& path);

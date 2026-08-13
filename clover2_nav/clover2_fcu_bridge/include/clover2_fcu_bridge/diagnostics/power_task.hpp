@@ -14,7 +14,7 @@ namespace clover2_fcu_bridge::diagnostics {
 
 class power_task : public diagnostic_updater::DiagnosticTask {
 public:
-    explicit power_task(const std::string& name = "power");
+    explicit power_task(const std::string& name = "/fcu/power");
 
     void set_backend(const std::shared_ptr<backend::base_backend>& backend);
     void set_thresholds(double warn_percentage, double error_percentage);

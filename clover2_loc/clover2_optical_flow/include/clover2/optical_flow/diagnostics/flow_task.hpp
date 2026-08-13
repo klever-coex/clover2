@@ -12,7 +12,7 @@ namespace clover2::optical_flow::diagnostics {
 
 class flow_task : public diagnostic_updater::DiagnosticTask {
 public:
-    explicit flow_task(const std::string& name = "flow");
+    explicit flow_task(const std::string& name = "/sensors/camera/front/optical_flow/flow");
 
     void set_clock(rclcpp::Clock::SharedPtr clock);
     void update_required_tf(bool ok);

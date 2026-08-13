@@ -15,7 +15,7 @@ namespace clover2_fcu_bridge::diagnostics {
 
 class barometer_task : public diagnostic_updater::DiagnosticTask {
 public:
-    explicit barometer_task(const std::string& name = "barometer");
+    explicit barometer_task(const std::string& name = "/fcu/sensors/barometer");
 
     void set_backend(const std::shared_ptr<backend::base_backend>& backend);
     void set_clock(const rclcpp::Clock::SharedPtr& clock);

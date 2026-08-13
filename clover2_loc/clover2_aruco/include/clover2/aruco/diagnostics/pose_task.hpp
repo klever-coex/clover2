@@ -14,7 +14,7 @@ namespace clover2::aruco::diagnostics {
 class pose_task : public diagnostic_updater::DiagnosticTask {
 public:
     pose_task()
-        : diagnostic_updater::DiagnosticTask("pose") {}
+        : diagnostic_updater::DiagnosticTask("/localization/aruco_tracker/pose") {}
 
     void set_clock(rclcpp::Clock::SharedPtr clock);
     void update_pose(const rclcpp::Time& stamp,

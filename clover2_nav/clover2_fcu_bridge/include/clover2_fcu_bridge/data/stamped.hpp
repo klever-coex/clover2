@@ -11,7 +11,7 @@ namespace clover2_fcu_bridge::data {
 template <typename T>
 struct stamped {
     std::optional<T> value;
-    rclcpp::Time stamp;
+    rclcpp::Time stamp{static_cast<int64_t>(0), RCL_ROS_TIME};
 };
 
 }  // namespace clover2_fcu_bridge::data

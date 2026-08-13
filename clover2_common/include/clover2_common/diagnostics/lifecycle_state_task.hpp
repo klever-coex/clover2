@@ -14,7 +14,7 @@ public:
     using state_getter_fn = std::function<rclcpp_lifecycle::State()>;
 
     lifecycle_state_task()
-        : diagnostic_updater::DiagnosticTask("Lifecycle State") {}
+        : diagnostic_updater::DiagnosticTask("/system/lifecycle_state") {}
 
     void set_state_getter(state_getter_fn getter);
 

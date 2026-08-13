@@ -64,7 +64,7 @@ cam_feature::CallbackReturn cam_feature::on_configure(
         m_map_client = std::make_shared<clover2::map::client>(this);
 
         auto diagnostics = get_node_diagnostics_interface();
-        diagnostics->add<clover2::map::diagnostics::map_client_task>();
+        diagnostics->add<clover2::map::diagnostics::map_client_task>("/sensors/camera/main/cam_feature/map");
         diagnostics->get<clover2::map::diagnostics::map_client_task>()
             .set_client(m_map_client);
     } catch (const std::exception& e) {

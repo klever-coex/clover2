@@ -11,6 +11,7 @@
 #include <string>
 #include <type_traits>
 #include <typeindex>
+#include <utility>
 
 namespace clover2_common::node_interfaces {
 
@@ -24,12 +25,13 @@ public:
     RCLCPP_PUBLIC
     virtual void add(diagnostic_updater::DiagnosticTask& task) = 0;
 
-    template <typename T>
-    void add() {
+    template <typename T, typename... Args>
+    void add(Args&&... args) {
         static_assert(std::is_base_of_v<diagnostic_updater::DiagnosticTask, T>,
                       "T must inherit from diagnostic_updater::DiagnosticTask");
 
-        add_by_type(std::type_index(typeid(T)), std::make_unique<T>());
+        add_by_type(std::type_index(typeid(T)),
+                    std::make_unique<T>(std::forward<Args>(args)...));
     }
 
     template <typename T>

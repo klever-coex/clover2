@@ -15,7 +15,7 @@ namespace clover2_fcu_bridge::diagnostics {
 
 class imu_task : public diagnostic_updater::DiagnosticTask {
 public:
-    explicit imu_task(const std::string& name = "imu");
+    explicit imu_task(const std::string& name = "/fcu/sensors/imu");
 
     void set_backend(const std::shared_ptr<backend::base_backend>& backend);
     void set_clock(const rclcpp::Clock::SharedPtr& clock);

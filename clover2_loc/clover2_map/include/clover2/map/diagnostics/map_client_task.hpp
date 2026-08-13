@@ -14,7 +14,7 @@ namespace clover2::map::diagnostics {
 
 class map_client_task : public diagnostic_updater::DiagnosticTask {
 public:
-    explicit map_client_task(const std::string& name = "Map");
+    explicit map_client_task(const std::string& name = "map/client");
 
     void set_client(const std::shared_ptr<clover2::map::client>& client);
 
