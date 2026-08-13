@@ -3,6 +3,7 @@
     startup_px4_usb_quirk: false
 
     plugin_denylist:
+      - mount_control
       - camera
       - debug_value
       - fake_gps

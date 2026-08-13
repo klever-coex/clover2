@@ -1,7 +1,6 @@
 // clover2
 #include <clover2/cam_feature/cam_feature.hpp>
 #include <clover2/cam_feature/diagnostics/markers_task.hpp>
-#include <clover2/map/diagnostics/map_client_task.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 #include <clover2_common/node_context.hpp>
 #include <clover2_common/util/parameter.hpp>
@@ -61,12 +60,7 @@ cam_feature::CallbackReturn cam_feature::on_configure(
     auto node_context = std::make_shared<clover2_common::node_context>(*this);
 
     try {
-        m_map_client = std::make_shared<clover2::map::client>(this);
-
-        auto diagnostics = get_node_diagnostics_interface();
-        diagnostics->add<clover2::map::diagnostics::map_client_task>("/sensors/camera/main/cam_feature/map");
-        diagnostics->get<clover2::map::diagnostics::map_client_task>()
-            .set_client(m_map_client);
+        m_map_client = std::make_shared<clover2::map::client>(node_context);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map: %s", e.what());
         on_cleanup(state);
@@ -180,10 +174,8 @@ cam_feature::CallbackReturn cam_feature::on_cleanup(
     for (auto it = m_plugins.begin(); it != m_plugins.end(); ++it) {
         it->second->cleanup();
     }
-    m_plugins.clear();
 
-    get_node_diagnostics_interface()
-        ->remove<clover2::map::diagnostics::map_client_task>();
+    m_plugins.clear();
     m_map_client.reset();
 
     RCLCPP_INFO(get_logger(), "Cleaned up.");

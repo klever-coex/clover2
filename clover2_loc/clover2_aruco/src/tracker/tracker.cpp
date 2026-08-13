@@ -1,7 +1,6 @@
 // clover2
 #include <clover2/aruco/diagnostics/pose_task.hpp>
 #include <clover2/aruco/tracker.hpp>
-#include <clover2/map/diagnostics/map_client_task.hpp>
 
 // ROS2
 #include <lifecycle_msgs/msg/state.hpp>
@@ -63,16 +62,11 @@ tracker::CallbackReturn tracker::on_configure(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
     m_callback_group =
         create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+    auto node_context = std::make_shared<clover2_common::node_context>(*this);
 
     try {
         m_map_client = std::make_shared<clover2::map::client>(
-            shared_from_this(), m_callback_group);
-
-        auto diagnostic_interface = get_node_diagnostics_interface();
-        diagnostic_interface->add<clover2::map::diagnostics::map_client_task>(
-            "/localization/aruco_tracker/map");
-        diagnostic_interface->get<clover2::map::diagnostics::map_client_task>()
-            .set_client(m_map_client);
+            node_context, m_callback_group);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map client. Exception: %s",
                      e.what());
@@ -135,8 +129,6 @@ tracker::CallbackReturn tracker::on_deactivate(
 
 tracker::CallbackReturn tracker::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
-    get_node_diagnostics_interface()
-        ->remove<clover2::map::diagnostics::map_client_task>();
     m_map_client.reset();
 
     RCLCPP_INFO(get_logger(), "Cleaned up");

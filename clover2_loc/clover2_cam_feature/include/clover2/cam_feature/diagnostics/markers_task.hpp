@@ -14,7 +14,7 @@ class markers_task : public diagnostic_updater::DiagnosticTask {
 public:
     markers_task()
         : diagnostic_updater::DiagnosticTask(
-              "/sensors/camera/main/cam_feature/markers") {}
+              "/vision/cam_feature/markers") {}
 
     void set_clock(rclcpp::Clock::SharedPtr clock);
     void update_markers(const rclcpp::Time& stamp, size_t count);
