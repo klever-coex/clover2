@@ -45,7 +45,7 @@ void pose_task::run(diagnostic_updater::DiagnosticStatusWrapper& stat) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Waiting for pose output");
     } else if (!m_pose_changed) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Pose is not changing");
     } else {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
