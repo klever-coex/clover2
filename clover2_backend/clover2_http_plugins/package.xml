@@ -15,7 +15,7 @@
   <depend>rclcpp</depend>
   <depend>rcpputils</depend>
   <depend>fastcdr</depend>
-  <depend>nlohmann_json</depend>
+  <depend>nlohmann-json-dev</depend>
   <depend>rosidl_typesupport_cpp</depend>
   <depend>rosidl_typesupport_introspection_cpp</depend>
 
