@@ -1,0 +1,14 @@
+<class_libraries>
+    <library path="plugins">
+        <class
+            name="nodes_plugin"
+            type="clover2_http_plugins::nodes_plugin"
+            base_class_type="clover2_http::base_plugin"
+        />
+        <class
+            name="topics_plugin"
+            type="clover2_http_plugins::topics_plugin"
+            base_class_type="clover2_http::base_plugin"
+        />
+    </library>
+</class_libraries>

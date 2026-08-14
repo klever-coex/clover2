@@ -24,8 +24,10 @@ public:
         std::function<void(std::shared_ptr<ws_session<T>>)>;
 
     explicit ws_session(boost::asio::ip::tcp::socket socket,
-                        boost::asio::io_context& io)
-        : m_raw(std::make_shared<base_ws_session>(std::move(socket), io)) {}
+                        boost::asio::io_context& io,
+                        std::shared_ptr<clover2_http::http::core::logger> log)
+        : m_raw(std::make_shared<base_ws_session>(std::move(socket), io,
+                                                  std::move(log))) {}
 
     void start(
         boost::beast::http::request<boost::beast::http::string_body> request,

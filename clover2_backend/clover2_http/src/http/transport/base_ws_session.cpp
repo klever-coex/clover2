@@ -9,12 +9,24 @@
 
 namespace clover2_http::http::transport {
 
-base_ws_session::base_ws_session(boost::asio::ip::tcp::socket socket,
-                                 boost::asio::io_context& io)
-    : m_ws(std::move(socket))
-    , m_strand(boost::asio::make_strand(io)) {}
+namespace {
 
-base_ws_session::~base_ws_session() = default;
+constexpr std::chrono::seconds k_idle_timeout{60};
+
+}  // namespace
+
+base_ws_session::base_ws_session(boost::asio::ip::tcp::socket socket,
+                                 boost::asio::io_context& io,
+                                 std::shared_ptr<core::logger> log)
+    : m_ws(std::move(socket))
+    , m_strand(boost::asio::make_strand(io))
+    , m_timer(m_strand)
+    , m_logger(std::move(log)) {}
+
+base_ws_session::~base_ws_session() {
+    boost::system::error_code ec;
+    m_timer.cancel(ec);
+}
 
 void base_ws_session::start(
     boost::beast::http::request<boost::beast::http::string_body> request,
@@ -26,12 +38,36 @@ void base_ws_session::start(
         boost::asio::bind_executor(
             m_strand, [self = shared_from_this(), handler = std::move(handler)](
                           boost::system::error_code ec) mutable {
-                if (ec) return;
+                if (ec) {
+                    self->m_logger->warn("WebSocket accept error: {}",
+                                         ec.message());
+                    return;
+                }
 
                 if (handler) {
                     handler(self);
                 }
             }));
+}
+
+void base_ws_session::reset_timer() {
+    m_timer.expires_after(k_idle_timeout);
+    m_timer.async_wait(boost::asio::bind_executor(
+        m_strand, [self = shared_from_this()](boost::system::error_code ec) {
+            if (ec) return;
+
+            self->m_logger->debug("WS idle timeout, closing session");
+            if (!self->m_closed) {
+                self->m_closed = true;
+
+                if (self->m_close_handler) {
+                    self->m_close_handler(self, 1001);
+                }
+
+                self->do_close_ws(
+                    boost::beast::websocket::close_code::going_away);
+            }
+        }));
 }
 
 void base_ws_session::on_text(text_handler handler) {
@@ -97,9 +133,7 @@ void base_ws_session::ping(std::string payload) {
         self->m_ws.async_ping(
             boost::beast::websocket::ping_data{p},
             boost::asio::bind_executor(self->m_strand,
-                                       [self](boost::system::error_code) {
-                                           // fire-and-forget
-                                       }));
+                                       [self](boost::system::error_code) {}));
     });
 }
 
@@ -112,6 +146,7 @@ void base_ws_session::write_raw(std::string data, bool binary) {
                                  data = std::move(data), binary]() mutable {
         if (!self->m_ws.is_open()) return;
 
+        self->reset_timer();
         self->m_write_queue.push_back(queued_message{std::move(data), binary});
 
         if (!self->m_writing) {
@@ -123,6 +158,7 @@ void base_ws_session::write_raw(std::string data, bool binary) {
 
 void base_ws_session::do_read() {
     m_buffer.clear();
+    reset_timer();
     m_ws.async_read(
         m_buffer, boost::asio::bind_executor(
                       m_strand, [self = shared_from_this()](
@@ -258,6 +294,7 @@ void base_ws_session::do_write() {
 
 void base_ws_session::do_close_ws(boost::beast::websocket::close_code code) {
     boost::system::error_code ec;
+    m_timer.cancel(ec);
     m_ws.close(code, ec);
 }
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>  // must precede beast: field.hpp uses std::uint32_t
+
 #include <boost/beast/http/field.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/status.hpp>
@@ -11,8 +13,6 @@
 
 namespace clover2_http::http::endpoint {
 
-inline constexpr unsigned kHttpVersion11 = 11;  // HTTP/1.1
-
 using http_request =
     boost::beast::http::request<boost::beast::http::string_body>;
 using http_response =
@@ -20,55 +20,61 @@ using http_response =
 
 using response_sender = std::function<void(http_response)>;
 
-inline http_response make_ok_response(const std::string& body) {
-    http_response res{boost::beast::http::status::ok, kHttpVersion11};
-    res.set(boost::beast::http::field::content_type, "application/json");
-    res.body() = body;
-    res.prepare_payload();
-    return res;
-}
+http_response make_ok_response(const std::string& body);
+http_response make_error_response(int status, const std::string& message);
 
-inline http_response make_error_response(int status,
-                                         const std::string& message) {
-    http_response res{static_cast<boost::beast::http::status>(status),
-                      kHttpVersion11};
-    res.set(boost::beast::http::field::content_type, "application/json");
-
-    nlohmann::json obj;
-    obj["error"] = message;
-    res.body() = obj.dump();
-    res.prepare_payload();
-    return res;
-}
-
-template <typename T>
-class reply {
+// Shared state and guard logic of reply<T> and reply<void>: sending exactly
+// one response, with a 500 fallback if the handler never sends anything.
+class reply_base {
 public:
-    explicit reply(response_sender sender)
+    explicit reply_base(response_sender sender)
         : m_sender(std::move(sender)) {}
 
-    ~reply() {
+    ~reply_base() {
         if (!m_sent && m_sender) {
             m_sender(
                 make_error_response(500, "Handler did not produce a response"));
         }
     }
 
-    reply(const reply&) = delete;
-    reply& operator=(const reply&) = delete;
+    reply_base(const reply_base&) = delete;
+    reply_base& operator=(const reply_base&) = delete;
 
-    reply(reply&&) = default;
-    reply& operator=(reply&&) = default;
+    reply_base(reply_base&&) = default;
+    reply_base& operator=(reply_base&&) = default;
+
+    void error(int status, const std::string& message) {
+        if (m_sent) return;
+
+        m_sent = true;
+        m_sender(make_error_response(status, message));
+    }
+
+    response_sender release() {
+        m_sent = true;
+        return std::move(m_sender);
+    }
+
+protected:
+    bool m_sent = false;
+    response_sender m_sender;
+};
+
+template <typename T>
+class reply : public reply_base {
+public:
+    explicit reply(response_sender sender)
+        : reply_base(std::move(sender)) {}
 
     void operator()(const T& resp, int status = 200) {
         if (m_sent) return;
         m_sent = true;
 
-        nlohmann::json jv(std::forward<const T>(resp));
+        nlohmann::json jv(resp);
         std::string body = jv.dump();
 
         http_response response{static_cast<boost::beast::http::status>(status),
-                               kHttpVersion11};
+                               11};
         response.set(boost::beast::http::field::content_type,
                      "application/json");
         response.body() = std::move(body);
@@ -76,48 +82,20 @@ public:
 
         m_sender(std::move(response));
     }
-
-    void error(int status, const std::string& message) {
-        if (m_sent) return;
-        m_sent = true;
-        m_sender(make_error_response(status, message));
-    }
-
-    response_sender release() {
-        m_sent = true;
-        return std::move(m_sender);
-    }
-
-private:
-    response_sender m_sender;
-    bool m_sent = false;
 };
 
 template <>
-class reply<void> {
+class reply<void> : public reply_base {
 public:
     explicit reply(response_sender sender)
-        : m_sender(std::move(sender)) {}
-
-    ~reply() {
-        if (!m_sent && m_sender) {
-            m_sender(
-                make_error_response(500, "Handler did not produce a response"));
-        }
-    }
-
-    reply(const reply&) = delete;
-    reply& operator=(const reply&) = delete;
-
-    reply(reply&&) = default;
-    reply& operator=(reply&&) = default;
+        : reply_base(std::move(sender)) {}
 
     void done(int status = 200) {
         if (m_sent) return;
         m_sent = true;
 
         http_response response{static_cast<boost::beast::http::status>(status),
-                               kHttpVersion11};
+                               11};
         response.set(boost::beast::http::field::content_type,
                      "application/json");
         response.body() = "{}";
@@ -125,21 +103,6 @@ public:
 
         m_sender(std::move(response));
     }
-
-    void error(int status, const std::string& message) {
-        if (m_sent) return;
-        m_sent = true;
-        m_sender(make_error_response(status, message));
-    }
-
-    response_sender release() {
-        m_sent = true;
-        return std::move(m_sender);
-    }
-
-private:
-    response_sender m_sender;
-    bool m_sent = false;
 };
 
 }  // namespace clover2_http::http::endpoint

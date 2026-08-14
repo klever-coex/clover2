@@ -60,14 +60,14 @@ public:
     template <typename T, typename Handler>
     void ws(const std::string& path, Handler handler) {
         auto ws_handler = std::make_unique<transport::ws_handler<T>>(
-            std::move(handler), m_io);
+            std::move(handler), m_io, m_logger);
         m_router->add_ws_route(path, std::move(ws_handler));
     }
 
     template <typename Handler>
     void raw_ws(const std::string& path, Handler handler) {
         auto ws_handler = std::make_unique<transport::raw_ws_handler>(
-            std::move(handler), m_io);
+            std::move(handler), m_io, m_logger);
         m_router->add_ws_route(path, std::move(ws_handler));
     }
 
@@ -78,6 +78,14 @@ public:
                                                            *m_router, m_logger);
         m_listener->start();
         m_logger->info("Listening on {}:{}", address, port);
+    }
+
+    // Stops accepting new connections; active sessions finish on their own
+    // (or by their idle timers).
+    void stop() {
+        if (m_listener) {
+            m_listener->stop();
+        }
     }
 
 private:

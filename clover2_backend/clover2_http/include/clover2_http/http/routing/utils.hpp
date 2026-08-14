@@ -1,15 +1,12 @@
 #pragma once
 
-#include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace clover2_http::http::routing {
 
-std::vector<std::string_view> tokenize_sv(const std::string_view path) noexcept;
-std::optional<std::string_view> extract_next_token(
-    std::string_view path) noexcept;
-std::string_view without_first_token(std::string_view path) noexcept;
+std::vector<std::string> split_pattern(const std::string& pattern);
 
 bool is_token_valid(const std::string_view token) noexcept;
 bool is_parameter(const std::string_view token) noexcept;

@@ -4,6 +4,7 @@
 
 #include <boost/beast/core/detail/config.hpp>
 
+#include <format>
 #include <functional>
 #include <type_traits>
 
@@ -32,10 +33,9 @@ public:
             sender(make_error_response(e.status(), e.message()));
         } catch (const nlohmann::json::exception& e) {
             sender(make_error_response(
-                400, std::string("Invalid JSON: ") + e.what()));
-        } catch (const std::exception& e) {
-            sender(make_error_response(
-                400, std::string("Bad request: ") + e.what()));
+                400, std::format("Invalid JSON: {}", e.what())));
+        } catch (const std::exception&) {
+            sender(make_error_response(500, "Internal Server Error"));
         }
     }
 
@@ -57,9 +57,8 @@ public:
             m_handler(std::move(ctx), reply<Resp>(std::move(sender)));
         } catch (const core::http_error& e) {
             sender(make_error_response(e.status(), e.message()));
-        } catch (const std::exception& e) {
-            sender(make_error_response(
-                400, std::string("Bad request: ") + e.what()));
+        } catch (const std::exception&) {
+            sender(make_error_response(500, "Internal Server Error"));
         }
     }
 
@@ -92,9 +91,8 @@ public:
         } catch (const nlohmann::json::exception& e) {
             sender(make_error_response(
                 400, std::format("Invalid JSON: {}", e.what())));
-        } catch (const std::exception& e) {
-            sender(make_error_response(
-                400, std::format("Bad request: {}", e.what())));
+        } catch (const std::exception&) {
+            sender(make_error_response(500, "Internal Server Error"));
         }
     }
 

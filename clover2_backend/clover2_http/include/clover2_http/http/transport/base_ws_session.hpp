@@ -1,9 +1,11 @@
 #pragma once
 
+#include <clover2_http/http/core/logger.hpp>
 #include <clover2_http/http/core/request_context.hpp>
 
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/http/message.hpp>
@@ -34,7 +36,8 @@ public:
         boost::asio::strand<boost::asio::io_context::executor_type>;
 
     explicit base_ws_session(boost::asio::ip::tcp::socket socket,
-                             boost::asio::io_context& io);
+                             boost::asio::io_context& io,
+                             std::shared_ptr<clover2_http::http::core::logger> log);
     ~base_ws_session();
 
     void start(
@@ -64,6 +67,7 @@ private:
     };
 
     void write_raw(std::string data, bool binary);
+    void reset_timer();
     void do_read();
     void on_read(boost::system::error_code ec);
     void dispatch_binary(std::string data);
@@ -74,6 +78,7 @@ private:
 
     boost::beast::websocket::stream<boost::asio::ip::tcp::socket> m_ws;
     strand_type m_strand;
+    boost::asio::steady_timer m_timer;
     boost::beast::flat_buffer m_buffer;
     core::request_context m_ctx;
 
@@ -84,6 +89,7 @@ private:
     std::deque<queued_message> m_write_queue;
     bool m_writing = false;
     bool m_closed = false;
+    std::shared_ptr<clover2_http::http::core::logger> m_logger;
 };
 
 }  // namespace clover2_http::http::transport

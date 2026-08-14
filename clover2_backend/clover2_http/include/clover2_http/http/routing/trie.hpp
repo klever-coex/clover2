@@ -3,11 +3,11 @@
 #include <clover2_http/http/core/exceptions.hpp>
 #include <clover2_http/http/routing/utils.hpp>
 
-#include <format>
 #include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace clover2_http::http::routing {
 
@@ -17,10 +17,7 @@ public:
     struct node {
         using UniquePtr = std::unique_ptr<node>;
 
-        node() = default;
-
-        bool is_parameter;
-        bool is_end;
+        bool is_end = false;
 
         UniquePtr parameter{nullptr};
         std::string parameter_name;
@@ -35,42 +32,41 @@ public:
 
     struct match_result {
         HandlerT* handler;
-        std::unordered_map<std::string, std::string_view> params;
+        std::unordered_map<std::string, std::string> params;
     };
 
     trie()
         : root(std::make_unique<node>()) {}
 
-    void insert(const std::string_view route,
+    void insert(const std::vector<std::string>& segments,
+                const std::string_view route,
                 std::unique_ptr<HandlerT> handler) {
         auto cur = root.get();
-        const auto tokens = tokenize_sv(route);
 
-        for (const auto& token : tokens) {
-            if (!is_token_valid(token)) {
+        for (const auto& seg : segments) {
+            if (!seg.empty() && !is_token_valid(seg)) {
                 throw clover2_http::http::core::routing_error(
-                    "Invalid path token {}.", token);
+                    "Invalid path token {}.", seg);
             }
 
-            if (is_parameter(token)) {
-                cur = fill_parameter(token, cur);
-
-            } else if (is_catch_all(token)) {
-                if (&token != &tokens.back()) {
+            if (is_parameter(seg)) {
+                cur = fill_parameter(seg, cur);
+            } else if (is_catch_all(seg)) {
+                if (&seg != &segments.back()) {
                     throw clover2_http::http::core::routing_error(
                         "Catch all should be the last segment.");
                 }
 
-                cur = fill_catch_all(token, cur);
+                cur = fill_catch_all(seg, cur);
                 break;
             } else {
-                if (cur->children.find(std::string(token)) ==
-                    cur->children.end()) {
-                    cur->children[std::string(token)] =
-                        std::make_unique<node>();
+                auto it = cur->children.find(seg);
+                if (it == cur->children.end()) {
+                    it = cur->children.emplace(seg, std::make_unique<node>())
+                             .first;
                 }
 
-                cur = cur->children[std::string(token)].get();
+                cur = it->second.get();
             }
         }
 
@@ -83,33 +79,34 @@ public:
         cur->handler = std::move(handler);
     }
 
-    std::optional<match_result> search(const std::string_view route) const {
+    std::optional<match_result> search(
+        const std::vector<std::string>& segments) const {
         auto cur = root.get();
-        const auto tokens = tokenize_sv(route);
 
         match_result result;
-        std::string route_copy = route;
 
-        while (auto token = extract_next_token(route_copy)) {
-            if (!is_token_valid(*token)) {
-                throw clover2_http::http::core::routing_error(
-                    "Invalid path token {}.", *token);
-            }
+        for (size_t i = 0; i < segments.size(); ++i) {
+            const auto& seg = segments[i];
 
-            auto it = cur->children.find(std::string(*token));
+            auto it = cur->children.find(seg);
             if (it != cur->children.end()) {
                 cur = it->second.get();
                 continue;
             }
 
             if (cur->parameter) {
-                result.params[cur->parameter_name] = *token;
+                result.params[cur->parameter_name] = seg;
                 cur = cur->parameter.get();
                 continue;
             }
 
             if (cur->catch_all) {
-                result.params[cur->catch_all_name] = route_copy;
+                std::string rest = seg;
+                for (size_t j = i + 1; j < segments.size(); ++j) {
+                    rest += '/';
+                    rest += segments[j];
+                }
+                result.params[cur->catch_all_name] = std::move(rest);
                 cur = cur->catch_all.get();
                 break;
             }
@@ -127,13 +124,16 @@ public:
     }
 
 private:
-    node* fill_parameter(const std::string_view token, node* cur) {
-        const auto name = extract_parameter(token);
+    node* fill_parameter(const std::string_view seg, node* cur) {
+        const auto name = extract_parameter(seg);
 
-        if (cur->parameter && name != cur->parameter_name) {
-            throw clover2_http::http::core::routing_error(
-                "Same path for {} and {} parameters.", name,
-                cur->parameter_name);
+        if (cur->parameter) {
+            if (name != cur->parameter_name) {
+                throw clover2_http::http::core::routing_error(
+                    "Same path for {} and {} parameters.", name,
+                    cur->parameter_name);
+            }
+            return cur->parameter.get();
         }
 
         cur->parameter = std::make_unique<node>();
@@ -142,12 +142,16 @@ private:
         return cur->parameter.get();
     }
 
-    node* fill_catch_all(const std::string_view token, node* cur) {
-        const auto name = extract_catch_all(token);
+    node* fill_catch_all(const std::string_view seg, node* cur) {
+        const auto name = extract_catch_all(seg);
 
-        if (cur->catch_all && name != cur->catch_all_name) {
-            throw clover2_http::http::core::routing_error(
-                "Path already exits for {} and {}.", name, cur->catch_all_name);
+        if (cur->catch_all) {
+            if (name != cur->catch_all_name) {
+                throw clover2_http::http::core::routing_error(
+                    "Path already exits for {} and {}.", name,
+                    cur->catch_all_name);
+            }
+            return cur->catch_all.get();
         }
 
         cur->catch_all = std::make_unique<node>();

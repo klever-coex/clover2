@@ -7,32 +7,17 @@
 #include <boost/beast/http/write.hpp>
 #include <boost/beast/websocket.hpp>
 
-#include <iostream>
-#include <sstream>
+#include <algorithm>
+#include <cctype>
 
 namespace clover2_http::http::transport {
 
-parsed_target parse_target(const std::string& target) {
-    parsed_target pt;
-    auto qpos = target.find('?');
-    if (qpos != std::string::npos) {
-        pt.path = target.substr(0, qpos);
-        auto query = target.substr(qpos + 1);
-        std::istringstream stream(query);
-        std::string pair;
-        while (std::getline(stream, pair, '&')) {
-            auto epos = pair.find('=');
-            if (epos != std::string::npos) {
-                pt.query_params[pair.substr(0, epos)] = pair.substr(epos + 1);
-            } else {
-                pt.query_params[pair] = "";
-            }
-        }
-    } else {
-        pt.path = target;
-    }
-    return pt;
-}
+namespace {
+
+constexpr std::size_t k_max_body_size = 10 * 1024 * 1024;  // 10 MiB
+constexpr std::chrono::seconds k_idle_timeout{30};
+
+}  // namespace
 
 http_session::http_session(boost::asio::ip::tcp::socket socket,
                            routing::router& router, boost::asio::io_context& io,
@@ -45,15 +30,19 @@ http_session::http_session(boost::asio::ip::tcp::socket socket,
     boost::system::error_code ec;
     auto ep = m_socket.remote_endpoint(ec);
     if (!ec) {
-        m_logger->info("Session open from {}: {}", ep.address().to_string(),
+        m_logger->debug("Session open from {}: {}", ep.address().to_string(),
                        ep.port());
+    } else {
+        m_logger->warn("Session open from unknown address: {}", ec.message());
     }
 }
 
 http_session::~http_session() {
     boost::system::error_code ec;
     m_timer.cancel(ec);
-    m_logger->debug("Session close");
+    if (!m_upgraded) {
+        m_logger->debug("Session close");
+    }
 }
 
 void http_session::start() { do_read(); }
@@ -61,29 +50,45 @@ void http_session::start() { do_read(); }
 void http_session::do_read() {
     m_request = {};
     m_buffer.clear();
-    m_close = false;
 
-    m_timer.expires_after(std::chrono::seconds(30));
+    m_timer.expires_after(k_idle_timeout);
     m_timer.async_wait(boost::asio::bind_executor(
         m_strand, [self = shared_from_this()](boost::system::error_code ec) {
             if (!ec) {
+                self->m_logger->debug("Idle timeout, closing session");
                 self->do_close();
             }
         }));
 
+    auto parser = std::make_shared<request_parser_t>();
+    parser->body_limit(k_max_body_size);
+
     boost::beast::http::async_read(
-        m_socket, m_buffer, m_request,
+        m_socket, m_buffer, *parser,
         boost::asio::bind_executor(
-            m_strand, [self = shared_from_this()](boost::system::error_code ec,
-                                                  std::size_t n) {
+            m_strand, [self = shared_from_this(), parser](
+                          boost::system::error_code ec, std::size_t n) {
                 self->m_timer.cancel();
-                self->on_read(ec, n);
+                self->on_read(ec, n, parser);
             }));
 }
 
-void http_session::on_read(boost::beast::error_code ec, std::size_t) {
+void http_session::on_read(boost::beast::error_code ec, std::size_t,
+                           std::shared_ptr<request_parser_t> parser) {
     if (ec == boost::beast::http::error::end_of_stream) {
         do_close();
+        return;
+    }
+
+    if (ec == boost::asio::error::operation_aborted) {
+        do_close();
+        return;
+    }
+
+    if (ec == boost::beast::http::error::body_limit) {
+        m_logger->warn("Request body exceeds the {} bytes limit",
+                       k_max_body_size);
+        send_error(413, "Payload Too Large");
         return;
     }
 
@@ -93,6 +98,7 @@ void http_session::on_read(boost::beast::error_code ec, std::size_t) {
         return;
     }
 
+    m_request = parser->release();
     m_keep_alive = m_request.keep_alive();
     m_version = m_request.version();
 
@@ -102,16 +108,29 @@ void http_session::on_read(boost::beast::error_code ec, std::size_t) {
 void http_session::handle_request() {
     try {
         const std::string target_str = m_request.target();
-        auto pt = parse_target(target_str);
+        auto parsed = boost::urls::parse_relative_ref(target_str);
+
+        if (parsed.has_error()) {
+            parsed = boost::urls::parse_absolute_uri(target_str);
+        }
+
+        if (parsed.has_error()) {
+            m_logger->warn("Malformed request target: {}", target_str);
+            send_error(400, "Malformed request target");
+            return;
+        }
+
+        boost::urls::url_view uv = *parsed;
 
         if (boost::beast::websocket::is_upgrade(m_request)) {
-
             std::unordered_map<std::string, std::string> path_params;
-            auto* ws_handler = m_router.match_ws(pt.path, path_params);
+            auto* ws_handler = m_router.match_ws(uv, path_params);
 
             if (ws_handler) {
-                auto ctx = make_context(pt);
+                auto ctx = make_context(uv);
                 ctx.path_params = std::move(path_params);
+                m_upgraded = true;
+                m_logger->debug("Session upgraded to WebSocket");
                 ws_handler->on_accept(std::move(m_socket), std::move(m_request),
                                       std::move(ctx));
                 return;
@@ -121,14 +140,14 @@ void http_session::handle_request() {
             return;
         }
 
-        auto ctx = make_context(pt);
+        auto ctx = make_context(uv);
 
-        m_logger->debug("Handling request: {} {} from {}",
-                         std::string(m_request.method_string()), target_str,
-                         ctx.remote_endpoint.address().to_string());
+        m_logger->info("Handling request: {} {} from {}",
+                       std::string(m_request.method_string()), target_str,
+                       ctx.remote_endpoint.address().to_string());
 
         auto found = m_router.dispatch_http(
-            m_request.method(), target_str, ctx, m_request,
+            m_request.method(), uv, ctx, m_request,
             [self = shared_from_this()](
                 boost::beast::http::response<boost::beast::http::string_body>
                     response) {
@@ -195,30 +214,19 @@ void http_session::do_close() {
     m_socket.close(ec);
 }
 
-core::request_context http_session::make_context(const parsed_target& pt) {
-    core::request_context ctx;
-    boost::system::error_code ec;
-    ctx.remote_endpoint = m_socket.remote_endpoint(ec);
-
-    for (auto const& f : m_request) {
-        ctx.headers[std::string(f.name_string())] = std::string(f.value());
-    }
-
-    ctx.query_params = pt.query_params;
-    return ctx;
-}
-
 core::request_context http_session::make_context(boost::urls::url_view url) {
-    core::request_context ctx;
+    core::request_context ctx(url);
     boost::system::error_code ec;
     ctx.remote_endpoint = m_socket.remote_endpoint(ec);
+    if (ec) {
+        m_logger->warn("remote_endpoint unavailable: {}", ec.message());
+    }
 
     for (const auto& f : m_request) {
-        ctx.headers[std::string(f.name_string())] = std::string(f.value());
-    }
-
-    for (auto q : url.params()) {
-        ctx.query_params[q.key] = q.value;
+        std::string name(f.name_string());
+        std::transform(name.begin(), name.end(), name.begin(),
+                       [](unsigned char c) { return std::tolower(c); });
+        ctx.headers[std::move(name)] = std::string(f.value());
     }
 
     return ctx;
