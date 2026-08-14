@@ -35,9 +35,10 @@ private:
     static bool is_group(const api::diagnostics::tree_node& node);
 
     void rebuild_view();
-    void rebuild_visible_items(
-        const api::diagnostics::tree_node& node, int depth);
+    void rebuild_visible_items(const api::diagnostics::tree_node& node,
+                               int depth);
     void update_list_buttons();
+    void ensure_selected_visible();
     void update_details();
     bool filter_accepts(std::uint8_t level) const;
     const visible_item* selected_item() const;
@@ -49,7 +50,7 @@ private:
 
     std::shared_ptr<cpptui::Label> m_summary_label;
     std::shared_ptr<cpptui::CheckboxList> m_filters;
-    std::shared_ptr<cpptui::Vertical> m_list;
+    std::shared_ptr<cpptui::ScrollableVertical> m_list;
     std::shared_ptr<cpptui::Paragraph> m_details;
 
     std::vector<std::shared_ptr<cpptui::Button>> m_buttons;

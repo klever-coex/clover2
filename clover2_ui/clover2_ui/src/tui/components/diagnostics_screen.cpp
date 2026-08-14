@@ -36,7 +36,9 @@ diagnostics_screen::diagnostics_screen(
     list_border->set_title("Diagnostic list", cpptui::Alignment::Left);
     body->add(list_border);
 
-    m_list = std::make_shared<cpptui::Vertical>();
+    m_list = std::make_shared<cpptui::ScrollableVertical>();
+    m_list->focusable = false;
+    m_list->tab_stop = false;
     list_border->add(m_list);
 
     auto details_border =
@@ -50,7 +52,27 @@ diagnostics_screen::diagnostics_screen(
 
 void diagnostics_screen::on_enter() {
     refresh_from_monitor();
-    if (!m_buttons.empty()) m_buttons[m_selected]->set_focus(true);
+    if (!m_filters->has_focus_within() && !m_buttons.empty()) {
+        m_buttons[m_selected]->set_focus(true);
+    }
+    ensure_selected_visible();
+}
+
+void diagnostics_screen::ensure_selected_visible() {
+    if (!m_list || m_buttons.empty() || m_list->height <= 0) return;
+
+    const int visible_rows = m_list->height;
+    const int selected_row = m_selected;
+    if (selected_row < m_list->scroll_offset) {
+        m_list->scroll_offset = selected_row;
+    } else if (selected_row >= m_list->scroll_offset + visible_rows) {
+        m_list->scroll_offset = selected_row - visible_rows + 1;
+    }
+
+    const int max_scroll =
+        std::max(0, static_cast<int>(m_buttons.size()) - visible_rows);
+    m_list->scroll_offset = std::clamp(m_list->scroll_offset, 0, max_scroll);
+    m_list->layout();
 }
 
 bool diagnostics_screen::on_event(const cpptui::Event& event) {
@@ -100,8 +122,7 @@ cpptui::Color diagnostics_screen::level_color(std::uint8_t level) {
     }
 }
 
-bool diagnostics_screen::is_group(
-    const diagnostics_api::tree_node& node) {
+bool diagnostics_screen::is_group(const diagnostics_api::tree_node& node) {
     return !node.children.empty();
 }
 
@@ -134,6 +155,7 @@ void diagnostics_screen::rebuild_view() {
 
     update_list_buttons();
     update_details();
+    ensure_selected_visible();
 }
 
 void diagnostics_screen::rebuild_visible_items(
@@ -186,11 +208,14 @@ void diagnostics_screen::update_list_buttons() {
         });
         button->alignment = cpptui::Alignment::Left;
         button->fixed_height = 1;
+        button->tab_stop = (static_cast<int>(i) == m_selected);
         m_list->add(button);
         m_buttons.push_back(button);
     }
 
-    if (!m_buttons.empty()) m_buttons[m_selected]->set_focus(true);
+    if (!m_filters->has_focus_within() && !m_buttons.empty()) {
+        m_buttons[m_selected]->set_focus(true);
+    }
 }
 
 void diagnostics_screen::update_details() {
@@ -256,6 +281,7 @@ void diagnostics_screen::move_selection(int delta) {
     if (m_selected >= static_cast<int>(m_visible_items.size())) m_selected = 0;
     update_list_buttons();
     update_details();
+    ensure_selected_visible();
 }
 
 void diagnostics_screen::toggle_selected() {
