@@ -22,7 +22,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
 ament_auto_add_library(plugins SHARED DIRECTORY "src")
 
-# clover2_http headers pull boost::urls symbols (request_context).
 find_package(Boost REQUIRED COMPONENTS url)
 target_link_libraries(plugins Boost::url)
 
@@ -32,21 +31,18 @@ pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
 
-  # Linking the typesupport libraries keeps the .so files loaded in the
-  # test process, so the dynamic lookups in typesupport/message_type and
-  # msg_json resolve them by soname.
-  ament_auto_add_gtest(test_msg_json test/test_msg_json.cpp)
-  target_link_libraries(test_msg_json
-    ${PROJECT_NAME}__rosidl_typesupport_cpp
-    ${PROJECT_NAME}__rosidl_typesupport_introspection_cpp
-  )
+  ament_auto_add_gtest(test_clover2_http_plugins test/test_msg_json.cpp test/test_message_type.cpp test/test_rate_limiter.cpp)
+  # target_link_libraries(test_msg_json
+  #   ${PROJECT_NAME}__rosidl_typesupport_cpp
+  #   ${PROJECT_NAME}__rosidl_typesupport_introspection_cpp
+  # )
 
-  ament_auto_add_gtest(test_rate_limiter test/test_rate_limiter.cpp)
+  # ament_auto_add_gtest(test_rate_limiter test/test_rate_limiter.cpp)
 
-  ament_auto_add_gtest(test_message_type test/test_message_type.cpp)
-  target_compile_definitions(test_message_type
+  # ament_auto_add_gtest(test_message_type test/test_message_type.cpp)
+  target_compile_definitions(test_clover2_http_plugins
     PRIVATE AMENT_PREFIX="${CMAKE_INSTALL_PREFIX}")
-  target_link_libraries(test_message_type
+  target_link_libraries(test_clover2_http_plugins
     ${PROJECT_NAME}__rosidl_typesupport_cpp
     ${PROJECT_NAME}__rosidl_typesupport_introspection_cpp
     ${PROJECT_NAME}__rosidl_typesupport_fastrtps_cpp

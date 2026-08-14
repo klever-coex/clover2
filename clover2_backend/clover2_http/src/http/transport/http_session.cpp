@@ -133,6 +133,9 @@ void http_session::handle_request() {
                 m_logger->debug("Session upgraded to WebSocket");
                 ws_handler->on_accept(std::move(m_socket), std::move(m_request),
                                       std::move(ctx));
+
+                m_logger->info("Open WebSocket: {} from {}", target_str,
+                               ctx.remote_endpoint.address().to_string());
                 return;
             }
 

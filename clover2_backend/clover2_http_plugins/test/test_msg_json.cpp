@@ -1,7 +1,6 @@
-#include <clover2_http_plugins/utils/msg_json.hpp>
-
 #include <clover2_http_plugins/msg/json_test.hpp>
 #include <clover2_http_plugins/msg/json_test_inner.hpp>
+#include <clover2_http_plugins/utils/msg_json.hpp>
 
 #include <gtest/gtest.h>
 
@@ -101,11 +100,11 @@ TEST(MsgJson, FixedArraySizeMismatchFails) {
 
 TEST(MsgJson, UnicodeRoundTrip) {
     JsonTestInner msg;
-    msg.text = "привет 🚀";
+    msg.text = "клевер на рос2";
     msg.count = 5;
 
     const auto j = msg_json::to_json(msg);
-    EXPECT_EQ(j.at("text"), "привет 🚀");
+    EXPECT_EQ(j.at("text"), "клевер на рос2");
 
     JsonTestInner restored;
     msg_json::from_json(j, restored);

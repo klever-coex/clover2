@@ -93,6 +93,7 @@ bool message_type::deserialize(const rclcpp::SerializedMessage& message,
 
     try {
         cdr.read_encapsulation();
+
         if (!callbacks->cdr_deserialize(cdr, msg)) {
             throw std::runtime_error("typesupport: CDR deserialization failed");
         }

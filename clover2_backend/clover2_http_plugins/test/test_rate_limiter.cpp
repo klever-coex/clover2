@@ -16,22 +16,18 @@ TEST(RateLimiter, NonPositiveLimitDisablesThrottling) {
 }
 
 TEST(RateLimiter, BudgetExhaustedWithoutRefill) {
-    // 100 bytes/s: the burst allowance is 64 KiB.
     rate_limiter limiter(100.0);
 
     EXPECT_TRUE(limiter.allow(64 * 1024));
-    // The whole burst is consumed; without elapsed time nothing passes.
     EXPECT_FALSE(limiter.allow(1));
 }
 
 TEST(RateLimiter, OversizeMessagePassesOnFullBucketOnly) {
-    // 10 bytes/s: the burst allowance is 64 KiB; a 1 MiB message is bigger
-    // than the burst cap and passes only when the bucket is full.
     rate_limiter limiter(10.0);
 
-    EXPECT_TRUE(limiter.allow(1 << 20));   // full bucket -> passes, drains it
-    EXPECT_FALSE(limiter.allow(1 << 20));  // empty bucket -> dropped
-    EXPECT_FALSE(limiter.allow(1));        // even small messages wait for refill
+    EXPECT_TRUE(limiter.allow(1 << 20));
+    EXPECT_FALSE(limiter.allow(1 << 20));
+    EXPECT_FALSE(limiter.allow(1));
 }
 
 }  // namespace
