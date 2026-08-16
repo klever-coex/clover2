@@ -56,7 +56,7 @@ private:
 
     bool m_keep_alive = false;
     int m_version = 11;  // HTTP/1.1
-    bool m_upgraded = false;  // socket handed over to a ws_session
+    bool m_upgraded = false;
 
     boost::beast::flat_buffer m_buffer;
     boost::beast::http::request<boost::beast::http::string_body> m_request;

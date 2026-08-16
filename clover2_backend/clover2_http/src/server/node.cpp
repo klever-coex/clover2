@@ -9,7 +9,7 @@ node::node(const rclcpp::NodeOptions& options)
     , m_io(std::make_shared<boost::asio::io_context>())
     , m_server(std::make_shared<clover2_http::http::server>(
           *m_io, logger(get_logger().get_child("server"))))
-    , m_plugin_loader("clover2_http_plugins", "clover2_http::base_plugin") {
+    , m_plugin_loader("clover2_http", "clover2_http::base_plugin") {
     const auto address =
         declare_parameter<std::string>("http_address", "0.0.0.0");
     const auto port = declare_parameter<int64_t>("http_port", 8080);

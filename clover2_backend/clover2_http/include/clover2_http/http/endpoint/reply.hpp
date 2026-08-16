@@ -23,8 +23,6 @@ using response_sender = std::function<void(http_response)>;
 http_response make_ok_response(const std::string& body);
 http_response make_error_response(int status, const std::string& message);
 
-// Shared state and guard logic of reply<T> and reply<void>: sending exactly
-// one response, with a 500 fallback if the handler never sends anything.
 class reply_base {
 public:
     explicit reply_base(response_sender sender)

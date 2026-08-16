@@ -17,7 +17,6 @@ std::unique_ptr<Handler> make_handler(std::string name) {
     return std::make_unique<Handler>(std::move(name));
 }
 
-// Splits a pattern the same way the router does when registering routes.
 std::vector<std::string> segs(const char* pattern) {
     return routing::split_pattern(pattern);
 }

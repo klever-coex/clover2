@@ -15,42 +15,33 @@ find_package(rosidl_default_generators REQUIRED)
 
 ament_auto_find_build_dependencies()
 
+file(GLOB msg_files RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "msg/*.msg")
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/JsonTestInner.msg"
-  "msg/JsonTest.msg"
+  ${msg_files}
 )
 
 ament_auto_add_library(plugins SHARED DIRECTORY "src")
 
-# clover2_http headers pull boost::urls symbols (request_context).
 find_package(Boost REQUIRED COMPONENTS url)
 target_link_libraries(plugins Boost::url)
 
-install(FILES plugins.xml DESTINATION share/${PROJECT_NAME})
-pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)
+pluginlib_export_plugin_description_file(clover2_http plugins.xml)
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
 
-  # Linking the typesupport libraries keeps the .so files loaded in the
-  # test process, so the dynamic lookups in typesupport/message_type and
-  # msg_json resolve them by soname.
-  ament_auto_add_gtest(test_msg_json test/test_msg_json.cpp)
-  target_link_libraries(test_msg_json
-    ${PROJECT_NAME}__rosidl_typesupport_cpp
-    ${PROJECT_NAME}__rosidl_typesupport_introspection_cpp
+  file(GLOB test_source RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "test/*.cpp")
+  ament_auto_add_gtest(test_${PROJECT_NAME}
+    ${test_source}
   )
 
-  ament_auto_add_gtest(test_rate_limiter test/test_rate_limiter.cpp)
-
-  ament_auto_add_gtest(test_message_type test/test_message_type.cpp)
-  target_compile_definitions(test_message_type
-    PRIVATE AMENT_PREFIX="${CMAKE_INSTALL_PREFIX}")
-  target_link_libraries(test_message_type
+  target_link_libraries(test_${PROJECT_NAME}
     ${PROJECT_NAME}__rosidl_typesupport_cpp
     ${PROJECT_NAME}__rosidl_typesupport_introspection_cpp
     ${PROJECT_NAME}__rosidl_typesupport_fastrtps_cpp
   )
+  target_compile_definitions(test_${PROJECT_NAME}
+    PRIVATE AMENT_PREFIX="${CMAKE_INSTALL_PREFIX}")
 endif()
 
 ament_auto_package(

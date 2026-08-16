@@ -16,16 +16,11 @@ ament_auto_find_build_dependencies()
 
 ament_auto_add_library(${PROJECT_NAME}_http SHARED DIRECTORY "src/http")
 
-# Boost.URL is not header-only. Plain signature only: ament_target_dependencies
-# (used by ament_auto_add_library) already linked with the plain signature.
 find_package(Boost REQUIRED COMPONENTS url)
 target_link_libraries(${PROJECT_NAME}_http Boost::url)
 
 ament_auto_add_executable(example examples/example.cpp)
 
-# The node lives in a shared library so it can be loaded as an
-# rclcpp component (like the other clover2 nodes); the EXECUTABLE is
-# generated from the rclcpp_components template.
 ament_auto_add_library(${PROJECT_NAME}_node SHARED src/server/node.cpp)
 rclcpp_components_register_node(${PROJECT_NAME}_node
   PLUGIN "clover2_http::server::node"

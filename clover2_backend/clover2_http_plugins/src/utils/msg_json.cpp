@@ -184,9 +184,11 @@ void string_from_json(
     if (m.string_upper_bound_ != 0) {
         const std::string s = j.get<std::string>();
         m.resize_function(member_ptr(m, msg), s.size());
+
         for (size_t i = 0; i < s.size(); ++i) {
             *static_cast<char*>(field(m, msg, i)) = s[i];
         }
+
         return;
     }
 

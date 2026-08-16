@@ -18,8 +18,6 @@ namespace {
 namespace http = boost::beast::http;
 using namespace clover2_http::http;
 
-// Parses a target the same way http_session does. Only string literals:
-// the returned url_view references the literal's static storage.
 boost::urls::url_view make_target(const char* t) {
     auto r = boost::urls::parse_relative_ref(t);
     EXPECT_TRUE(!r.has_error());
@@ -118,8 +116,6 @@ TEST(Tokenize, MultipleSegments) {
 }
 
 TEST(Tokenize, NetworkPathReferenceDoesNotMatch) {
-    // RFC 3986: "//foo//bar" is a network-path reference (authority "foo",
-    // path "//bar"), so it does not match the "/foo/bar" route.
     routing::router r;
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
@@ -327,7 +323,6 @@ TEST(QueryParams, EmptyValueVsNoValue) {
 }
 
 TEST(QueryParams, PlusDecodedAsSpace) {
-    // Boost.URL decodes the query as form-urlencoded: '+' becomes a space.
     core::request_context ctx(make_target("/x?q=a+b"));
     ASSERT_EQ(ctx.query_params.size(), 1u);
     EXPECT_EQ(ctx.query_params[0].value, "a b");
@@ -335,7 +330,7 @@ TEST(QueryParams, PlusDecodedAsSpace) {
 
 TEST(QueryParams, TypedHelpers) {
     core::request_context ctx(make_target("/x?n=42&s=hello&flag=true&n=7"));
-    EXPECT_EQ(ctx.query<int>("n"), 7);  // last occurrence wins
+    EXPECT_EQ(ctx.query<int>("n"), 7);
     EXPECT_EQ(ctx.query<std::string>("s"), "hello");
     EXPECT_EQ(ctx.query<bool>("flag"), true);
     EXPECT_EQ(ctx.query<int>("missing"), 0);
@@ -490,8 +485,6 @@ TEST(ComplexTable, MultipleRoutesWithParams) {
 
     r.add_http_route(http::verb::get, "/nodes", std::move(ep_nodes));
     r.add_http_route(http::verb::get, "/users/{id}", std::move(ep_user));
-    // Same parameter name at the same position as /users/{id}: the trie
-    // requires all routes sharing a position to use one parameter name.
     r.add_http_route(http::verb::get, "/users/{id}/posts/{post_id}",
                      std::move(ep_post));
     r.add_http_route(http::verb::post, "/static", std::move(ep_static));
@@ -643,7 +636,6 @@ TEST(Precedence, StaticWinsRegardlessOfRegistrationOrder) {
     auto spy_static = std::make_unique<spy_endpoint>();
     auto* raw_param = spy_param.get();
     auto* raw_static = spy_static.get();
-    // Parameter route registered first — static still wins on exact match.
     r.add_http_route(http::verb::get, "/users/{id}", std::move(spy_param));
     r.add_http_route(http::verb::get, "/users/me", std::move(spy_static));
 

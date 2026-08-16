@@ -80,8 +80,6 @@ public:
         m_logger->info("Listening on {}:{}", address, port);
     }
 
-    // Stops accepting new connections; active sessions finish on their own
-    // (or by their idle timers).
     void stop() {
         if (m_listener) {
             m_listener->stop();

@@ -6,11 +6,11 @@
 
 namespace clover2_http_plugins::data {
 
-struct topic_ref {
+struct topic_info {
     std::string name;
     std::string type;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(topic_ref, name, type)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(topic_info, name, type)
 
 }  // namespace clover2_http_plugins::data

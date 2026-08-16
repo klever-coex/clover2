@@ -44,7 +44,8 @@ bool router::dispatch_http(boost::beast::http::verb method,
     auto it = m_http_tries.find(method);
     if (it == m_http_tries.end()) {
         if (m_logger) {
-            m_logger->debug("No route for {}", std::string(target.encoded_path()));
+            m_logger->debug("No route for {}",
+                            std::string(target.encoded_path()));
         }
         return false;
     }
@@ -52,7 +53,8 @@ bool router::dispatch_http(boost::beast::http::verb method,
     auto result = it->second.search(path_segments(target));
     if (!result) {
         if (m_logger) {
-            m_logger->debug("No route for {}", std::string(target.encoded_path()));
+            m_logger->debug("No route for {}",
+                            std::string(target.encoded_path()));
         }
         return false;
     }
