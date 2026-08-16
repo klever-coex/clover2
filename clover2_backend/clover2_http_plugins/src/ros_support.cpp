@@ -116,7 +116,7 @@ void ros_support::on_initialize() {
 }
 
 std::vector<std::string> ros_support::capabilities() const {
-    return {"ros_support"};
+    return {"nodes", "topics"};
 }
 
 void ros_support::handle_nodes(
