@@ -27,6 +27,7 @@ const void* field(const rosidl_typesupport_introspection_cpp::MessageMember& m,
     if (!m.is_array_) {
         return member_ptr(m, msg);
     }
+
     return m.get_const_function(member_ptr(m, msg), index);
 }
 
@@ -35,6 +36,7 @@ void* field(const rosidl_typesupport_introspection_cpp::MessageMember& m,
     if (!m.is_array_) {
         return member_ptr(m, msg);
     }
+
     return m.get_function(member_ptr(m, msg), index);
 }
 

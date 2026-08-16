@@ -1,8 +1,7 @@
-#include <clover2_http_plugins/utils/msg_json.hpp>
-#include <clover2_http_plugins/utils/message_type.hpp>
-
 #include <clover2_http_plugins/msg/json_test.hpp>
 #include <clover2_http_plugins/msg/json_test_inner.hpp>
+#include <clover2_http_plugins/utils/message_type.hpp>
+#include <clover2_http_plugins/utils/msg_json.hpp>
 
 #include <gtest/gtest.h>
 
@@ -15,16 +14,13 @@ using clover2_http_plugins::msg::JsonTest;
 namespace msg_json = clover2_http_plugins::utils::msg_json;
 using clover2_http_plugins::utils::message_type;
 
-// message_type resolves the typesupport library through the ament index,
-// which needs the package prefix; the colcon test environment does not
-// include it, so prepend the install prefix (provided by CMake).
 class TypesupportTest : public ::testing::Test {
 protected:
     void SetUp() override {
         const char* existing = std::getenv("AMENT_PREFIX_PATH");
-        const std::string updated = std::string(AMENT_PREFIX) +
-                                    (existing ? std::string(":") + existing
-                                              : std::string{});
+        const std::string updated =
+            std::string(AMENT_PREFIX) +
+            (existing ? std::string(":") + existing : std::string{});
         setenv("AMENT_PREFIX_PATH", updated.c_str(), 1);
     }
 };
@@ -74,8 +70,6 @@ TEST_F(TypesupportTest, ReusedBuffer) {
     message_type type("clover2_http_plugins/msg/JsonTest");
     void* msg = type.allocate();
 
-    // Deserializing a shorter message into a reused buffer must resize
-    // the sequences down.
     JsonTest first = make_message();
     auto j_first = msg_json::to_json(first);
     msg_json::detail::from_json(type.members(), msg, j_first);
