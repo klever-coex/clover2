@@ -1,5 +1,7 @@
 #pragma once
 
+// clang-format off
+
 #include <cstdint>  // must precede beast: field.hpp uses std::uint32_t
 
 #include <boost/beast/http/field.hpp>
@@ -10,6 +12,8 @@
 
 #include <functional>
 #include <string>
+
+// clang-format on
 
 namespace clover2_http::http::endpoint {
 
