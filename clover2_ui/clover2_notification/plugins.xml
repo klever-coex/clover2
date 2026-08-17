@@ -1,0 +1,8 @@
+<class_libraries>
+  <library path="notification_outputs">
+    <class
+      name="clover2_notification::outputs::led"
+      type="clover2_notification::outputs::led"
+      base_class_type="clover2_notification::output" />
+  </library>
+</class_libraries>
