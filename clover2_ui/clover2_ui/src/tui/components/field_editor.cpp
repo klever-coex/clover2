@@ -68,6 +68,7 @@ field_editor::field_editor(
         cpptui::StyledText("Cancel"), [this]() {
             if (auto nav = get_navigator()) nav->pop();
         });
+
     m_cancel_btn->fixed_height = 1;
     add(m_cancel_btn);
 }
