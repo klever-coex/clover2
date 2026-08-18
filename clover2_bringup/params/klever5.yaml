@@ -9,8 +9,14 @@
 /**/fcu_bridge:
   ros__parameters:
     speed_limit: 1.0
-    tolerance: 0.15
+    tolerance: 0.35
     slowdown_distance: 0.5
+    diagnostics:
+      battery:
+        warn_percentage: 0.20
+        error_percentage: 0.10
+      sensors:
+        stale_timeout_sec: 1.0
 
 /**/web_video_server:
   ros__parameters:
@@ -23,3 +29,11 @@
     led_count: 80
     ws2812_spi:
       spi_device: "/dev/spidev0.0"
+
+/**/display:
+  ros__parameters:
+    device_plugin: "ssd1306_i2c"
+    ssd1306_i2c:
+      i2c_device: "/dev/i2c-1"
+      resolution: "128x64"
+      i2c_addres: 0x3C

@@ -6,7 +6,8 @@
 
     <arg name="param_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
 
-    <node pkg="clover2_led" exec="driver" name="led_strip" namespace="$(var ns)" if="$(var led_strip)">
+    <node pkg="clover2_led" exec="driver" name="led_strip" namespace="$(var ns)"
+        if="$(var led_strip)">
         <param name="use_sim_time" value="$(var use_sim_time)" />
 
         <param from="$(var param_file)" />

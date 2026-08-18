@@ -1,10 +1,9 @@
-<?xml version="1.0" ?>
+<?xml version='1.0' encoding='UTF-8'?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>clover2_map</name>
-  <version>0.0.0</version>
-  <description
-    >Marker map server and client (GetMap service, static TF)</description>
+  <version>0.1.9</version>
+  <description>Marker map server and client (GetMap service, static TF)</description>
   <maintainer email="2663161@mail.ru">l_motya</maintainer>
   <license>TODO: License declaration</license>
 
@@ -13,6 +12,8 @@
 
   <depend>clover2_pose_msgs</depend>
   <depend>clover2_common</depend>
+  <depend>diagnostic_msgs</depend>
+  <depend>diagnostic_updater</depend>
   <depend>eigen</depend>
   <depend>tf2_eigen</depend>
   <depend>geometry_msgs</depend>

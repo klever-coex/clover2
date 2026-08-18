@@ -18,7 +18,7 @@ UID ?= $(shell id -u)
 GID ?= $(shell id -g)
 
 # Calculate CLOVER2_VERSION based on BUILD_MODE
-CLOVER2_BASE_VERSION := $(shell cat $(PROJECT_DIR)/tooling/VERSION 2>/dev/null)
+CLOVER2_BASE_VERSION := $(shell python3 tooling/scripts/version_manager.py -d . print --main-only)
 CLOVER2_GIT_HASH := $(shell git -C $(PROJECT_DIR) rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 ifeq ($(BUILD_MODE),release)
@@ -70,6 +70,16 @@ clover2-bake-push-%:
 clover2-bake-print-%:
 	docker buildx bake -f docker/docker-bake.hcl --print $*
 
+## clover2-bake-save-%: Save docker images to tar files
+clover2-bake-save-%:
+	@mkdir -p $(DOCKER_OUTPUT_DIR)
+	docker buildx bake \
+		$(if $(TARGET_ARCH),--set *.platform=linux/$(TARGET_ARCH)) \
+		-f docker/docker-bake.hcl \
+		--progress plain \
+		--set *.output=type=docker,dest=$(DOCKER_OUTPUT_DIR)/$*.tar \
+		$*
+
 ## clover2-docs-%: Execute commands from docs dir
 clover2-docs-%:
 	$(MAKE) -C $(PROJECT_DIR)/docs $*
@@ -115,7 +125,6 @@ clean:
 ## version: Show current version information
 version:
 	@echo "BUILD_MODE: $(BUILD_MODE)"
-	@echo "CLOVER2_BASE_VERSION: $(CLOVER2_BASE_VERSION)"
 	@echo "CLOVER2_GIT_HASH: $(CLOVER2_GIT_HASH)"
 	@echo "CLOVER2_VERSION: $(CLOVER2_VERSION)"
 	@echo "REGISTRY: $(REGISTRY)"

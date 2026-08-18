@@ -1,0 +1,23 @@
+analyzers:
+  ros__parameters:
+    path: Aggregation
+
+    fcu:
+      type: diagnostic_aggregator/GenericAnalyzer
+      path: FCU
+      contains: ["/fcu"]
+
+    localization:
+      type: diagnostic_aggregator/GenericAnalyzer
+      path: Localization
+      contains: ["/localization"]
+
+    vision: 
+      type: diagnostic_aggregator/GenericAnalyzer
+      path: Vision
+      contains: ["/vision"]
+
+    system:
+      type: diagnostic_aggregator/GenericAnalyzer
+      path: System
+      contains: ["/system"]

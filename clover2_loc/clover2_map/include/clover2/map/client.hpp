@@ -1,5 +1,8 @@
 #pragma once
 
+#include <clover2/map/diagnostics/map_client_task.hpp>
+#include <clover2_common/node_context.hpp>
+#include <clover2_common/rclcpp_trails.hpp>
 #include <clover2_pose_msgs/marker.hpp>
 
 // Eigen
@@ -26,27 +29,46 @@ namespace clover2::map {
 
 class client {
 public:
-    template <typename NodeT>
-    explicit client(const NodeT& node,
-                    rclcpp::CallbackGroup::SharedPtr cb_group = nullptr)
-        : m_logger(node->get_logger().get_child("map_client"))
+    explicit client(
+        const std::shared_ptr<clover2_common::node_context>& node_context,
+        rclcpp::CallbackGroup::SharedPtr cb_group = nullptr)
+        : m_logger(node_context->get_logger().get_child("map_client"))
+        , m_diagnostics(node_context->get_node_diagnostics_interface())
         , m_map_valid(false)
         , m_name("") {
         rclcpp::SubscriptionOptions options;
         options.callback_group = cb_group;
 
-        m_map_update_sub =
-            node->template create_subscription<std_msgs::msg::Empty>(
-                "~/map_update", rclcpp::QoS(1).transient_local().reliable(),
-                std::bind(&client::map_update_callback, this,
-                          std::placeholders::_1),
-                options);
+        m_diagnostics->add<clover2::map::diagnostics::map_client_task>();
+
+        m_diagnostics->get<clover2::map::diagnostics::map_client_task>() //
+            .set_name_getter([this]() { return get_name(); });
+        m_diagnostics->get<clover2::map::diagnostics::map_client_task>() //
+            .set_frame_id_getter([this]() { return get_map_id(); });
+        m_diagnostics->get<clover2::map::diagnostics::map_client_task>() //
+            .set_marker_count_getter([this]() { return get_count(); });
+        m_diagnostics->get<clover2::map::diagnostics::map_client_task>() //
+            .set_map_valid_getter([this]() { return valid(); });
+
+        m_map_update_sub = rclcpp::create_subscription<std_msgs::msg::Empty>(
+            node_context, "~/map_update",
+            rclcpp::QoS(1).transient_local().reliable(),
+            std::bind(&client::map_update_callback, this,
+                      std::placeholders::_1),
+            options);
 
         m_get_map_client =
-            node->template create_client<clover2_pose_msgs::srv::GetMap>(
-                "~/get_map", rclcpp::ServicesQoS());
+            rclcpp::create_client<clover2_pose_msgs::srv::GetMap>(
+                node_context, "~/get_map", rclcpp::ServicesQoS());
 
         update_map();
+    }
+
+    ~client() {
+        m_map_update_sub.reset();
+        m_get_map_client.reset();
+
+        m_diagnostics->remove<clover2::map::diagnostics::map_client_task>();
     }
 
     bool valid() const { return m_map_valid; }
@@ -123,6 +145,8 @@ private:
     rclcpp::Logger m_logger;
     rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr m_map_update_sub;
     rclcpp::Client<clover2_pose_msgs::srv::GetMap>::SharedPtr m_get_map_client;
+    clover2_common::node_interfaces::NodeDiagnosticsInterface::SharedPtr
+        m_diagnostics;
 
     std::recursive_mutex m_map_mtx;
 

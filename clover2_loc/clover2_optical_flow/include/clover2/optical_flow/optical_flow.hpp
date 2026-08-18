@@ -4,7 +4,6 @@
 #include <clover2_common/lifecycle_node.hpp>
 
 // ROS2
-#include <diagnostic_updater/diagnostic_updater.hpp>
 #include <image_geometry/pinhole_camera_model.hpp>
 #include <rclcpp/rclcpp.hpp>
 
@@ -115,9 +114,6 @@ private:
     // TF
     std::unique_ptr<tf2_ros::Buffer> m_tf_buffer;               ///< TF buffer
     std::unique_ptr<tf2_ros::TransformListener> m_tf_listener;  ///< TF listener
-
-    // Diagnostics
-    std::shared_ptr<diagnostic_updater::Updater> m_diagnostic_updater;
 
     // Publishers and subscribers
     rclcpp::Publisher<mavros_msgs::msg::OpticalFlowRad>::SharedPtr

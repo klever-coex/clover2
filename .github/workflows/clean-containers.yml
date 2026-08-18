@@ -3,7 +3,6 @@ on:
   schedule:
     - cron: "0 0 * * 0"
   workflow_dispatch:
-  pull_request:
 
 permissions:
   packages: write
@@ -19,7 +18,7 @@ jobs:
           token: ${{ secrets.GHCR_PAT }}
           image-names: "clover2/*"
           cut-off: "3d"
-          keep-at-least: 3
+          keep-n-most-recent: 3
           image-tags: "!latest !stable"
           dry-run: false
           tag-selection: both

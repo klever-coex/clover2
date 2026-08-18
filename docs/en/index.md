@@ -6,4 +6,5 @@
 :hidden:
 
 Programming
+Assembly
 ```

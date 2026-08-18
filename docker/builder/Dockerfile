@@ -1,15 +1,23 @@
-FROM ubuntu:noble
+ARG TARGETPLATFORM
 
-# Install dependencies
-RUN apt-get update && \
-    apt-get install -y \
+FROM ubuntu:noble
+ARG TARGETPLATFORM
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+RUN --mount=type=cache,id=apt-builder-${TARGETPLATFORM},target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-builder-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
         build-essential \
         curl \
         git \
         kpartx \
         make \
         python3-dev \
-        python3-venv \
+        python3-pip \
         qemu-system \
         qemu-system-aarch64 \
         qemu-utils \
@@ -18,13 +26,14 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /builder
-COPY ./docker/builder/requirements.txt ./requirements.txt
 
-RUN /bin/bash -c "python3 -m venv /docker_venv && \
-    . /docker_venv/bin/activate && \
-    pip3 install -r ./requirements.txt && \
-    rm ./requirements.txt"
+COPY ./tooling/requirements.txt ./tooling-requirements.txt
+
+RUN pip3 install --break-system-packages --no-cache-dir \
+        -r ./tooling-requirements.txt \
+    && rm ./tooling-requirements.txt
 
 COPY ./docker/builder/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
 ENTRYPOINT ["/entrypoint.sh"]

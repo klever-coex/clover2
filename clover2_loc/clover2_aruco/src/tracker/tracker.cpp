@@ -1,10 +1,17 @@
+// clover2
+#include <clover2/aruco/diagnostics/pose_task.hpp>
 #include <clover2/aruco/tracker.hpp>
+
+// ROS2
 #include <lifecycle_msgs/msg/state.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2/LinearMath/Transform.hpp>
 #include <tf2_eigen/tf2_eigen.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_msgs/msg/tf_message.hpp>
+
+// STL
+#include <string>
 
 namespace clover2::aruco {
 
@@ -29,16 +36,12 @@ tracker::tracker(const rclcpp::NodeOptions& options)
 
     declare_and_watch_parameter<double>(
         "xy_variation", 0.4,
-        [this](const rclcpp::Parameter& p) {
-            m_xy_variation = p.as_double();
-        },
+        [this](const rclcpp::Parameter& p) { m_xy_variation = p.as_double(); },
         "Published variation for x and y");
 
     declare_and_watch_parameter<double>(
         "z_variation", 0.4,
-        [this](const rclcpp::Parameter& p) {
-            m_z_variation = p.as_double();
-        },
+        [this](const rclcpp::Parameter& p) { m_z_variation = p.as_double(); },
         "Published variation for x and y");
 
     register_on_configure(
@@ -59,10 +62,11 @@ tracker::CallbackReturn tracker::on_configure(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
     m_callback_group =
         create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+    auto node_context = std::make_shared<clover2_common::node_context>(*this);
 
     try {
         m_map_client = std::make_shared<clover2::map::client>(
-            shared_from_this(), m_callback_group);
+            node_context, m_callback_group);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map client. Exception: %s",
                      e.what());
@@ -76,6 +80,10 @@ tracker::CallbackReturn tracker::on_configure(
 
 tracker::CallbackReturn tracker::on_activate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
+    auto diagnostic_interface = get_node_diagnostics_interface();
+    diagnostic_interface->add<diagnostics::pose_task>();
+    diagnostic_interface->get<diagnostics::pose_task>().set_clock(get_clock());
+
     m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
     m_tf_buffer = std::make_shared<tf2_ros::Buffer>(this->get_clock());
     m_tf_listener = std::make_shared<tf2_ros::TransformListener>(*m_tf_buffer);
@@ -111,6 +119,8 @@ tracker::CallbackReturn tracker::on_deactivate(
 
     m_tf_listener.reset();
     m_tf_buffer.reset();
+
+    get_node_diagnostics_interface()->remove<diagnostics::pose_task>();
     m_tf_broadcaster.reset();
 
     RCLCPP_INFO(get_logger(), "Deactivated");
@@ -132,6 +142,8 @@ tracker::CallbackReturn tracker::on_shutdown(
 
 void tracker::markers_callback(
     const clover2_pose_msgs::msg::MarkerArray::SharedPtr msg) {
+    auto diagnostic_interface = get_node_diagnostics_interface();
+
     if (msg->markers.size() == 0) {
         return;
     }
@@ -212,6 +224,8 @@ void tracker::markers_callback(
     m_pose_cov_pub->publish(estimated_pose_cov);
 
     publish_tf(estimated_pose.header, result_pose.inverse());
+    diagnostic_interface->get<diagnostics::pose_task>().update_pose(
+        estimated_pose.header.stamp, estimated_pose.pose);
 
     // publish tracker id poses form each marker
     if (m_poses_debug_pub->get_subscription_count() != 0) {

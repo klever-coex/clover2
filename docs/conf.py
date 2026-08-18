@@ -42,6 +42,7 @@ exclude_patterns = [
     "Thumbs.db",
     ".DS_Store",
     "**/_*.rst",
+    "Events/TemplateEvents.md",
 ]
 
 master_doc = "index"

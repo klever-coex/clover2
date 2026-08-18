@@ -3,8 +3,10 @@
     startup_px4_usb_quirk: false
 
     plugin_denylist:
+      - mount_control
       - camera
       - debug_value
+      - distance_sensor
       - fake_gps
       - geofence
       - gimbal_control
@@ -35,7 +37,7 @@
     min_voltage:
       [10.0] # diagnostics min voltage, use a vector i.e. [16.2, 16.0] for multiple batteries, up-to 10 are supported
       # to achieve the same on a ROS launch file do: <rosparam param="sys/min_voltage">[16.2, 16.0]</rosparam>
-    disable_diag: false # disable all sys_status diagnostics, except heartbeat
+    disable_diag: true # disable all sys_status diagnostics, except heartbeat
     heartbeat_rate: 1.0 # send heartbeat rate in Hertz
     conn_timeout: 10.0 # heartbeat timeout in seconds
 
@@ -203,3 +205,13 @@
 /**/vibration:
   ros__parameters:
     frame_id: "base_link"
+
+# distance_sensor
+/**/distance_sensor:
+  ros__parameters:
+    config: |
+      distance_sensor/filtred:
+        id: 0
+        frame_id: "base_link"
+        orientation: "PITCH_270"
+        field_of_view: 0.0
