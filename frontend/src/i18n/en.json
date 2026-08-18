@@ -5,10 +5,28 @@
     "settings": "Settings",
     "documentation": "Documentation",
     "terminal": "Shell",
-    "camera": "Camera Viwer",
+    "camera": "Camera Viewer",
     "ide": "IDE"
   },
   "header": {
     "title": "Clover2"
+  },
+  "topics": {
+    "title": "ROS Topics",
+    "searchPlaceholder": "Search by name or type...",
+    "empty": "No topics found",
+    "noCapability": "ROS backend plugin is not available",
+    "retry": "Retry"
+  },
+  "topicDetail": {
+    "unknownTopic": "Unknown topic",
+    "connecting": "Connecting...",
+    "connected": "Connected",
+    "closed": "Stream closed",
+    "error": "Error",
+    "noMessages": "Waiting for messages...",
+    "clear": "Clear",
+    "received": "received",
+    "backToTopics": "Back to topics"
   }
 }

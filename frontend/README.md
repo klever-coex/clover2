@@ -1,16 +1,30 @@
-# React + Vite
+# clover2 frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Web interface for the clover2 drone, built with Vite + React + TypeScript.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React 19, react-router 7, Tailwind 4, zustand 5, i18next (ru/en), lucide-react
+- TypeScript strict with project references (`tsc -b`), oxlint
+- Data comes from the clover2_http ROS2 backend (port 8080): REST discovery (`/manifest`, `/topics`, `/nodes`, `/node/info/...`) and one-way WebSocket topic streaming (`/topic/json/-/{topic}`). The manifest-aware client lives in `src/api/clover2.ts`.
 
-## React Compiler
+## Structure
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```text
+src/
+  api/        manifest-aware clover2_http client
+  types/      wire types shared with the backend
+  constants/  backend/stream constants
+  store/      zustand store with slices (manifest, topics, stream)
+  hooks/      thin React hooks over the store
+  components/ Sidebar, MessageViewer, per-page components
+  pages/      Dashboard, Topics, TopicDetail, Settings
+  i18n/       typed translations (en/ru)
+```
 
-## Expanding the ESLint configuration
+## Scripts
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- `npm run dev` — Vite dev server
+- `npm run build` — `tsc -b && vite build`
+- `npm run lint` — oxlint
+- `npm run preview` — serve the production build

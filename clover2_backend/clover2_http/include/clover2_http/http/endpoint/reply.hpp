@@ -30,7 +30,9 @@ http_response make_error_response(int status, const std::string& message);
 class reply_base {
 public:
     explicit reply_base(response_sender sender)
-        : m_sender(std::move(sender)) {}
+        : m_sender(std::move(sender)) {
+        m_response.version(11);
+    }
 
     ~reply_base() {
         if (!m_sent && m_sender) {
@@ -60,6 +62,7 @@ public:
 protected:
     bool m_sent = false;
     response_sender m_sender;
+    http_response m_response;
 };
 
 template <typename T>
@@ -75,14 +78,13 @@ public:
         nlohmann::json jv(resp);
         std::string body = jv.dump();
 
-        http_response response{static_cast<boost::beast::http::status>(status),
-                               11};
-        response.set(boost::beast::http::field::content_type,
-                     "application/json");
-        response.body() = std::move(body);
-        response.prepare_payload();
+        m_response.result(status);
+        m_response.set(boost::beast::http::field::content_type,
+                       "application/json");
+        m_response.body() = std::move(body);
+        m_response.prepare_payload();
 
-        m_sender(std::move(response));
+        m_sender(std::move(m_response));
     }
 };
 
@@ -96,14 +98,13 @@ public:
         if (m_sent) return;
         m_sent = true;
 
-        http_response response{static_cast<boost::beast::http::status>(status),
-                               11};
-        response.set(boost::beast::http::field::content_type,
-                     "application/json");
-        response.body() = "{}";
-        response.prepare_payload();
+        m_response.result(status);
+        m_response.set(boost::beast::http::field::content_type,
+                       "application/json");
+        m_response.body() = "{}";
+        m_response.prepare_payload();
 
-        m_sender(std::move(response));
+        m_sender(std::move(m_response));
     }
 };
 

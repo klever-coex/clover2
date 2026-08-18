@@ -10,5 +10,23 @@
   },
   "header": {
     "title": "Clover2"
+  },
+  "topics": {
+    "title": "Топики ROS",
+    "searchPlaceholder": "Поиск по имени или типу...",
+    "empty": "Топики не найдены",
+    "noCapability": "Плагин бэкенда ROS недоступен",
+    "retry": "Повторить"
+  },
+  "topicDetail": {
+    "unknownTopic": "Топик не найден",
+    "connecting": "Подключение...",
+    "connected": "Подключено",
+    "closed": "Поток закрыт",
+    "error": "Ошибка",
+    "noMessages": "Ожидание сообщений...",
+    "clear": "Очистить",
+    "received": "получено",
+    "backToTopics": "Назад к топикам"
   }
 }

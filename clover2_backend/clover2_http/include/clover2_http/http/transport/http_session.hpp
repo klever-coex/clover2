@@ -54,8 +54,8 @@ private:
         boost::asio::strand<boost::asio::io_context::executor_type>;
     strand_type m_strand;
 
-    bool m_keep_alive = false;
     int m_version = 11;  // HTTP/1.1
+    bool m_keep_alive = false;
     bool m_upgraded = false;
 
     boost::beast::flat_buffer m_buffer;

@@ -45,6 +45,8 @@ private:
     std::shared_ptr<clover2_http::http::core::logger> m_logger;
     std::unordered_map<boost::beast::http::verb, trie<endpoint::interface>>
         m_http_tries;
+    trie<std::unordered_map<boost::beast::http::verb, endpoint::interface>>
+        m_http_trie;
     trie<transport::ws_handler_interface> m_ws_trie;
 };
 

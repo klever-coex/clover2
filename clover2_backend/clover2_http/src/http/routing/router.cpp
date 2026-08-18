@@ -47,6 +47,7 @@ bool router::dispatch_http(boost::beast::http::verb method,
             m_logger->debug("No route for {}",
                             std::string(target.encoded_path()));
         }
+
         return false;
     }
 
@@ -56,6 +57,7 @@ bool router::dispatch_http(boost::beast::http::verb method,
             m_logger->debug("No route for {}",
                             std::string(target.encoded_path()));
         }
+
         return false;
     }
 
@@ -64,8 +66,10 @@ bool router::dispatch_http(boost::beast::http::verb method,
                         std::string(boost::beast::http::to_string(method)),
                         std::string(target.encoded_path()));
     }
+
     ctx.path_params = std::move(result->params);
     result->handler->invoke(std::move(ctx), req, std::move(sender));
+
     return true;
 }
 
@@ -78,6 +82,7 @@ transport::ws_handler_interface* router::match_ws(
             m_logger->debug("No WS route for {}",
                             std::string(target.encoded_path()));
         }
+
         return nullptr;
     }
 
@@ -85,6 +90,7 @@ transport::ws_handler_interface* router::match_ws(
         m_logger->debug("Matched WS for {}",
                         std::string(target.encoded_path()));
     }
+
     path_params = std::move(result->params);
     return result->handler;
 }
