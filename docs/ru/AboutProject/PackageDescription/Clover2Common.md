@@ -6,11 +6,19 @@
 
 ### clover2_common::node (node.cpp)
 
-Обёртка над стандартным `rclcpp::Node`. Добавляет к обычной ноде две возможности: систему диагностики и наблюдение за параметрами.
+Обёртка над стандартным `rclcpp::Node`. Добавляет к обычной ноде новые возможности.
 
 **Методы:**
 
-- `declare_and_watch_parameter<ParameterT>(name, default_value, cb, ...)` — объявляет параметр и подписывает на его изменения колбэк `cb`, который вызывается при изменении значения. Дополнительно принимает описание, ограничения, флаг `read_only` и `ignore_override`.
+`declare_and_watch_parameter<ParameterT>(name, default_value, cb, ...)` - повторяет сигнатуру объявления параметра и регистрирует функцию на обновление параметра:
+
+```cpp
+    declare_and_watch_parameter<std::string>(
+        "frame_id", "base_link",
+        [this](const rclcpp::Parameter& p) { m_frame_id = p.as_string(); },
+        "Tracking target");
+```
+
 - `get_node_diagnostics_interface()` — возвращает интерфейс диагностики ноды.
 - `get_node_parameters_watcher_interface()` — возвращает интерфейс наблюдения за параметрами.
 
