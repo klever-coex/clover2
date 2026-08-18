@@ -32,6 +32,7 @@ sudo cp $ASSETS_DIR/clover2_firstboot.sh /root/
 sudo cp $ASSETS_DIR/ros2_launch.sh /opt/clover2/
 cp $ASSETS_DIR/ros2.env /opt/clover2/.ros2.env
 cp $REPO_DIR/tooling/configs/cyclonedds.xml /opt/clover2/cyclonedds.xml
+cp $REPO_DIR/tooling/configs/cyclonedds_lo.xml /opt/clover2/cyclonedds_lo.xml
 cp $ASSETS_DIR/launcher_config.yaml /opt/clover2/.config.yaml
 ln -s "$(get_ros_pkg_share clover2)/examples" /home/$USER/examples
 cp -r "$(get_ros_pkg_share clover2_map)/map" /opt/clover2/map

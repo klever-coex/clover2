@@ -5,6 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=pi
+EnvironmentFile=/opt/clover2/.ros2.env
 WorkingDirectory=/opt/clover2/ws
 ExecStart=/opt/clover2/ros2_launch.sh
 StandardOutput=journal
