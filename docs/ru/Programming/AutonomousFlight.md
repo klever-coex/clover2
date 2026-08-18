@@ -1,20 +1,18 @@
-# Программирование дрона
+# Автономный полет
 
 ```{toctree}
 :titlesonly:
 :maxdepth: 1
 :hidden:
 
-DroneProgramming/DroneConnection
-DroneProgramming/ArucoMap
-DroneProgramming/Flight
-DroneProgramming/LED
-DroneProgramming/Camera
+AutonomousFlight/Flight
+AutonomousFlight/LED
+AutonomousFlight/Camera
 ```
 
 Краткий обзор возможностей фреймворка.
 
-## [Полёт](DroneProgramming/Flight.md)
+## [Полёт](AutonomousFlight/Flight.md)
 
 - `arm()` / `disarm()` - запуск / остановка моторов
 - `land()` - посадка
@@ -22,13 +20,13 @@ DroneProgramming/Camera
 - `navigate_wait(frame_id, x, y, z, speed, yaw)` - полёт в точку с ожиданием прибытия
 - `navigate(...)` - то же без блокировки
 
-## [Камера](DroneProgramming/Camera.md)
+## [Камера](AutonomousFlight/Camera.md)
 
 - `get_image(camera_name, encoding)` - получить кадр как numpy-массив
 - `get_image_msg(camera_name)` - получить сырой ROS Image
 - `get_camera_info(camera_name)` - калибровка камеры
 
-## [LED-лента](DroneProgramming/LED.md)
+## [LED-лента](AutonomousFlight/LED.md)
 
 - `rainbow(period, brightness, duration)` - анимация радуги
 - `blink(r, g, b, period, brightness, duration)` - мигание

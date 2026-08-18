@@ -5,9 +5,8 @@
 :maxdepth: 2
 :hidden:
 
-Programming/DroneProgramming
-Programming/Sensors
-Programming/ROS2
-Programming/ROS2Commands
-Programming/Docker
+Programming/DroneConnection
+Programming/DroneSettings
+Programming/ArucoMap
+Programming/AutonomousFlight
 ```
