@@ -5,6 +5,7 @@
 :maxdepth: 2
 :hidden:
 
+Assembly
 Setup
 DeveloperTools
 AdditionalEquipment
