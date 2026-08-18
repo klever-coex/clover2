@@ -6,6 +6,7 @@
 :hidden:
 
 Setup
+Assembly
 Programming
 Simulator
 Events
