@@ -1,5 +1,6 @@
 // clover2
 #include <clover2/cam_feature/cam_feature.hpp>
+#include <clover2/cam_feature/diagnostics/markers_task.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 #include <clover2_common/node_context.hpp>
 #include <clover2_common/util/parameter.hpp>
@@ -15,13 +16,14 @@
 // STL
 #include <exception>
 #include <functional>
+#include <list>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace {
 
-constexpr const char* cam_feature_diagnostic_name = "Cam feature status";
 const std::vector<std::string> default_plugin_ids = {"aruco"};
 const std::vector<std::string> default_plugin_types = {
     "clover2::cam_feature::plugins::aruco"};
@@ -55,14 +57,10 @@ cam_feature::~cam_feature() = default;
 
 cam_feature::CallbackReturn cam_feature::on_configure(
     const rclcpp_lifecycle::State& state) {
-
     auto node_context = std::make_shared<clover2_common::node_context>(*this);
 
-    get_diagnostic_updater()->add(cam_feature_diagnostic_name, this,
-                                  &cam_feature::produce_diagnostics);
-
     try {
-        m_map_client = std::make_shared<clover2::map::client>(this);
+        m_map_client = std::make_shared<clover2::map::client>(node_context);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map: %s", e.what());
         on_cleanup(state);
@@ -112,6 +110,10 @@ cam_feature::CallbackReturn cam_feature::on_configure(
 
 cam_feature::CallbackReturn cam_feature::on_activate(
     const rclcpp_lifecycle::State& state) {
+    auto diagnostics = get_node_diagnostics_interface();
+    diagnostics->add<diagnostics::markers_task>();
+    diagnostics->get<diagnostics::markers_task>().set_clock(get_clock());
+
     for (const auto& [name, id] : m_plugins) {
         try {
             id->activate();
@@ -161,19 +163,19 @@ cam_feature::CallbackReturn cam_feature::on_deactivate(
         it->second->deactivate();
     }
 
+    get_node_diagnostics_interface()->remove<diagnostics::markers_task>();
+
     RCLCPP_INFO(get_logger(), "Deactivate.");
     return CallbackReturn::SUCCESS;
 }
 
 cam_feature::CallbackReturn cam_feature::on_cleanup(
     const rclcpp_lifecycle::State& /* state */) {
-    get_diagnostic_updater()->removeByName(cam_feature_diagnostic_name);
-
     for (auto it = m_plugins.begin(); it != m_plugins.end(); ++it) {
         it->second->cleanup();
     }
-    m_plugins.clear();
 
+    m_plugins.clear();
     m_map_client.reset();
 
     RCLCPP_INFO(get_logger(), "Cleaned up.");
@@ -188,18 +190,8 @@ cam_feature::CallbackReturn cam_feature::on_shutdown(
 
 void cam_feature::image_callback(
     const sensor_msgs::msg::Image::ConstSharedPtr msg) {
-    std::lock_guard<std::mutex> guard(m_camera_info_mtx);
-
-    if (!m_camera_model.initialized()) {
-        RCLCPP_ERROR(get_logger(), "Camera info not initialized");
-        return;
-    }
-
     cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg);
     const cv::Mat& image = cv_ptr->image;
-
-    const cv::Matx33d& km = m_camera_model.fullIntrinsicMatrix();
-    cv::Mat_<double> distortion = m_camera_model.distortionCoeffs();
 
     std::shared_ptr<cv::Mat> debug;
     if (m_image_debug_pub->get_subscription_count() != 0) {
@@ -207,23 +199,35 @@ void cam_feature::image_callback(
     }
 
     clover2_pose_msgs::msg::MarkerArray markers;
+    cv::Matx33d km;
+    cv::Mat_<double> distortion;
+
+    if (!m_camera_model.initialized()) {
+        RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000,
+                             "Camera info not initialized");
+        return;
+    }
+
+    km = m_camera_model.fullIntrinsicMatrix();
+    distortion = m_camera_model.distortionCoeffs();
+
     markers.header.frame_id = m_camera_model.tfFrame();
     markers.header.stamp = msg->header.stamp;
 
     std::list<clover2_pose_msgs::msg::Marker> marker_list;
     for (const auto& [name, plugin] : m_plugins) {
         auto poses = plugin->process(msg->header, image, km, distortion, debug);
-        markers.markers.reserve(markers.markers.size() + poses.size());
         marker_list.insert(marker_list.end(), poses.begin(), poses.end());
     }
 
-    m_last_pose_count = marker_list.size();
-
-    markers.markers.reserve(m_last_pose_count);
+    markers.markers.reserve(marker_list.size());
     markers.markers.insert(markers.markers.begin(), marker_list.begin(),
                            marker_list.end());
 
     m_markers_pub->publish(markers);
+    get_node_diagnostics_interface()
+        ->get<diagnostics::markers_task>()
+        .update_markers(markers.header.stamp, markers.markers.size());
 
     if (debug && m_image_debug_pub->get_subscription_count() != 0) {
         cv_bridge::CvImage cv_out;
@@ -237,28 +241,11 @@ void cam_feature::image_callback(
 
 void cam_feature::camera_info_callback(
     const sensor_msgs::msg::CameraInfo::ConstSharedPtr msg) {
-    std::lock_guard<std::mutex> guard(m_camera_info_mtx);
-
     if (msg->height == 0 || msg->width == 0 || msg->d.empty()) {
         return;
     }
 
     m_camera_model.fromCameraInfo(*msg);
-}
-
-void cam_feature::produce_diagnostics(
-    diagnostic_updater::DiagnosticStatusWrapper& stat) {
-    if (!m_camera_model.initialized()) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "Waiting for Camera Info");
-    } else if (!m_map_client || !m_map_client->valid()) {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-                     "Map invalid or missing");
-    } else {
-        stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "Running");
-        stat.add("Camera frame", m_camera_model.tfFrame());
-        stat.add("Plugins loaded", std::to_string(m_plugins.size()));
-    }
 }
 
 }  // namespace clover2::cam_feature

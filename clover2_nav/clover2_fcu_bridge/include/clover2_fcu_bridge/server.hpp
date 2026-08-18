@@ -49,9 +49,8 @@ private:
         const clover2_nav_msgs::srv::ArmDisarm::Request::SharedPtr req,
         clover2_nav_msgs::srv::ArmDisarm::Response::SharedPtr resp);
 
-    void handle_land(
-        const clover2_nav_msgs::srv::Land::Request::SharedPtr req,
-        clover2_nav_msgs::srv::Land::Response::SharedPtr resp);
+    void handle_land(const clover2_nav_msgs::srv::Land::Request::SharedPtr req,
+                     clover2_nav_msgs::srv::Land::Response::SharedPtr resp);
 
     void handle_set_position(
         const clover2_nav_msgs::srv::SetPosition::Request::SharedPtr req,
@@ -70,11 +69,13 @@ private:
     /// @brief Accepts cancellation only for the current navigation action.
     rclcpp_action::CancelResponse handle_navigate_async_cancel(
         const std::shared_ptr<GoalHandleNavigateAsync> goal_handle);
-    /// @brief Callback saves the accepted goal and launches the associated bond.
+    /// @brief Callback saves the accepted goal and launches the associated
+    /// bond.
     void handle_navigate_async_accepted(
         const std::shared_ptr<GoalHandleNavigateAsync> goal_handle);
 
-    /// @brief Publishes feedback and finishes the action after navigation starts.
+    /// @brief Publishes feedback and finishes the action after navigation
+    /// starts.
     void process_navigate_async(
         const std::shared_ptr<GoalHandleNavigateAsync> goal_handle);
 
@@ -98,6 +99,9 @@ private:
     double m_speed_limit{1.0};
     double m_tolerance{0.15};
     double m_slowdown{0.5};
+    double m_battery_warn_percentage{0.20};
+    double m_battery_error_percentage{0.10};
+    double m_sensor_stale_timeout_sec{1.0};
 
     std::string m_backend_name;
 
@@ -110,8 +114,9 @@ private:
     std::string m_navigate_bond_id;
 
     /// @brief Indicates that the server is closing the bond normally.
-    /// @details `true` means the server is performing an expected `breakBond()`;
-    /// `false` means the bond is active or was broken unexpectedly.
+    /// @details `true` means the server is performing an expected
+    /// `breakBond()`; `false` means the bond is active or was broken
+    /// unexpectedly.
     bool m_navigate_bond_closing{false};
 
     rclcpp::TimerBase::SharedPtr m_state_publish_timer;
@@ -129,16 +134,19 @@ private:
     /// @brief Goal that owns the current navigation and operation bond.
     std::shared_ptr<GoalHandleNavigateAsync> m_active_navigate_goal;
 
-    /// @brief Time when the current navigation entered idle before normal success.
+    /// @brief Time when the current navigation entered idle before normal
+    /// success.
     std::optional<std::chrono::steady_clock::time_point>
         m_navigate_completion_started_at;
 
     /// @brief Indicates that a new goal is waiting for the accepted callback.
-    /// @details `true` means the goal callback accepted the goal but the accepted
-    /// callback has not run yet; `false` means there is no pending goal.
+    /// @details `true` means the goal callback accepted the goal but the
+    /// accepted callback has not run yet; `false` means there is no pending
+    /// goal.
     std::atomic_bool m_navigate_goal_pending{false};
 
-    std::shared_ptr<clover2_fcu_bridge::backend::base_backend> m_backend{nullptr};
+    std::shared_ptr<clover2_fcu_bridge::backend::base_backend> m_backend{
+        nullptr};
     std::shared_ptr<clover2_fcu_bridge::offboard> m_offboard{nullptr};
 };
 

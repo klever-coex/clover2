@@ -1,6 +1,7 @@
 #pragma once
 
 // clover2
+#include <clover2_common/node_interfaces/node_diagnostics_interface.hpp>
 #include <clover2_common/node_interfaces/node_parameters_watcher_interface.hpp>
 #include <clover2_common/util/parameter.hpp>
 
@@ -43,26 +44,24 @@ public:
             additional_constraints, read_only, ignore_override);
     }
 
-    std::shared_ptr<diagnostic_updater::Updater> get_diagnostic_updater() const;
-
     // Custom node interfaces getters
+    clover2_common::node_interfaces::NodeDiagnosticsInterface::SharedPtr
+    get_node_diagnostics_interface();
+
     clover2_common::node_interfaces::NodeParametersWatcherInterface::SharedPtr
     get_node_parameters_watcher_interface();
 
 protected:
-    void enable_diagnostic_updater();
-
-    void produce_lifecycle_diagnostics(
-        diagnostic_updater::DiagnosticStatusWrapper& status);
-
     rclcpp::TimerBase::SharedPtr m_init_timer;
 
 private:
     RCLCPP_DISABLE_COPY(lifecycle_node)
 
-    std::shared_ptr<diagnostic_updater::Updater> m_diagnostic_updater;
+    void init_lifecycle_node();
 
     // Custom node interfaces
+    clover2_common::node_interfaces::NodeDiagnosticsInterface::SharedPtr
+        m_diagnostics;
     clover2_common::node_interfaces::NodeParametersWatcherInterface::SharedPtr
         m_parameters_watcher;
 };

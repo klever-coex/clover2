@@ -14,6 +14,7 @@ find_package(ament_cmake_ros REQUIRED)
 find_package(clover2_common REQUIRED)
 find_package(clover2_map REQUIRED)
 find_package(clover2_pose_msgs REQUIRED)
+find_package(diagnostic_msgs REQUIRED)
 find_package(diagnostic_updater REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -29,6 +30,7 @@ set(dependencies
   clover2_common
   clover2_map
   clover2_pose_msgs
+  diagnostic_msgs
   diagnostic_updater
   geometry_msgs
   rclcpp
@@ -42,7 +44,9 @@ set(dependencies
 
 clover2_add_component_library(
   TARGET clover2_aruco_tracker
-  SOURCES src/tracker/tracker.cpp
+  SOURCES
+    src/tracker/tracker.cpp
+    src/tracker/diagnostics/pose_task.cpp
   DEFINES CLOVER2_ARUCO_TRACKER_NODE_BUILDING_LIBRARY
   DEPENDENCIES ${dependencies}
   COMPONENT_CLASS "clover2::aruco::tracker"
@@ -95,6 +99,7 @@ ament_export_targets(
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
+
   set(ament_cmake_copyright_FOUND TRUE)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()

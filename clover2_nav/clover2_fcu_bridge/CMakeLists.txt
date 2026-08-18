@@ -13,6 +13,7 @@ find_package(ament_cmake_ros REQUIRED)
 # Find ROS 2 message and dependency packages
 find_package(clover2_common REQUIRED)
 find_package(clover2_nav_msgs REQUIRED)
+find_package(diagnostic_updater REQUIRED)
 find_package(mavros_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -28,6 +29,7 @@ set(dependencies
   bondcpp
   clover2_common
   clover2_nav_msgs
+  diagnostic_updater
   mavros_msgs
   sensor_msgs
   rclcpp
