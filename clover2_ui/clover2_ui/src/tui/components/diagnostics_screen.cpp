@@ -52,9 +52,11 @@ diagnostics_screen::diagnostics_screen(
 
 void diagnostics_screen::on_enter() {
     refresh_from_monitor();
+
     if (!m_filters->has_focus_within() && !m_buttons.empty()) {
         m_buttons[m_selected]->set_focus(true);
     }
+
     ensure_selected_visible();
 }
 
@@ -81,10 +83,12 @@ bool diagnostics_screen::on_event(const cpptui::Event& event) {
             move_selection(-1);
             return true;
         }
+
         if (event.is_nav_down()) {
             move_selection(1);
             return true;
         }
+
         if (event.is_activate() || event.is_nav_right() ||
             event.is_nav_left()) {
             toggle_selected();
@@ -104,6 +108,7 @@ std::vector<std::pair<std::string, std::string>> diagnostics_screen::shortcuts()
 
 void diagnostics_screen::refresh_from_monitor() {
     if (!m_monitor) return;
+
     m_snapshot = m_monitor->get_snapshot();
     rebuild_view();
 }
@@ -138,6 +143,7 @@ void diagnostics_screen::rebuild_view() {
                 << std::fixed << std::setprecision(1) << m_snapshot.age_sec
                 << "s ago | " << m_monitor->topic();
     }
+
     m_summary_label->set_text(cpptui::StyledText().colored(
         summary.str(), level_color(m_snapshot.worst_level)));
 
@@ -151,6 +157,7 @@ void diagnostics_screen::rebuild_view() {
     if (m_selected >= static_cast<int>(m_visible_items.size())) {
         m_selected = static_cast<int>(m_visible_items.size()) - 1;
     }
+
     if (m_selected < 0) m_selected = 0;
 
     update_list_buttons();
@@ -161,6 +168,7 @@ void diagnostics_screen::rebuild_view() {
 void diagnostics_screen::rebuild_visible_items(
     const diagnostics_api::tree_node& node, int depth) {
     const bool group = is_group(node);
+
     if (filter_accepts(node.level) || group) {
         m_visible_items.push_back({&node, depth, group});
     }
@@ -180,6 +188,7 @@ void diagnostics_screen::update_list_buttons() {
         auto empty = std::make_shared<cpptui::Label>(
             m_snapshot.received ? "No diagnostics match current filters"
                                 : "No messages received yet");
+
         empty->fixed_height = 1;
         m_list->add(empty);
         return;
@@ -206,6 +215,7 @@ void diagnostics_screen::update_list_buttons() {
             update_list_buttons();
             update_details();
         });
+
         button->alignment = cpptui::Alignment::Left;
         button->fixed_height = 1;
         button->tab_stop = (static_cast<int>(i) == m_selected);
@@ -230,6 +240,7 @@ void diagnostics_screen::update_details() {
     out << "Name: " << node.path << std::endl;
     out << "Level: " << diagnostics_api::level_name(node.level) << std::endl;
     if (!node.message.empty()) out << "Message: " << node.message << std::endl;
+
     if (!node.hardware_id.empty()) {
         out << "Hardware ID: " << node.hardware_id << std::endl;
     }
@@ -250,6 +261,7 @@ void diagnostics_screen::update_details() {
 
 bool diagnostics_screen::filter_accepts(std::uint8_t level) const {
     if (!m_filters || m_filters->checked_states.size() < 4) return true;
+
     switch (level) {
         case diagnostic_msgs::msg::DiagnosticStatus::ERROR:
             return m_filters->checked_states[0];
@@ -275,10 +287,17 @@ const diagnostics_screen::visible_item* diagnostics_screen::selected_item()
 
 void diagnostics_screen::move_selection(int delta) {
     if (m_visible_items.empty()) return;
+
     m_selected += delta;
-    if (m_selected < 0)
+
+    if (m_selected < 0) {
         m_selected = static_cast<int>(m_visible_items.size()) - 1;
-    if (m_selected >= static_cast<int>(m_visible_items.size())) m_selected = 0;
+    }
+
+    if (m_selected >= static_cast<int>(m_visible_items.size())) {
+        m_selected = 0;
+    }
+
     update_list_buttons();
     update_details();
     ensure_selected_visible();
@@ -295,6 +314,7 @@ void diagnostics_screen::toggle_selected() {
     } else {
         m_collapsed.insert(item->node->path);
     }
+
     rebuild_view();
 }
 
