@@ -12,7 +12,7 @@ AutonomousFlight/Camera
 
 Краткий обзор возможностей фреймворка.
 
-## [Полёт](AutonomousFlight/Flight.md)
+## **{doc}`Полёт <AutonomousFlight/Flight>`**
 
 - `arm()` / `disarm()` - запуск / остановка моторов
 - `land()` - посадка
@@ -20,13 +20,13 @@ AutonomousFlight/Camera
 - `navigate_wait(frame_id, x, y, z, speed, yaw)` - полёт в точку с ожиданием прибытия
 - `navigate(...)` - то же без блокировки
 
-## [Камера](AutonomousFlight/Camera.md)
+## **{doc}`Камера <AutonomousFlight/Camera>`**
 
 - `get_image(camera_name, encoding)` - получить кадр как numpy-массив
 - `get_image_msg(camera_name)` - получить сырой ROS Image
 - `get_camera_info(camera_name)` - калибровка камеры
 
-## [LED-лента](AutonomousFlight/LED.md)
+## **{doc}`LED-лента <AutonomousFlight/LED>`**
 
 - `rainbow(period, brightness, duration)` - анимация радуги
 - `blink(r, g, b, period, brightness, duration)` - мигание
