@@ -1,4 +1,5 @@
 // clover2
+#include <clover2/optical_flow/diagnostics/flow_task.hpp>
 #include <clover2/optical_flow/optical_flow.hpp>
 
 // ROS2
@@ -11,6 +12,7 @@
 // STL
 #include <cmath>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace clover2::optical_flow {
@@ -21,9 +23,6 @@ optical_flow::optical_flow(const rclcpp::NodeOptions& options)
     , m_local_frame_id("map")
     , m_prev_stamp(rclcpp::Time(0))
     , m_last_vpe_time(rclcpp::Time(0)) {
-
-    m_diagnostic_updater = get_diagnostic_updater();
-
     // Declare parameters
     declare_and_watch_parameter<int>(
         "roi", 256,
@@ -79,6 +78,10 @@ optical_flow::CallbackReturn optical_flow::on_configure(
 
 optical_flow::CallbackReturn optical_flow::on_activate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
+    auto diagnostics = get_node_diagnostics_interface();
+    diagnostics->add<diagnostics::flow_task>();
+    diagnostics->get<diagnostics::flow_task>().set_clock(get_clock());
+
     // Create publishers
     m_flow_pub = this->create_publisher<mavros_msgs::msg::OpticalFlowRad>(
         "mavros/px4flow/raw/send", rclcpp::SystemDefaultsQoS());
@@ -107,6 +110,8 @@ optical_flow::CallbackReturn optical_flow::on_deactivate(
     m_debug_pub.reset();
     m_camera_info_sub.reset();
     m_image_sub.reset();
+
+    get_node_diagnostics_interface()->remove<diagnostics::flow_task>();
 
     return CallbackReturn::SUCCESS;
 }
@@ -169,8 +174,12 @@ void optical_flow::flow_callback(
     const sensor_msgs::msg::Image::ConstSharedPtr& msg) {
     std::lock_guard<std::mutex> camera_info_guard(m_camera_info_mtx);
 
+    auto& flow_diagnostics =
+        get_node_diagnostics_interface()->get<diagnostics::flow_task>();
+
     if (!m_camera_model.initialized()) {
-        RCLCPP_ERROR(get_logger(), "Camera info not initialized");
+        RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000,
+                             "Camera info not initialized");
         return;
     }
 
@@ -188,8 +197,10 @@ void optical_flow::flow_callback(
     img.convertTo(m_curr, CV_32F);
 
     rclcpp::Time current_stamp(msg->header.stamp);
-    if (m_prev.empty() || (current_stamp - m_prev_stamp).seconds() >
-                              0.1) {  // outdated previous frame
+    const bool reference_empty = m_prev.empty();
+    const bool reference_outdated =
+        !reference_empty && (current_stamp - m_prev_stamp).seconds() > 0.1;
+    if (reference_empty || reference_outdated) {
         m_prev = m_curr.clone();
         m_prev_stamp = current_stamp;
         cv::createHanningWindow(m_hann, m_curr.size(), CV_32F);
@@ -236,8 +247,10 @@ void optical_flow::flow_callback(
     try {
         m_tf_buffer->transform(flow_camera, flow_fcu, m_fcu_frame_id);
     } catch (const tf2::TransformException& e) {
+        flow_diagnostics.update_required_tf(false);
         return;
     }
+    flow_diagnostics.update_required_tf(true);
 
     // Calculate integration time
     rclcpp::Duration integration_time = current_stamp - m_prev_stamp;
@@ -270,6 +283,8 @@ void optical_flow::flow_callback(
     flow_msg.integrated_y = flow_fcu.vector.y;
     flow_msg.quality = static_cast<uint8_t>(response * 255);
     m_flow_pub->publish(flow_msg);
+
+    flow_diagnostics.update_flow(msg->header.stamp, response);
 
     m_prev = m_curr.clone();
     m_prev_stamp = current_stamp;

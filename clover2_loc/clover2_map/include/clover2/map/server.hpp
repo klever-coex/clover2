@@ -1,6 +1,7 @@
 #pragma once
 
 // clover2
+#include <clover2/map/diagnostics/map_server_task.hpp>
 #include <clover2/map/io/fs_provider.hpp>
 #include <clover2_common/node.hpp>
 
@@ -43,6 +44,8 @@ private:
 
     rclcpp::Service<clover2_pose_msgs::srv::GetMap>::SharedPtr m_map_service;
     rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr m_map_update_pub;
+
+    std::string m_map_path;
 };
 
 }  // namespace clover2::map

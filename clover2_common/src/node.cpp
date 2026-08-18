@@ -1,28 +1,31 @@
 
 // clover2
 #include <clover2_common/node.hpp>
+#include <clover2_common/node_interfaces/node_diagnostics.hpp>
 #include <clover2_common/node_interfaces/node_parameters_watcher.hpp>
 
 // ROS2
 #include <rclcpp/node.hpp>
 
+// STL
+#include <memory>
+#include <utility>
+
 namespace clover2_common {
 
 node::node(const std::string& node_name, const rclcpp::NodeOptions& options)
     : rclcpp::Node(node_name, options)
-    , m_parameters_watcher(new node_interfaces::NodeParametersWatcher(
-          get_node_parameters_interface())) {
-    enable_diagnostic_updater();
-}
+    , m_diagnostics(std::make_shared<node_interfaces::NodeDiagnostics>(
+          get_node_base_interface(), get_node_clock_interface(),
+          get_node_logging_interface(), get_node_parameters_interface(),
+          get_node_timers_interface(), get_node_topics_interface()))
+    , m_parameters_watcher(
+          std::make_shared<node_interfaces::NodeParametersWatcher>(
+              get_node_parameters_interface())) {}
 
-void node::enable_diagnostic_updater() {
-    m_diagnostic_updater = std::make_shared<diagnostic_updater::Updater>(this);
-    m_diagnostic_updater->setHardwareID(this->get_name());
-}
-
-std::shared_ptr<diagnostic_updater::Updater> node::get_diagnostic_updater()
-    const {
-    return m_diagnostic_updater;
+clover2_common::node_interfaces::NodeDiagnosticsInterface::SharedPtr
+node::get_node_diagnostics_interface() {
+    return m_diagnostics;
 }
 
 clover2_common::node_interfaces::NodeParametersWatcherInterface::SharedPtr

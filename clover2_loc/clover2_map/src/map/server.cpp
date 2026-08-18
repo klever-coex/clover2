@@ -7,15 +7,21 @@
 #include <filesystem>
 #include <memory>
 #include <stdexcept>
+#include <string>
 
 namespace clover2::map {
 
 server::server(const rclcpp::NodeOptions& options)
     : clover2_common::node("map_server", options) {
+    auto diagnostic_interface = get_node_diagnostics_interface();
+    diagnostic_interface->add<diagnostics::map_server_task>();
+
     declare_and_watch_parameter<std::string>(
         "map", "",
         [this](const rclcpp::Parameter& p) {  //
             auto new_file = std::filesystem::path(p.as_string());
+            m_map_path = new_file.string();
+
             if (!std::filesystem::exists(new_file)) {
                 throw std::runtime_error("File " + new_file.string() +
                                          " not exits");
@@ -29,6 +35,12 @@ server::server(const rclcpp::NodeOptions& options)
                 new_file, get_logger().get_child("fs_provider"));
 
             m_provider->load();
+
+            auto diagnostics = get_node_diagnostics_interface();
+            diagnostics->get<diagnostics::map_server_task>().set_map_path(
+                m_map_path);
+            diagnostics->get<diagnostics::map_server_task>().set_provider(
+                m_provider);
         },
         "Path to map file whit .txt/.yaml/.yml extension.");
 

@@ -5,6 +5,7 @@ on:
     tags: ['v*']
     branches: [master]
   pull_request:
+    branches: [master]
   workflow_dispatch:
 
 permissions:
@@ -14,7 +15,7 @@ permissions:
 
 jobs:
   detect-mode:
-    if: ${{ github.event.pull_request == null || !github.event.pull_request.draft }}
+    if: github.event.pull_request.draft == false
     runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}
     outputs:
       build_mode: ${{ steps.version.outputs.build_mode }}

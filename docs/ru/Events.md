@@ -9,5 +9,4 @@
 :maxdepth: 1
 :hidden:
 
-Events/Archipelag
-```
+Events/Archipelag2026
