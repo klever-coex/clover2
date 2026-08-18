@@ -1,5 +1,7 @@
 #include <clover2_notification/controller.hpp>
 
+#include <diagnostic_msgs/msg/diagnostic_status.hpp>
+
 #include <exception>
 #include <functional>
 
@@ -9,6 +11,8 @@ controller::controller(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("notification", options) {
     m_output_plugins = declare_parameter<std::vector<std::string>>(
         "outputs", {"clover2_notification::outputs::led"});
+    m_repeat_period = rclcpp::Duration::from_seconds(
+        declare_parameter<double>("repeat_period_sec", 0.0));
 
     register_on_configure(
         std::bind(&controller::on_configure, this, std::placeholders::_1));
@@ -83,9 +87,39 @@ controller::CallbackReturn controller::on_shutdown(
 
 void controller::diagnostics_callback(
     diagnostic_msgs::msg::DiagnosticArray::SharedPtr msg) {
-    (void)msg;
+    const diagnostic_msgs::msg::DiagnosticStatus* selected_status = nullptr;
+    uint8_t selected_level = diagnostic_msgs::msg::DiagnosticStatus::OK;
 
-    // TODO: output->show(notification_name)
+    for (const auto& status : msg->status) {
+        if (status.level > selected_level) {
+            selected_level = status.level;
+            selected_status = &status;
+        }
+    }
+
+    if (!selected_status) {
+        m_active_event.value.reset();
+        return;
+    }
+
+    data::event event{*selected_status};
+    const auto now = get_clock()->now();
+    const bool event_changed =
+        !m_active_event.value || *m_active_event.value != event;
+    const bool repeat_due =
+        !event_changed && m_repeat_period.nanoseconds() > 0 &&
+        (now - m_active_event.stamp) >= m_repeat_period;
+
+    if (!event_changed && !repeat_due) {
+        return;
+    }
+
+    m_active_event.value = event;
+    m_active_event.stamp = now;
+
+    for (const auto& output : m_outputs) {
+        output->show(event);
+    }
 }
 
 }  // namespace clover2_notification

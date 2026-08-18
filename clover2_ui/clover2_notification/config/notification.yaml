@@ -1,0 +1,52 @@
+/**/notification:
+  ros__parameters:
+    repeat_period_sec: 0.0
+
+    outputs:
+      - clover2_notification::outputs::led
+
+    led:
+      base_path: led_strip
+
+      defaults:
+        warn:
+          animation: blink
+          color: [255, 255, 0]
+          brightness: 0.7
+          period: 1.0
+          duration: 0.0
+
+        error:
+          animation: blink
+          color: [255, 0, 0]
+          brightness: 1.0
+          period: 0.3
+          duration: 0.0
+
+        stale:
+          animation: blink
+          color: [0, 0, 255]
+          brightness: 0.7
+          period: 1.5
+          duration: 0.0
+
+      override_names:
+        - power
+        - fcu_backend
+
+      overrides:
+        power:
+          diagnostic_name: "Power"
+          animation: blink
+          color: [255, 128, 0]
+          brightness: 0.8
+          period: 0.8
+          duration: 0.0
+
+        fcu_backend:
+          diagnostic_name: "FCU backend"
+          animation: blink
+          color: [255, 0, 0]
+          brightness: 1.0
+          period: 0.15
+          duration: 0.0

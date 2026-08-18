@@ -1,17 +1,11 @@
 #pragma once
 
-// ROS2
-#include <rclcpp/time.hpp>
-
-// STL
-#include <optional>
+// clover2
+#include <clover2_common/data/stamped.hpp>
 
 namespace clover2_fcu_bridge::data {
 
 template <typename T>
-struct stamped {
-    std::optional<T> value;
-    rclcpp::Time stamp{static_cast<int64_t>(0), RCL_ROS_TIME};
-};
+using stamped = clover2_common::data::stamped<T>;
 
 }  // namespace clover2_fcu_bridge::data

@@ -21,6 +21,10 @@ ament_auto_add_executable(notification
   src/controller.cpp)
 target_link_libraries(notification notification_outputs)
 
+install(DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   set(ament_cmake_copyright_FOUND TRUE)

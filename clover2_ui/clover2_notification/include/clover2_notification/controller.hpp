@@ -1,7 +1,9 @@
 #pragma once
 
+#include <clover2_common/data/stamped.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 #include <clover2_common/node_context.hpp>
+#include <clover2_notification/data/event.hpp>
 #include <clover2_notification/output.hpp>
 #include <diagnostic_msgs/msg/diagnostic_array.hpp>
 #include <pluginlib/class_loader.hpp>
@@ -38,6 +40,8 @@ private:
     std::shared_ptr<clover2_common::node_context> m_node_context;
     rclcpp::Subscription<diagnostic_msgs::msg::DiagnosticArray>::SharedPtr
         m_diagnostics_sub;
+    clover2_common::data::stamped<data::event> m_active_event;
+    rclcpp::Duration m_repeat_period{0, 0};
 };
 
 }  // namespace clover2_notification
