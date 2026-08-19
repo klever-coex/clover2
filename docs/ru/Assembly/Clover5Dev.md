@@ -21,7 +21,7 @@
 
     **Ячейка 1**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/nut_press.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/nut_press.webp
     :alt: Гайка запрессовочная М3
     :width: 20px
     :align: center
@@ -32,7 +32,7 @@
 
     **Ячейка 2**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/nut_nylon.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/nut_nylon.webp
     :alt: Гайка нейлоновая М3
     :width: 20px
     :align: center
@@ -43,7 +43,7 @@
 
     **Ячейка 3**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/hts-m2,5.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/hts-m2,5.webp
     :alt: Стойка нейлоновая M2.5
     :width: 35px
     :align: center
@@ -54,7 +54,7 @@
 
     **Ячейка 4**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/nut_nylon.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/nut_nylon.webp
     :alt: Гайка нейлоновая М2.5
     :width: 16px
     :align: center
@@ -65,7 +65,7 @@
 
     **Ячейка 5**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/nut_nylon.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/nut_nylon.webp
     :alt: Гайка нейлоновая М2
     :width: 12px
     :align: center
@@ -76,7 +76,7 @@
 
     **Ячейка 6**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/m3x40.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m3x40.webp
     :alt: Винт M3x40
     :width: 150px
     :align: center
@@ -87,7 +87,7 @@
 
     **Ячейка 7**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/m3x12.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m3x12.webp
     :alt: Винт M3x12
     :width: 95px
     :align: center
@@ -98,7 +98,7 @@
 
     **Ячейка 8**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/m3x8.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m3x8.webp
     :alt: Винт M3x8
     :width: 70px
     :align: center
@@ -109,7 +109,7 @@
 
     **Ячейка 9**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/m3x6.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m3x6.webp
     :alt: Винт M3x6
     :width: 45px
     :align: center
@@ -120,7 +120,7 @@
 
     **Ячейка 10**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/m3x4.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m3x4.webp
     :alt: Винт M3x4
     :width: 35px
     :align: center
@@ -131,7 +131,7 @@
 
     **Ячейка 11**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/aluminium_40.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/aluminium_40.webp
     :alt: Стойка алюминиевая M3x40
     :width: 130px
     :align: center
@@ -142,7 +142,7 @@
 
     **Ячейка 12**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/dumper.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/dumper.webp
     :alt: Стойка демпферная М3
     :width: 50px
     :align: center
@@ -153,7 +153,7 @@
 
     **Ячейка 13**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/m3x10.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m3x10.webp
     :alt: Винт M3x10
     :width: 80px
     :align: center
@@ -164,7 +164,7 @@
 
     **Ячейка 14**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/aluminium_10.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/aluminium_10.webp
     :alt: Стойка алюминиевая M3x10
     :width: 40px
     :align: center
@@ -175,7 +175,7 @@
 
     **Ячейка 15**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/aluminium_40.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/aluminium_40.webp
     :alt: Стойка алюминиевая M3x30
     :width: 100px
     :align: center
@@ -186,7 +186,7 @@
 
     **Ячейка 16**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/m2,5x6.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m2,5x6.webp
     :alt: Винт M2x6
     :width: 50px
     :align: center
@@ -197,7 +197,7 @@
 
     **Ячейка 17**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/m2,5x4.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m2,5x4.webp
     :alt: Винт M2.5x4
     :width: 50px
     :align: center
@@ -208,7 +208,7 @@
 
     **Ячейка 18**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/m2,5x6.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m2,5x6.webp
     :alt: Винт M2.5x6
     :width: 60px
     :align: center
@@ -219,7 +219,7 @@
 
     **Ячейка 19**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/m1,4x3.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m1,4x3.webp
     :alt: Саморез M1.4x4
     :width: 35px
     :align: center
@@ -230,7 +230,7 @@
 
     **Ячейка 20**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/m2,5x4.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m2,5x4.webp
     :alt: Винт M2x3
     :width: 35px
     :align: center
@@ -241,7 +241,7 @@
 
     **Ячейка 21**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/htp-30.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/htp-30.webp
     :alt: Стойка нейлоновая M3x30
     :width: 100px
     :align: center
@@ -252,7 +252,7 @@
 
     **Ячейка 22**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/htp-20.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/htp-20.webp
     :alt: Стойка нейлоновая M3x20
     :width: 70px
     :align: center
@@ -263,7 +263,7 @@
 
     **Ячейка 23**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/htp-40.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/htp-40.webp
     :alt: Стойка нейлоновая M3x40
     :width: 130px
     :align: center
@@ -274,7 +274,7 @@
 
     **Ячейка 24**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/m1,4x10.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m1,4x10.webp
     :alt: Саморез M1.4x10
     :width: 60px
     :align: center
@@ -285,7 +285,7 @@
 
     **Ячейка 25**
 
-    ```{image} @assets@/common/assembly/clover5-dev/fasteners/tpu-spacer.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/tpu-spacer.webp
     :alt: Ножка из TPU
     :width: 60px
     :align: center

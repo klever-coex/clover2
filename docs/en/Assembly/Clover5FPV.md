@@ -21,7 +21,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 1**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/nut_press.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/nut_press.webp
     :alt: Press Nut M3
     :width: 20px
     :align: center
@@ -32,7 +32,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 2**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/nut_nylon.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/nut_nylon.webp
     :alt: Nylon Nut M3
     :width: 20px
     :align: center
@@ -43,7 +43,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 3**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/hts-m2,5.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/hts-m2,5.webp
     :alt: Nylon Standoff M2.5
     :width: 35px
     :align: center
@@ -54,7 +54,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 4**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/nut_nylon.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/nut_nylon.webp
     :alt: Nylon Nut M2.5
     :width: 16px
     :align: center
@@ -65,7 +65,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 5**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/nut_nylon.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/nut_nylon.webp
     :alt: Nylon Nut M2
     :width: 12px
     :align: center
@@ -76,7 +76,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 6**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/m3x40.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m3x40.webp
     :alt: Screw M3x40
     :width: 150px
     :align: center
@@ -87,7 +87,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 7**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/m3x12.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m3x12.webp
     :alt: Screw M3x12
     :width: 95px
     :align: center
@@ -98,7 +98,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 8**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/m3x8.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m3x8.webp
     :alt: Screw M3x8
     :width: 70px
     :align: center
@@ -109,7 +109,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 9**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/m3x6.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m3x6.webp
     :alt: Screw M3x6
     :width: 45px
     :align: center
@@ -120,7 +120,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 10**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/m3x4.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m3x4.webp
     :alt: Screw M3x4
     :width: 35px
     :align: center
@@ -131,7 +131,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 11**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/aluminium_40.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/aluminium_40.webp
     :alt: Aluminum Standoff M3x40
     :width: 130px
     :align: center
@@ -142,7 +142,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 12**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/dumper.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/dumper.webp
     :alt: Damper Standoff M3
     :width: 50px
     :align: center
@@ -153,7 +153,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 13**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/m3x10.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m3x10.webp
     :alt: Screw M3x10
     :width: 80px
     :align: center
@@ -164,7 +164,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 14**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/aluminium_10.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/aluminium_10.webp
     :alt: Aluminum Standoff M3x10
     :width: 40px
     :align: center
@@ -175,7 +175,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 15**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/aluminium_40.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/aluminium_40.webp
     :alt: Aluminum Standoff M3x30
     :width: 100px
     :align: center
@@ -186,7 +186,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 16**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/m2,5x6.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m2,5x6.webp
     :alt: Screw M2x6
     :width: 50px
     :align: center
@@ -197,7 +197,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 17**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/m2,5x4.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m2,5x4.webp
     :alt: Screw M2.5x4
     :width: 50px
     :align: center
@@ -208,7 +208,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 18**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/m2,5x6.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m2,5x6.webp
     :alt: Screw M2.5x6
     :width: 60px
     :align: center
@@ -219,7 +219,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 19**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/m1,4x3.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m1,4x3.webp
     :alt: Self-tapping Screw M1.4x4
     :width: 35px
     :align: center
@@ -230,7 +230,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 20**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/m2,5x4.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m2,5x4.webp
     :alt: Screw M2x3
     :width: 35px
     :align: center
@@ -241,7 +241,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 21**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/htp-30.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/htp-30.webp
     :alt: Nylon Standoff M3x30
     :width: 100px
     :align: center
@@ -252,7 +252,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 22**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/htp-20.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/htp-20.webp
     :alt: Nylon Standoff M3x20
     :width: 70px
     :align: center
@@ -263,7 +263,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 23**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/htp-40.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/htp-40.webp
     :alt: Nylon Standoff M3x40
     :width: 130px
     :align: center
@@ -274,7 +274,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 24**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/m1,4x10.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m1,4x10.webp
     :alt: Self-tapping Screw M1.4x10
     :width: 60px
     :align: center
@@ -285,7 +285,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
     **Cell 25**
 
-    ```{image} @assets@/common/assembly/clover5-fpv/fasteners/tpu-spacer.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/tpu-spacer.webp
     :alt: TPU Foot
     :width: 60px
     :align: center
