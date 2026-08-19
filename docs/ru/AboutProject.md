@@ -5,6 +5,5 @@
 :maxdepth: 2
 :hidden:
 
-AboutProject/Navigation
 AboutProject/PackageDescription
 ```
