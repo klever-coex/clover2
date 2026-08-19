@@ -1,3 +1,8 @@
+/**
+ * @file node_diagnostics.hpp
+ * @brief Provides project node diagnostics.
+ */
+
 #pragma once
 
 // clover2
@@ -22,10 +27,22 @@
 
 namespace clover2_common::node_interfaces {
 
+/**
+ * @brief Project node diagnostics.
+ */
 class NodeDiagnostics : public NodeDiagnosticsInterface {
 public:
     RCLCPP_SMART_PTR_ALIASES_ONLY(NodeDiagnostics)
 
+    /**
+     * @brief Construct node diagnostics.
+     * @param base_interface Node base interface.
+     * @param clock_interface Node clock interface.
+     * @param logging_interface Node logging interface.
+     * @param parameters_interface Node parameters interface.
+     * @param timers_interface Node timers interface.
+     * @param topics_interface Node topics interface.
+     */
     RCLCPP_PUBLIC
     NodeDiagnostics(
         rclcpp::node_interfaces::NodeBaseInterface::SharedPtr base_interface,
@@ -42,9 +59,11 @@ public:
     RCLCPP_PUBLIC
     ~NodeDiagnostics() override;
 
+    /** @brief Add a diagnostic task. */
     RCLCPP_PUBLIC
     void add(diagnostic_updater::DiagnosticTask& task) override;
 
+    /** @brief Force update of all diagnostics. */
     RCLCPP_PUBLIC
     void force_update() override;
 

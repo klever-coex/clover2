@@ -4,13 +4,10 @@
 
 ## Классы обёртки стандартных C++ нод
 
-### clover2_common::node (node.cpp)
+Классы-обёртки над стандартными C++ нодами - требуется для унификации функционала который часто используется.
+`node` и `lifecycle_node` имеют одинаковые дополнительные методы.
 
-Обёртка над стандартным `rclcpp::Node`. Добавляет к обычной ноде новые возможности.
-
-**Методы:**
-
-`declare_and_watch_parameter<ParameterT>(name, default_value, cb, ...)` - повторяет сигнатуру объявления параметра и регистрирует функцию на обновление параметра:
+- `declare_and_watch_parameter<ParameterT>(name, default_value, cb, ...)` - повторяет сигнатуру объявления параметра и регистрирует функцию на обновление:
 
 ```cpp
     declare_and_watch_parameter<std::string>(
@@ -19,85 +16,61 @@
         "Tracking target");
 ```
 
-- `get_node_diagnostics_interface()` — возвращает интерфейс диагностики ноды.
-- `get_node_parameters_watcher_interface()` — возвращает интерфейс наблюдения за параметрами.
+```{eval-rst}
+.. doxygenclass:: clover2_common::node
+    :members:
+```
 
-### clover2_common::lifecycle_node (lifecycle_node.cpp)
+<br>
 
-Обёртка над `rclcpp_lifecycle::LifecycleNode`. Как и `node`, добавляет диагностику и наблюдение за параметрами, а также:
+### `clover2_common::node_context`
 
-- автоматическую инициализацию: при запуске нода сама вызывает `configure()` и `activate()` — управляется параметром `autostart` (по умолчанию `true`);
-- диагностическую задачу `/system/lifecycle_state`, которая сообщает текущее состояние жизненного цикла ноды.
+Агрегирует все интерфейсы ноды в одном объекте: стандартные интерфейсы ROS 2, а также специфические для проекта `NodeDiagnosticsInterface` и `NodeParametersWatcherInterface`. (Аналог `rclcpp::node_interfaces::NodeInterfaces`)
 
-**Методы** те же, что у `node`: `declare_and_watch_parameter`, `get_node_diagnostics_interface`, `get_node_parameters_watcher_interface`.
+```{eval-rst}
+.. doxygenclass:: clover2_common::node_context
+    :members:
+```
 
-### clover2_common::node_runtime (node_runtime.cpp)
+<br>
 
-Запускает ноду `clover2_common::node` в отдельном потоке с собственным `SingleThreadedExecutor`. Удобен, когда ноду нужно создать и «крутить» без ручного управления потоками.
+### `clover2_common::node_runtime`
 
-**Методы:**
+Запускает ноду `clover2_common::node` в отдельном потоке с собственным `SingleThreadedExecutor`. Необходим для работы программ с несоколькими циклами выполнения (`Boost.Asio` или `cpptui`)
 
-- `start()` — запускает ноду: стартует поток, в котором крутится executor.
-- `stop()` — останавливает executor и дожидается завершения потока.
-- `get_node()` — возвращает указатель на ноду.
-- `get_node_context()` — возвращает контекст ноды.
+```{eval-rst}
+.. doxygenclass:: clover2_common::node_runtime
+    :members:
+```
 
-### clover2_common::node_context (node_context.hpp)
+## Собственные интерфейсы ноды
 
-Агрегирует все интерфейсы ноды в одном объекте: стандартные интерфейсы ROS 2 (base, graph, logging, parameters, services, topics, timers и остальные), а также собственные — `NodeDiagnosticsInterface` и `NodeParametersWatcherInterface`.
-
-**Методы:**
-
-- `get_logger()` — возвращает логгер ноды.
-
-### clover2_common::executor (executor.cpp)
-
-`MultiThreadedExecutor` с именованием потоков, чтобы их было проще находить при отладке.
-
-## Интерфейсы ноды
+<br>
 
 ### NodeDiagnosticsInterface / NodeDiagnostics
 
-Обёртка над `diagnostic_updater`, которая хранит диагностические задачи по их типу и управляет ими.
+Обёртка над `diagnostic_updater`, которая хранит диагностические задачи по типу и обеспечивает типизированный доступ.
 
-**Методы:**
+```cpp
+get_node_diagnostics_interface()->add<diagnostics::lifecycle_state_task>();
+...
+get_node_diagnostics_interface()
+    ->get<diagnostics::lifecycle_state_task>()
+    .set_state_getter([this]() { return get_current_state(); });
+```
 
-- `add<T>(args...)` — добавляет диагностическую задачу типа `T`.
-- `get<T>()` — возвращает зарегистрированную задачу типа `T`.
-- `remove<T>()` — удаляет задачу типа `T`.
-- `force_update()` — принудительно обновляет все диагностики.
+```{eval-rst}
+.. doxygeninterface:: clover2_common::node_interfaces::NodeDiagnosticsInterface
+    :members:
+```
+
+<br>
 
 ### NodeParametersWatcherInterface / NodeParametersWatcher
 
 Наблюдение за параметрами ноды: колбэк вызывается автоматически при изменении значения параметра.
 
-**Методы:**
-
-- `declare_and_watch_parameter(name, default_value, cb, descriptor, ignore_override)` — объявляет параметр и подписывает колбэк на его изменения.
-- `undeclare_watcher_parameters()` — снимает объявление всех отслеживаемых параметров.
-
-## Вспомогательные утилиты
-
-### util::parameter (parameter.hpp)
-
-Помощники для безопасного объявления и чтения параметров:
-
-- `declare_parameter_if_not_declared(node, name, default_value, descriptor)` — объявляет параметр, только если он ещё не объявлен.
-- `safe_declare_and_get(node, name, default_value, read_value, descriptor)` — объявляет параметр (если нужно) и сразу читает его значение.
-- `declare_and_watch_parameter(watcher, name, default_value, cb, ...)` — объявляет и подписывает параметр, формируя дескриптор из описания и ограничений.
-
-### util::time_buffer (time_buffer.hpp)
-
-Буфер с окном по времени: хранит значения вместе с метками времени и автоматически удаляет записи, которые старше заданного окна.
-
-**Методы:**
-
-- `add(timestamp, data)` — добавляет значение или вектор значений с меткой времени.
-- `prune(current_time)` — удаляет устаревшие записи.
-- `front()` / `back()` — первое / последнее значение.
-- `size()` / `empty()` / `clear()` — размер, проверка пустоты, очистка.
-- `windowSize()` — размер окна хранения.
-
-### rclcpp_trails (rclcpp_trails.hpp)
-
-Расширение стандартного `rclcpp`: упрощённый `rclcpp::create_client<ServiceT>(node, service_name, qos, group)`, который работает напрямую с нодой и сам извлекает нужные интерфейсы.
+```{eval-rst}
+.. doxygeninterface:: clover2_common::node_interfaces::NodeParametersWatcherInterface
+    :members:
+```

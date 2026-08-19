@@ -19,7 +19,14 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     "sphinx_copybutton",
     "sphinx_simplepdf",
+    "breathe",
 ]
+
+breathe_projects = {
+    "clover2": "./build/doxygen/xml"
+}
+
+breathe_default_project = "clover2"
 
 pygments_style = 'sphinx'
 autosectionlabel_prefix_document = True
