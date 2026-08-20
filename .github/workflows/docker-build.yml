@@ -31,7 +31,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [tooling, web, ros]
+        include:
+          - target: tooling
+          - target: web
+          - target: ros,ros-test
+            cache-scope: ros
     env:
       BUILD_MODE: ${{ needs.detect-mode.outputs.build_mode }}
     steps:
@@ -43,4 +47,17 @@ jobs:
           build-mode: ${{ needs.detect-mode.outputs.build_mode }}
           git-hash: ${{ needs.detect-mode.outputs.git_hash }}
           version: ${{ needs.detect-mode.outputs.version }}
+          cache-scope: ${{ matrix.cache-scope }}
           push: ${{ github.event_name != 'pull_request' }}
+
+      - name: Check test results
+        if: ${{ always() && matrix.cache-scope == 'ros' }}
+        run: test ! -f test-results/FAILED
+
+      - name: Upload test results
+        if: ${{ always() && matrix.cache-scope == 'ros' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results
+          if-no-files-found: warn

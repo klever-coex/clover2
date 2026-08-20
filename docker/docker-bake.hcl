@@ -105,6 +105,19 @@ target "ros" {
   }
 }
 
+# CI only
+target "ros-test" {
+  dockerfile = "docker/ros/Dockerfile"
+  target = "test-results"
+  output = ["type=local,dest=test-results"]
+
+  inherits = ["base"]
+
+  args = {
+    ROS_DISTRO = "jazzy"
+  }
+}
+
 #    ______          ___
 #   /_  __/__  ___  / (_)__  ___ _
 #    / / / _ \/ _ \/ / / _ \/ _ `/

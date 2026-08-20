@@ -20,6 +20,10 @@ inputs:
     description: Whether to push images to registry
     required: false
     default: 'true'
+  cache-scope:
+    description: Cache scope suffix (defaults to the target name)
+    required: false
+    default: ''
 
 runs:
   using: composite
@@ -38,9 +42,10 @@ runs:
         files: docker/docker-bake.hcl
         targets: ${{ inputs.target }}
         push: false
+        provenance: false
         builder: ${{ steps.setup.outputs.builder-name }}
         set: |
-          *.cache-from=type=gha,scope=clover2-${{ inputs.target }}
+          *.cache-from=type=gha,scope=clover2-${{ inputs.cache-scope || inputs.target }}
         vars: |
           REGISTRY=ghcr.io/${{ github.repository_owner }}/clover2/
           BUILD_MODE=${{ inputs.build-mode }}
@@ -57,8 +62,8 @@ runs:
         push: true
         builder: ${{ steps.setup.outputs.builder-name }}
         set: |
-          *.cache-from=type=gha,scope=clover2-${{ inputs.target }}
-          *.cache-to=type=gha,scope=clover2-${{ inputs.target }},mode=max
+          *.cache-from=type=gha,scope=clover2-${{ inputs.cache-scope || inputs.target }}
+          *.cache-to=type=gha,scope=clover2-${{ inputs.cache-scope || inputs.target }},mode=max
         vars: |
           REGISTRY=ghcr.io/${{ github.repository_owner }}/clover2/
           BUILD_MODE=${{ inputs.build-mode }}

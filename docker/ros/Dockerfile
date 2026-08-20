@@ -64,11 +64,23 @@ RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharin
     --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/lib/apt/lists,sharing=locked \
     apt-get update -y && \
     apt-get install -y \
-        ccache
+        ccache \
+        ros-${ROS_DISTRO}-ament-cmake-gtest
 
 RUN --mount=type=cache,id=ccache-${SHORT_NAME}-${TARGETPLATFORM},target=${CCACHE_DIR} \
     --mount=type=cache,id=ros-build-${SHORT_NAME}-${TARGETPLATFORM},target=/clover2_ws/build \
-    /clover2/build.sh ${CCACHE_DIR} /opt/clover2 /clover2_ws/build
+    /clover2/build.sh ${CCACHE_DIR} /opt/clover2 /clover2_ws/build --cmake-args
+
+FROM builder AS test
+ARG SHORT_NAME
+ARG TARGETPLATFORM
+
+RUN --mount=type=cache,id=ros-build-${SHORT_NAME}-${TARGETPLATFORM},target=/clover2_ws/build \
+    /clover2/test.sh
+
+# from empty image
+FROM scratch AS test-results
+COPY --from=test /test-results /
 
 FROM core AS clover2-ros
 
