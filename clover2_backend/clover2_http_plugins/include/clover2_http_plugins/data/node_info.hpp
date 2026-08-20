@@ -1,7 +1,5 @@
 #pragma once
 
-#include <clover2_http_plugins/data/topic_info.hpp>
-
 #include <nlohmann/json.hpp>
 
 #include <string>
@@ -16,10 +14,9 @@ inline std::string full_node_name(const std::string& ns,
 struct node_info {
     std::string name;
     std::string ns;
-    std::vector<topic_info> publishers;
-    std::vector<topic_info> subscribers;
+    bool is_lifecycle = false;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(node_info, name, ns, publishers, subscribers)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(node_info, name, ns, is_lifecycle)
 
 }  // namespace clover2_http_plugins::data

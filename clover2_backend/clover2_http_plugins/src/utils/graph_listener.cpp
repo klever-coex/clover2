@@ -9,7 +9,6 @@
 #include <chrono>
 #include <exception>
 #include <pthread.h>
-#include <stdexcept>
 #include <utility>
 
 using namespace std::chrono_literals;

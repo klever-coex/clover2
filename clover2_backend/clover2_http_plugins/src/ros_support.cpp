@@ -1,6 +1,8 @@
 // clover2
 #include <clover2_common/util/parameter.hpp>
 #include <clover2_http/plugin.hpp>
+#include <clover2_http_plugins/data/node_services.hpp>
+#include <clover2_http_plugins/data/node_topics.hpp>
 #include <clover2_http_plugins/data/topic_info.hpp>
 #include <clover2_http_plugins/ros_support.hpp>
 #include <clover2_http_plugins/utils/message_type.hpp>
@@ -14,8 +16,6 @@
 
 // STL
 #include <string>
-#include <string_view>
-#include <vector>
 
 namespace {
 
@@ -91,6 +91,10 @@ void ros_support::on_initialize() {
         [this](const rclcpp::Parameter& p) { m_rate_limit = p.as_double(); },
         "Rate limit for topic streams in bytes per second");
 
+    m_server->get<topics>(
+        "/topics", std::bind(&ros_support::handle_topics, this,
+                             std::placeholders::_1, std::placeholders::_2));
+
     m_server->get<nodes>(
         "/nodes", std::bind(&ros_support::handle_nodes, this,
                             std::placeholders::_1, std::placeholders::_2));
@@ -100,9 +104,65 @@ void ros_support::on_initialize() {
         std::bind(&ros_support::handle_node_info, this, std::placeholders::_1,
                   std::placeholders::_2));
 
-    m_server->get<topics>(
-        "/topics", std::bind(&ros_support::handle_topics, this,
-                             std::placeholders::_1, std::placeholders::_2));
+    m_server->get<node_topics>(
+        "/node/publishers/-/{node...}",
+        [this](clover2_http::http::core::request_context ctx,
+               clover2_http::http::endpoint::reply<node_topics>& reply) {
+            std::string node_name = ctx.param<std::string>("node");
+            if (node_name.empty() || node_name.front() != '/') {
+                node_name.insert(node_name.begin(), '/');
+            }
+
+            node_topics response;
+            response.topics = m_node_info_storage.get_publishers(node_name);
+
+            reply(response, 200);
+        });
+
+    m_server->get<node_topics>(
+        "/node/subscribes/-/{node...}",
+        [this](clover2_http::http::core::request_context ctx,
+               clover2_http::http::endpoint::reply<node_topics>& reply) {
+            std::string node_name = ctx.param<std::string>("node");
+            if (node_name.empty() || node_name.front() != '/') {
+                node_name.insert(node_name.begin(), '/');
+            }
+
+            node_topics response;
+            response.topics = m_node_info_storage.get_subscribes(node_name);
+
+            reply(response, 200);
+        });
+
+    m_server->get<node_services>(
+        "/node/servers/-/{node...}",
+        [this](clover2_http::http::core::request_context ctx,
+               clover2_http::http::endpoint::reply<node_services>& reply) {
+            std::string node_name = ctx.param<std::string>("node");
+            if (node_name.empty() || node_name.front() != '/') {
+                node_name.insert(node_name.begin(), '/');
+            }
+
+            node_services response;
+            response.services = m_node_info_storage.get_servers(node_name);
+
+            reply(response, 200);
+        });
+
+    m_server->get<node_services>(
+        "/node/clients/-/{node...}",
+        [this](clover2_http::http::core::request_context ctx,
+               clover2_http::http::endpoint::reply<node_services>& reply) {
+            std::string node_name = ctx.param<std::string>("node");
+            if (node_name.empty() || node_name.front() != '/') {
+                node_name.insert(node_name.begin(), '/');
+            }
+
+            node_services response;
+            response.services = m_node_info_storage.get_clients(node_name);
+
+            reply(response, 200);
+        });
 
     m_server->raw_ws("/topic/json/-/{topic...}",
                      std::bind(&ros_support::handle_topic_json_stream, this,
@@ -116,7 +176,7 @@ void ros_support::on_initialize() {
 }
 
 std::vector<std::string> ros_support::capabilities() const {
-    return {"nodes", "topics"};
+    return {"nodes", "topics", "services"};
 }
 
 void ros_support::handle_nodes(
