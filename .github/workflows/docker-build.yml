@@ -33,7 +33,8 @@ jobs:
       matrix:
         include:
           - target: tooling
-          - target: web
+          - target: clover2-docs
+          - target: clover2-frontend
           - target: ros,ros-test
             cache-scope: ros
     env:

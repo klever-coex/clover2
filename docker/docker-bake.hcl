@@ -111,6 +111,8 @@ target "ros-test" {
   target = "test-results"
   output = ["type=local,dest=test-results"]
 
+  cache-to = []
+
   inherits = ["base"]
 
   args = {
