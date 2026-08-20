@@ -69,14 +69,14 @@ RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharin
 
 RUN --mount=type=cache,id=ccache-${SHORT_NAME}-${TARGETPLATFORM},target=${CCACHE_DIR} \
     --mount=type=cache,id=ros-build-${SHORT_NAME}-${TARGETPLATFORM},target=/clover2_ws/build \
-    /clover2/build.sh ${CCACHE_DIR} /opt/clover2 /clover2_ws/build --cmake-args
+    /clover2/build_ros.sh ${CCACHE_DIR} /opt/clover2 /clover2_ws/build --cmake-args
 
 FROM builder AS test
 ARG SHORT_NAME
 ARG TARGETPLATFORM
 
 RUN --mount=type=cache,id=ros-build-${SHORT_NAME}-${TARGETPLATFORM},target=/clover2_ws/build \
-    /clover2/test.sh
+    /clover2/test_ros.sh
 
 # from empty image
 FROM scratch AS test-results
