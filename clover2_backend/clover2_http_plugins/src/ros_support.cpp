@@ -91,16 +91,16 @@ void ros_support::on_initialize() {
         [this](const rclcpp::Parameter& p) { m_rate_limit = p.as_double(); },
         "Rate limit for topic streams in bytes per second");
 
-    m_server->get<void, nodes>(
+    m_server->get<nodes>(
         "/nodes", std::bind(&ros_support::handle_nodes, this,
                             std::placeholders::_1, std::placeholders::_2));
 
-    m_server->get<void, node_info>(
+    m_server->get<node_info>(
         "/node/info/-/{node...}",
         std::bind(&ros_support::handle_node_info, this, std::placeholders::_1,
                   std::placeholders::_2));
 
-    m_server->get<void, topics>(
+    m_server->get<topics>(
         "/topics", std::bind(&ros_support::handle_topics, this,
                              std::placeholders::_1, std::placeholders::_2));
 
@@ -121,7 +121,7 @@ std::vector<std::string> ros_support::capabilities() const {
 
 void ros_support::handle_nodes(
     [[maybe_unused]] clover2_http::http::core::request_context ctx,
-    clover2_http::http::endpoint::reply<nodes> reply) {
+    clover2_http::http::endpoint::reply<nodes>& reply) {
     nodes response;
 
     response.nodes = m_node_info_storage.names();
@@ -131,7 +131,7 @@ void ros_support::handle_nodes(
 
 void ros_support::handle_node_info(
     [[maybe_unused]] clover2_http::http::core::request_context ctx,
-    clover2_http::http::endpoint::reply<node_info> reply) {
+    clover2_http::http::endpoint::reply<node_info>& reply) {
     std::string node_name = ctx.param<std::string>("node");
     if (node_name.empty() || node_name.front() != '/') {
         node_name.insert(node_name.begin(), '/');
@@ -143,13 +143,13 @@ void ros_support::handle_node_info(
         reply(response, 200);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Node %s not exists.", node_name.c_str());
-        reply.error(404, e.what());
+        reply.error_json(404, e.what());
     }
 }
 
 void ros_support::handle_topics(
     [[maybe_unused]] clover2_http::http::core::request_context ctx,
-    clover2_http::http::endpoint::reply<topics> reply) {
+    clover2_http::http::endpoint::reply<topics>& reply) {
     topics response;
     const auto graph = m_node_context->get_node_graph_interface();
 

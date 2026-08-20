@@ -1,12 +1,14 @@
 #pragma once
 
+// clover2
 #include <clover2_http/http/endpoint/interface.hpp>
 
+// boost
 #include <boost/beast/core/detail/config.hpp>
 
+// STL
 #include <format>
 #include <functional>
-#include <type_traits>
 
 namespace clover2_http::http::endpoint {
 
@@ -14,28 +16,31 @@ template <typename Req, typename Resp>
 class adapter : public interface {
 public:
     using handler =
-        std::function<void(core::request_context, Req, reply<Resp>)>;
+        std::function<void(core::request_context, Req, reply<Resp>&)>;
 
     explicit adapter(handler h)
         : m_handler(std::move(h)) {}
 
-    void invoke(core::request_context ctx, http_request req,
-                response_sender sender) override {
+    void invoke(core::request_context& ctx, http_request& req,
+                reply_base& base) override {
+        reply<Resp> typed(std::move(base));
+
         try {
             Req request{};
             if (!req.body().empty()) {
                 request = nlohmann::json::parse(req.body()).get<Req>();
             }
 
-            m_handler(std::move(ctx), std::move(request),
-                      reply<Resp>(std::move(sender)));
+            m_handler(std::move(ctx),      //
+                      std::move(request),  //
+                      typed);
+
         } catch (const core::http_error& e) {
-            sender(make_error_response(e.status(), e.message()));
+            typed.error_json(e.status(), e.message());
         } catch (const nlohmann::json::exception& e) {
-            sender(make_error_response(
-                400, std::format("Invalid JSON: {}", e.what())));
+            typed.error_json(400, std::format("Invalid JSON: {}", e.what()));
         } catch (const std::exception&) {
-            sender(make_error_response(500, "Internal Server Error"));
+            typed.error_json(500, "Internal Server Error");
         }
     }
 
@@ -46,19 +51,23 @@ private:
 template <typename Resp>
 class adapter<void, Resp> : public interface {
 public:
-    using handler = std::function<void(core::request_context, reply<Resp>)>;
+    using handler = std::function<void(core::request_context, reply<Resp>&)>;
 
     explicit adapter(handler h)
         : m_handler(std::move(h)) {}
 
-    void invoke(core::request_context ctx, http_request /*req*/,
-                response_sender sender) override {
+    void invoke(core::request_context& ctx, http_request& /*req*/,
+                reply_base& base) override {
+        reply<Resp> typed(std::move(base));
+
         try {
-            m_handler(std::move(ctx), reply<Resp>(std::move(sender)));
+            m_handler(std::move(ctx),  //
+                      typed);
+
         } catch (const core::http_error& e) {
-            sender(make_error_response(e.status(), e.message()));
+            typed.error_json(e.status(), e.message());
         } catch (const std::exception&) {
-            sender(make_error_response(500, "Internal Server Error"));
+            typed.error_json(500, "Internal Server Error");
         }
     }
 
@@ -70,29 +79,33 @@ template <typename Req>
 class adapter<Req, void> : public interface {
 public:
     using handler =
-        std::function<void(core::request_context, Req, reply<void>)>;
+        std::function<void(core::request_context, Req, reply<void>&)>;
 
     explicit adapter(handler h)
         : m_handler(std::move(h)) {}
 
-    void invoke(core::request_context ctx, http_request req,
-                response_sender sender) override {
+    void invoke(core::request_context& ctx, http_request& req,
+                reply_base& base) override {
+        reply<void> typed(std::move(base));
+
         try {
             Req request{};
+
             if (!req.body().empty()) {
                 auto jv = nlohmann::json::parse(req.body());
                 request = jv.get<Req>(jv);
             }
 
-            m_handler(std::move(ctx), std::move(request),
-                      reply<void>(std::move(sender)));
+            m_handler(std::move(ctx),      //
+                      std::move(request),  //
+                      typed);
+
         } catch (const core::http_error& e) {
-            sender(make_error_response(e.status(), e.message()));
+            typed.error_json(e.status(), e.message());
         } catch (const nlohmann::json::exception& e) {
-            sender(make_error_response(
-                400, std::format("Invalid JSON: {}", e.what())));
+            typed.error_json(400, std::format("Invalid JSON: {}", e.what()));
         } catch (const std::exception&) {
-            sender(make_error_response(500, "Internal Server Error"));
+            typed.error_json(500, "Internal Server Error");
         }
     }
 

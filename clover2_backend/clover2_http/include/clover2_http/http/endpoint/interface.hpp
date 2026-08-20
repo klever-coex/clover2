@@ -9,8 +9,8 @@ namespace clover2_http::http::endpoint {
 class interface {
 public:
     virtual ~interface() = default;
-    virtual void invoke(core::request_context ctx, http_request req,
-                        response_sender sender) = 0;
+    virtual void invoke(core::request_context& ctx, http_request& req,
+                        reply_base& reply) = 0;
 };
 
 }  // namespace clover2_http::http::endpoint

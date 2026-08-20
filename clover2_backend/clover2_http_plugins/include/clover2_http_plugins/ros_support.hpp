@@ -22,17 +22,16 @@ protected:
 private:
     void handle_nodes(
         clover2_http::http::core::request_context ctx,
-        clover2_http::http::endpoint::reply<clover2_http_plugins::data::nodes>
+        clover2_http::http::endpoint::reply<clover2_http_plugins::data::nodes>&
             reply);
 
     void handle_node_info(clover2_http::http::core::request_context ctx,
                           clover2_http::http::endpoint::reply<
-                              clover2_http_plugins::data::node_info>
-                              reply);
+                              clover2_http_plugins::data::node_info>& reply);
 
     void handle_topics(
         clover2_http::http::core::request_context ctx,
-        clover2_http::http::endpoint::reply<clover2_http_plugins::data::topics>
+        clover2_http::http::endpoint::reply<clover2_http_plugins::data::topics>&
             reply);
 
     void handle_topic_json_stream(

@@ -1,7 +1,5 @@
 #include <clover2_http/http/routing/trie.hpp>
 
-using namespace clover2_http::http;
-
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -9,6 +7,7 @@ using namespace clover2_http::http;
 #include <unordered_map>
 #include <vector>
 
+using namespace clover2_http::http;
 using Handler = std::string;
 
 namespace {
@@ -57,7 +56,8 @@ TEST(Trie, NestedStaticRoutes) {
     routing::trie<Handler> t;
     t.insert(segs("/api"), "/api", make_handler("api-root"));
     t.insert(segs("/api/v1"), "/api/v1", make_handler("api-v1"));
-    t.insert(segs("/api/v1/users"), "/api/v1/users", make_handler("api-v1-users"));
+    t.insert(segs("/api/v1/users"), "/api/v1/users",
+             make_handler("api-v1-users"));
 
     EXPECT_EQ(*t.search(segs("/api"))->handler, "api-root");
     EXPECT_EQ(*t.search(segs("/api/v1"))->handler, "api-v1");
@@ -75,7 +75,8 @@ TEST(Trie, RootRoute) {
 
 TEST(Trie, SingleParameter) {
     routing::trie<Handler> t;
-    t.insert(segs("/api/users/{id}"), "/api/users/{id}", make_handler("user-by-id"));
+    t.insert(segs("/api/users/{id}"), "/api/users/{id}",
+             make_handler("user-by-id"));
 
     auto result = t.search(segs("/api/users/42"));
     ASSERT_TRUE(result.has_value());
@@ -97,8 +98,10 @@ TEST(Trie, MultipleParameters) {
 
 TEST(Trie, StaticOverParameter) {
     routing::trie<Handler> t;
-    t.insert(segs("/api/users/me"), "/api/users/me", make_handler("current-user"));
-    t.insert(segs("/api/users/{id}"), "/api/users/{id}", make_handler("user-by-id"));
+    t.insert(segs("/api/users/me"), "/api/users/me",
+             make_handler("current-user"));
+    t.insert(segs("/api/users/{id}"), "/api/users/{id}",
+             make_handler("user-by-id"));
 
     auto static_result = t.search(segs("/api/users/me"));
     ASSERT_TRUE(static_result.has_value());
@@ -148,30 +151,39 @@ TEST(Trie, CatchAllAtRoot) {
     EXPECT_EQ(result->params.at("catch"), "anything/at/all");
 }
 
-TEST(Trie, DuplicateRouteThrows) {
+TEST(Trie, DuplicateRouteReturnsExistingHandler) {
     routing::trie<Handler> t;
-    t.insert(segs("/api/users"), "/api/users", make_handler("first"));
+    auto* first =
+        t.insert(segs("/api/users"), "/api/users", make_handler("first")).first;
 
-    EXPECT_THROW(
-        { t.insert(segs("/api/users"), "/api/users", make_handler("second")); },
-        core::routing_error);
+    auto [handler, inserted] =
+        t.insert(segs("/api/users"), "/api/users", make_handler("second"));
+    EXPECT_EQ(handler, first);
+    EXPECT_FALSE(inserted);
+    EXPECT_EQ(*handler, "first");
 }
 
-TEST(Trie, DuplicateParamRouteThrows) {
+TEST(Trie, DuplicateParamRouteReturnsExistingHandler) {
     routing::trie<Handler> t;
-    t.insert(segs("/items/{id}"), "/items/{id}", make_handler("by-id"));
+    auto* first =
+        t.insert(segs("/items/{id}"), "/items/{id}", make_handler("by-id"))
+            .first;
 
-    EXPECT_THROW(
-        { t.insert(segs("/items/{id}"), "/items/{id}", make_handler("again")); },
-        core::routing_error);
+    auto [handler, inserted] =
+        t.insert(segs("/items/{id}"), "/items/{id}", make_handler("again"));
+    EXPECT_EQ(handler, first);
+    EXPECT_FALSE(inserted);
+    EXPECT_EQ(*handler, "by-id");
 }
 
 TEST(Trie, CatchAllNotLastThrows) {
     routing::trie<Handler> t;
 
     EXPECT_THROW(
-        { t.insert(segs("/{catch...}/extra"), "/{catch...}/extra",
-                   make_handler("bad")); },
+        {
+            t.insert(segs("/{catch...}/extra"), "/{catch...}/extra",
+                     make_handler("bad"));
+        },
         core::routing_error);
 }
 
@@ -180,7 +192,10 @@ TEST(Trie, ConflictingParameterNamesThrows) {
     t.insert(segs("/items/{id}"), "/items/{id}", make_handler("by-id"));
 
     EXPECT_THROW(
-        { t.insert(segs("/items/{name}"), "/items/{name}", make_handler("by-name")); },
+        {
+            t.insert(segs("/items/{name}"), "/items/{name}",
+                     make_handler("by-name"));
+        },
         core::routing_error);
 }
 
@@ -189,8 +204,10 @@ TEST(Trie, ConflictingCatchAllNamesThrows) {
     t.insert(segs("/files/{path...}"), "/files/{path...}", make_handler("fs1"));
 
     EXPECT_THROW(
-        { t.insert(segs("/files/{other...}"), "/files/{other...}",
-                   make_handler("fs2")); },
+        {
+            t.insert(segs("/files/{other...}"), "/files/{other...}",
+                     make_handler("fs2"));
+        },
         core::routing_error);
 }
 

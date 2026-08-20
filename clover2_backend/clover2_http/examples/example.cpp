@@ -6,6 +6,7 @@
 // websocat ws://0.0.0.0:8080/ws/stream  (binary: websocat --binary ws://...)
 
 #include <clover2_http/http/core/logger.hpp>
+#include <clover2_http/http/middleware/cors.hpp>
 #include <clover2_http/http/server.hpp>
 
 #include <boost/asio/signal_set.hpp>
@@ -44,19 +45,19 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ChatMessage, user, body)
 namespace c2 = clover2_http::http;
 
 void handle_hello(c2::core::request_context /*ctx*/,
-                  c2::endpoint::reply<EchoResponse> reply) {
+                  c2::endpoint::reply<EchoResponse>& reply) {
     reply(EchoResponse{.echoed = "Hello from clover2_http!", .length = 27},
           200);
 }
 
 void handle_get_user(c2::core::request_context ctx,
-                     c2::endpoint::reply<UserResponse> reply) {
+                     c2::endpoint::reply<UserResponse>& reply) {
     int id = std::stoi(ctx.path_params.at("id"));
     reply(UserResponse{.id = id, .name = "Alice"}, 200);
 }
 
 void handle_echo(c2::core::request_context /*ctx*/, EchoRequest req,
-                 c2::endpoint::reply<EchoResponse> reply) {
+                 c2::endpoint::reply<EchoResponse>& reply) {
     int len = static_cast<int>(req.text.size());
     reply(EchoResponse{.echoed = std::move(req.text), .length = len}, 200);
 }
@@ -86,25 +87,23 @@ void handle_ws(
     session->start_reading();
 }
 
-void handle_raw_ws(
-    std::shared_ptr<c2::transport::base_ws_session> session) {
-    session->on_text(
-        [](std::shared_ptr<c2::transport::base_ws_session> s,
-           std::string text) {
-            std::cout << "Raw WS text: " << text << '\n';
-            s->write_text("Echo: " + text);
-        });
+void handle_raw_ws(std::shared_ptr<c2::transport::base_ws_session> session) {
+    session->on_text([](std::shared_ptr<c2::transport::base_ws_session> s,
+                        std::string text) {
+        std::cout << "Raw WS text: " << text << '\n';
+        s->write_text("Echo: " + text);
+    });
 
-    session->on_binary(
-        [](std::shared_ptr<c2::transport::base_ws_session> s,
-           std::vector<uint8_t> data) {
-            std::cout << "Raw WS binary: " << data.size() << " bytes\n";
-            s->write_binary(std::move(data));
-        });
+    session->on_binary([](std::shared_ptr<c2::transport::base_ws_session> s,
+                          std::vector<uint8_t> data) {
+        std::cout << "Raw WS binary: " << data.size() << " bytes\n";
+        s->write_binary(std::move(data));
+    });
 
     session->on_close(
-        [](std::shared_ptr<c2::transport::base_ws_session> /*s*/,
-           int code) { std::cout << "Raw WS closed, code=" << code << '\n'; });
+        [](std::shared_ptr<c2::transport::base_ws_session> /*s*/, int code) {
+            std::cout << "Raw WS closed, code=" << code << '\n';
+        });
 
     session->start_reading();
 }
@@ -114,8 +113,11 @@ int main() {
 
     c2::server srv(io, c2::core::simple_logger("example"));
 
-    srv.get<void, EchoResponse>("/hello", handle_hello);
-    srv.get<void, UserResponse>("/users/{id}", handle_get_user);
+    srv.use("/",
+            [] { return std::make_unique<c2::middleware::cors>(); });
+
+    srv.get<EchoResponse>("/hello", handle_hello);
+    srv.get<UserResponse>("/users/{id}", handle_get_user);
     srv.post<EchoRequest, EchoResponse>("/echo", handle_echo);
     srv.ws<ChatMessage>("/ws/chat", handle_ws);
     srv.raw_ws("/ws/stream", handle_raw_ws);

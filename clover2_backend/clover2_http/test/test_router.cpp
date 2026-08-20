@@ -1,4 +1,7 @@
 #include <clover2_http/http/endpoint/interface.hpp>
+#include <clover2_http/http/endpoint/reply.hpp>
+#include <clover2_http/http/middleware/base_middleware.hpp>
+#include <clover2_http/http/middleware/cors.hpp>
 #include <clover2_http/http/routing/router.hpp>
 #include <clover2_http/http/transport/ws_handler.hpp>
 
@@ -11,6 +14,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -25,15 +29,13 @@ boost::urls::url_view make_target(const char* t) {
 }
 
 endpoint::http_request make_get(std::string target) {
-    endpoint::http_request req{http::verb::get, std::move(target),
-                               11};
+    endpoint::http_request req{http::verb::get, std::move(target), 11};
     req.prepare_payload();
     return req;
 }
 
 endpoint::http_request make_post(std::string target, std::string body = "") {
-    endpoint::http_request req{http::verb::post, std::move(target),
-                               11};
+    endpoint::http_request req{http::verb::post, std::move(target), 11};
     req.body() = std::move(body);
     req.prepare_payload();
     return req;
@@ -50,11 +52,11 @@ struct spy_endpoint : public endpoint::interface {
     core::request_context last_ctx;
     int last_status = 0;
 
-    void invoke(core::request_context ctx, endpoint::http_request /*req*/,
-                endpoint::response_sender sender) override {
+    void invoke(core::request_context& ctx, endpoint::http_request& /*req*/,
+                endpoint::reply_base& reply) override {
         invoked = true;
-        last_ctx = std::move(ctx);
-        sender(endpoint::make_ok_response("{}"));
+        last_ctx = ctx;
+        reply.error(200);
     }
 };
 
@@ -62,9 +64,38 @@ struct status_endpoint : public endpoint::interface {
     int status;
     explicit status_endpoint(int s)
         : status(s) {}
-    void invoke(core::request_context, endpoint::http_request,
-                endpoint::response_sender sender) override {
-        sender(endpoint::make_error_response(status, "test"));
+    void invoke(core::request_context&, endpoint::http_request&,
+                endpoint::reply_base& reply) override {
+        reply.error_json(status, "test");
+    }
+};
+
+struct collect_middleware : public middleware::base_middleware {
+    std::vector<std::string>* order;
+    std::string name;
+    bool short_circuit = false;
+    int short_status = 0;
+
+    collect_middleware(std::vector<std::string>* order, std::string name)
+        : order(order)
+        , name(std::move(name)) {}
+
+    void handle(core::request_context& ctx, endpoint::http_request& req,
+                endpoint::reply_base& reply, next_t next) override {
+        order->push_back(name);
+        if (short_circuit) {
+            reply.error_json(short_status, "blocked");
+            return;
+        }
+        next(ctx, req, reply);
+    }
+};
+
+struct header_middleware : public middleware::base_middleware {
+    void handle(core::request_context& ctx, endpoint::http_request& req,
+                endpoint::reply_base& reply, next_t next) override {
+        reply.set_header("X-Mw", "yes");
+        next(ctx, req, reply);
     }
 };
 
@@ -87,7 +118,8 @@ TEST(Tokenize, EmptyPathReturnsNoSegments) {
     r.add_http_route(http::verb::get, "/", std::move(spy));
 
     core::request_context ctx;
-    r.dispatch_http(http::verb::get, make_target("/"), ctx, make_get("/"), [](auto) {});
+    r.dispatch_http(http::verb::get, make_target("/"), ctx, make_get("/"),
+                    [](auto) {});
     EXPECT_TRUE(raw->invoked);
 }
 
@@ -98,8 +130,8 @@ TEST(Tokenize, SingleSegment) {
     r.add_http_route(http::verb::get, "/nodes", std::move(spy));
 
     core::request_context ctx;
-    r.dispatch_http(http::verb::get, make_target("/nodes"), ctx, make_get("/nodes"),
-                    [](auto) {});
+    r.dispatch_http(http::verb::get, make_target("/nodes"), ctx,
+                    make_get("/nodes"), [](auto) {});
     EXPECT_TRUE(raw->invoked);
 }
 
@@ -110,8 +142,8 @@ TEST(Tokenize, MultipleSegments) {
     r.add_http_route(http::verb::get, "/a/b/c", std::move(spy));
 
     core::request_context ctx;
-    r.dispatch_http(http::verb::get, make_target("/a/b/c"), ctx, make_get("/a/b/c"),
-                    [](auto) {});
+    r.dispatch_http(http::verb::get, make_target("/a/b/c"), ctx,
+                    make_get("/a/b/c"), [](auto) {});
     EXPECT_TRUE(raw->invoked);
 }
 
@@ -180,8 +212,8 @@ TEST(MethodMatch, CorrectMethodMatches) {
     r.add_http_route(http::verb::post, "/data", std::move(spy_post));
 
     core::request_context ctx;
-    r.dispatch_http(http::verb::get, make_target("/data"), ctx, make_get("/data"),
-                    [](auto) {});
+    r.dispatch_http(http::verb::get, make_target("/data"), ctx,
+                    make_get("/data"), [](auto) {});
     EXPECT_TRUE(raw_get->invoked);
     EXPECT_FALSE(raw_post->invoked);
 }
@@ -193,8 +225,8 @@ TEST(MethodMatch, PostMatchesPost) {
     r.add_http_route(http::verb::post, "/data", std::move(spy));
 
     core::request_context ctx;
-    r.dispatch_http(http::verb::post, make_target("/data"), ctx, make_post("/data"),
-                    [](auto) {});
+    r.dispatch_http(http::verb::post, make_target("/data"), ctx,
+                    make_post("/data"), [](auto) {});
     EXPECT_TRUE(raw->invoked);
 }
 
@@ -205,8 +237,8 @@ TEST(MethodMatch, GetDoesNotMatchPost) {
     r.add_http_route(http::verb::post, "/data", std::move(spy));
 
     core::request_context ctx;
-    r.dispatch_http(http::verb::get, make_target("/data"), ctx, make_get("/data"),
-                    [](auto) {});
+    r.dispatch_http(http::verb::get, make_target("/data"), ctx,
+                    make_get("/data"), [](auto) {});
     EXPECT_FALSE(raw->invoked);
 }
 
@@ -217,8 +249,8 @@ TEST(PathParams, SingleParamExtracted) {
     r.add_http_route(http::verb::get, "/users/{id}", std::move(spy));
 
     core::request_context ctx;
-    r.dispatch_http(http::verb::get, make_target("/users/42"), ctx, make_get("/users/42"),
-                    [](auto) {});
+    r.dispatch_http(http::verb::get, make_target("/users/42"), ctx,
+                    make_get("/users/42"), [](auto) {});
     ASSERT_TRUE(raw->invoked);
     EXPECT_EQ(raw->last_ctx.path_params.at("id"), "42");
 }
@@ -348,15 +380,16 @@ TEST(QueryParams, UrlMemberHoldsFullTarget) {
     EXPECT_EQ((*it).value, "b");
 }
 
-TEST(NoMatch, ReturnsFalseAndSendsNoResponse) {
+TEST(NoMatch, ReturnsFalseAndSends404) {
     routing::router r;
     core::request_context ctx;
-    bool called = false;
-    bool found =
-        r.dispatch_http(http::verb::get, make_target("/nonexistent"), ctx,
-                        make_get("/nonexistent"), [&](auto) { called = true; });
+    http::response<http::string_body> captured{http::status::unknown, 11};
+    bool found = r.dispatch_http(http::verb::get, make_target("/nonexistent"),
+                                 ctx, make_get("/nonexistent"), [&](auto resp) {
+                                     captured = std::move(resp);
+                                 });
     EXPECT_FALSE(found);
-    EXPECT_FALSE(called);
+    EXPECT_EQ(captured.result(), http::status::not_found);
 }
 
 TEST(NoMatch, RouteWithDifferentSegmentCount) {
@@ -376,8 +409,10 @@ TEST(RouteOrder, DuplicatePatternThrows) {
     r.add_http_route(http::verb::get, "/dup", std::make_unique<spy_endpoint>());
 
     EXPECT_THROW(
-        { r.add_http_route(http::verb::get, "/dup",
-                           std::make_unique<spy_endpoint>()); },
+        {
+            r.add_http_route(http::verb::get, "/dup",
+                             std::make_unique<spy_endpoint>());
+        },
         core::routing_error);
 }
 
@@ -428,8 +463,8 @@ TEST(Logger, NullLoggerDoesNotCrash) {
     r.add_http_route(http::verb::get, "/test", std::move(spy));
 
     core::request_context ctx;
-    r.dispatch_http(http::verb::get, make_target("/test"), ctx, make_get("/test"),
-                    [](auto) {});
+    r.dispatch_http(http::verb::get, make_target("/test"), ctx,
+                    make_get("/test"), [](auto) {});
     r.dispatch_http(http::verb::get, make_target("/nonexistent"), ctx,
                     make_get("/nonexistent"), [](auto) {});
 
@@ -443,8 +478,7 @@ TEST(ResponseSender, EndpointInvokedWithResponse) {
     r.add_http_route(http::verb::get, "/ok", std::move(ep));
 
     core::request_context ctx;
-    http::response<http::string_body> captured{http::status::unknown,
-                                               11};
+    http::response<http::string_body> captured{http::status::unknown, 11};
     r.dispatch_http(http::verb::get, make_target("/ok"), ctx, make_get("/ok"),
                     [&](auto resp) { captured = std::move(resp); });
     EXPECT_EQ(captured.result(), http::status::ok);
@@ -461,12 +495,12 @@ TEST(SegmentGuard, RoutesWithWrongSegmentCountSkipped) {
                     [](auto) {});
     EXPECT_FALSE(raw3->invoked);
 
-    r.dispatch_http(http::verb::get, make_target("/a/b/c/d"), ctx, make_get("/a/b/c/d"),
-                    [](auto) {});
+    r.dispatch_http(http::verb::get, make_target("/a/b/c/d"), ctx,
+                    make_get("/a/b/c/d"), [](auto) {});
     EXPECT_FALSE(raw3->invoked);
 
-    r.dispatch_http(http::verb::get, make_target("/a/b/c"), ctx, make_get("/a/b/c"),
-                    [](auto) {});
+    r.dispatch_http(http::verb::get, make_target("/a/b/c"), ctx,
+                    make_get("/a/b/c"), [](auto) {});
     EXPECT_TRUE(raw3->invoked);
 }
 
@@ -492,8 +526,8 @@ TEST(ComplexTable, MultipleRoutesWithParams) {
 
     {
         core::request_context ctx;
-        r.dispatch_http(http::verb::get, make_target("/nodes"), ctx, make_get("/nodes"),
-                        [](auto) {});
+        r.dispatch_http(http::verb::get, make_target("/nodes"), ctx,
+                        make_get("/nodes"), [](auto) {});
         EXPECT_TRUE(raw_nodes->invoked);
     }
     {
@@ -505,16 +539,16 @@ TEST(ComplexTable, MultipleRoutesWithParams) {
     }
     {
         core::request_context ctx;
-        r.dispatch_http(http::verb::get, make_target("/users/alice/posts/789"), ctx,
-                        make_get("/users/alice/posts/789"), [](auto) {});
+        r.dispatch_http(http::verb::get, make_target("/users/alice/posts/789"),
+                        ctx, make_get("/users/alice/posts/789"), [](auto) {});
         EXPECT_TRUE(raw_post->invoked);
         EXPECT_EQ(raw_post->last_ctx.path_params.at("id"), "alice");
         EXPECT_EQ(raw_post->last_ctx.path_params.at("post_id"), "789");
     }
     {
         core::request_context ctx;
-        r.dispatch_http(http::verb::post, make_target("/static"), ctx, make_post("/static"),
-                        [](auto) {});
+        r.dispatch_http(http::verb::post, make_target("/static"), ctx,
+                        make_post("/static"), [](auto) {});
         EXPECT_TRUE(raw_static->invoked);
     }
     {
@@ -533,8 +567,8 @@ TEST(CatchAll, CapturesRemainingSegments) {
     r.add_http_route(http::verb::get, "/files/{path...}", std::move(spy));
 
     core::request_context ctx;
-    r.dispatch_http(http::verb::get, make_target("/files/images/photo.png"), ctx,
-                    make_get("/files/images/photo.png"), [](auto) {});
+    r.dispatch_http(http::verb::get, make_target("/files/images/photo.png"),
+                    ctx, make_get("/files/images/photo.png"), [](auto) {});
     ASSERT_TRUE(raw->invoked);
     EXPECT_EQ(raw->last_ctx.path_params.at("path"), "images/photo.png");
 }
@@ -546,8 +580,8 @@ TEST(CatchAll, AtRoot) {
     r.add_http_route(http::verb::get, "/{rest...}", std::move(spy));
 
     core::request_context ctx;
-    r.dispatch_http(http::verb::get, make_target("/a/b/c"), ctx, make_get("/a/b/c"),
-                    [](auto) {});
+    r.dispatch_http(http::verb::get, make_target("/a/b/c"), ctx,
+                    make_get("/a/b/c"), [](auto) {});
     ASSERT_TRUE(raw->invoked);
     EXPECT_EQ(raw->last_ctx.path_params.at("rest"), "a/b/c");
 }
@@ -587,8 +621,8 @@ TEST(CatchAll, MatchesTrailingSlash) {
     r.add_http_route(http::verb::get, "/files/{path...}", std::move(spy));
 
     core::request_context ctx;
-    r.dispatch_http(http::verb::get, make_target("/files/"), ctx, make_get("/files/"),
-                    [](auto) {});
+    r.dispatch_http(http::verb::get, make_target("/files/"), ctx,
+                    make_get("/files/"), [](auto) {});
     ASSERT_TRUE(raw->invoked);
     EXPECT_EQ(raw->last_ctx.path_params.at("path"), "");
 }
@@ -596,8 +630,10 @@ TEST(CatchAll, MatchesTrailingSlash) {
 TEST(CatchAll, NotLastThrows) {
     routing::router r;
     EXPECT_THROW(
-        { r.add_http_route(http::verb::get, "/{rest...}/extra",
-                           std::make_unique<spy_endpoint>()); },
+        {
+            r.add_http_route(http::verb::get, "/{rest...}/extra",
+                             std::make_unique<spy_endpoint>());
+        },
         core::routing_error);
 }
 
@@ -607,26 +643,33 @@ TEST(CatchAll, NameConflictThrows) {
                      std::make_unique<spy_endpoint>());
 
     EXPECT_THROW(
-        { r.add_http_route(http::verb::get, "/files/{other...}",
-                           std::make_unique<spy_endpoint>()); },
+        {
+            r.add_http_route(http::verb::get, "/files/{other...}",
+                             std::make_unique<spy_endpoint>());
+        },
         core::routing_error);
 }
 
 TEST(Conflicts, ParamNameConflictThrows) {
     routing::router r;
-    r.add_http_route(http::verb::get, "/items/{id}", std::make_unique<spy_endpoint>());
+    r.add_http_route(http::verb::get, "/items/{id}",
+                     std::make_unique<spy_endpoint>());
 
     EXPECT_THROW(
-        { r.add_http_route(http::verb::get, "/items/{name}",
-                           std::make_unique<spy_endpoint>()); },
+        {
+            r.add_http_route(http::verb::get, "/items/{name}",
+                             std::make_unique<spy_endpoint>());
+        },
         core::routing_error);
 }
 
 TEST(Conflicts, InvalidPatternThrows) {
     routing::router r;
     EXPECT_THROW(
-        { r.add_http_route(http::verb::get, "/x/{bad",
-                           std::make_unique<spy_endpoint>()); },
+        {
+            r.add_http_route(http::verb::get, "/x/{bad",
+                             std::make_unique<spy_endpoint>());
+        },
         core::routing_error);
 }
 
@@ -718,6 +761,160 @@ TEST(WebSocket, CatchAllCapturesRemainingSegments) {
     auto* found = r.match_ws(make_target("/ws/a/b"), params);
     EXPECT_NE(found, nullptr);
     EXPECT_EQ(params.at("room"), "a/b");
+}
+
+TEST(Middleware, RunsFromGeneralToSpecific) {
+    routing::router r;
+    std::vector<std::string> order;
+    r.add_middleware("/", [&order] {
+        return std::make_unique<collect_middleware>(&order, "root");
+    });
+    r.add_middleware("/api", [&order] {
+        return std::make_unique<collect_middleware>(&order, "api");
+    });
+    auto spy = std::make_unique<spy_endpoint>();
+    auto* raw = spy.get();
+    r.add_http_route(http::verb::get, "/api/test", std::move(spy));
+
+    core::request_context ctx;
+    r.dispatch_http(http::verb::get, make_target("/api/test"), ctx,
+                    make_get("/api/test"), [](auto) {});
+    ASSERT_TRUE(raw->invoked);
+    ASSERT_EQ(order.size(), 2u);
+    EXPECT_EQ(order[0], "root");
+    EXPECT_EQ(order[1], "api");
+}
+
+TEST(Middleware, MultipleOnOnePatternRunInRegistrationOrder) {
+    routing::router r;
+    std::vector<std::string> order;
+    r.add_middleware("/", [&order] {
+        return std::make_unique<collect_middleware>(&order, "first");
+    });
+    r.add_middleware("/", [&order] {
+        return std::make_unique<collect_middleware>(&order, "second");
+    });
+    auto spy = std::make_unique<spy_endpoint>();
+    auto* raw = spy.get();
+    r.add_http_route(http::verb::get, "/x", std::move(spy));
+
+    core::request_context ctx;
+    r.dispatch_http(http::verb::get, make_target("/x"), ctx, make_get("/x"),
+                    [](auto) {});
+    ASSERT_TRUE(raw->invoked);
+    ASSERT_EQ(order.size(), 2u);
+    EXPECT_EQ(order[0], "first");
+    EXPECT_EQ(order[1], "second");
+}
+
+TEST(Middleware, ShortCircuitStopsChainAndHandler) {
+    routing::router r;
+    std::vector<std::string> order;
+    r.add_middleware("/", [&order] {
+        return std::make_unique<collect_middleware>(&order, "root");
+    });
+    r.add_middleware("/", [&order] {
+        auto mw = std::make_unique<collect_middleware>(&order, "block");
+        mw->short_circuit = true;
+        mw->short_status = 401;
+        return mw;
+    });
+    r.add_middleware("/", [&order] {
+        return std::make_unique<collect_middleware>(&order, "never");
+    });
+    auto spy = std::make_unique<spy_endpoint>();
+    auto* raw = spy.get();
+    r.add_http_route(http::verb::get, "/x", std::move(spy));
+
+    core::request_context ctx;
+    http::response<http::string_body> captured{http::status::unknown, 11};
+    r.dispatch_http(http::verb::get, make_target("/x"), ctx, make_get("/x"),
+                    [&](auto resp) { captured = std::move(resp); });
+    EXPECT_FALSE(raw->invoked);
+    ASSERT_EQ(order.size(), 2u);
+    EXPECT_EQ(order[0], "root");
+    EXPECT_EQ(order[1], "block");
+    EXPECT_EQ(captured.result(), http::status::unauthorized);
+}
+
+TEST(Middleware, HeadersSurviveOn404) {
+    routing::router r;
+    r.add_middleware("/", [] { return std::make_unique<header_middleware>(); });
+
+    core::request_context ctx;
+    http::response<http::string_body> captured{http::status::unknown, 11};
+    bool found = r.dispatch_http(
+        http::verb::get, make_target("/none"), ctx, make_get("/none"),
+        [&](auto resp) { captured = std::move(resp); });
+    EXPECT_FALSE(found);
+    EXPECT_EQ(captured.result(), http::status::not_found);
+    EXPECT_EQ(captured["X-Mw"], "yes");
+}
+
+TEST(Middleware, CreatorRunsPerRequest) {
+    routing::router r;
+    int created = 0;
+    r.add_middleware(
+        "/", [&created]() -> std::unique_ptr<middleware::base_middleware> {
+            ++created;
+            return std::make_unique<header_middleware>();
+        });
+    auto spy = std::make_unique<spy_endpoint>();
+    r.add_http_route(http::verb::get, "/x", std::move(spy));
+
+    core::request_context ctx;
+    r.dispatch_http(http::verb::get, make_target("/x"), ctx, make_get("/x"),
+                    [](auto) {});
+    r.dispatch_http(http::verb::get, make_target("/x"), ctx, make_get("/x"),
+                    [](auto) {});
+    EXPECT_EQ(created, 2);
+}
+
+TEST(Middleware, CatchAllPatternRejected) {
+    routing::router r;
+    EXPECT_THROW(
+        {
+            r.add_middleware("/x/{rest...}", []() {
+                return std::unique_ptr<middleware::base_middleware>(nullptr);
+            });
+        },
+        core::routing_error);
+}
+
+TEST(Middleware, CorsPreflightShortCircuits) {
+    routing::router r;
+    r.add_middleware("/", [] { return std::make_unique<middleware::cors>(); });
+    auto spy = std::make_unique<spy_endpoint>();
+    auto* raw = spy.get();
+    r.add_http_route(http::verb::options, "/data", std::move(spy));
+
+    endpoint::http_request req{http::verb::options, "/data", 11};
+    req.set(http::field::access_control_request_method, "GET");
+    req.prepare_payload();
+
+    core::request_context ctx;
+    http::response<http::string_body> captured{http::status::unknown, 11};
+    r.dispatch_http(http::verb::options, make_target("/data"), ctx,
+                    std::move(req),
+                    [&](auto resp) { captured = std::move(resp); });
+    EXPECT_FALSE(raw->invoked);
+    EXPECT_EQ(captured.result(), http::status::no_content);
+    EXPECT_EQ(captured["Access-Control-Allow-Origin"], "*");
+}
+
+TEST(Middleware, CorsHeadersOnHandlerResponse) {
+    routing::router r;
+    r.add_middleware("/", [] { return std::make_unique<middleware::cors>(); });
+    auto spy = std::make_unique<spy_endpoint>();
+    r.add_http_route(http::verb::get, "/data", std::move(spy));
+
+    core::request_context ctx;
+    http::response<http::string_body> captured{http::status::unknown, 11};
+    r.dispatch_http(http::verb::get, make_target("/data"), ctx,
+                    make_get("/data"),
+                    [&](auto resp) { captured = std::move(resp); });
+    EXPECT_EQ(captured.result(), http::status::ok);
+    EXPECT_EQ(captured["Access-Control-Allow-Origin"], "*");
 }
 
 }  // namespace

@@ -10,6 +10,7 @@
 #include <boost/beast/http/string_body.hpp>
 #include <nlohmann/json.hpp>
 
+// STL
 #include <functional>
 #include <string>
 
@@ -24,40 +25,26 @@ using http_response =
 
 using response_sender = std::function<void(http_response)>;
 
-http_response make_ok_response(const std::string& body);
-http_response make_error_response(int status, const std::string& message);
+void make_error_response(http_response& resp, int status,
+                         const std::string& message);
 
 class reply_base {
 public:
-    explicit reply_base(response_sender sender)
-        : m_sender(std::move(sender)) {
-        m_response.version(11);
-    }
+    explicit reply_base(response_sender sender);
+    ~reply_base();
 
-    ~reply_base() {
-        if (!m_sent && m_sender) {
-            m_sender(
-                make_error_response(500, "Handler did not produce a response"));
-        }
-    }
-
+    // Only move without copy
     reply_base(const reply_base&) = delete;
     reply_base& operator=(const reply_base&) = delete;
 
     reply_base(reply_base&&) = default;
     reply_base& operator=(reply_base&&) = default;
 
-    void error(int status, const std::string& message) {
-        if (m_sent) return;
+    void error(int status);
+    void error_json(int status, const std::string& message);
 
-        m_sent = true;
-        m_sender(make_error_response(status, message));
-    }
-
-    response_sender release() {
-        m_sent = true;
-        return std::move(m_sender);
-    }
+    std::string get_header(std::string_view header) const;
+    void set_header(std::string_view header, std::string_view value);
 
 protected:
     bool m_sent = false;
@@ -70,6 +57,9 @@ class reply : public reply_base {
 public:
     explicit reply(response_sender sender)
         : reply_base(std::move(sender)) {}
+
+    explicit reply(reply_base&& base)
+        : reply_base(std::move(base)) {}
 
     void operator()(const T& resp, int status = 200) {
         if (m_sent) return;
@@ -93,6 +83,9 @@ class reply<void> : public reply_base {
 public:
     explicit reply(response_sender sender)
         : reply_base(std::move(sender)) {}
+
+    explicit reply(reply_base&& base)
+        : reply_base(std::move(base)) {}
 
     void done(int status = 200) {
         if (m_sent) return;

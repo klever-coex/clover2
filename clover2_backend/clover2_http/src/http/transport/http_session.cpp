@@ -29,9 +29,10 @@ http_session::http_session(boost::asio::ip::tcp::socket socket,
     , m_logger(std::move(log)) {
     boost::system::error_code ec;
     auto ep = m_socket.remote_endpoint(ec);
+
     if (!ec) {
         m_logger->debug("Session open from {}: {}", ep.address().to_string(),
-                       ep.port());
+                        ep.port());
     } else {
         m_logger->warn("Session open from unknown address: {}", ec.message());
     }
@@ -40,6 +41,7 @@ http_session::http_session(boost::asio::ip::tcp::socket socket,
 http_session::~http_session() {
     boost::system::error_code ec;
     m_timer.cancel(ec);
+
     if (!m_upgraded) {
         m_logger->debug("Session close");
     }
@@ -131,7 +133,8 @@ void http_session::handle_request() {
                 ctx.path_params = std::move(path_params);
                 m_upgraded = true;
                 m_logger->debug("Session upgraded to WebSocket");
-                ws_handler->on_accept(std::move(m_socket), std::move(m_request),
+                ws_handler->on_accept(std::move(m_socket),   //
+                                      std::move(m_request),  //
                                       std::move(ctx));
 
                 m_logger->info("Open WebSocket: {} from {}", target_str,
@@ -149,8 +152,9 @@ void http_session::handle_request() {
                        std::string(m_request.method_string()), target_str,
                        ctx.remote_endpoint.address().to_string());
 
-        auto found = m_router.dispatch_http(
-            m_request.method(), uv, ctx, m_request,
+        auto method = m_request.method();
+        m_router.dispatch_http(
+            method, uv, ctx, std::move(m_request),
             [self = shared_from_this()](
                 boost::beast::http::response<boost::beast::http::string_body>
                     response) {
@@ -163,9 +167,6 @@ void http_session::handle_request() {
                     });
             });
 
-        if (!found) {
-            send_error(404, "Not Found");
-        }
     } catch (const core::http_error& e) {
         send_error(e.status(), e.message());
     } catch (const std::exception& e) {
@@ -175,9 +176,12 @@ void http_session::handle_request() {
 }
 
 void http_session::send_error(int status, const std::string& message) {
-    auto resp = endpoint::make_error_response(status, message);
+    endpoint::http_response resp;
+    endpoint::make_error_response(resp, status, message);
+
     resp.keep_alive(m_keep_alive);
     resp.version(m_version);
+
     do_write(std::move(resp));
 }
 
@@ -213,12 +217,14 @@ void http_session::on_write(boost::beast::error_code ec, std::size_t,
 void http_session::do_close() {
     boost::system::error_code ec;
     m_timer.cancel(ec);
-    m_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_send, ec);
-    m_socket.close(ec);
+
+    ec = m_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_send, ec);
+    ec = m_socket.close(ec);
 }
 
 core::request_context http_session::make_context(boost::urls::url_view url) {
     core::request_context ctx(url);
+
     boost::system::error_code ec;
     ctx.remote_endpoint = m_socket.remote_endpoint(ec);
     if (ec) {
