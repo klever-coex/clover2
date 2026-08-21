@@ -18,7 +18,9 @@ pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)
 
 ament_auto_add_executable(notification
   src/main.cpp
-  src/controller.cpp)
+  src/controller.cpp
+  src/provider/factory.cpp
+  src/provider/diagnostics.cpp)
 target_link_libraries(notification notification_outputs)
 
 install(DIRECTORY config

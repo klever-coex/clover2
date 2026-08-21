@@ -1,8 +1,9 @@
 #include <clover2_notification/outputs/led.hpp>
-#include <diagnostic_msgs/msg/diagnostic_status.hpp>
 #include <pluginlib/class_list_macros.hpp>
 
 #include <algorithm>
+#include <chrono>
+#include <cstdint>
 #include <stdexcept>
 #include <vector>
 
@@ -27,19 +28,6 @@ clover2_led::data::color parse_color(const std::vector<int64_t>& values) {
             to_color_component(values[2])};
 }
 
-std::string level_name(uint8_t level) {
-    switch (level) {
-        case diagnostic_msgs::msg::DiagnosticStatus::WARN:
-            return "warn";
-        case diagnostic_msgs::msg::DiagnosticStatus::ERROR:
-            return "error";
-        case diagnostic_msgs::msg::DiagnosticStatus::STALE:
-            return "stale";
-        default:
-            return "ok";
-    }
-}
-
 }  // namespace
 
 void led::initialize(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node) {
@@ -48,24 +36,31 @@ void led::initialize(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node) {
     }
 
     m_logger = node->get_logger().get_child("led_output");
+    m_node = node;
 
     const auto base_path =
         node->declare_parameter<std::string>("led.base_path", "led_strip");
-    m_client = std::make_shared<clover2_led::client>(node, base_path);
+    m_client_callback_group =
+        node->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
+    m_client = std::make_shared<clover2_led::client>(node, base_path,
+                                                     m_client_callback_group);
     load_animation_configs(node);
 }
 
-void led::show(const data::event& event) {
+void led::process_event(const data::event& event, done_callback done) {
     if (!m_client) {
         RCLCPP_WARN(m_logger, "LED client is not initialized");
+        done();
         return;
     }
 
     const auto* config = find_animation_config(event);
     if (!config) {
         RCLCPP_WARN(m_logger,
-                    "No LED animation configured for diagnostic '%s' level '%s'",
-                    event.name.c_str(), level_name(event.level).c_str());
+                    "No LED animation configured for event '%s' "
+                    "with priority %d",
+                    event.name.c_str(), event.priority);
+        done();
         return;
     }
 
@@ -74,10 +69,27 @@ void led::show(const data::event& event) {
     } catch (const std::exception& e) {
         RCLCPP_ERROR(m_logger, "Failed to start LED animation for '%s': %s",
                      event.name.c_str(), e.what());
+        done();
+        return;
     }
+
+    const auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::duration<double>(config->duration));
+    m_timer = m_node->create_wall_timer(duration, [this, done]() {
+        if (m_timer) {
+            m_timer->cancel();
+            m_timer.reset();
+        }
+        done();
+    });
 }
 
 void led::clear() {
+    if (m_timer) {
+        m_timer->cancel();
+        m_timer.reset();
+    }
+    output::clear();
     if (m_client) {
         m_client->clear();
     }
@@ -98,6 +110,11 @@ led::animation_config led::declare_animation_config(
     config.duration = static_cast<float>(node->declare_parameter<double>(
         prefix + ".duration", defaults.duration));
 
+    if (config.duration <= 0.0F) {
+        throw std::invalid_argument(
+            "LED animation duration must be greater than zero: " + prefix);
+    }
+
     return config;
 }
 
@@ -106,25 +123,30 @@ void led::load_animation_configs(
     m_default_animations.clear();
     m_override_animations.clear();
 
-    const animation_config warn_defaults{"blink", {255, 255, 0}, 0.7F, 1.0F,
-                                         0.0F};
-    const animation_config error_defaults{"blink", {255, 0, 0}, 1.0F, 0.3F,
-                                          0.0F};
-    const animation_config stale_defaults{"blink", {0, 0, 255}, 0.7F, 1.5F,
-                                          0.0F};
+    const animation_config warn_defaults{
+        "blink", {255, 255, 0}, 0.7F, 1.0F, 3.0F};
+    const animation_config error_defaults{
+        "blink", {255, 0, 0}, 1.0F, 0.3F, 3.0F};
+    const animation_config stale_defaults{
+        "blink", {0, 0, 255}, 0.7F, 1.5F, 3.0F};
 
-    m_default_animations.emplace(
-        diagnostic_msgs::msg::DiagnosticStatus::WARN,
-        declare_animation_config(node, "led.defaults.warn", warn_defaults));
-    m_default_animations.emplace(
-        diagnostic_msgs::msg::DiagnosticStatus::ERROR,
-        declare_animation_config(node, "led.defaults.error", error_defaults));
-    m_default_animations.emplace(
-        diagnostic_msgs::msg::DiagnosticStatus::STALE,
-        declare_animation_config(node, "led.defaults.stale", stale_defaults));
+    const auto load_default = [&](const std::string& name,
+                                  const animation_config& defaults,
+                                  int default_priority) {
+        const auto prefix = "led.defaults." + name;
+        const auto priority = node->declare_parameter<int>(prefix + ".priority",
+                                                           default_priority);
+        m_default_animations.emplace(
+            priority, declare_animation_config(node, prefix, defaults));
+    };
 
-    const auto override_names = node->declare_parameter<std::vector<std::string>>(
-        "led.override_names", std::vector<std::string>{});
+    load_default("warn", warn_defaults, 1);
+    load_default("error", error_defaults, 2);
+    load_default("stale", stale_defaults, 3);
+
+    const auto override_names =
+        node->declare_parameter<std::vector<std::string>>(
+            "led.override_names", std::vector<std::string>{});
     for (const auto& override_name : override_names) {
         const auto prefix = "led.overrides." + override_name;
         const auto diagnostic_name = node->declare_parameter<std::string>(
@@ -144,7 +166,7 @@ const led::animation_config* led::find_animation_config(
         return &override_it->second;
     }
 
-    const auto default_it = m_default_animations.find(event.level);
+    const auto default_it = m_default_animations.find(event.priority);
     if (default_it != m_default_animations.end()) {
         return &default_it->second;
     }

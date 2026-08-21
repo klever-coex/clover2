@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
     rclcpp::init(argc, argv);
 
     try {
-        rclcpp::executors::SingleThreadedExecutor executor;
+        rclcpp::executors::MultiThreadedExecutor executor;
         auto controller = std::make_shared<clover2_notification::controller>();
         executor.add_node(controller->get_node_base_interface());
         executor.spin();
