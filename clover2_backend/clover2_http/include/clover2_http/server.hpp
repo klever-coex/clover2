@@ -11,12 +11,12 @@
 #include <thread>
 #include <unordered_map>
 
-namespace clover2_http::server {
+namespace clover2_http {
 
-class node : public clover2_common::node {
+class server : public clover2_common::node {
 public:
-    explicit node(const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
-    ~node() override;
+    explicit server(const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
+    ~server() override;
 
 private:
     std::shared_ptr<boost::asio::io_context> m_io;
@@ -27,4 +27,4 @@ private:
     std::unordered_map<std::string, base_plugin::SharedPtr> m_plugins;
 };
 
-}  // namespace clover2_http::server
+}  // namespace clover2_http

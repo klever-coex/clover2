@@ -94,7 +94,7 @@ struct collect_middleware : public middleware::base_middleware {
 struct header_middleware : public middleware::base_middleware {
     void handle(core::request_context& ctx, endpoint::http_request& req,
                 endpoint::reply_base& reply, next_t next) override {
-        reply.set_header("X-Mw", "yes");
+        reply.header("X-Mw", "yes");
         next(ctx, req, reply);
     }
 };

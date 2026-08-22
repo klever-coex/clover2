@@ -92,20 +92,20 @@ void ros_support::on_initialize() {
         "Rate limit for topic streams in bytes per second");
 
     m_server->get<topics>(
-        "/topics", std::bind(&ros_support::handle_topics, this,
+        "/api/topics", std::bind(&ros_support::handle_topics, this,
                              std::placeholders::_1, std::placeholders::_2));
 
     m_server->get<nodes>(
-        "/nodes", std::bind(&ros_support::handle_nodes, this,
+        "/api/nodes", std::bind(&ros_support::handle_nodes, this,
                             std::placeholders::_1, std::placeholders::_2));
 
     m_server->get<node_info>(
-        "/node/info/-/{node...}",
+        "/api/node/info/-/{node...}",
         std::bind(&ros_support::handle_node_info, this, std::placeholders::_1,
                   std::placeholders::_2));
 
     m_server->get<node_topics>(
-        "/node/publishers/-/{node...}",
+        "/api/node/publishers/-/{node...}",
         [this](clover2_http::http::core::request_context ctx,
                clover2_http::http::endpoint::reply<node_topics>& reply) {
             std::string node_name = ctx.param<std::string>("node");
@@ -120,7 +120,7 @@ void ros_support::on_initialize() {
         });
 
     m_server->get<node_topics>(
-        "/node/subscribes/-/{node...}",
+        "/api/node/subscribes/-/{node...}",
         [this](clover2_http::http::core::request_context ctx,
                clover2_http::http::endpoint::reply<node_topics>& reply) {
             std::string node_name = ctx.param<std::string>("node");
@@ -135,7 +135,7 @@ void ros_support::on_initialize() {
         });
 
     m_server->get<node_services>(
-        "/node/servers/-/{node...}",
+        "/api/node/servers/-/{node...}",
         [this](clover2_http::http::core::request_context ctx,
                clover2_http::http::endpoint::reply<node_services>& reply) {
             std::string node_name = ctx.param<std::string>("node");
@@ -150,7 +150,7 @@ void ros_support::on_initialize() {
         });
 
     m_server->get<node_services>(
-        "/node/clients/-/{node...}",
+        "/api/node/clients/-/{node...}",
         [this](clover2_http::http::core::request_context ctx,
                clover2_http::http::endpoint::reply<node_services>& reply) {
             std::string node_name = ctx.param<std::string>("node");
@@ -164,7 +164,7 @@ void ros_support::on_initialize() {
             reply(response, 200);
         });
 
-    m_server->raw_ws("/topic/json/-/{topic...}",
+    m_server->raw_ws("/ws/topic/json/-/{topic...}",
                      std::bind(&ros_support::handle_topic_json_stream, this,
                                std::placeholders::_1));
 

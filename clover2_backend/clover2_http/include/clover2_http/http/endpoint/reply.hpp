@@ -2,21 +2,31 @@
 
 // clang-format off
 
+// STL
 #include <cstdint>  // must precede beast: field.hpp uses std::uint32_t
 
+// boost
 #include <boost/beast/http/field.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/status.hpp>
 #include <boost/beast/http/string_body.hpp>
+
+// JSON
 #include <nlohmann/json.hpp>
 
-// STL
+// STL again
+#include <concepts>
 #include <functional>
+#include <span>
 #include <string>
+#include <string_view>
 
 // clang-format on
 
 namespace clover2_http::http::endpoint {
+
+template <typename T>
+concept json_serializable = std::constructible_from<nlohmann::json, const T&>;
 
 using http_request =
     boost::beast::http::request<boost::beast::http::string_body>;
@@ -43,13 +53,16 @@ public:
     void error(int status);
     void error_json(int status, const std::string& message);
 
-    std::string get_header(std::string_view header) const;
-    void set_header(std::string_view header, std::string_view value);
+    std::string header(std::string_view header) const;
+    void header(std::string_view header, std::string_view value);
 
 protected:
     bool m_sent = false;
     response_sender m_sender;
     http_response m_response;
+
+    void send_raw(std::string body, std::string_view content_type,
+                  int status);
 };
 
 template <typename T>
@@ -61,20 +74,23 @@ public:
     explicit reply(reply_base&& base)
         : reply_base(std::move(base)) {}
 
-    void operator()(const T& resp, int status = 200) {
-        if (m_sent) return;
-        m_sent = true;
-
+    void operator()(const T& resp, int status = 200)
+        requires json_serializable<T>
+    {
         nlohmann::json jv(resp);
-        std::string body = jv.dump();
+        send_raw(jv.dump(), "application/json", status);
+    }
 
-        m_response.result(status);
-        m_response.set(boost::beast::http::field::content_type,
-                       "application/json");
-        m_response.body() = std::move(body);
-        m_response.prepare_payload();
+    void operator()(std::string_view body, std::string_view content_type,
+                    int status = 200) {
+        send_raw(std::string(body), content_type, status);
+    }
 
-        m_sender(std::move(m_response));
+    void operator()(std::span<const std::uint8_t> data,
+                    std::string_view content_type, int status = 200) {
+        std::string body(reinterpret_cast<const char*>(data.data()),
+                         data.size());
+        send_raw(std::move(body), content_type, status);
     }
 };
 
@@ -88,16 +104,7 @@ public:
         : reply_base(std::move(base)) {}
 
     void done(int status = 200) {
-        if (m_sent) return;
-        m_sent = true;
-
-        m_response.result(status);
-        m_response.set(boost::beast::http::field::content_type,
-                       "application/json");
-        m_response.body() = "{}";
-        m_response.prepare_payload();
-
-        m_sender(std::move(m_response));
+        send_raw("", "text/plain", status);
     }
 };
 

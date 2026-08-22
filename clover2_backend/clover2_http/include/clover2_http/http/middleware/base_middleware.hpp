@@ -6,6 +6,7 @@
 
 // STL
 #include <functional>
+#include <concepts>
 
 namespace clover2_http::http::middleware {
 
@@ -21,5 +22,9 @@ public:
                         http::endpoint::http_request& req,
                         http::endpoint::reply_base& reply, next_t next) = 0;
 };
+
+
+template<typename MiddlewareT>
+concept middleware = std::derived_from<MiddlewareT, base_middleware>;
 
 }  // namespace clover2_http::http::middleware

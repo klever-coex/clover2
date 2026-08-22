@@ -7,7 +7,7 @@
 
 #include <utility>
 
-namespace clover2_http::server {
+namespace clover2_http {
 
 class logger : public clover2_http::http::core::logger {
 public:
@@ -37,4 +37,4 @@ private:
     rclcpp::Logger m_logger;
 };
 
-}  // namespace clover2_http::server
+}  // namespace clover2_http

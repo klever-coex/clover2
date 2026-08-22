@@ -21,9 +21,9 @@ target_link_libraries(${PROJECT_NAME}_http Boost::url)
 
 ament_auto_add_executable(example examples/example.cpp)
 
-ament_auto_add_library(${PROJECT_NAME}_node SHARED src/server/node.cpp)
+ament_auto_add_library(${PROJECT_NAME}_node SHARED src/server.cpp)
 rclcpp_components_register_node(${PROJECT_NAME}_node
-  PLUGIN "clover2_http::server::node"
+  PLUGIN "clover2_http::server"
   EXECUTABLE server
 )
 

@@ -1,27 +1,27 @@
+#include <clover2_http/data/manifest.hpp>
 #include <clover2_http/http/middleware/cors.hpp>
-#include <clover2_http/server/data/manifest.hpp>
-#include <clover2_http/server/logger.hpp>
-#include <clover2_http/server/node.hpp>
+#include <clover2_http/logger.hpp>
+#include <clover2_http/server.hpp>
 
-namespace clover2_http::server {
+namespace clover2_http {
 
-node::node(const rclcpp::NodeOptions& options)
+server::server(const rclcpp::NodeOptions& options)
     : clover2_common::node("http", options)
     , m_io(std::make_shared<boost::asio::io_context>())
     , m_server(std::make_shared<clover2_http::http::server>(
           *m_io, logger(get_logger().get_child("server"))))
     , m_plugin_loader("clover2_http", "clover2_http::base_plugin") {
     const auto address =
-        declare_parameter<std::string>("http_address", "0.0.0.0");
-    const auto port = declare_parameter<int64_t>("http_port", 8080);
+        declare_parameter<std::string>("address", "0.0.0.0");
+    const auto port = declare_parameter<int64_t>("port", 8080);
 
     m_server->use<clover2_http::http::middleware::cors>("/");
 
-    auto manifest = std::make_shared<server::data::manifest>();
-    m_server->get<server::data::manifest>(
-        "/manifest",
+    auto manifest = std::make_shared<data::manifest>();
+    m_server->get<data::manifest>(
+        "/api/manifest",
         [manifest](clover2_http::http::core::request_context,
-                   clover2_http::http::endpoint::reply<server::data::manifest>&
+                   clover2_http::http::endpoint::reply<data::manifest>&
                        reply) { reply(*manifest, 200); });
 
     auto node_context = std::make_shared<clover2_common::node_context>(*this);
@@ -47,7 +47,7 @@ node::node(const rclcpp::NodeOptions& options)
     m_io_thread = std::thread([io = m_io]() { io->run(); });
 }
 
-node::~node() {
+server::~server() {
     m_server->stop();
     m_io->stop();
 
@@ -56,8 +56,8 @@ node::~node() {
     }
 }
 
-}  // namespace clover2_http::server
+}  // namespace clover2_http
 
 #include <rclcpp_components/register_node_macro.hpp>
 
-RCLCPP_COMPONENTS_REGISTER_NODE(clover2_http::server::node)
+RCLCPP_COMPONENTS_REGISTER_NODE(clover2_http::server)

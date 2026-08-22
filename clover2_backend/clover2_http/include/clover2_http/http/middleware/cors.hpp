@@ -12,11 +12,11 @@ class cors : public base_middleware {
 public:
     void handle(core::request_context& ctx, http::endpoint::http_request& req,
                 http::endpoint::reply_base& reply, next_t next) override {
-        reply.set_header("Access-Control-Allow-Origin", "*");
-        reply.set_header("Access-Control-Allow-Methods",
+        reply.header("Access-Control-Allow-Origin", "*");
+        reply.header("Access-Control-Allow-Methods",
                          "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-        reply.set_header("Access-Control-Allow-Headers", "Content-Type");
-        reply.set_header("Access-Control-Max-Age", "86400");
+        reply.header("Access-Control-Allow-Headers", "Content-Type");
+        reply.header("Access-Control-Max-Age", "86400");
 
         if (req.method() == boost::beast::http::verb::options &&
             req.find(

@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace clover2_http::server::data {
+namespace clover2_http::data {
 
 struct plugin_info {
     std::string name;
@@ -15,4 +15,4 @@ struct plugin_info {
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(plugin_info, name, version, capabilities)
 
-}  // namespace clover2_http::server::data
+}  // namespace clover2_http::data

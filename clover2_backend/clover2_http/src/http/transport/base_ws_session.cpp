@@ -258,7 +258,7 @@ void base_ws_session::dispatch_text(std::string data) {
 
 void base_ws_session::do_write() {
     auto& msg = m_write_queue.front();
-    m_ws.text(!msg.is_binary);
+    m_ws.binary(msg.is_binary);
 
     m_ws.async_write(
         boost::asio::buffer(msg.data),

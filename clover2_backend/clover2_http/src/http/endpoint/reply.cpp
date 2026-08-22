@@ -2,14 +2,21 @@
 
 namespace clover2_http::http::endpoint {
 
+namespace {
+
+std::string error_body(const std::string& message) {
+    nlohmann::json obj;
+    obj["error"] = message;
+    return obj.dump();
+}
+
+}  // namespace
+
 void make_error_response(http_response& resp, int status,
                          const std::string& message) {
     resp.result(status);
     resp.set(boost::beast::http::field::content_type, "application/json");
-
-    nlohmann::json obj;
-    obj["error"] = message;
-    resp.body() = obj.dump();
+    resp.body() = error_body(message);
     resp.prepare_payload();
 }
 
@@ -28,32 +35,37 @@ reply_base::~reply_base() {
 }
 
 void reply_base::error(int status) {
-    if (m_sent) return;
-
-    m_sent = true;
-    m_response.result(status);
-    if (status != 204) {               // 204 must not carry Content-Length
-        m_response.prepare_payload();  // sets necessary headers
-    }
-
-    m_sender(m_response);
+    send_raw("", "", status);
 }
 
 void reply_base::error_json(int status, const std::string& message) {
-    if (m_sent) return;
-
-    m_sent = true;
-
-    make_error_response(m_response, status, message);
-    m_sender(m_response);
+    send_raw(error_body(message), "application/json", status);
 }
 
-std::string reply_base::get_header(std::string_view header) const {
+std::string reply_base::header(std::string_view header) const {
     return m_response[header];
 }
 
-void reply_base::set_header(std::string_view header, std::string_view value) {
+void reply_base::header(std::string_view header, std::string_view value) {
     m_response.set(header, value);
+}
+
+void reply_base::send_raw(std::string body, std::string_view content_type,
+                          int status) {
+    if (m_sent) return;
+    m_sent = true;
+
+    m_response.result(status);
+    if (!content_type.empty()) {
+        m_response.set(boost::beast::http::field::content_type, content_type);
+    }
+
+    if (status != 204) {  // 204 must not carry a body / Content-Length
+        m_response.body() = std::move(body);
+        m_response.prepare_payload();
+    }
+
+    m_sender(std::move(m_response));
 }
 
 }  // namespace clover2_http::http::endpoint

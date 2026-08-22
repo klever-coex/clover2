@@ -1,6 +1,7 @@
 #pragma once
 
 // clover2
+#include "clover2_http/http/middleware/base_middleware.hpp"
 #include <clover2_http/http/core/logger.hpp>
 #include <clover2_http/http/endpoint/adapter.hpp>
 #include <clover2_http/http/routing/router.hpp>
@@ -177,7 +178,7 @@ public:
      * @param pattern Prefix pattern; "/" applies to every request.
      * @throws core::routing_error on invalid pattern.
      */
-    template <typename MiddlewareT>
+    template <middleware::middleware MiddlewareT>
     void use(const std::string& pattern) {
         use(pattern, [] { return std::make_unique<MiddlewareT>(); });
     }

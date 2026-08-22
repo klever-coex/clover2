@@ -3,7 +3,7 @@
 // clover2
 #include <clover2_common/node_context.hpp>
 #include <clover2_http/http/server.hpp>
-#include <clover2_http/server/data/plugin_info.hpp>
+#include <clover2_http/data/plugin_info.hpp>
 
 // ROS2
 #include <rclcpp/logger.hpp>
@@ -38,7 +38,7 @@ public:
     virtual int version() const { return 0; }
     virtual std::vector<std::string> capabilities() const { return {}; }
 
-    server::data::plugin_info manifest() const {
+    data::plugin_info manifest() const {
         return {name(), version(), capabilities()};
     }
 
