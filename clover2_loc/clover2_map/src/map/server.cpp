@@ -1,4 +1,4 @@
-#include <clover2/map/server.hpp>
+#include <clover2_map/server.hpp>
 #include <rclcpp/logger.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2/LinearMath/Transform.hpp>
@@ -8,7 +8,7 @@
 #include <memory>
 #include <stdexcept>
 
-namespace clover2::map {
+namespace clover2_map {
 
 server::server(const rclcpp::NodeOptions& options)
     : clover2_common::node("map_server", options) {
@@ -88,8 +88,8 @@ void server::update_map() {
     m_map_update_pub->publish(std_msgs::msg::Empty());
 }
 
-}  // namespace clover2::map
+}  // namespace clover2_map
 
 #include "rclcpp_components/register_node_macro.hpp"
 
-RCLCPP_COMPONENTS_REGISTER_NODE(clover2::map::server)
+RCLCPP_COMPONENTS_REGISTER_NODE(clover2_map::server)

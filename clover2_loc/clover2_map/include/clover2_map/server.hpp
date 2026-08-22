@@ -1,7 +1,7 @@
 #pragma once
 
 // clover2
-#include <clover2/map/io/fs_provider.hpp>
+#include <clover2_map/io/fs_provider.hpp>
 #include <clover2_common/node.hpp>
 
 // ROS2
@@ -16,7 +16,7 @@
 #include <memory>
 #include <mutex>
 
-namespace clover2::map {
+namespace clover2_map {
 
 class server : public clover2_common::node {
 public:
@@ -45,4 +45,4 @@ private:
     rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr m_map_update_pub;
 };
 
-}  // namespace clover2::map
+}  // namespace clover2_map

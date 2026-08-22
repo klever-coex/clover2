@@ -5,7 +5,7 @@
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
 // Clover2 includes
-#include <clover2/map/client.hpp>
+#include <clover2_map/client.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 
 // TF2 includes
@@ -54,7 +54,7 @@ private:
     double m_xy_variation{0.4}, m_z_variation{0.4};
 
     // Detection parameters
-    std::shared_ptr<clover2::map::client> m_map_client;
+    std::shared_ptr<clover2_map::client> m_map_client;
 
     // TF
     bool m_tf_send{false};

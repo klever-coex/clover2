@@ -1,4 +1,4 @@
-#include <clover2/map/io/fs_provider.hpp>
+#include <clover2_map/io/fs_provider.hpp>
 #include <rclcpp/logging.hpp>
 #include <tf2/LinearMath/Matrix3x3.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
@@ -108,7 +108,7 @@ struct convert<clover2_pose_msgs::msg::Marker> {
 
 }  // namespace YAML
 
-namespace clover2::map::io {
+namespace clover2_map::io {
 
 namespace {
 
@@ -350,4 +350,4 @@ clover2_pose_msgs::msg::MarkerMap& fs_provider::get_map() {  //
 
 void fs_provider::reset() { m_map.markers.clear(); }
 
-}  // namespace clover2::map::io
+}  // namespace clover2_map::io

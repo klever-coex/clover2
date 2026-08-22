@@ -49,7 +49,7 @@ clover2_add_component_library(
   DEFINES CLOVER2_MAP_SERVER_NODE_BUILDING_LIBRARY
   LINK_LIBS clover2_map_server_io
   DEPENDENCIES ${dependencies}
-  COMPONENT_CLASS "clover2::map::server"
+  COMPONENT_CLASS "clover2_map::server"
 )
 
 clover2_add_executable(

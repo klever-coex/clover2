@@ -7,7 +7,7 @@
 // STL
 #include <filesystem>
 
-namespace clover2::map::io {
+namespace clover2_map::io {
 
 class fs_provider {
 public:
@@ -32,4 +32,4 @@ private:
     clover2_pose_msgs::msg::MarkerMap m_map;
 };
 
-}  // namespace clover2::map::io
+}  // namespace clover2_map::io

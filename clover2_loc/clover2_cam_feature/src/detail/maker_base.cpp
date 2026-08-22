@@ -20,7 +20,7 @@ maker_base::maker_base()
 void maker_base::_configure(
     [[maybe_unused]] const std::string& name,
     [[maybe_unused]] const std::shared_ptr<clover2_common::node_context>& node,
-    const std::shared_ptr<clover2::map::client>& map_client) {
+    const std::shared_ptr<clover2_map::client>& map_client) {
     m_map_client = map_client;
 }
 

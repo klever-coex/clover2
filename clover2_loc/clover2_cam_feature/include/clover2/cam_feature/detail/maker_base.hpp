@@ -36,7 +36,7 @@ public:
 protected:
     void _configure(const std::string& name,
                     const std::shared_ptr<clover2_common::node_context>& node,
-                    const std::shared_ptr<clover2::map::client>& map_client);
+                    const std::shared_ptr<clover2_map::client>& map_client);
     void _activate();
     void _deactivate();
     void _cleanup();
@@ -58,7 +58,7 @@ private:
                                   const cv::Vec3d& rvec, const cv::Vec3d& tvec,
                                   const cv::Mat& cov);
 
-    std::shared_ptr<clover2::map::client> m_map_client;
+    std::shared_ptr<clover2_map::client> m_map_client;
     rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr
         m_pose_array_debug_pub;
 

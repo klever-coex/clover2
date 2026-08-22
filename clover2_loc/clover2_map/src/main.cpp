@@ -1,4 +1,4 @@
-#include <clover2/map/server.hpp>
+#include <clover2_map/server.hpp>
 
 #include <rclcpp/rclcpp.hpp>
 
@@ -11,8 +11,8 @@ int main(int argc, char* argv[]) {
         rclcpp::executors::SingleThreadedExecutor executor;
 
         auto options = rclcpp::NodeOptions();
-        clover2::map::server::SharedPtr srv =
-            std::make_shared<clover2::map::server>(options);
+        clover2_map::server::SharedPtr srv =
+            std::make_shared<clover2_map::server>(options);
 
         executor.add_node(srv->get_node_base_interface());
         executor.spin();

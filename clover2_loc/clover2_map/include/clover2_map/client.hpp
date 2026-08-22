@@ -22,7 +22,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace clover2::map {
+namespace clover2_map {
 
 class client {
 public:
@@ -63,7 +63,7 @@ public:
         return m_markers.at(id).transform;
     }
 
-    const std::string& get_marker_frame_id(int id) const {
+    std::string get_marker_frame_id(int id) const {
         return m_markers.at(id).marker_frame_id;
     }
 
@@ -132,4 +132,4 @@ private:
     std::unordered_map<int, clover2_pose_msgs::marker> m_markers;
 };
 
-}  // namespace clover2::map
+}  // namespace clover2_map

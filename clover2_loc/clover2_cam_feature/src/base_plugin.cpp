@@ -19,7 +19,7 @@ base_plugin::~base_plugin() {
 void base_plugin::configure(
     const std::string& name,
     const std::shared_ptr<clover2_common::node_context>& node_context,
-    const std::shared_ptr<clover2::map::client>& map_client) {
+    const std::shared_ptr<clover2_map::client>& map_client) {
     m_name = name;
     m_node_context = node_context;
 

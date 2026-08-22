@@ -60,7 +60,7 @@ public:
     void on_configure(
         const std::string& name,
         const std::shared_ptr<clover2_common::node_context>& node_context,
-        const std::shared_ptr<clover2::map::client>& map_client)
+        const std::shared_ptr<clover2_map::client>& map_client)
         override final {
         _configure(name, node_context, map_client);
 
