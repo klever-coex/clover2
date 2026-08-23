@@ -4,13 +4,19 @@
 #include <clover2_http/http/core/request_context.hpp>
 #include <clover2_http/http/endpoint/reply.hpp>
 
+#include <memory>
+
 namespace clover2_http::http::endpoint {
 
 class interface {
 public:
     virtual ~interface() = default;
+
+    // The reply is shared so handlers may complete it after returning
+    // (deferred replies from async callbacks); when the last shared copy
+    // drops unsent, the destructor sends the 500 fallback.
     virtual void invoke(core::request_context& ctx, http_request& req,
-                        reply_base& reply) = 0;
+                        std::shared_ptr<reply_base> reply) = 0;
 };
 
 }  // namespace clover2_http::http::endpoint

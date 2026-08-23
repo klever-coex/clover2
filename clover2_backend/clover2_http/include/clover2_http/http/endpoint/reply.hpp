@@ -15,8 +15,10 @@
 #include <nlohmann/json.hpp>
 
 // STL again
+#include <atomic>
 #include <concepts>
 #include <functional>
+#include <memory>
 #include <span>
 #include <string>
 #include <string_view>
@@ -43,12 +45,14 @@ public:
     explicit reply_base(response_sender sender);
     ~reply_base();
 
-    // Only move without copy
+    // Only move without copy. The move is hand-written because
+    // std::atomic_bool is not movable; the moved-from sender is reset so
+    // that a moved-from reply never sends the 500 fallback.
     reply_base(const reply_base&) = delete;
     reply_base& operator=(const reply_base&) = delete;
 
-    reply_base(reply_base&&) = default;
-    reply_base& operator=(reply_base&&) = default;
+    reply_base(reply_base&& other) noexcept;
+    reply_base& operator=(reply_base&& other) noexcept;
 
     void error(int status);
     void error_json(int status, const std::string& message);
@@ -57,7 +61,8 @@ public:
     void header(std::string_view header, std::string_view value);
 
 protected:
-    bool m_sent = false;
+    // Atomic: a deferred reply may be completed from another thread.
+    std::atomic_bool m_sent{false};
     response_sender m_sender;
     http_response m_response;
 
@@ -106,6 +111,43 @@ public:
     void done(int status = 200) {
         send_raw("", "text/plain", status);
     }
+};
+
+// A shared handle to a reply that outlives the handler. Handlers receive
+// it by value; a copy captured into a callback keeps the reply alive, and
+// the response may be sent from any thread after the handler returned
+// (the underlying send is serialized by the session strand, and the
+// atomic send-once guard makes concurrent completions safe). If the last
+// copy is destroyed without a response, the reply destructor sends the
+// usual 500 fallback.
+template <typename T>
+class deferred_reply {
+public:
+    explicit deferred_reply(std::shared_ptr<reply<T>> inner)
+        : m_inner(std::move(inner)) {}
+
+    void operator()(const T& resp, int status = 200) const
+        requires json_serializable<T>
+    {
+        m_inner->operator()(resp, status);
+    }
+
+    void error(int status) const { m_inner->error(status); }
+
+    void error_json(int status, const std::string& message) const {
+        m_inner->error_json(status, message);
+    }
+
+    std::string header(std::string_view name) const {
+        return m_inner->header(name);
+    }
+
+    void header(std::string_view name, std::string_view value) const {
+        m_inner->header(name, value);
+    }
+
+private:
+    std::shared_ptr<reply<T>> m_inner;
 };
 
 }  // namespace clover2_http::http::endpoint

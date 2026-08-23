@@ -4,6 +4,20 @@
 #include <clover2_map/data/map.hpp>
 
 // ROS2
+#include <rclcpp/create_client.hpp>
+#include <rclcpp/create_subscription.hpp>
+#include <rclcpp/node_interfaces/get_node_base_interface.hpp>
+#include <rclcpp/node_interfaces/get_node_graph_interface.hpp>
+#include <rclcpp/node_interfaces/get_node_logging_interface.hpp>
+#include <rclcpp/node_interfaces/get_node_parameters_interface.hpp>
+#include <rclcpp/node_interfaces/get_node_services_interface.hpp>
+#include <rclcpp/node_interfaces/get_node_topics_interface.hpp>
+#include <rclcpp/node_interfaces/node_base_interface.hpp>
+#include <rclcpp/node_interfaces/node_graph_interface.hpp>
+#include <rclcpp/node_interfaces/node_logging_interface.hpp>
+#include <rclcpp/node_interfaces/node_parameters_interface.hpp>
+#include <rclcpp/node_interfaces/node_services_interface.hpp>
+#include <rclcpp/node_interfaces/node_topics_interface.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 // ROS2 msgs
@@ -14,11 +28,9 @@
 #include <std_msgs/msg/empty.hpp>
 
 // STL
-#include <chrono>
 #include <cstdint>
 #include <functional>
 #include <mutex>
-#include <stdexcept>
 #include <string>
 #include <unordered_map>
 
@@ -26,35 +38,72 @@ namespace clover2_map {
 
 class client {
 public:
-    template <typename NodeT>
-    explicit client(const NodeT& node,
-                    rclcpp::CallbackGroup::SharedPtr cb_group = nullptr)
-        : m_logger(node->get_logger().get_child("map_client"))
+    using modify_callback =
+        std::function<void(bool success, std::string error_message)>;
+
+    client(
+        std::shared_ptr<rclcpp::node_interfaces::NodeBaseInterface> node_base,
+        std::shared_ptr<rclcpp::node_interfaces::NodeGraphInterface>
+            node_graph,
+        std::shared_ptr<rclcpp::node_interfaces::NodeParametersInterface>
+            node_parameters,
+        std::shared_ptr<rclcpp::node_interfaces::NodeTopicsInterface>
+            node_topics,
+        std::shared_ptr<rclcpp::node_interfaces::NodeServicesInterface>
+            node_services,
+        std::shared_ptr<rclcpp::node_interfaces::NodeLoggingInterface>
+            node_logging,
+        rclcpp::CallbackGroup::SharedPtr cb_group = nullptr,
+        std::string map_node_name = "")
+        : m_logger(node_logging->get_logger().get_child("map_client"))
         , m_map_valid(false) {
+        const std::string prefix =
+            map_node_name.empty() ? "~/" : (map_node_name + "/");
+
         rclcpp::SubscriptionOptions options;
         options.callback_group = cb_group;
 
-        m_map_update_sub =
-            node->template create_subscription<std_msgs::msg::Empty>(
-                "~/map_update", rclcpp::QoS(1).transient_local().reliable(),
-                std::bind(&client::map_update_callback, this,
-                          std::placeholders::_1),
-                options);
+        m_map_update_sub = rclcpp::create_subscription<std_msgs::msg::Empty>(
+            node_parameters, node_topics, prefix + "map_update",
+            rclcpp::QoS(1).transient_local().reliable(),
+            std::bind(&client::map_update_callback, this,
+                      std::placeholders::_1),
+            options);
 
         m_get_map_client =
-            node->template create_client<clover2_pose_msgs::srv::GetMap>(
-                "~/get_map", rclcpp::ServicesQoS());
+            rclcpp::create_client<clover2_pose_msgs::srv::GetMap>(
+                node_base, node_graph, node_services, prefix + "get_map",
+                rclcpp::ServicesQoS(), cb_group);
 
         m_modify_map_client =
-            node->template create_client<clover2_pose_msgs::srv::ModifyMap>(
-                "~/modify_map", rclcpp::ServicesQoS());
+            rclcpp::create_client<clover2_pose_msgs::srv::ModifyMap>(
+                node_base, node_graph, node_services, prefix + "modify_map",
+                rclcpp::ServicesQoS(), cb_group);
 
         update_map();
     }
 
+    template <typename NodeT>
+    explicit client(const NodeT& node,
+                    rclcpp::CallbackGroup::SharedPtr cb_group = nullptr,
+                    std::string map_node_name = "")
+        : client(
+              rclcpp::node_interfaces::get_node_base_interface(node),
+              rclcpp::node_interfaces::get_node_graph_interface(node),
+              rclcpp::node_interfaces::get_node_parameters_interface(node),
+              rclcpp::node_interfaces::get_node_topics_interface(node),
+              rclcpp::node_interfaces::get_node_services_interface(node),
+              rclcpp::node_interfaces::get_node_logging_interface(node),
+              cb_group, std::move(map_node_name)) {}
+
     bool valid() const { return m_map_valid; }
 
-    const clover2_map::map& get_map() const { return m_map; }
+    map snapshot() const {
+        std::lock_guard<std::recursive_mutex> guard(m_map_mtx);
+        return m_map;
+    }
+
+    const map& get_map() const { return m_map; }
 
     std::string get_name() const { return m_map.name; }
 
@@ -72,12 +121,21 @@ public:
         return m_markers.at(id);
     }
 
-    void modify_marker(
-        uint8_t operation, const clover2_map::marker& mk) {
-        if (!m_modify_map_client->wait_for_service(
-                std::chrono::milliseconds(1000))) {
-            RCLCPP_ERROR(m_logger, "%s service is not available!",
-                         m_modify_map_client->get_service_name());
+    void refresh() { update_map(); }
+
+    void modify_marker(uint8_t operation, const clover2_map::marker& mk,
+                       modify_callback callback = {}) {
+        auto fail = [&](const std::string& message) {
+            if (callback) {
+                callback(false, message);
+            } else {
+                RCLCPP_ERROR(m_logger, "Fail to modify map: %s",
+                             message.c_str());
+            }
+        };
+
+        if (!m_modify_map_client->service_is_ready()) {
+            fail("modify_map service is not available");
             return;
         }
 
@@ -88,17 +146,33 @@ public:
 
         m_modify_map_client->async_send_request(
             request,
-            [this](rclcpp::Client<
-                   clover2_pose_msgs::srv::ModifyMap>::SharedFuture future) {
-                if (!future.valid()) {
-                    RCLCPP_ERROR(m_logger, "Fail to modify map");
-                    return;
-                }
+            [this, callback](rclcpp::Client<
+                             clover2_pose_msgs::srv::ModifyMap>::SharedFuture
+                                 future) {
+                try {
+                    if (!future.valid()) {
+                        if (callback) {
+                            callback(false, "Invalid future");
+                        } else {
+                            RCLCPP_ERROR(m_logger, "Fail to modify map");
+                        }
+                        return;
+                    }
 
-                auto resp = future.get();
-                if (!resp->success) {
-                    RCLCPP_ERROR(m_logger, "Fail to modify map: %s",
-                                 resp->error_message.c_str());
+                    auto resp = future.get();
+                    if (callback) {
+                        callback(resp->success, resp->error_message);
+                    } else if (!resp->success) {
+                        RCLCPP_ERROR(m_logger, "Fail to modify map: %s",
+                                     resp->error_message.c_str());
+                    }
+                } catch (const std::exception& e) {
+                    if (callback) {
+                        callback(false, e.what());
+                    } else {
+                        RCLCPP_ERROR(m_logger, "Fail to modify map: %s",
+                                     e.what());
+                    }
                 }
             });
     }
@@ -123,11 +197,10 @@ private:
     }
 
     void update_map() {
-        if (!m_get_map_client->wait_for_service(
-                std::chrono::milliseconds(1000))) {
-            throw std::runtime_error(
-                std::string(m_get_map_client->get_service_name()) +
-                " service is not available!");
+        if (!m_get_map_client->service_is_ready()) {
+            RCLCPP_WARN(m_logger, "%s service is not available",
+                        m_get_map_client->get_service_name());
+            return;
         }
 
         auto map_request =
@@ -136,18 +209,22 @@ private:
             map_request,
             [this](rclcpp::Client<clover2_pose_msgs::srv::GetMap>::SharedFuture
                        future) {
-                if (!future.valid()) {
-                    RCLCPP_ERROR(m_logger, "Fail to get map");
-                    return;
+                try {
+                    if (!future.valid()) {
+                        RCLCPP_ERROR(m_logger, "Fail to get map");
+                        return;
+                    }
+
+                    auto resp = future.get();
+                    RCLCPP_INFO(m_logger,
+                                "Update map from %s to %s with %ld markers",
+                                get_name().c_str(), resp->map.name.c_str(),
+                                resp->map.markers.size());
+
+                    update_cached_map(resp->map);
+                } catch (const std::exception& e) {
+                    RCLCPP_ERROR(m_logger, "Fail to get map: %s", e.what());
                 }
-
-                auto resp = future.get();
-                RCLCPP_INFO(m_logger,
-                            "Update map from %s to %s with %ld markers",
-                            get_name().c_str(), resp->map.name.c_str(),
-                            resp->map.markers.size());
-
-                update_cached_map(resp->map);
             });
     }
 
@@ -157,10 +234,11 @@ private:
     rclcpp::Client<clover2_pose_msgs::srv::ModifyMap>::SharedPtr
         m_modify_map_client;
 
-    std::recursive_mutex m_map_mtx;
+    mutable std::recursive_mutex m_map_mtx;
 
     bool m_map_valid;
     clover2_map::map m_map;
+    // Flat index over m_map.markers for O(1) lookups by id.
     std::unordered_map<int, clover2_map::marker> m_markers;
 };
 

@@ -53,10 +53,10 @@ struct spy_endpoint : public endpoint::interface {
     int last_status = 0;
 
     void invoke(core::request_context& ctx, endpoint::http_request& /*req*/,
-                endpoint::reply_base& reply) override {
+                std::shared_ptr<endpoint::reply_base> reply) override {
         invoked = true;
         last_ctx = ctx;
-        reply.error(200);
+        reply->error(200);
     }
 };
 
@@ -65,9 +65,20 @@ struct status_endpoint : public endpoint::interface {
     explicit status_endpoint(int s)
         : status(s) {}
     void invoke(core::request_context&, endpoint::http_request&,
-                endpoint::reply_base& reply) override {
-        reply.error_json(status, "test");
+                std::shared_ptr<endpoint::reply_base> reply) override {
+        reply->error_json(status, "test");
     }
+};
+
+// Captures the reply and completes it after invoke() returned, as a
+// deferred reply would be completed from an async callback.
+struct deferred_endpoint : public endpoint::interface {
+    void invoke(core::request_context&, endpoint::http_request&,
+                std::shared_ptr<endpoint::reply_base> reply) override {
+        held = reply;
+    }
+
+    std::shared_ptr<endpoint::reply_base> held;
 };
 
 struct collect_middleware : public middleware::base_middleware {
@@ -482,6 +493,63 @@ TEST(ResponseSender, EndpointInvokedWithResponse) {
     r.dispatch_http(http::verb::get, make_target("/ok"), ctx, make_get("/ok"),
                     [&](auto resp) { captured = std::move(resp); });
     EXPECT_EQ(captured.result(), http::status::ok);
+}
+
+TEST(ResponseSender, DeferredReplyAfterInvokeReturns) {
+    routing::router r;
+    auto ep = std::make_unique<deferred_endpoint>();
+    auto* raw = ep.get();
+    r.add_http_route(http::verb::get, "/deferred", std::move(ep));
+
+    core::request_context ctx;
+    http::response<http::string_body> captured{http::status::unknown, 11};
+    r.dispatch_http(http::verb::get, make_target("/deferred"), ctx,
+                    make_get("/deferred"),
+                    [&](auto resp) { captured = std::move(resp); });
+
+    // No response while the reply is held.
+    EXPECT_EQ(captured.result(), http::status::unknown);
+    ASSERT_NE(raw->held, nullptr);
+
+    // Completing after the dispatch returned delivers the response.
+    raw->held->error_json(200, "deferred");
+    EXPECT_EQ(captured.result(), http::status::ok);
+    EXPECT_EQ(captured.body(), "{\"error\":\"deferred\"}");
+}
+
+TEST(ResponseSender, DoubleSendSuppressed) {
+    routing::router r;
+    auto ep = std::make_unique<deferred_endpoint>();
+    auto* raw = ep.get();
+    r.add_http_route(http::verb::get, "/deferred", std::move(ep));
+
+    core::request_context ctx;
+    http::response<http::string_body> captured{http::status::unknown, 11};
+    r.dispatch_http(http::verb::get, make_target("/deferred"), ctx,
+                    make_get("/deferred"),
+                    [&](auto resp) { captured = std::move(resp); });
+
+    raw->held->error_json(200, "first");
+    raw->held->error_json(500, "second");
+
+    EXPECT_EQ(captured.result(), http::status::ok);
+    EXPECT_EQ(captured.body(), "{\"error\":\"first\"}");
+}
+
+TEST(ResponseSender, HeldReplyDestroyedWithoutResponseSends500) {
+    routing::router r;
+    auto ep = std::make_unique<deferred_endpoint>();
+    auto* raw = ep.get();
+    r.add_http_route(http::verb::get, "/deferred", std::move(ep));
+
+    core::request_context ctx;
+    http::response<http::string_body> captured{http::status::unknown, 11};
+    r.dispatch_http(http::verb::get, make_target("/deferred"), ctx,
+                    make_get("/deferred"),
+                    [&](auto resp) { captured = std::move(resp); });
+
+    raw->held.reset();
+    EXPECT_EQ(captured.result(), http::status::internal_server_error);
 }
 
 TEST(SegmentGuard, RoutesWithWrongSegmentCountSkipped) {

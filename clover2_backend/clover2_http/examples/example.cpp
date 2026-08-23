@@ -45,19 +45,19 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ChatMessage, user, body)
 namespace c2 = clover2_http::http;
 
 void handle_hello(c2::core::request_context /*ctx*/,
-                  c2::endpoint::reply<EchoResponse>& reply) {
+                  c2::endpoint::deferred_reply<EchoResponse> reply) {
     reply(EchoResponse{.echoed = "Hello from clover2_http!", .length = 27},
           200);
 }
 
 void handle_get_user(c2::core::request_context ctx,
-                     c2::endpoint::reply<UserResponse>& reply) {
+                     c2::endpoint::deferred_reply<UserResponse> reply) {
     int id = std::stoi(ctx.path_params.at("id"));
     reply(UserResponse{.id = id, .name = "Alice"}, 200);
 }
 
 void handle_echo(c2::core::request_context /*ctx*/, EchoRequest req,
-                 c2::endpoint::reply<EchoResponse>& reply) {
+                 c2::endpoint::deferred_reply<EchoResponse> reply) {
     int len = static_cast<int>(req.text.size());
     reply(EchoResponse{.echoed = std::move(req.text), .length = len}, 200);
 }

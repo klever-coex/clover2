@@ -114,10 +114,15 @@ bool router::dispatch_http(boost::beast::http::verb method,
 
     bool found = false;
 
-    middleware_terminal terminal = [this, method, target, &segs, &found](
-                                       core::request_context& ctx,
-                                       endpoint::http_request& req,
-                                       endpoint::reply_base& reply) {
+    // The reply lives on the heap: the endpoint may complete it after
+    // the dispatch returns (deferred replies); the last shared copy
+    // dropping unsent sends the 500 fallback.
+    auto reply = std::make_shared<endpoint::reply_base>(std::move(sender));
+
+    middleware_terminal terminal = [this, method, target, &segs, &found,
+                                    reply](core::request_context& ctx,
+                                           endpoint::http_request& req,
+                                           endpoint::reply_base& reply_ref) {
         auto it = m_http_tries.find(method);
         if (it == m_http_tries.end()) {
             if (m_logger) {
@@ -125,7 +130,7 @@ bool router::dispatch_http(boost::beast::http::verb method,
                                 std::string(target.encoded_path()));
             }
 
-            reply.error_json(404, "Not Found");
+            reply_ref.error_json(404, "Not Found");
             return;
         }
 
@@ -136,7 +141,7 @@ bool router::dispatch_http(boost::beast::http::verb method,
                                 std::string(target.encoded_path()));
             }
 
-            reply.error_json(404, "Not Found");
+            reply_ref.error_json(404, "Not Found");
             return;
         }
 
@@ -151,18 +156,16 @@ bool router::dispatch_http(boost::beast::http::verb method,
         result->handler->invoke(ctx, req, reply);
     };
 
-    endpoint::reply_base reply(std::move(sender));
-
     try {
-        run_middleware(chain, 0, ctx, req, reply, terminal);
+        run_middleware(chain, 0, ctx, req, *reply, terminal);
     } catch (const core::http_error& e) {
-        reply.error_json(e.status(), e.message());
+        reply->error_json(e.status(), e.message());
     } catch (const std::exception& e) {
         if (m_logger) {
             m_logger->error("Exception in request handling: {}", e.what());
         }
 
-        reply.error_json(500, "Internal Server Error");
+        reply->error_json(500, "Internal Server Error");
     }
 
     return found;

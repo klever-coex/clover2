@@ -53,7 +53,7 @@ public:
      * @brief Registers a GET route.
      *
      * @tparam Resp JSON compatable response type.
-     * @tparam HandlerT void(core::request_context, endpoint::reply<Resp>&).
+     * @tparam HandlerT void(core::request_context, endpoint::deferred_reply<Resp>).
      *
      * @param path Route pattern.
      * @param handler Handler invoked for the route.
@@ -71,7 +71,7 @@ public:
      * @tparam Req JSON compatable request type.
      * @tparam Resp JSON compatable response type.
      * @tparam HandlerT void(core::request_context, Req,
-     *                       endpoint::reply<Resp>&).
+     *                       endpoint::deferred_reply<Resp>).
      *
      * @param path Route pattern.
      * @param handler Handler invoked for the route.
@@ -89,7 +89,7 @@ public:
      * @tparam Req JSON compatible request type.
      * @tparam Resp JSON compatible response type.
      * @tparam HandlerT void(core::request_context, Req,
-     *                       endpoint::reply<Resp>&).
+     *                       endpoint::deferred_reply<Resp>).
      *
      * @param path Route pattern.
      * @param handler Handler invoked for the route.
@@ -107,7 +107,7 @@ public:
      * @tparam Req JSON compatible request type.
      * @tparam Resp JSON compatible response type.
      * @tparam HandlerT void(core::request_context, Req,
-     *                       endpoint::reply<Resp>&).
+     *                       endpoint::deferred_reply<Resp>).
      *
      * @param path Route pattern.
      * @param handler Handler invoked for the route.
@@ -125,7 +125,7 @@ public:
      * @tparam Req JSON compatible request type.
      * @tparam Resp JSON compatible response type.
      * @tparam HandlerT void(core::request_context, Req,
-     *                       endpoint::reply<Resp>&).
+     *                       endpoint::deferred_reply<Resp>).
      *
      * @param path Route pattern.
      * @param handler Handler invoked for the route.

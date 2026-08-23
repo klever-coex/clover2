@@ -1,1 +1,93 @@
 @import "tailwindcss";
+
+@theme {
+  /* Navy surfaces (from the coex.svg mark family) */
+  --color-surface-0: #060716; /* page background (deepest navy) */
+  --color-surface-1: #090b13; /* sidebar, data/terminal panels */
+  --color-surface-2: #10141f; /* raised panels/cards */
+  --color-surface-3: #1a1f2e; /* hover fills, chips, secondary buttons */
+  --color-line: #252b3d; /* borders (navy, not gray) */
+
+  /* Text (navy-tinted neutrals) */
+  --color-ink: #e6e9f2; /* primary text */
+  --color-ink-muted: #9aa3b8; /* secondary text */
+  --color-ink-faint: #5c6678; /* placeholders, disabled, empty states */
+
+  /* Brand accent — orange-red, the only brand color */
+  --color-accent: #fb4616;
+  --color-accent-hover: #ff5c30;
+  --color-accent-active: #d63a10;
+  --color-accent-text: #ff9677; /* light accent for text ON navy */
+  --color-accent-soft: rgb(251 70 22 / 0.12); /* tinted chip bg */
+
+  /* Brand blues — depth only (logo family), not UI accent */
+  --color-royal: #1126a5; /* focus rings */
+  --color-electric: #3438fd; /* reserved */
+
+  /* Semantic (400-level, readable on navy) */
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+
+  /* JSON / terminal data colors (logo ramp) */
+  --color-json-key: #99a7e4; /* object keys */
+  --color-json-string: #7bd88f; /* string values — muted green, NOT brand */
+  --color-json-null: #f87171;
+
+  /* Softer row-level border (replaces border-line/50) */
+  --color-border-soft: rgb(37 41 61 / 0.5);
+
+  /* Fonts (bundled via @fontsource, offline-safe) */
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system,
+    sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas,
+    monospace;
+
+  /* Radius scale by intent */
+  --radius-row: 0.5rem; /* list rows, buttons, inputs */
+  --radius-panel: 0.75rem; /* panels, sidebar items, terminal viewer */
+
+  /* Transition durations */
+  --duration-fast: 150ms; /* hover/focus */
+  --duration-normal: 250ms; /* collapse/expand chevron */
+  --duration-slow: 300ms; /* sidebar width */
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-surface-0 text-ink font-sans antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  ::selection {
+    background: rgb(251 70 22 / 0.35);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-surface-3);
+    border-radius: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}

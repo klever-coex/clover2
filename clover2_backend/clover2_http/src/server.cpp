@@ -21,8 +21,8 @@ server::server(const rclcpp::NodeOptions& options)
     m_server->get<data::manifest>(
         "/api/manifest",
         [manifest](clover2_http::http::core::request_context,
-                   clover2_http::http::endpoint::reply<data::manifest>&
-                       reply) { reply(*manifest, 200); });
+                   clover2_http::http::endpoint::deferred_reply<
+                       data::manifest> reply) { reply(*manifest, 200); });
 
     auto node_context = std::make_shared<clover2_common::node_context>(*this);
 

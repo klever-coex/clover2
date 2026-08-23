@@ -107,7 +107,7 @@ void ros_support::on_initialize() {
     m_server->get<node_topics>(
         "/api/node/publishers/-/{node...}",
         [this](clover2_http::http::core::request_context ctx,
-               clover2_http::http::endpoint::reply<node_topics>& reply) {
+               clover2_http::http::endpoint::deferred_reply<node_topics> reply) {
             std::string node_name = ctx.param<std::string>("node");
             if (node_name.empty() || node_name.front() != '/') {
                 node_name.insert(node_name.begin(), '/');
@@ -122,7 +122,7 @@ void ros_support::on_initialize() {
     m_server->get<node_topics>(
         "/api/node/subscribes/-/{node...}",
         [this](clover2_http::http::core::request_context ctx,
-               clover2_http::http::endpoint::reply<node_topics>& reply) {
+               clover2_http::http::endpoint::deferred_reply<node_topics> reply) {
             std::string node_name = ctx.param<std::string>("node");
             if (node_name.empty() || node_name.front() != '/') {
                 node_name.insert(node_name.begin(), '/');
@@ -137,7 +137,7 @@ void ros_support::on_initialize() {
     m_server->get<node_services>(
         "/api/node/servers/-/{node...}",
         [this](clover2_http::http::core::request_context ctx,
-               clover2_http::http::endpoint::reply<node_services>& reply) {
+               clover2_http::http::endpoint::deferred_reply<node_services> reply) {
             std::string node_name = ctx.param<std::string>("node");
             if (node_name.empty() || node_name.front() != '/') {
                 node_name.insert(node_name.begin(), '/');
@@ -152,7 +152,7 @@ void ros_support::on_initialize() {
     m_server->get<node_services>(
         "/api/node/clients/-/{node...}",
         [this](clover2_http::http::core::request_context ctx,
-               clover2_http::http::endpoint::reply<node_services>& reply) {
+               clover2_http::http::endpoint::deferred_reply<node_services> reply) {
             std::string node_name = ctx.param<std::string>("node");
             if (node_name.empty() || node_name.front() != '/') {
                 node_name.insert(node_name.begin(), '/');
@@ -181,7 +181,7 @@ std::vector<std::string> ros_support::capabilities() const {
 
 void ros_support::handle_nodes(
     [[maybe_unused]] clover2_http::http::core::request_context ctx,
-    clover2_http::http::endpoint::reply<nodes>& reply) {
+    clover2_http::http::endpoint::deferred_reply<nodes> reply) {
     nodes response;
 
     response.nodes = m_node_info_storage.names();
@@ -191,7 +191,7 @@ void ros_support::handle_nodes(
 
 void ros_support::handle_node_info(
     [[maybe_unused]] clover2_http::http::core::request_context ctx,
-    clover2_http::http::endpoint::reply<node_info>& reply) {
+    clover2_http::http::endpoint::deferred_reply<node_info> reply) {
     std::string node_name = ctx.param<std::string>("node");
     if (node_name.empty() || node_name.front() != '/') {
         node_name.insert(node_name.begin(), '/');
@@ -209,7 +209,7 @@ void ros_support::handle_node_info(
 
 void ros_support::handle_topics(
     [[maybe_unused]] clover2_http::http::core::request_context ctx,
-    clover2_http::http::endpoint::reply<topics>& reply) {
+    clover2_http::http::endpoint::deferred_reply<topics> reply) {
     topics response;
     const auto graph = m_node_context->get_node_graph_interface();
 

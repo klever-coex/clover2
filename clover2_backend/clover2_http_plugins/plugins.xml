@@ -5,5 +5,10 @@
             type="clover2_http_plugins::ros_support"
             base_class_type="clover2_http::base_plugin"
         />
+        <class
+            name="map_server"
+            type="clover2_http_plugins::map_server"
+            base_class_type="clover2_http::base_plugin"
+        />
     </library>
 </class_libraries>

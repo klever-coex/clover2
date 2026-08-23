@@ -25,8 +25,26 @@ reply_base::reply_base(response_sender sender)
     m_response.version(11);
 }
 
+reply_base::reply_base(reply_base&& other) noexcept
+    : m_sent(other.m_sent.load())
+    , m_sender(std::move(other.m_sender))
+    , m_response(std::move(other.m_response)) {
+    other.m_sender = nullptr;
+}
+
+reply_base& reply_base::operator=(reply_base&& other) noexcept {
+    if (this != &other) {
+        m_sent.store(other.m_sent.load());
+        m_sender = std::move(other.m_sender);
+        other.m_sender = nullptr;
+        m_response = std::move(other.m_response);
+    }
+
+    return *this;
+}
+
 reply_base::~reply_base() {
-    if (!m_sent && m_sender) {
+    if (!m_sent.load() && m_sender) {
         make_error_response(m_response, 500,
                             "Handler did not produce a response");
 
@@ -52,8 +70,9 @@ void reply_base::header(std::string_view header, std::string_view value) {
 
 void reply_base::send_raw(std::string body, std::string_view content_type,
                           int status) {
-    if (m_sent) return;
-    m_sent = true;
+    // Send-once guard must be the first statement: concurrent completions
+    // of a deferred reply race here.
+    if (m_sent.exchange(true)) return;
 
     m_response.result(status);
     if (!content_type.empty()) {

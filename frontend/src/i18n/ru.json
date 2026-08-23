@@ -2,21 +2,28 @@
   "sidebar": {
     "dashboard": "Главная",
     "ros2": "ROS2",
+    "nodes": "Узлы",
+    "topics": "Топики",
+    "services": "Сервисы",
     "settings": "Настройки",
     "documentation": "Документация",
-    "terminal": "Консоль",
     "camera": "Просмотр камеры",
-    "ide": "Среда разработки"
+    "ide": "Среда разработки",
+    "toggleMenu": "Переключить меню",
+    "language": "Язык"
   },
   "header": {
     "title": "Clover2"
+  },
+  "common": {
+    "retry": "Повторить",
+    "loading": "Загрузка..."
   },
   "topics": {
     "title": "Топики ROS",
     "searchPlaceholder": "Поиск по имени или типу...",
     "empty": "Топики не найдены",
-    "noCapability": "Плагин бэкенда ROS недоступен",
-    "retry": "Повторить"
+    "noCapability": "Плагин бэкенда ROS недоступен"
   },
   "topicDetail": {
     "unknownTopic": "Топик не найден",
@@ -27,6 +34,39 @@
     "noMessages": "Ожидание сообщений...",
     "clear": "Очистить",
     "received": "получено",
-    "backToTopics": "Назад к топикам"
+    "backToTopics": "Назад к топикам",
+    "object": "объект",
+    "messageActivity": "Получено сообщений: {{count}}"
+  },
+  "nodes": {
+    "title": "Узлы ROS",
+    "searchPlaceholder": "Поиск по имени...",
+    "empty": "Узлы не найдены",
+    "noCapability": "Плагин узлов ROS недоступен",
+    "name": "Имя",
+    "lifecycle": "Жизненный цикл",
+    "regular": "Обычный",
+    "namespace": "Пространство имён",
+    "info": "Информация об узле",
+    "publishers": "Издатели",
+    "subscribers": "Подписчики",
+    "servers": "Серверы",
+    "clients": "Клиенты",
+    "noPublishers": "Нет издателей",
+    "noSubscribers": "Нет подписчиков",
+    "noServers": "Нет серверов",
+    "noClients": "Нет клиентов",
+    "backToNodes": "Назад к узлам"
+  },
+  "services": {
+    "title": "Сервисы ROS",
+    "noCapability": "Плагин сервисов ROS недоступен",
+    "selectNode": "Узел",
+    "nodePlaceholder": "Имя узла",
+    "servers": "Серверы",
+    "clients": "Клиенты",
+    "empty": "Сервисы не найдены",
+    "noServers": "Нет серверов",
+    "noClients": "Нет клиентов"
   }
 }

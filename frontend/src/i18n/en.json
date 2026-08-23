@@ -2,21 +2,28 @@
   "sidebar": {
     "dashboard": "Dashboard",
     "ros2": "ROS2",
+    "nodes": "Nodes",
+    "topics": "Topics",
+    "services": "Services",
     "settings": "Settings",
     "documentation": "Documentation",
-    "terminal": "Shell",
     "camera": "Camera Viewer",
-    "ide": "IDE"
+    "ide": "IDE",
+    "toggleMenu": "Toggle menu",
+    "language": "Language"
   },
   "header": {
     "title": "Clover2"
+  },
+  "common": {
+    "retry": "Retry",
+    "loading": "Loading..."
   },
   "topics": {
     "title": "ROS Topics",
     "searchPlaceholder": "Search by name or type...",
     "empty": "No topics found",
-    "noCapability": "ROS backend plugin is not available",
-    "retry": "Retry"
+    "noCapability": "ROS backend plugin is not available"
   },
   "topicDetail": {
     "unknownTopic": "Unknown topic",
@@ -27,6 +34,39 @@
     "noMessages": "Waiting for messages...",
     "clear": "Clear",
     "received": "received",
-    "backToTopics": "Back to topics"
+    "backToTopics": "Back to topics",
+    "object": "object",
+    "messageActivity": "Received {{count}} messages"
+  },
+  "nodes": {
+    "title": "ROS Nodes",
+    "searchPlaceholder": "Search by name...",
+    "empty": "No nodes found",
+    "noCapability": "ROS nodes plugin is not available",
+    "name": "Name",
+    "lifecycle": "Lifecycle",
+    "regular": "Regular",
+    "namespace": "Namespace",
+    "info": "Node info",
+    "publishers": "Publishers",
+    "subscribers": "Subscribers",
+    "servers": "Servers",
+    "clients": "Clients",
+    "noPublishers": "No publishers",
+    "noSubscribers": "No subscribers",
+    "noServers": "No servers",
+    "noClients": "No clients",
+    "backToNodes": "Back to nodes"
+  },
+  "services": {
+    "title": "ROS Services",
+    "noCapability": "ROS services plugin is not available",
+    "selectNode": "Node",
+    "nodePlaceholder": "Node name",
+    "servers": "Servers",
+    "clients": "Clients",
+    "empty": "No services found",
+    "noServers": "No servers",
+    "noClients": "No clients"
   }
 }

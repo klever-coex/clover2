@@ -1,11 +1,6 @@
 import { useEffect } from 'react';
 import { useRosStore } from '../store/useRosStore.ts';
 
-/**
- * Subscribes the stream slice to `topicName` and tears the subscription down
- * on unmount or topic change. StrictMode-safe: the client suppresses the
- * trailing close event of a manually closed socket.
- */
 export function useTopicStream(topicName: string | null) {
   const streamState = useRosStore((s) => s.streamState);
   const streamError = useRosStore((s) => s.streamError);
