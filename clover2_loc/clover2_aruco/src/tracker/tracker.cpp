@@ -90,6 +90,9 @@ tracker::CallbackReturn tracker::on_activate(
     m_poses_debug_pub = create_publisher<geometry_msgs::msg::PoseArray>(
         "~/poses_debug", rclcpp::SystemDefaultsQoS());
 
+    m_tags_pub = create_publisher<clover2_pose_msgs::msg::MarkerArray>(
+        "~/tags", rclcpp::SensorDataQoS());
+
     rclcpp::SubscriptionOptions options;
     options.callback_group = m_callback_group;
 
@@ -108,6 +111,7 @@ tracker::CallbackReturn tracker::on_deactivate(
     m_pose_pub.reset();
     m_pose_cov_pub.reset();
     m_poses_debug_pub.reset();
+    m_tags_pub.reset();
 
     m_tf_listener.reset();
     m_tf_buffer.reset();
@@ -132,7 +136,61 @@ tracker::CallbackReturn tracker::on_shutdown(
 
 void tracker::markers_callback(
     const clover2_pose_msgs::msg::MarkerArray::SharedPtr msg) {
-    if (msg->markers.size() == 0) {
+    if (msg->markers.empty()) {
+        return;
+    }
+
+    // Partition detections: fixed markers feed localization, the rest
+    // are reported as observed tags in the camera frame.
+    clover2_pose_msgs::msg::MarkerArray tags;
+    tags.header = msg->header;
+
+    std::vector<const clover2_pose_msgs::msg::Marker*> fixed_markers;
+    fixed_markers.reserve(msg->markers.size());
+
+    for (const auto& marker : msg->markers) {
+        if (!m_map_client->has_marker(marker.id)) {
+            RCLCPP_DEBUG(get_logger(),
+                         "Detected marker %d is not in the map, skipping",
+                         marker.id);
+            continue;
+        }
+
+        const auto& map_marker = m_map_client->get_marker(marker.id);
+
+        if (map_marker.type == clover2_map::marker_type::fixed) {
+            fixed_markers.push_back(&marker);
+            continue;
+        }
+
+        auto tag = marker;
+        tag.type = static_cast<uint8_t>(map_marker.type);
+        tags.markers.push_back(tag);
+
+        if (map_marker.type == clover2_map::marker_type::static_) {
+            // Static tags get a camera-relative TF: a raw observation
+            // without the localization error mixed in, consumers compose
+            // the map-frame pose themselves via the TF tree.
+            Eigen::Isometry3d tag_pose = Eigen::Isometry3d::Identity();
+            tf2::fromMsg(marker.pose.pose, tag_pose);
+
+            geometry_msgs::msg::TransformStamped transform =
+                tf2::eigenToTransform(tag_pose);
+            transform.header.stamp = msg->header.stamp;
+            transform.header.frame_id = msg->header.frame_id;
+            transform.child_frame_id = map_marker.marker_frame_id;
+
+            m_tf_broadcaster->sendTransform(transform);
+        }
+    }
+
+    if (!tags.markers.empty()) {
+        m_tags_pub->publish(tags);
+    }
+
+    if (fixed_markers.empty()) {
+        RCLCPP_DEBUG(get_logger(),
+                     "No fixed markers detected, skipping pose estimate");
         return;
     }
 
@@ -162,19 +220,21 @@ void tracker::markers_callback(
     geometry_msgs::msg::PoseArray poses_debug;
     poses_debug.header.stamp = msg->header.stamp;
     poses_debug.header.frame_id = m_map_client->get_map_id();
-    poses_debug.poses.reserve(msg->markers.size());
+    poses_debug.poses.reserve(fixed_markers.size());
 
     // temp variables for estimating
     Eigen::Vector3d avg_translation = Eigen::Vector3d::Zero();
     Eigen::Quaterniond avg_quat = Eigen::Quaterniond::Identity();
     Eigen::Vector4d cumulative_q = Eigen::Vector4d::Zero();
 
-    for (const auto& marker : msg->markers) {
+    for (const auto* marker : fixed_markers) {
         Eigen::Isometry3d marker_pose = Eigen::Isometry3d::Identity();
-        tf2::fromMsg(marker.pose.pose, marker_pose);
+        tf2::fromMsg(marker->pose.pose, marker_pose);
+
+        const auto& map_marker = m_map_client->get_marker(marker->id);
 
         Eigen::Isometry3d camera_in_map =
-            m_map_client->get_transform(marker.id) * marker_pose.inverse();
+            *map_marker.pose * marker_pose.inverse();
 
         Eigen::Isometry3d drone_in_map = camera_in_map * camera_transform;
 
@@ -188,8 +248,8 @@ void tracker::markers_callback(
     }
 
     // finalize pose estimation
-    avg_translation /= static_cast<double>(msg->markers.size());
-    cumulative_q /= static_cast<double>(msg->markers.size());
+    avg_translation /= static_cast<double>(fixed_markers.size());
+    cumulative_q /= static_cast<double>(fixed_markers.size());
     avg_quat.coeffs() = cumulative_q.normalized();
 
     // fill pose msg

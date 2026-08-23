@@ -1,4 +1,6 @@
-uint8 TYPE_ARUCO=0
+uint8 TYPE_FIXED=0
+uint8 TYPE_STATIC=1
+uint8 TYPE_DYNAMIC=2
 
 # Unique marker id from dictionary
 uint32 id
@@ -9,5 +11,5 @@ float32 size
 
 string marker_frame_id
 
-# Marker position
+# Only if type is fixed
 geometry_msgs/PoseWithCovariance pose

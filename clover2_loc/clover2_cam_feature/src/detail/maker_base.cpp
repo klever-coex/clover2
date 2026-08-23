@@ -150,8 +150,11 @@ std::list<clover2_pose_msgs::msg::Marker> maker_base::process(
                                   continue;
                               }
 
+                              const auto& map_marker =
+                                  m_map_client->get_marker(ids[i]);
+
                               const auto& obj_pts = get_marker_obj_points(
-                                  ids[i], m_map_client->get_marker_size(ids[i]),
+                                  ids[i], map_marker.size,
                                   estimate_parameters);
 
                               cv::solvePnP(
@@ -172,10 +175,13 @@ std::list<clover2_pose_msgs::msg::Marker> maker_base::process(
                 continue;
             }
 
+            const auto& map_marker = m_map_client->get_marker(ids[i]);
+
             clover2_pose_msgs::msg::Marker marker;
             marker.id = ids[i];
-            marker.size = m_map_client->get_marker_size(ids[i]);
-            marker.marker_frame_id = m_map_client->get_marker_frame_id(ids[i]);
+            marker.type = static_cast<uint8_t>(map_marker.type);
+            marker.size = map_marker.size;
+            marker.marker_frame_id = map_marker.marker_frame_id;
             fill_pose_stamped(marker.pose, marker_rot[i], marker_pose[i],
                               marker_cov[i]);
             result.push_back(std::move(marker));

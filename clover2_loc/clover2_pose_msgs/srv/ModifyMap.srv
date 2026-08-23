@@ -1,0 +1,13 @@
+# Map modification operations
+uint8 OPERATION_ADD=0
+uint8 OPERATION_EDIT=1
+uint8 OPERATION_DELETE=2
+
+uint8 operation
+
+# ADD: full marker; EDIT: id identifies the marker to replace;
+# DELETE: only the id is used
+clover2_pose_msgs/Marker marker
+---
+bool success
+string error_message

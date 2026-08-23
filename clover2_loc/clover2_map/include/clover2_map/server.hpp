@@ -7,14 +7,13 @@
 // ROS2
 #include <clover2_pose_msgs/msg/marker_map.hpp>
 #include <clover2_pose_msgs/srv/get_map.hpp>
+#include <clover2_pose_msgs/srv/modify_map.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/empty.hpp>
-#include <tf2_ros/static_transform_broadcaster.hpp>
+#include <tf2_ros/transform_broadcaster.hpp>
 
 // STL
-#include <filesystem>
 #include <memory>
-#include <mutex>
 
 namespace clover2_map {
 
@@ -30,18 +29,28 @@ private:
         const clover2_pose_msgs::srv::GetMap::Request::SharedPtr request,
         clover2_pose_msgs::srv::GetMap::Response::SharedPtr response);
 
+    void modify_map_callback(
+        const clover2_pose_msgs::srv::ModifyMap::Request::SharedPtr request,
+        clover2_pose_msgs::srv::ModifyMap::Response::SharedPtr response);
+
+    void publish_tf_snapshot();
+
     void update_map();
 
-    std::recursive_mutex m_map_mtx;
-    // std::filesystem::path m_map_path;
+    // Concurrency model: every callback that touches the map (the map
+    // parameter watcher, both services and the TF timer) runs in the
+    // node's default MutuallyExclusive callback group, which serializes
+    // them regardless of the executor. Do not create additional callback
+    // groups and do not add a mutex without breaking this invariant.
     std::shared_ptr<io::fs_provider> m_provider;
 
-    std::shared_ptr<tf2_ros::StaticTransformBroadcaster>
-        m_tf_static_broadcaster;
-
-    rclcpp::TimerBase::SharedPtr m_start_timer;
+    bool m_send_tf{true};
+    std::shared_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;
+    rclcpp::TimerBase::SharedPtr m_tf_timer;
 
     rclcpp::Service<clover2_pose_msgs::srv::GetMap>::SharedPtr m_map_service;
+    rclcpp::Service<clover2_pose_msgs::srv::ModifyMap>::SharedPtr
+        m_modify_map_service;
     rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr m_map_update_pub;
 };
 
