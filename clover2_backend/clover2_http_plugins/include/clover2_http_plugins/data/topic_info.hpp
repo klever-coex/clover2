@@ -1,7 +1,9 @@
 #pragma once
 
+// JSON
 #include <nlohmann/json.hpp>
 
+// STL
 #include <string>
 
 namespace clover2_http_plugins::data {

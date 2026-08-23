@@ -72,9 +72,6 @@ public:
         return m_markers.at(id);
     }
 
-    // Asks the map server to add, edit or delete a marker. The result is
-    // only logged, check the map server response directly if the caller
-    // needs the error message.
     void modify_marker(
         uint8_t operation, const clover2_map::marker& mk) {
         if (!m_modify_map_client->wait_for_service(

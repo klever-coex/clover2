@@ -1,10 +1,10 @@
 #pragma once
 
+// clover2
 #include <clover2_http_plugins/data/topic_info.hpp>
 
+// JSON
 #include <nlohmann/json.hpp>
-
-#include <string>
 
 namespace clover2_http_plugins::data {
 
