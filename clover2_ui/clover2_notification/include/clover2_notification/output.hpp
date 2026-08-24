@@ -39,6 +39,11 @@ protected:
     virtual void process_event(const data::event& event,
                                done_callback done) = 0;
 
+    size_t queued_size() const {
+        std::lock_guard<std::mutex> lock(m_queue_mutex);
+        return m_queue.size();
+    }
+
 private:
     struct priority_less {
         bool operator()(const data::event& lhs, const data::event& rhs) const {
@@ -79,7 +84,7 @@ private:
 
     queue_type m_queue;
     std::optional<data::event> m_current_event;
-    std::mutex m_queue_mutex;
+    mutable std::mutex m_queue_mutex;
 };
 
 }  // namespace clover2_notification

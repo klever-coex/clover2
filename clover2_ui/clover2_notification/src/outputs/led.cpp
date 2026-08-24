@@ -65,6 +65,12 @@ void led::process_event(const data::event& event, done_callback done) {
     }
 
     try {
+        RCLCPP_INFO(m_logger,
+                    "Start LED animation: reason='%s' name='%s' message='%s' "
+                    "priority=%d queued=%zu animation='%s' duration=%.2fs",
+                    event.source.c_str(), event.name.c_str(),
+                    event.message.c_str(), event.priority, queued_size(),
+                    config->animation.c_str(), config->duration);
         start_animation(*config);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(m_logger, "Failed to start LED animation for '%s': %s",
