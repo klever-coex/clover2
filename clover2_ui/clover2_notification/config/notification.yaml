@@ -8,6 +8,11 @@
 
     diagnostics:
       topic: /diagnostics_agg
+      ignore_names:
+        - "/Aggregation/Other/*"
+        - "/Aggregation/System/*"
+        - "/Aggregation/System"
+        - "/Aggregation"
 
     led:
       base_path: led_strip

@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <stdexcept>
+#include <string>
 #include <utility>
 
 namespace clover2_notification::provider {
@@ -31,22 +32,38 @@ void diagnostics::initialize(
                 rclcpp::ParameterValue(std::string{"/diagnostics_agg"}))
             .get<std::string>();
 
+    m_ignore_name_patterns =
+        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
+            ->declare_parameter(
+                "diagnostics.ignore_names",
+                rclcpp::ParameterValue(std::vector<std::string>{}))
+            .get<std::vector<std::string>>();
+
     m_client.initialize(m_node_context, topic,
                         std::bind(&diagnostics::diagnostics_callback, this,
                                   std::placeholders::_1));
 
     RCLCPP_INFO(*m_logger, "Subscribed to diagnostics topic: %s",
                 topic.c_str());
+    for (const auto& pattern : m_ignore_name_patterns) {
+        RCLCPP_INFO(*m_logger, "Ignoring diagnostic notifications by name: %s",
+                    pattern.c_str());
+    }
 }
 
 void diagnostics::cleanup() {
     m_client.cleanup();
     m_previous.clear();
+    m_ignore_name_patterns.clear();
     m_callback = nullptr;
     m_node_context.reset();
 }
 
 void diagnostics::diagnostics_callback(const status_type& status) {
+    if (is_ignored(status)) {
+        return;
+    }
+
     const auto previous_it = m_previous.find(status.name);
     const bool changed = previous_it == m_previous.end() ||
                          clover2_common::diagnostics::client::status_changed(
@@ -60,6 +77,51 @@ void diagnostics::diagnostics_callback(const status_type& status) {
 
     m_callback({static_cast<int>(status.level), "diagnostics", status.name,
                 status.message});
+}
+
+bool diagnostics::is_ignored(const status_type& status) const {
+    for (const auto& pattern : m_ignore_name_patterns) {
+        if (wildcard_match(pattern, status.name)) {
+            RCLCPP_DEBUG(*m_logger,
+                         "Ignored diagnostic notification: name='%s' "
+                         "pattern='%s'",
+                         status.name.c_str(), pattern.c_str());
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool diagnostics::wildcard_match(const std::string& pattern,
+                                 const std::string& value) {
+    size_t pattern_pos = 0;
+    size_t value_pos = 0;
+    size_t star_pos = std::string::npos;
+    size_t match_pos = 0;
+
+    while (value_pos < value.size()) {
+        if (pattern_pos < pattern.size() &&
+            pattern[pattern_pos] == value[value_pos]) {
+            ++pattern_pos;
+            ++value_pos;
+        } else if (pattern_pos < pattern.size() &&
+                   pattern[pattern_pos] == '*') {
+            star_pos = pattern_pos++;
+            match_pos = value_pos;
+        } else if (star_pos != std::string::npos) {
+            pattern_pos = star_pos + 1;
+            value_pos = ++match_pos;
+        } else {
+            return false;
+        }
+    }
+
+    while (pattern_pos < pattern.size() && pattern[pattern_pos] == '*') {
+        ++pattern_pos;
+    }
+
+    return pattern_pos == pattern.size();
 }
 
 }  // namespace clover2_notification::provider

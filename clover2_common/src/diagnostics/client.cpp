@@ -39,9 +39,8 @@ void client::diagnostics_callback(
 bool client::status_changed(const status_type& previous,
                             const status_type& current) {
     return previous.level != current.level ||
-           previous.message != current.message ||
-           previous.hardware_id != current.hardware_id ||
-           previous.values != current.values;
+           previous.name != current.name ||
+           previous.message != current.message;
 }
 
 }  // namespace clover2_common::diagnostics

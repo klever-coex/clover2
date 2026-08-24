@@ -6,6 +6,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace clover2_notification::provider {
 
@@ -25,11 +26,15 @@ private:
     using status_map = std::unordered_map<std::string, status_type>;
 
     void diagnostics_callback(const status_type& status);
+    bool is_ignored(const status_type& status) const;
+    static bool wildcard_match(const std::string& pattern,
+                               const std::string& value);
 
     std::shared_ptr<clover2_common::node_context> m_node_context;
     callback_type m_callback;
     clover2_common::diagnostics::client m_client;
     status_map m_previous;
+    std::vector<std::string> m_ignore_name_patterns;
     std::optional<rclcpp::Logger> m_logger;
 };
 
