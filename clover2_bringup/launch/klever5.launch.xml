@@ -107,6 +107,12 @@
         <arg name="use_sim_time" value="$(var use_sim_time)" />
     </include>
 
+    <node pkg="clover2_notification" exec="notification" name="notification"
+          namespace="$(var root_ns)" if="$(var indication.led_strip)">
+        <param name="use_sim_time" value="$(var use_sim_time)" />
+        <param from="$(find-pkg-share clover2_notification)/config/notification.yaml" />
+    </node>
+
     <include file="$(find-pkg-share $(var sensing_pkg))/launch/sensing/2d_lidar.launch.xml" if="$(var 2d_lidar.enable)">
         <arg name="params_file" value="$(var params_file)" />
         <arg name="ns" value="$(var root_ns)" />
