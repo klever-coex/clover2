@@ -1,23 +1,13 @@
 #pragma once
 
 // clover2
+#include <clover2_common/node_context.hpp>
 #include <clover2_map/data/map.hpp>
+#include <clover2_map/diagnostics/map_client_task.hpp>
 
 // ROS2
 #include <rclcpp/create_client.hpp>
 #include <rclcpp/create_subscription.hpp>
-#include <rclcpp/node_interfaces/get_node_base_interface.hpp>
-#include <rclcpp/node_interfaces/get_node_graph_interface.hpp>
-#include <rclcpp/node_interfaces/get_node_logging_interface.hpp>
-#include <rclcpp/node_interfaces/get_node_parameters_interface.hpp>
-#include <rclcpp/node_interfaces/get_node_services_interface.hpp>
-#include <rclcpp/node_interfaces/get_node_topics_interface.hpp>
-#include <rclcpp/node_interfaces/node_base_interface.hpp>
-#include <rclcpp/node_interfaces/node_graph_interface.hpp>
-#include <rclcpp/node_interfaces/node_logging_interface.hpp>
-#include <rclcpp/node_interfaces/node_parameters_interface.hpp>
-#include <rclcpp/node_interfaces/node_services_interface.hpp>
-#include <rclcpp/node_interfaces/node_topics_interface.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 // ROS2 msgs
@@ -43,8 +33,7 @@ public:
 
     client(
         std::shared_ptr<rclcpp::node_interfaces::NodeBaseInterface> node_base,
-        std::shared_ptr<rclcpp::node_interfaces::NodeGraphInterface>
-            node_graph,
+        std::shared_ptr<rclcpp::node_interfaces::NodeGraphInterface> node_graph,
         std::shared_ptr<rclcpp::node_interfaces::NodeParametersInterface>
             node_parameters,
         std::shared_ptr<rclcpp::node_interfaces::NodeTopicsInterface>
@@ -53,15 +42,34 @@ public:
             node_services,
         std::shared_ptr<rclcpp::node_interfaces::NodeLoggingInterface>
             node_logging,
+        std::shared_ptr<
+            clover2_common::node_interfaces::NodeDiagnosticsInterface>
+            node_diagnostics,
         rclcpp::CallbackGroup::SharedPtr cb_group = nullptr,
         std::string map_node_name = "")
         : m_logger(node_logging->get_logger().get_child("map_client"))
+        , m_diagnostics(std::move(node_diagnostics))
         , m_map_valid(false) {
         const std::string prefix =
             map_node_name.empty() ? "~/" : (map_node_name + "/");
 
         rclcpp::SubscriptionOptions options;
         options.callback_group = cb_group;
+
+        m_diagnostics->add<clover2::map::diagnostics::map_client_task>();
+
+        m_diagnostics
+            ->get<clover2::map::diagnostics::map_client_task>()  //
+            .set_name_getter([this]() { return get_name(); });
+        m_diagnostics
+            ->get<clover2::map::diagnostics::map_client_task>()  //
+            .set_frame_id_getter([this]() { return get_map_id(); });
+        m_diagnostics
+            ->get<clover2::map::diagnostics::map_client_task>()  //
+            .set_marker_count_getter([this]() { return get_count(); });
+        m_diagnostics
+            ->get<clover2::map::diagnostics::map_client_task>()  //
+            .set_map_valid_getter([this]() { return valid(); });
 
         m_map_update_sub = rclcpp::create_subscription<std_msgs::msg::Empty>(
             node_parameters, node_topics, prefix + "map_update",
@@ -87,14 +95,20 @@ public:
     explicit client(const NodeT& node,
                     rclcpp::CallbackGroup::SharedPtr cb_group = nullptr,
                     std::string map_node_name = "")
-        : client(
-              rclcpp::node_interfaces::get_node_base_interface(node),
-              rclcpp::node_interfaces::get_node_graph_interface(node),
-              rclcpp::node_interfaces::get_node_parameters_interface(node),
-              rclcpp::node_interfaces::get_node_topics_interface(node),
-              rclcpp::node_interfaces::get_node_services_interface(node),
-              rclcpp::node_interfaces::get_node_logging_interface(node),
-              cb_group, std::move(map_node_name)) {}
+        : client(rclcpp::node_interfaces::get_node_base_interface(node),
+                 rclcpp::node_interfaces::get_node_graph_interface(node),
+                 rclcpp::node_interfaces::get_node_parameters_interface(node),
+                 rclcpp::node_interfaces::get_node_topics_interface(node),
+                 rclcpp::node_interfaces::get_node_services_interface(node),
+                 rclcpp::node_interfaces::get_node_logging_interface(node),
+                 cb_group, std::move(map_node_name)) {}
+
+    ~client() {
+        m_map_update_sub.reset();
+        m_get_map_client.reset();
+
+        m_diagnostics->remove<clover2::map::diagnostics::map_client_task>();
+    }
 
     bool valid() const { return m_map_valid; }
 
@@ -146,9 +160,9 @@ public:
 
         m_modify_map_client->async_send_request(
             request,
-            [this, callback](rclcpp::Client<
-                             clover2_pose_msgs::srv::ModifyMap>::SharedFuture
-                                 future) {
+            [this, callback](
+                rclcpp::Client<clover2_pose_msgs::srv::ModifyMap>::SharedFuture
+                    future) {
                 try {
                     if (!future.valid()) {
                         if (callback) {
@@ -233,12 +247,13 @@ private:
     rclcpp::Client<clover2_pose_msgs::srv::GetMap>::SharedPtr m_get_map_client;
     rclcpp::Client<clover2_pose_msgs::srv::ModifyMap>::SharedPtr
         m_modify_map_client;
+    clover2_common::node_interfaces::NodeDiagnosticsInterface::SharedPtr
+        m_diagnostics;
 
     mutable std::recursive_mutex m_map_mtx;
 
     bool m_map_valid;
     clover2_map::map m_map;
-    // Flat index over m_map.markers for O(1) lookups by id.
     std::unordered_map<int, clover2_map::marker> m_markers;
 };
 

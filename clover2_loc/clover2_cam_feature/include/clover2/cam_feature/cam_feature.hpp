@@ -2,6 +2,7 @@
 
 // clover2
 #include <clover2/cam_feature/base_plugin.hpp>
+#include <clover2/map/client.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 #include <clover2_common/node.hpp>
 #include <clover2_map/client.hpp>
@@ -20,7 +21,6 @@
 
 // STL
 #include <memory>
-#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -58,16 +58,8 @@ private:
     void camera_info_callback(
         const sensor_msgs::msg::CameraInfo::ConstSharedPtr msg);
 
-    /**
-     * @brief Produce diagnostics information for the node.
-     * @param stat Diagnostic status wrapper
-     */
-    void produce_diagnostics(diagnostic_updater::DiagnosticStatusWrapper& stat);
-
-    std::mutex m_camera_info_mtx;
     image_geometry::PinholeCameraModel m_camera_model;
 
-    size_t m_last_pose_count{0};
     std::vector<std::string> m_plugin_ids;
     std::vector<std::string> m_default_plugin_ids{"aruco"};
     pluginlib::ClassLoader<base_plugin> m_plugin_loader{

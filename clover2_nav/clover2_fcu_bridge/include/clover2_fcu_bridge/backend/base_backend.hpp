@@ -2,14 +2,24 @@
 
 // clover2
 #include <clover2_fcu_bridge/backend/context.hpp>
+#include <clover2_fcu_bridge/data/barometer.hpp>
+#include <clover2_fcu_bridge/data/fcu_state.hpp>
+#include <clover2_fcu_bridge/data/imu.hpp>
 #include <clover2_fcu_bridge/data/mode.hpp>
+#include <clover2_fcu_bridge/data/power.hpp>
 
 // ROS2
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/battery_state.hpp>
+#include <sensor_msgs/msg/fluid_pressure.hpp>
+#include <sensor_msgs/msg/imu.hpp>
 #include <tf2/LinearMath/Vector3.hpp>
 
+#include <cmath>
+#include <cstdint>
 #include <optional>
+#include <string>
 
 namespace clover2_fcu_bridge::backend {
 
@@ -31,6 +41,11 @@ public:
 
     virtual void set_mode(const data::mode& mode) = 0;
     virtual data::mode get_mode() const = 0;
+
+    virtual data::fcu_state_data get_fcu_state() const;
+    virtual data::power_data get_power() const;
+    virtual data::imu_data get_imu() const;
+    virtual data::barometer_data get_barometer() const;
 
     virtual void set_setpoint(const std::optional<tf2::Vector3> p,
                               const std::optional<tf2::Vector3> v,

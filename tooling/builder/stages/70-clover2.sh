@@ -9,6 +9,7 @@ cd "$CLOVER2_WS_DIR" || exit
 
 log_info "Add clover2 project to bashrc"
 echo "source $CLOVER2_WS_DIR/install/setup.bash" >> ~/.bashrc
+echo ". /opt/clover2/.ros2.env" >> ~/.bashrc
 cat >> ~/.bashrc <<'EOF'
 clover2-settings() {
     ros2 run clover2_ui settings \
@@ -29,9 +30,15 @@ get_ros_pkg_share() {
 log_info "Install some scripts"
 sudo cp $ASSETS_DIR/clover2_firstboot.sh /root/
 sudo cp $ASSETS_DIR/ros2_launch.sh /opt/clover2/
+cp $ASSETS_DIR/ros2.env /opt/clover2/.ros2.env
+cp $REPO_DIR/tooling/configs/cyclonedds.xml /opt/clover2/cyclonedds.xml
+cp $REPO_DIR/tooling/configs/cyclonedds_lo.xml /opt/clover2/cyclonedds_lo.xml
 cp $ASSETS_DIR/launcher_config.yaml /opt/clover2/.config.yaml
 ln -s "$(get_ros_pkg_share clover2)/examples" /home/$USER/examples
 cp -r "$(get_ros_pkg_share clover2_map)/map" /opt/clover2/map
+
+sudo mkdir /var/log/clover2
+sudo chmod 755 /var/log/clover2
 
 sudo chmod +x /root/clover2_firstboot.sh
 sudo chmod +x /opt/clover2/ros2_launch.sh
@@ -42,6 +49,8 @@ sudo cp $ASSETS_DIR/systemd/* /etc/systemd/system/
 sudo systemctl enable clover2.service
 sudo systemctl enable clover2-web.service
 sudo systemctl enable clover2-firstboot.service
+
+sudo mkdir -p /var/log/clover2
 
 log_info "Set image version ${CLOVER2_VERSION}"
 echo "CLOVER2_VERSION=${CLOVER2_VERSION}" | sudo tee -a /usr/lib/os-release

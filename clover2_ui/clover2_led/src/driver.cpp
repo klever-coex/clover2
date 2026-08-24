@@ -14,7 +14,6 @@ namespace clover2_led {
 
 driver::driver(const rclcpp::NodeOptions& options)
     : clover2_common::node("led_driver", options) {
-    enable_diagnostic_updater();
 
     clover2_common::util::safe_declare_and_get(
         this, "device_plugin", std::string("ws2812_spi"), m_plugin_class);

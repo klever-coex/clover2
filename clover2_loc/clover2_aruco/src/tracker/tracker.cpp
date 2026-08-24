@@ -1,10 +1,17 @@
+// clover2
+#include <clover2/aruco/diagnostics/pose_task.hpp>
 #include <clover2/aruco/tracker.hpp>
+
+// ROS2
 #include <lifecycle_msgs/msg/state.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2/LinearMath/Transform.hpp>
 #include <tf2_eigen/tf2_eigen.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_msgs/msg/tf_message.hpp>
+
+// STL
+#include <string>
 
 namespace clover2::aruco {
 
@@ -29,16 +36,12 @@ tracker::tracker(const rclcpp::NodeOptions& options)
 
     declare_and_watch_parameter<double>(
         "xy_variation", 0.4,
-        [this](const rclcpp::Parameter& p) {
-            m_xy_variation = p.as_double();
-        },
+        [this](const rclcpp::Parameter& p) { m_xy_variation = p.as_double(); },
         "Published variation for x and y");
 
     declare_and_watch_parameter<double>(
         "z_variation", 0.4,
-        [this](const rclcpp::Parameter& p) {
-            m_z_variation = p.as_double();
-        },
+        [this](const rclcpp::Parameter& p) { m_z_variation = p.as_double(); },
         "Published variation for x and y");
 
     register_on_configure(
@@ -59,6 +62,7 @@ tracker::CallbackReturn tracker::on_configure(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
     m_callback_group =
         create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+    auto node_context = std::make_shared<clover2_common::node_context>(*this);
 
     try {
         m_map_client = std::make_shared<clover2_map::client>(
@@ -76,6 +80,10 @@ tracker::CallbackReturn tracker::on_configure(
 
 tracker::CallbackReturn tracker::on_activate(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
+    auto diagnostic_interface = get_node_diagnostics_interface();
+    diagnostic_interface->add<diagnostics::pose_task>();
+    diagnostic_interface->get<diagnostics::pose_task>().set_clock(get_clock());
+
     m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
     m_tf_buffer = std::make_shared<tf2_ros::Buffer>(this->get_clock());
     m_tf_listener = std::make_shared<tf2_ros::TransformListener>(*m_tf_buffer);
@@ -89,9 +97,6 @@ tracker::CallbackReturn tracker::on_activate(
 
     m_poses_debug_pub = create_publisher<geometry_msgs::msg::PoseArray>(
         "~/poses_debug", rclcpp::SystemDefaultsQoS());
-
-    m_tags_pub = create_publisher<clover2_pose_msgs::msg::MarkerArray>(
-        "~/tags", rclcpp::SensorDataQoS());
 
     rclcpp::SubscriptionOptions options;
     options.callback_group = m_callback_group;
@@ -115,6 +120,8 @@ tracker::CallbackReturn tracker::on_deactivate(
 
     m_tf_listener.reset();
     m_tf_buffer.reset();
+
+    get_node_diagnostics_interface()->remove<diagnostics::pose_task>();
     m_tf_broadcaster.reset();
 
     RCLCPP_INFO(get_logger(), "Deactivated");
@@ -140,11 +147,6 @@ void tracker::markers_callback(
         return;
     }
 
-    // Partition detections: fixed markers feed localization, the rest
-    // are reported as observed tags in the camera frame.
-    clover2_pose_msgs::msg::MarkerArray tags;
-    tags.header = msg->header;
-
     std::vector<const clover2_pose_msgs::msg::Marker*> fixed_markers;
     fixed_markers.reserve(msg->markers.size());
 
@@ -162,35 +164,9 @@ void tracker::markers_callback(
             fixed_markers.push_back(&marker);
             continue;
         }
-
-        auto tag = marker;
-        tag.type = static_cast<uint8_t>(map_marker.type);
-        tags.markers.push_back(tag);
-
-        if (map_marker.type == clover2_map::marker_type::static_) {
-            // Static tags get a camera-relative TF: a raw observation
-            // without the localization error mixed in, consumers compose
-            // the map-frame pose themselves via the TF tree.
-            Eigen::Isometry3d tag_pose = Eigen::Isometry3d::Identity();
-            tf2::fromMsg(marker.pose.pose, tag_pose);
-
-            geometry_msgs::msg::TransformStamped transform =
-                tf2::eigenToTransform(tag_pose);
-            transform.header.stamp = msg->header.stamp;
-            transform.header.frame_id = msg->header.frame_id;
-            transform.child_frame_id = map_marker.marker_frame_id;
-
-            m_tf_broadcaster->sendTransform(transform);
-        }
-    }
-
-    if (!tags.markers.empty()) {
-        m_tags_pub->publish(tags);
     }
 
     if (fixed_markers.empty()) {
-        RCLCPP_DEBUG(get_logger(),
-                     "No fixed markers detected, skipping pose estimate");
         return;
     }
 
@@ -272,6 +248,9 @@ void tracker::markers_callback(
     m_pose_cov_pub->publish(estimated_pose_cov);
 
     publish_tf(estimated_pose.header, result_pose.inverse());
+    auto diagnostic_interface = get_node_diagnostics_interface();
+    diagnostic_interface->get<diagnostics::pose_task>().update_pose(
+        estimated_pose.header.stamp, estimated_pose.pose);
 
     // publish tracker id poses form each marker
     if (m_poses_debug_pub->get_subscription_count() != 0) {

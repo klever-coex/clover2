@@ -9,8 +9,14 @@
 /**/fcu_bridge:
   ros__parameters:
     speed_limit: 1.0
-    tolerance: 0.15
+    tolerance: 0.35
     slowdown_distance: 0.5
+    diagnostics:
+      battery:
+        warn_percentage: 0.20
+        error_percentage: 0.10
+      sensors:
+        stale_timeout_sec: 1.0
 
 /**/web_video_server:
   ros__parameters:

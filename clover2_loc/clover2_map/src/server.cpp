@@ -17,6 +17,9 @@ namespace clover2_map {
 
 server::server(const rclcpp::NodeOptions& options)
     : clover2_common::node("map_server", options) {
+    auto diagnostic_interface = get_node_diagnostics_interface();
+    diagnostic_interface->add<diagnostics::map_server_task>();
+
     declare_and_watch_parameter<std::string>(
         "map", "",
         [this](const rclcpp::Parameter& p) {  //
@@ -34,6 +37,14 @@ server::server(const rclcpp::NodeOptions& options)
                 new_file, get_logger().get_child("fs_provider"));
 
             m_provider->load();
+
+            m_map_path = new_file.string();
+
+            auto diagnostics = get_node_diagnostics_interface();
+            diagnostics->get<diagnostics::map_server_task>().set_map_path(
+                m_map_path);
+            diagnostics->get<diagnostics::map_server_task>().set_provider(
+                m_provider);
         },
         "Path to map file whit .txt/.yaml/.yml extension.");
 
@@ -50,14 +61,8 @@ server::server(const rclcpp::NodeOptions& options)
     m_tf_broadcaster =
         std::make_shared<tf2_ros::TransformBroadcaster>(this);
 
-    // All map access happens in the node's default MutuallyExclusive
-    // callback group (parameter callbacks are pinned to it in Jazzy),
-    // which serializes services, the parameter watcher and the timer.
     auto map_group = get_node_base_interface()->get_default_callback_group();
 
-    // Dynamic TF expires in the subscribers' buffers, so deleted
-    // markers disappear from the tree; republish periodically to keep
-    // the frames alive.
     m_tf_timer = create_wall_timer(
         std::chrono::seconds(1),
         std::bind(&server::publish_tf_snapshot, this), map_group);
@@ -160,7 +165,6 @@ void server::modify_map_callback(
 
         m_provider->save();
     } catch (const std::exception& e) {
-        // roll the map back on any failure
         m_provider->get_map() = std::move(backup);
 
         response->success = false;

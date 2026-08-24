@@ -70,6 +70,16 @@ clover2-bake-push-%:
 clover2-bake-print-%:
 	docker buildx bake -f docker/docker-bake.hcl --print $*
 
+## clover2-bake-save-%: Save docker images to tar files
+clover2-bake-save-%:
+	@mkdir -p $(DOCKER_OUTPUT_DIR)
+	docker buildx bake \
+		$(if $(TARGET_ARCH),--set *.platform=linux/$(TARGET_ARCH)) \
+		-f docker/docker-bake.hcl \
+		--progress plain \
+		--set *.output=type=docker,dest=$(DOCKER_OUTPUT_DIR)/$*.tar \
+		$*
+
 ## clover2-docs-%: Execute commands from docs dir
 clover2-docs-%:
 	$(MAKE) -C $(PROJECT_DIR)/docs $*
