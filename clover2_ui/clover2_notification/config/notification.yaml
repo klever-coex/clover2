@@ -3,18 +3,23 @@
     providers:
       - diagnostics
 
-    outputs:
-      - clover2_notification::outputs::led
+    output_plugins:
+      - led_strip
 
     diagnostics:
       topic: /diagnostics_agg
       ignore_names:
-        - "/Aggregation/Other/*"
-        - "/Aggregation/System/*"
-        - "/Aggregation/System"
         - "/Aggregation"
+        - "/Aggregation/Other"
+        - "/Aggregation/Other/*"
+        - "/Aggregation/System"
+        - "/Aggregation/System/*"
+        - "/Aggregation/Vision"
+        - "/Aggregation/Localization"
+        - "/Aggregation/FCU"
 
-    led:
+    led_strip:
+      plugin: led
       base_path: led_strip
 
       defaults:

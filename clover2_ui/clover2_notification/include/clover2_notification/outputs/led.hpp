@@ -14,8 +14,8 @@ public:
     led() = default;
     ~led() override = default;
 
-    void initialize(
-        const rclcpp_lifecycle::LifecycleNode::SharedPtr& node) override;
+    void initialize(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
+                    const std::string& id) override;
     void clear() override;
 
 private:
@@ -37,6 +37,8 @@ private:
     void start_animation(const animation_config& config) const;
     void process_event(const data::event& event, done_callback done) override;
 
+    std::string m_id{"led_strip"};
+    std::string m_base_path{"led_strip"};
     rclcpp_lifecycle::LifecycleNode::SharedPtr m_node;
     rclcpp::CallbackGroup::SharedPtr m_client_callback_group;
     std::shared_ptr<clover2_led::client> m_client;

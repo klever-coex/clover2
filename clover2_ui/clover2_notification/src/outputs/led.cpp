@@ -30,19 +30,24 @@ clover2_led::data::color parse_color(const std::vector<int64_t>& values) {
 
 }  // namespace
 
-void led::initialize(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node) {
+void led::initialize(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
+                     const std::string& id) {
     if (!node) {
         throw std::invalid_argument("LED output received a null node");
     }
 
-    m_logger = node->get_logger().get_child("led_output");
+    if (id.empty()) {
+        throw std::invalid_argument("LED output received an empty id");
+    }
+
+    m_id = id;
+    m_logger = node->get_logger().get_child("led_output").get_child(m_id);
     m_node = node;
 
-    const auto base_path =
-        node->declare_parameter<std::string>("led.base_path", "led_strip");
+    m_base_path = node->declare_parameter<std::string>(m_id + ".base_path", m_id);
     m_client_callback_group =
         node->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
-    m_client = std::make_shared<clover2_led::client>(node, base_path,
+    m_client = std::make_shared<clover2_led::client>(node, m_base_path,
                                                      m_client_callback_group);
     load_animation_configs(node);
 }
@@ -67,10 +72,12 @@ void led::process_event(const data::event& event, done_callback done) {
     try {
         RCLCPP_INFO(m_logger,
                     "Start LED animation: reason='%s' name='%s' message='%s' "
-                    "priority=%d queued=%zu animation='%s' duration=%.2fs",
+                    "priority=%d queued=%zu output='%s' base_path='%s' "
+                    "animation='%s' duration=%.2fs",
                     event.source.c_str(), event.name.c_str(),
                     event.message.c_str(), event.priority, queued_size(),
-                    config->animation.c_str(), config->duration);
+                    m_id.c_str(), m_base_path.c_str(), config->animation.c_str(),
+                    config->duration);
         start_animation(*config);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(m_logger, "Failed to start LED animation for '%s': %s",
@@ -139,7 +146,7 @@ void led::load_animation_configs(
     const auto load_default = [&](const std::string& name,
                                   const animation_config& defaults,
                                   int default_priority) {
-        const auto prefix = "led.defaults." + name;
+        const auto prefix = m_id + ".defaults." + name;
         const auto priority = node->declare_parameter<int>(prefix + ".priority",
                                                            default_priority);
         m_default_animations.emplace(
@@ -152,9 +159,9 @@ void led::load_animation_configs(
 
     const auto override_names =
         node->declare_parameter<std::vector<std::string>>(
-            "led.override_names", std::vector<std::string>{});
+            m_id + ".override_names", std::vector<std::string>{});
     for (const auto& override_name : override_names) {
-        const auto prefix = "led.overrides." + override_name;
+        const auto prefix = m_id + ".overrides." + override_name;
         const auto diagnostic_name = node->declare_parameter<std::string>(
             prefix + ".diagnostic_name", override_name);
         auto config = declare_animation_config(node, prefix, warn_defaults);

@@ -8,6 +8,7 @@
 #include <mutex>
 #include <optional>
 #include <queue>
+#include <string>
 #include <vector>
 
 namespace clover2_notification {
@@ -18,8 +19,8 @@ public:
 
     virtual ~output() = default;
 
-    virtual void initialize(
-        const rclcpp_lifecycle::LifecycleNode::SharedPtr& node) = 0;
+    virtual void initialize(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
+                            const std::string& id) = 0;
     void push2queue(const data::event& event) {
         {
             std::lock_guard<std::mutex> lock(m_queue_mutex);

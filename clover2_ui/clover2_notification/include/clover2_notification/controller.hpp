@@ -34,7 +34,7 @@ private:
     pluginlib::ClassLoader<output> m_output_loader{
         "clover2_notification", "clover2_notification::output"};
     std::vector<std::string> m_provider_names;
-    std::vector<std::string> m_output_plugins;
+    std::vector<std::string> m_output_ids;
     std::vector<std::shared_ptr<provider::base>> m_providers;
     std::vector<std::shared_ptr<output>> m_outputs;
     std::shared_ptr<clover2_common::node_context> m_node_context;

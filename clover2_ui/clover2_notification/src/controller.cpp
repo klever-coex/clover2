@@ -11,8 +11,9 @@ controller::controller(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("notification", options) {
     m_provider_names = declare_parameter<std::vector<std::string>>(
         "providers", {"diagnostics"});
-    m_output_plugins = declare_parameter<std::vector<std::string>>(
-        "outputs", {"clover2_notification::outputs::led"});
+    m_output_ids = declare_parameter<std::vector<std::string>>(
+        "output_plugins", {"led_strip"});
+    declare_parameter<std::string>("led_strip.plugin", "led");
 
     register_on_configure(
         std::bind(&controller::on_configure, this, std::placeholders::_1));
@@ -49,12 +50,24 @@ controller::CallbackReturn controller::on_configure(
                         provider_name.c_str());
         }
 
-        for (const auto& plugin_name : m_output_plugins) {
+        for (const auto& output_id : m_output_ids) {
+            const auto plugin_param = output_id + ".plugin";
+            if (!has_parameter(plugin_param)) {
+                declare_parameter<std::string>(plugin_param);
+            }
+
+            std::string plugin_name;
+            if (!get_parameter(plugin_param, plugin_name) || plugin_name.empty()) {
+                throw std::runtime_error("Notification output plugin is not set: " +
+                                         plugin_param);
+            }
+
             auto plugin = m_output_loader.createSharedInstance(plugin_name);
-            plugin->initialize(node);
+            plugin->initialize(node, output_id);
             m_outputs.emplace_back(std::move(plugin));
-            RCLCPP_INFO(get_logger(), "Loaded notification output: %s",
-                        plugin_name.c_str());
+            RCLCPP_INFO(get_logger(),
+                        "Loaded notification output: id='%s' plugin='%s'",
+                        output_id.c_str(), plugin_name.c_str());
         }
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Failed to configure notification: %s",
