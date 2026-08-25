@@ -1,32 +1,90 @@
+/**
+ * @file diagnostics.hpp
+ * @brief Provides a diagnostics-based notification provider.
+ */
+
 #pragma once
 
+// clover2
 #include <clover2_common/diagnostics/client.hpp>
 #include <clover2_common/node_context.hpp>
 #include <clover2_notification/provider/base.hpp>
 
+// STL
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 namespace clover2_notification::provider {
 
+/**
+ * @class diagnostics
+ * @brief Notification provider that converts ROS 2 diagnostic status changes to
+ * events.
+ *
+ * The provider subscribes to the configured diagnostics topic, tracks previous
+ * statuses, ignores configured diagnostic names, and emits events only when a
+ * non-OK diagnostic status changes.
+ */
 class diagnostics final : public base {
 public:
+    /** @brief Provider name used by the provider factory and configuration. */
     static constexpr const char* name = "diagnostics";
 
+    /** @brief Construct a diagnostics provider. */
     diagnostics() = default;
+
+    /** @brief Destroy a diagnostics provider. */
     ~diagnostics() override = default;
 
+    /**
+     * @brief Initialize diagnostics subscription and event callback.
+     *
+     * Declares and reads diagnostics provider parameters, then subscribes to
+     * the configured diagnostics topic.
+     *
+     * @param node_context Shared node context used to access ROS 2 interfaces.
+     * @param callback Callback invoked for generated notification events.
+     *
+     * @throws std::invalid_argument if @p node_context is null or @p callback
+     * is empty.
+     */
     void initialize(std::shared_ptr<clover2_common::node_context> node_context,
                     callback_type callback) override;
+
+    /** @brief Unsubscribe from diagnostics and reset provider state. */
     void cleanup() override;
 
 private:
     using status_type = clover2_common::diagnostics::client::status_type;
     using status_map = std::unordered_map<std::string, status_type>;
 
+    /**
+     * @brief Handle a diagnostic status update.
+     *
+     * @param status Diagnostic status received from the diagnostics client.
+     */
     void diagnostics_callback(const status_type& status);
+
+    /**
+     * @brief Check whether a diagnostic status should be ignored by name.
+     *
+     * @param status Diagnostic status to check.
+     * @return true if the status matches an ignored name pattern, false
+     * otherwise.
+     */
     bool is_ignored(const status_type& status) const;
+
+    /**
+     * @brief Match a string against a simple wildcard pattern.
+     *
+     * The wildcard character '*' matches any sequence of characters.
+     *
+     * @param pattern Pattern to match.
+     * @param value Value to test.
+     * @return true if @p value matches @p pattern, false otherwise.
+     */
     static bool wildcard_match(const std::string& pattern,
                                const std::string& value);
 

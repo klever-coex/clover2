@@ -1,34 +1,77 @@
+/**
+ * @file controller.hpp
+ * @brief Provides the notification lifecycle controller node.
+ */
+
 #pragma once
 
+// clover2
 #include <clover2_common/lifecycle_node.hpp>
 #include <clover2_common/node_context.hpp>
 #include <clover2_notification/data/event.hpp>
 #include <clover2_notification/output.hpp>
 #include <clover2_notification/provider/base.hpp>
+
+// ROS2
 #include <pluginlib/class_loader.hpp>
 #include <rclcpp/rclcpp.hpp>
 
+// STL
 #include <memory>
 #include <string>
 #include <vector>
 
 namespace clover2_notification {
 
+/**
+ * @class controller
+ * @brief Lifecycle node that routes notification events from providers to
+ * output plugins.
+ *
+ * The controller loads configured notification providers and output plugins
+ * during lifecycle configuration. Providers report notification events through
+ * a callback, and the controller forwards each event to every configured
+ * output.
+ */
 class controller : public clover2_common::lifecycle_node {
 public:
     RCLCPP_SMART_PTR_DEFINITIONS(controller)
 
+    /**
+     * @brief Construct the notification controller node.
+     *
+     * Declares controller parameters and registers lifecycle transition
+     * callbacks.
+     *
+     * @param options ROS 2 node options.
+     */
     explicit controller(
         const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
+
+    /** @brief Destroy the notification controller node. */
     ~controller() override;
 
 private:
+    /** @brief Configure notification providers and output plugins. */
     CallbackReturn on_configure(const rclcpp_lifecycle::State& state);
+
+    /** @brief Handle lifecycle activation. */
     CallbackReturn on_activate(const rclcpp_lifecycle::State& state);
+
+    /** @brief Clear output queues on lifecycle deactivation. */
     CallbackReturn on_deactivate(const rclcpp_lifecycle::State& state);
+
+    /** @brief Cleanup providers, outputs, and node context. */
     CallbackReturn on_cleanup(const rclcpp_lifecycle::State& state);
+
+    /** @brief Cleanup providers, outputs, and node context on shutdown. */
     CallbackReturn on_shutdown(const rclcpp_lifecycle::State& state);
 
+    /**
+     * @brief Forward a provider event to all configured outputs.
+     *
+     * @param event Notification event produced by a provider.
+     */
     void provider_callback(const data::event& event);
 
     pluginlib::ClassLoader<output> m_output_loader{
