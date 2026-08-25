@@ -4,10 +4,8 @@ import { cn } from '../../lib/cn.ts';
 import { Spinner } from './Spinner.tsx';
 
 interface LoadingStateProps {
-  /** inline: page section block; centered: full-height page placeholder. */
   variant?: 'inline' | 'centered';
   size?: number;
-  /** Passthrough to the Spinner (e.g. text-error tint). */
   className?: string;
 }
 

@@ -3,7 +3,13 @@ import type { TransportExecutor } from './core.ts';
 
 export function createFetchExecutor(): TransportExecutor {
   return async (ctx) => {
-    const response = await fetch(ctx.url);
+    const response = await fetch(ctx.url, {
+      method: ctx.request.method ?? 'GET',
+      ...(ctx.request.body !== undefined && {
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ctx.request.body),
+      }),
+    });
 
     if (!response.ok) {
       throw new ApiError(await readErrorMessage(response), response.status);

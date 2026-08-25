@@ -11,10 +11,6 @@ interface ResourceStateProps {
   children: ReactNode;
 }
 
-/**
- * Canonical 4-state renderer for an async-loaded list resource:
- * loading → error → empty → children (the loaded list).
- */
 export function ResourceState({ resource, emptyMessage, children }: ResourceStateProps) {
   if (resource.loading && resource.data === null) {
     return <LoadingState size={24} />;

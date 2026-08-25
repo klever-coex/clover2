@@ -1,7 +1,8 @@
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useSearchParams } from 'react-router';
 import { ServicePanel, TopicPanel } from '../../components/ros2/EndpointPanels.tsx';
-import { Badge } from '../../components/ui/Badge.tsx';
+import { LifecycleBadge } from '../../components/ros2/LifecycleBadge.tsx';
 import { EmptyState } from '../../components/ui/EmptyState.tsx';
 import { ErrorState } from '../../components/ui/ErrorState.tsx';
 import { LoadingState } from '../../components/ui/LoadingState.tsx';
@@ -11,7 +12,6 @@ import { useNodeResources } from '../../hooks/useNodeResources.ts';
 import type { AsyncResource } from '../../hooks/useAsyncResource.ts';
 import type { NodeInfo } from '../../types/node.ts';
 
-/** Node detail; the node name comes from the ?node= query parameter. */
 export function NodeDetailPage() {
   const [searchParams] = useSearchParams();
   const nodeName = searchParams.get('node');
@@ -20,7 +20,6 @@ export function NodeDetailPage() {
     return <Navigate to="/ros2/nodes" replace />;
   }
 
-  // Key remounts the view when switching nodes, resetting all resources.
   return <NodeDetailView key={nodeName} nodeName={nodeName} />;
 }
 
@@ -34,20 +33,6 @@ function NodeDetailView({ nodeName }: { nodeName: string }) {
         title={<span className="font-mono">{nodeName}</span>}
         backTo={{ to: '/ros2/nodes', label: t('nodes.backToNodes') }}
       />
-
-      <div className="flex items-center gap-3 mt-4 flex-wrap">
-        {resources.info.data !== null && (
-          <Badge tone={resources.info.data.is_lifecycle ? 'accent' : 'neutral'}>
-            {resources.info.data.is_lifecycle ? t('nodes.lifecycle') : t('nodes.regular')}
-          </Badge>
-        )}
-        {resources.info.data !== null && resources.info.data.ns !== '/' && (
-          <span className="text-sm text-ink-muted">
-            {t('nodes.namespace')}:{' '}
-            <span className="font-mono">{resources.info.data.ns}</span>
-          </span>
-        )}
-      </div>
 
       <div className="grid grid-cols-1 gap-4 mt-6">
         <InfoPanel resource={resources.info} />
@@ -92,7 +77,10 @@ function InfoPanel({ resource }: { resource: AsyncResource<NodeInfo> }) {
           <InfoRow
             label={t('nodes.lifecycle')}
             value={
-              resource.data.is_lifecycle ? t('nodes.lifecycle') : t('nodes.regular')
+              <LifecycleBadge
+                isLifecycle={resource.data.is_lifecycle}
+                state={resource.data.lifecycle_state}
+              />
             }
           />
         </div>
@@ -104,11 +92,11 @@ function InfoPanel({ resource }: { resource: AsyncResource<NodeInfo> }) {
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoRow({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <span className="text-sm text-ink-muted">{label}</span>
-      <span className="font-mono text-sm text-ink break-all text-right">{value}</span>
+      <span className="text-sm text-ink break-all text-right">{value}</span>
     </div>
   );
 }

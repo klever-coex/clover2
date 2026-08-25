@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ListPage } from '../../components/ros2/ListPage.tsx';
+import { SortSelect } from '../../components/ros2/SortSelect.tsx';
 import { TopicRow } from '../../components/ros2/TopicRow.tsx';
 import { useRosCapability } from '../../hooks/useRosCapability.ts';
 import { useRosStore } from '../../store/useRosStore.ts';
 import type { TopicInfo } from '../../types/topic.ts';
 
-/** Flat topic list with search; gated on the backend 'topics' capability. */
+/** Flat topic list with search and sort; gated on the backend 'topics' capability. */
 export function TopicsPage() {
   const { t } = useTranslation();
   const capability = useRosCapability('topics');
@@ -13,6 +15,7 @@ export function TopicsPage() {
   const topicsLoading = useRosStore((s) => s.topicsLoading);
   const topicsError = useRosStore((s) => s.topicsError);
   const reloadTopics = useRosStore((s) => s.reloadTopics);
+  const [sort, setSort] = useState<'name' | 'type'>('name');
 
   return (
     <ListPage<TopicInfo>
@@ -30,6 +33,26 @@ export function TopicsPage() {
       }
       keyOf={(topic) => topic.name}
       renderItem={(topic) => <TopicRow topic={topic} />}
+      toolbarExtra={
+        <SortSelect
+          ariaLabel={t('common.sortBy')}
+          value={sort}
+          onChange={(value) => setSort(value as 'name' | 'type')}
+          options={[
+            { value: 'name', label: t('topics.sortName') },
+            { value: 'type', label: t('topics.sortType') },
+          ]}
+        />
+      }
+      sortItems={(items) => {
+        const sorted = [...items];
+        sorted.sort((a, b) =>
+          sort === 'name'
+            ? a.name.localeCompare(b.name)
+            : a.type.localeCompare(b.type) || a.name.localeCompare(b.name),
+        );
+        return sorted;
+      }}
     />
   );
 }

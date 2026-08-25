@@ -3,6 +3,10 @@ import type { Capability } from '../types/manifest.ts';
 export interface ApiRequest {
   path: string;
   capabilities?: readonly Capability[];
+  /** HTTP method; GET when omitted. */
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  /** JSON request body; only meaningful for non-GET methods. */
+  body?: unknown;
 }
 
 export interface ApiContext {
@@ -24,7 +28,11 @@ export type TransportExecutor = (ctx: ApiContext) => Promise<void>;
 export interface HttpCall {
   <T>(
     path: string,
-    options?: { capabilities?: readonly Capability[] },
+    options?: {
+      capabilities?: readonly Capability[];
+      method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+      body?: unknown;
+    },
   ): Promise<T>;
 }
 
@@ -35,10 +43,19 @@ export function createHttpCall(
 ): HttpCall {
   return async <T>(
     path: string,
-    options?: { capabilities?: readonly Capability[] },
+    options?: {
+      capabilities?: readonly Capability[];
+      method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+      body?: unknown;
+    },
   ): Promise<T> => {
     const ctx: ApiContext = {
-      request: { path, capabilities: options?.capabilities },
+      request: {
+        path,
+        capabilities: options?.capabilities,
+        method: options?.method,
+        body: options?.body,
+      },
       httpBase,
       url: '',
       response: null,

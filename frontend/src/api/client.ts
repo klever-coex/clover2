@@ -1,6 +1,7 @@
 import type { Clover2Api } from './clover2.ts';
 import { createHttpCall } from './core.ts';
 import { createManifestEndpoints } from './endpoints/manifest.ts';
+import { createMapEndpoints } from './endpoints/map.ts';
 import { createNodesEndpoints } from './endpoints/nodes.ts';
 import { createServicesEndpoints } from './endpoints/services.ts';
 import { createStreamsEndpoints } from './endpoints/streams.ts';
@@ -53,5 +54,6 @@ export function createClient(baseUrl?: string): Clover2Api {
     },
     nodes: createNodesEndpoints(http),
     services: createServicesEndpoints(http),
+    map: createMapEndpoints(http),
   };
 }

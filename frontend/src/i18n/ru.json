@@ -4,7 +4,6 @@
     "ros2": "ROS2",
     "nodes": "Узлы",
     "topics": "Топики",
-    "services": "Сервисы",
     "settings": "Настройки",
     "documentation": "Документация",
     "camera": "Просмотр камеры",
@@ -17,11 +16,14 @@
   },
   "common": {
     "retry": "Повторить",
-    "loading": "Загрузка..."
+    "loading": "Загрузка...",
+    "sortBy": "Сортировка"
   },
   "topics": {
     "title": "Топики ROS",
     "searchPlaceholder": "Поиск по имени или типу...",
+    "sortName": "По имени",
+    "sortType": "По типу",
     "empty": "Топики не найдены",
     "noCapability": "Плагин бэкенда ROS недоступен"
   },
@@ -39,15 +41,23 @@
     "messageActivity": "Получено сообщений: {{count}}"
   },
   "nodes": {
-    "title": "Узлы ROS",
+    "title": "Ноды ROS",
     "searchPlaceholder": "Поиск по имени...",
-    "empty": "Узлы не найдены",
+    "sortName": "По имени",
+    "sortLifecycle": "Сначала Lifecycle",
+    "empty": "Ноды не найдены",
     "noCapability": "Плагин узлов ROS недоступен",
     "name": "Имя",
-    "lifecycle": "Жизненный цикл",
-    "regular": "Обычный",
+    "lifecycle": "Lifecycle",
+    "regular": "Обычная",
+    "lifecycleState": {
+      "unconfigured": "Не настроена",
+      "inactive": "Неактивна",
+      "active": "Активна",
+      "finalized": "Финализирована"
+    },
     "namespace": "Пространство имён",
-    "info": "Информация об узле",
+    "info": "Информация о ноде",
     "publishers": "Издатели",
     "subscribers": "Подписчики",
     "servers": "Серверы",
@@ -56,17 +66,6 @@
     "noSubscribers": "Нет подписчиков",
     "noServers": "Нет серверов",
     "noClients": "Нет клиентов",
-    "backToNodes": "Назад к узлам"
-  },
-  "services": {
-    "title": "Сервисы ROS",
-    "noCapability": "Плагин сервисов ROS недоступен",
-    "selectNode": "Узел",
-    "nodePlaceholder": "Имя узла",
-    "servers": "Серверы",
-    "clients": "Клиенты",
-    "empty": "Сервисы не найдены",
-    "noServers": "Нет серверов",
-    "noClients": "Нет клиентов"
+    "backToNodes": "К списку нод"
   }
 }

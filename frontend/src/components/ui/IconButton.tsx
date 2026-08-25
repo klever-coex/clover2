@@ -6,11 +6,9 @@ import { buttonBase } from './Button.tsx';
 
 interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon: LucideIcon;
-  /** Accessible name — required: an icon-only button must never be unlabeled. */
   label: string;
   size?: 'sm' | 'md';
   variant?: 'ghost' | 'secondary' | 'primary';
-  /** When set, renders aria-expanded (for menu/group toggles). */
   expanded?: boolean;
 }
 

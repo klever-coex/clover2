@@ -22,7 +22,7 @@ export function Collapsible({ label, children, defaultOpen = true }: Collapsible
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-controls={contentId}
-        className="flex items-center gap-1 font-semibold text-json-key hover:text-ink rounded transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal/60"
+        className="flex items-center gap-1 font-semibold text-json-key hover:text-ink rounded transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus/60"
       >
         <ChevronRight
           size={14}

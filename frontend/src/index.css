@@ -1,28 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  /* Navy surfaces (from the coex.svg mark family) */
-  --color-surface-0: #060716; /* page background (deepest navy) */
-  --color-surface-1: #090b13; /* sidebar, data/terminal panels */
-  --color-surface-2: #10141f; /* raised panels/cards */
-  --color-surface-3: #1a1f2e; /* hover fills, chips, secondary buttons */
-  --color-line: #252b3d; /* borders (navy, not gray) */
+  /* Neutral slate surfaces */
+  --color-surface-0: #0F172A; /* page background */
+  --color-surface-1: #1B2336; /* sidebar, data/terminal panels */
+  --color-surface-2: #1E293B; /* raised panels/cards */
+  --color-surface-3: #272F42; /* hover fills, chips, secondary buttons */
+  --color-line: #64748B; /* borders (slate-500, ≥3:1 for controls) */
 
-  /* Text (navy-tinted neutrals) */
-  --color-ink: #e6e9f2; /* primary text */
-  --color-ink-muted: #9aa3b8; /* secondary text */
-  --color-ink-faint: #5c6678; /* placeholders, disabled, empty states */
+  /* Text (neutral grays) */
+  --color-ink: #F8FAFC; /* primary text */
+  --color-ink-muted: #94A3B8; /* secondary text */
+  --color-ink-faint: #8494AB; /* placeholders, disabled, empty states */
 
-  /* Brand accent — orange-red, the only brand color */
+  /* Brand accent — orange-red, the only brand color (unchanged) */
   --color-accent: #fb4616;
   --color-accent-hover: #ff5c30;
   --color-accent-active: #d63a10;
-  --color-accent-text: #ff9677; /* light accent for text ON navy */
+  --color-accent-text: #ff9677; /* light accent for text on dark */
   --color-accent-soft: rgb(251 70 22 / 0.12); /* tinted chip bg */
 
-  /* Brand blues — depth only (logo family), not UI accent */
-  --color-royal: #1126a5; /* focus rings */
-  --color-electric: #3438fd; /* reserved */
+  /* Focus ring — white per minimalist palette (was: brand blue royal) */
+  --color-focus: #FFFFFF; /* focus rings */
 
   /* Semantic (400-level, readable on navy) */
   --color-success: #4ade80;
@@ -35,10 +34,10 @@
   --color-json-null: #f87171;
 
   /* Softer row-level border (replaces border-line/50) */
-  --color-border-soft: rgb(37 41 61 / 0.5);
+  --color-border-soft: rgb(100 116 139 / 0.5);
 
   /* Fonts (bundled via @fontsource, offline-safe) */
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system,
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas,
     monospace;
@@ -48,7 +47,7 @@
   --radius-panel: 0.75rem; /* panels, sidebar items, terminal viewer */
 
   /* Transition durations */
-  --duration-fast: 150ms; /* hover/focus */
+  --duration-fast: 200ms; /* hover/focus */
   --duration-normal: 250ms; /* collapse/expand chevron */
   --duration-slow: 300ms; /* sidebar width */
 }
@@ -60,6 +59,15 @@
 
   body {
     @apply bg-surface-0 text-ink font-sans antialiased;
+  }
+
+  h1 {
+    letter-spacing: -0.02em;
+  }
+
+  h2,
+  h3 {
+    letter-spacing: -0.01em;
   }
 
   @media (prefers-reduced-motion: reduce) {

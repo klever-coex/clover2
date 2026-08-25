@@ -1,12 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
   BookOpenText,
-  Cable,
   Camera,
   ChevronDown,
-  ChevronUp,
   Drone,
   EthernetPort,
   Globe,
@@ -19,55 +18,58 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '../../lib/cn.ts';
 import type { TranslationKey } from '../../i18n/index.ts';
-import { Button } from '../ui/Button.tsx';
 import { IconButton } from '../ui/IconButton.tsx';
 import { Select } from '../ui/Select.tsx';
 
-type MenuItem =
-  | { key: string; kind: 'route'; labelKey: TranslationKey; icon: LucideIcon; to: string }
-  | { key: string; kind: 'external'; labelKey: TranslationKey; icon: LucideIcon; href: (lang: string) => string };
-
-interface Ros2Item {
+interface NavLinkItem {
   key: string;
   labelKey: TranslationKey;
   icon: LucideIcon;
-  to: string;
+  /** Internal route path or an external-URL builder. */
+  to: string | ((lang: string) => string);
 }
+
+interface NavGroupItem {
+  key: string;
+  labelKey: TranslationKey;
+  icon: LucideIcon;
+  children: NavLinkItem[];
+}
+
+type NavItem = NavLinkItem | NavGroupItem;
 
 const { protocol, hostname } = window.location;
 
-const PRIMARY_MENU: MenuItem[] = [
-  { key: 'dashboard', kind: 'route', labelKey: 'sidebar.dashboard', icon: Drone, to: '/' },
-  { key: 'settings', kind: 'route', labelKey: 'sidebar.settings', icon: Settings, to: '/settings' },
-];
-
-const ROS2_ITEMS: Ros2Item[] = [
-  { key: 'nodes', labelKey: 'sidebar.nodes', icon: Network, to: '/ros2/nodes' },
-  { key: 'topics', labelKey: 'sidebar.topics', icon: EthernetPort, to: '/ros2/topics' },
-  { key: 'services', labelKey: 'sidebar.services', icon: Cable, to: '/ros2/services' },
-];
-
-const SECONDARY_MENU: MenuItem[] = [
+/** Single unified navigation tree — groups nest their children without any offset. */
+const MENU: NavItem[] = [
+  { key: 'dashboard', labelKey: 'sidebar.dashboard', icon: Drone, to: '/' },
+  { key: 'settings', labelKey: 'sidebar.settings', icon: Settings, to: '/settings' },
+  {
+    key: 'ros2',
+    labelKey: 'sidebar.ros2',
+    icon: Orbit,
+    children: [
+      { key: 'nodes', labelKey: 'sidebar.nodes', icon: Network, to: '/ros2/nodes' },
+      { key: 'topics', labelKey: 'sidebar.topics', icon: EthernetPort, to: '/ros2/topics' },
+    ],
+  },
   {
     key: 'documentation',
-    kind: 'external',
     labelKey: 'sidebar.documentation',
     icon: BookOpenText,
-    href: (lang) => `${protocol}//${hostname}:9000/${lang}/index.html`,
+    to: (lang) => `${protocol}//${hostname}:9000/${lang}/index.html`,
   },
   {
     key: 'camera',
-    kind: 'external',
     labelKey: 'sidebar.camera',
     icon: Camera,
-    href: () => `${protocol}//${hostname}:8081`,
+    to: () => `${protocol}//${hostname}:8081`,
   },
   {
     key: 'ide',
-    kind: 'external',
     labelKey: 'sidebar.ide',
     icon: SquarePen,
-    href: () => `${protocol}//${hostname}:9880/?folder=/home/pi`,
+    to: () => `${protocol}//${hostname}:9880/?folder=/home/pi`,
   },
 ];
 
@@ -76,18 +78,15 @@ const LANGUAGES = [
   { code: 'ru', label: 'Русский' },
 ] as const;
 
-const itemClasses = (isOpen: boolean) => (isActive: boolean) =>
-  cn(
-    'flex items-center p-2 rounded-panel transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal/60',
-    isOpen ? 'gap-3 justify-start' : 'justify-center',
-    isActive
-      ? 'bg-surface-2 text-accent-text shadow-[inset_2px_0_0_0_var(--color-accent)]'
-      : 'text-ink-muted hover:bg-surface-2 hover:text-ink',
-  );
+/** Shared row style for every nav item — links, groups, and their children. */
+const rowBase =
+  'flex items-center p-2 rounded-panel transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus/60';
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(true);
-  const [ros2Open, setRos2Open] = useState(true);
+  const [openGroups, setOpenGroups] = useState<Set<string>>(() => new Set(['ros2']));
+  const [flyoutKey, setFlyoutKey] = useState<string | null>(null);
+  const [flyoutRect, setFlyoutRect] = useState<DOMRect | null>(null);
   const { t, i18n } = useTranslation();
 
   const changeLanguage = (lang: string) => {
@@ -95,11 +94,175 @@ export function Sidebar() {
     localStorage.setItem('language', lang);
   };
 
+  // Close the collapsed-sidebar group flyout on outside click or Escape.
+  useEffect(() => {
+    if (flyoutKey === null) return;
+
+    const onMouseDown = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element) || !target.closest('[data-nav-flyout]')) {
+        setFlyoutKey(null);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setFlyoutKey(null);
+    };
+
+    document.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [flyoutKey]);
+
+  const itemClasses = (active: boolean, showLabel: boolean) =>
+    cn(
+      rowBase,
+      showLabel ? 'gap-3 justify-start' : 'justify-center',
+      active
+        ? 'bg-surface-2 text-accent-text shadow-[inset_2px_0_0_0_var(--color-accent)]'
+        : 'text-ink-muted hover:bg-surface-2 hover:text-ink',
+    );
+
+  const isGroupOpen = (key: string) => openGroups.has(key);
+
+  const toggleGroup = (key: string, rect?: DOMRect) => {
+    // Collapsed sidebar: toggle a flyout with the group children — no expansion.
+    if (!isOpen) {
+      const nextOpen = flyoutKey !== key;
+      setFlyoutKey(nextOpen ? key : null);
+      if (nextOpen && rect !== undefined) setFlyoutRect(rect);
+      return;
+    }
+    setFlyoutKey(null);
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const renderLink = (item: NavLinkItem, showLabel = isOpen) => {
+    const Icon = item.icon;
+    const label = (
+      <span className={showLabel ? 'whitespace-nowrap' : 'sr-only'}>{t(item.labelKey)}</span>
+    );
+
+    if (typeof item.to === 'string') {
+      return (
+        <NavLink
+          key={item.key}
+          to={item.to}
+          onClick={() => setFlyoutKey(null)}
+          className={({ isActive }) => itemClasses(isActive, showLabel)}
+        >
+          <Icon size={20} className="shrink-0" />
+          {label}
+        </NavLink>
+      );
+    }
+
+    return (
+      <a
+        key={item.key}
+        href={item.to(i18n.language)}
+        target="_blank"
+        rel="noreferrer"
+        onClick={() => setFlyoutKey(null)}
+        className={itemClasses(false, showLabel)}
+      >
+        <Icon size={20} className="shrink-0" />
+        {label}
+      </a>
+    );
+  };
+
+  const renderItem = (item: NavItem) => {
+    if ('children' in item) {
+      const expanded = isGroupOpen(item.key);
+      const flyoutOpen = flyoutKey === item.key;
+      const Icon = item.icon;
+
+      return (
+        <div key={item.key} data-nav-flyout>
+          <button
+            type="button"
+            onClick={(event) => toggleGroup(item.key, event.currentTarget.getBoundingClientRect())}
+            aria-expanded={isOpen ? expanded : flyoutOpen}
+            aria-controls={isOpen ? `nav-group-${item.key}` : `nav-flyout-${item.key}`}
+            className={cn(
+              rowBase,
+              'w-full',
+              isOpen ? 'gap-3 justify-start' : 'justify-center',
+              isOpen && expanded ? 'text-ink' : 'text-ink-muted',
+              'hover:bg-surface-2 hover:text-ink',
+            )}
+          >
+            <Icon size={20} className="shrink-0" />
+            {isOpen ? (
+              <>
+                <span className="flex-1 text-left whitespace-nowrap">{t(item.labelKey)}</span>
+                <ChevronDown
+                  size={16}
+                  className={cn(
+                    'shrink-0 transition-transform duration-normal',
+                    expanded && 'rotate-180',
+                  )}
+                />
+              </>
+            ) : (
+              <span className="sr-only">{t(item.labelKey)}</span>
+            )}
+          </button>
+
+          {isOpen ? (
+            <div
+              id={`nav-group-${item.key}`}
+              className={cn(
+                'grid transition-[grid-template-rows] duration-normal',
+                expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+              )}
+            >
+              <div
+                className={cn(
+                  'overflow-hidden min-h-0 space-y-1',
+                  expanded ? 'visible' : 'invisible',
+                )}
+              >
+                {item.children.map((child) => renderLink(child))}
+              </div>
+            </div>
+          ) : (
+            flyoutOpen &&
+            flyoutRect !== null &&
+            createPortal(
+              <div
+                id={`nav-flyout-${item.key}`}
+                data-nav-flyout
+                className="fixed z-50 w-56 rounded-panel border border-line bg-surface-1 p-1 space-y-1"
+                style={{ left: flyoutRect.right + 8, top: flyoutRect.top }}
+              >
+                {item.children.map((child) => renderLink(child, true))}
+              </div>,
+              document.body,
+            )
+          )}
+        </div>
+      );
+    }
+
+    return renderLink(item);
+  };
+
   return (
     <div
       className={cn(
         'h-screen bg-surface-1 border-r border-line flex flex-col transition-all duration-slow',
-        isOpen ? 'w-64' : 'w-20',
+        // Clip content only while expanding — the group flyout lives outside
+        // the sidebar (portal), so a closed sidebar must not clip horizontally.
+        isOpen ? 'w-64 overflow-hidden' : 'w-20',
       )}
     >
       {/* Header */}
@@ -114,86 +277,16 @@ export function Sidebar() {
           icon={Menu}
           label={t('sidebar.toggleMenu')}
           expanded={isOpen}
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => {
+            setIsOpen((current) => !current);
+            setFlyoutKey(null);
+          }}
         />
       </div>
 
       {/* Menu */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {PRIMARY_MENU.map((item) => {
-          const Icon = item.icon;
-          const to = item.kind === 'route' ? item.to : item.href(i18n.language);
-
-          return (
-            <NavLink
-              key={item.key}
-              to={to}
-              target={item.kind === 'external' ? '_blank' : undefined}
-              className={({ isActive }) => itemClasses(isOpen)(isActive)}
-            >
-              <Icon size={20} />
-              <span className={isOpen ? undefined : 'sr-only'}>{t(item.labelKey)}</span>
-            </NavLink>
-          );
-        })}
-
-        {/* ROS2 group */}
-        <Button
-          variant="ghost"
-          onClick={() => (isOpen ? setRos2Open(!ros2Open) : setIsOpen(true))}
-          aria-expanded={isOpen && ros2Open}
-          aria-controls="ros2-group"
-          className={cn(
-            'w-full rounded-panel',
-            isOpen ? 'justify-start gap-3' : 'justify-center',
-          )}
-        >
-          <Orbit size={20} />
-          {isOpen ? (
-            <>
-              <span className="flex-1 text-left">{t('sidebar.ros2')}</span>
-              {ros2Open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </>
-          ) : (
-            <span className="sr-only">{t('sidebar.ros2')}</span>
-          )}
-        </Button>
-
-        {isOpen && ros2Open && (
-          <div id="ros2-group" className="space-y-1">
-            {ROS2_ITEMS.map((item) => {
-              const Icon = item.icon;
-
-              return (
-                <NavLink
-                  key={item.key}
-                  to={item.to}
-                  className={({ isActive }) => cn(itemClasses(isOpen)(isActive), 'ml-4')}
-                >
-                  <Icon size={20} />
-                  <span>{t(item.labelKey)}</span>
-                </NavLink>
-              );
-            })}
-          </div>
-        )}
-
-        {SECONDARY_MENU.map((item) => {
-          const Icon = item.icon;
-          const to = item.kind === 'route' ? item.to : item.href(i18n.language);
-
-          return (
-            <NavLink
-              key={item.key}
-              to={to}
-              target={item.kind === 'external' ? '_blank' : undefined}
-              className={({ isActive }) => itemClasses(isOpen)(isActive)}
-            >
-              <Icon size={20} />
-              <span className={isOpen ? undefined : 'sr-only'}>{t(item.labelKey)}</span>
-            </NavLink>
-          );
-        })}
+        {MENU.map(renderItem)}
       </nav>
 
       {/* Language Selector */}
@@ -208,14 +301,10 @@ export function Sidebar() {
           <Select
             aria-label={t('sidebar.language')}
             value={i18n.language}
-            onChange={(e) => changeLanguage(e.target.value)}
-          >
-            {LANGUAGES.map((lang) => (
-              <option key={lang.code} value={lang.code}>
-                {lang.label}
-              </option>
-            ))}
-          </Select>
+            onChange={(lang) => changeLanguage(lang)}
+            options={LANGUAGES.map((lang) => ({ value: lang.code, label: lang.label }))}
+            direction="up"
+          />
         )}
       </div>
     </div>
