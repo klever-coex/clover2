@@ -54,14 +54,14 @@ def process_image(path: Path, dry_run: bool):
     if not flag:
         return False
 
+    if path.suffix.lower() == ".svg":
+        logger.warning(f"Skipping SVG: {path}")
+        return False
+
     logger.info(f"Process: {path} | {reason}")
 
     if dry_run:
         return True
-
-    if path.suffix.lower() == ".svg":
-        logger.warning(f"Skipping SVG: {path}")
-        return False
 
     try:
         with Image.open(path) as img:

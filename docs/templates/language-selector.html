@@ -1,0 +1,23 @@
+<div class="sidebar-tree">
+    <p class="caption" role="heading">
+        <span class="caption-text">{{ lang_selector.title }}</span>
+    </p>
+    <ul>
+        {%- set up = '../' * (pagename.count('/') + 1) -%}
+        {%- for lang in lang_selector.languages -%}
+        {%- if lang.code == language -%}
+        {%- set href = pathto(pagename) -%}
+        {%- set classes = "toctree-l1 current current-page" -%}
+        {%- elif pagename in lang.pages -%}
+        {%- set href = up ~ lang.code ~ '/' ~ pagename ~ '.html' -%}
+        {%- set classes = "toctree-l1" -%}
+        {%- else -%}
+        {%- set href = up ~ lang.code ~ '/index.html' -%}
+        {%- set classes = "toctree-l1" -%}
+        {%- endif -%}
+        <li class="{{ classes }}">
+            <a class="reference internal" href="{{ href }}">{{ lang.name }}</a>
+        </li>
+        {%- endfor -%}
+    </ul>
+</div>

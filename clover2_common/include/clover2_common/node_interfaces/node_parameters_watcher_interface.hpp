@@ -1,3 +1,8 @@
+/**
+ * @file node_parameters_watcher_interface.hpp
+ * @brief Provides project node parameters watcher interface.
+ */
+
 #pragma once
 
 // ROS2
@@ -12,6 +17,10 @@
 
 namespace clover2_common::node_interfaces {
 
+/**
+ * @interface NodeParametersWatcherInterface
+ * @brief Project node parameters watcher interface.
+ */
 class NodeParametersWatcherInterface {
 public:
     RCLCPP_SMART_PTR_ALIASES_ONLY(NodeParametersWatcherInterface)
@@ -21,6 +30,15 @@ public:
 
     using ParameterFunctorT = std::function<void(const rclcpp::Parameter&)>;
 
+    /**
+     * @brief Declare a parameter and invoke the callback when it changes.
+     *
+     * @param name Parameter name.
+     * @param default_value Default value.
+     * @param cb On change callback.
+     * @param parameter_descriptor Parameter descriptor.
+     * @param ignore_override Ignore parameter override.
+     */
     virtual void declare_and_watch_parameter(
         const std::string& name, const rclcpp::ParameterValue& default_value,
         ParameterFunctorT cb,
@@ -28,6 +46,7 @@ public:
             rcl_interfaces::msg::ParameterDescriptor(),
         bool ignore_override = false) = 0;
 
+    /** @brief Undeclare all watched parameters. */
     RCLCPP_PUBLIC
     virtual void undeclare_watcher_parameters() = 0;
 };
