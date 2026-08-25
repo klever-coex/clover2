@@ -1,6 +1,6 @@
 # Тепловизионная камера
 
-Mileseey TR256i - это портативный инфракрасный тепловизор, подключаемый через USB Type-C.
+Mileseey TR256i — это портативный инфракрасный тепловизор, подключаемый через USB Type-C.
 
 
 ## Принцип работы
@@ -22,7 +22,7 @@ Mileseey TR256i - это портативный инфракрасный теп�
    :width: 700px
    :align: center
 
-   Рисунок 1 - Установка тепловизионной камеры в маунт для установки на защиту
+   Рисунок 1 — Установка тепловизионной камеры в маунт для установки на защиту
    ```
 
 
@@ -33,7 +33,7 @@ Mileseey TR256i - это портативный инфракрасный теп�
    :width: 700px
    :align: center
 
-   Рисунок 2 - Установка тепловизионной камеры на карбоновые лучи защиты
+   Рисунок 2 — Установка тепловизионной камеры на карбоновые лучи защиты
    ```
 
 
@@ -50,7 +50,7 @@ Mileseey TR256i - это портативный инфракрасный теп�
    :width: 700px
    :align: center
 
-   Рисунок 3 - Установка тепловизионной камеры в маунт для установки в горизонтальное положение
+   Рисунок 3 — Установка тепловизионной камеры в маунт для установки в горизонтальное положение
    ```
 
 
@@ -61,7 +61,7 @@ Mileseey TR256i - это портативный инфракрасный теп�
    :width: 700px
    :align: center
 
-   Рисунок 4 - Установка камеры на нижнюю деку
+   Рисунок 4 — Установка камеры на нижнюю деку
    ```
 
 3. Подсоедините USB-провод из комплекта к камере.
@@ -75,7 +75,7 @@ Mileseey TR256i - это портативный инфракрасный теп�
 
 ### Запуск через v4l2_camera
 
-Рекомендуемый способ запуска - пакет `v4l2_camera`, так как он может публиковать кадр без преобразования в RGB. Для тепловизора важно сохранить исходный формат `yuv422_yuy2`, потому что нижняя половина кадра содержит матрицу температур.
+Рекомендуемый способ запуска — пакет `v4l2_camera`, так как он может публиковать кадр без преобразования в RGB. Для тепловизора важно сохранить исходный формат `yuv422_yuy2`, потому что нижняя половина кадра содержит матрицу температур.
 
 ```bash
 ros2 run v4l2_camera v4l2_camera_node --ros-args \
@@ -93,7 +93,7 @@ ros2 run v4l2_camera v4l2_camera_node --ros-args \
 | Параметр | Значение | Пояснение |
 |---|---|---|
 | `video_device` | `/dev/thermal_camera` | Стабильная udev-ссылка на video4linux-устройство тепловизора. |
-| `image_size` | `[256, 384]` | Размер полного raw-кадра. Верхние 192 строки - ИК-изображение, нижние 192 строки - матрица температур. |
+| `image_size` | `[256, 384]` | Размер полного raw-кадра. Верхние 192 строки — ИК-изображение, нижние 192 строки — матрица температур. |
 | `pixel_format` | `YUYV` | Формат пикселей, который отдает USB-камера. |
 | `output_encoding` | `yuv422_yuy2` | ROS encoding без преобразования в RGB. Нужен для корректного чтения температурной матрицы. |
 | `camera_frame_id` | `thermal_camera` | Имя frame_id в заголовке сообщения `sensor_msgs/msg/Image`. |
@@ -149,17 +149,17 @@ python3 visualize_raw_thermal.py
 Назначение примеров:
 
 ```text
-subscribe_raw_image.py - подписывается на raw-кадр и публикует строку /thermal_camera/status
-find_temperature_extremes.py - публикует /thermal_camera/min_temperature, /thermal_camera/max_temperature, /thermal_camera/center_temperature
-visualize_raw_thermal.py - берет верхнюю половину кадра и публикует /thermal_camera/image_colormap
+subscribe_raw_image.py — подписывается на raw-кадр и публикует строку /thermal_camera/status
+find_temperature_extremes.py — публикует /thermal_camera/min_temperature, /thermal_camera/max_temperature, /thermal_camera/center_temperature
+visualize_raw_thermal.py — берет верхнюю половину кадра и публикует /thermal_camera/image_colormap
 ```
 
 `find_temperature_extremes.py` публикует точки `geometry_msgs/msg/PointStamped`:
 
 ```text
-point.x - координата пикселя по горизонтали
-point.y - координата пикселя по вертикали
-point.z - температура в градусах Цельсия
+point.x — координата пикселя по горизонтали
+point.y — координата пикселя по вертикали
+point.z — температура в градусах Цельсия
 ```
 
 ### Разделение raw-кадра
@@ -183,5 +183,5 @@ px   └──────────────┘
 ```python
 raw = np.frombuffer(msg.data[:msg.height * msg.width * 2], dtype="<u2").reshape(msg.height, msg.width)
 temperature_raw = raw[msg.height // 2:, :]
-temperature_c = temperature_raw.astype(np.float32) / 64.0 - 273.15
+temperature_c = temperature_raw.astype(np.float32) / 64.0 — 273.15
 ```

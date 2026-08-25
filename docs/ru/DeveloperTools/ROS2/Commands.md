@@ -1,11 +1,11 @@
 # Команды ROS 2
 
 ```{figure} @assets@/common/programming/ros2/terminal-linux-commands.webp
-:alt: Рисунок 1 - Пример команд Linux в терминале
+:alt: Рисунок 1 — Пример команд Linux в терминале
 :width: 90%
 :align: center
 
-Рисунок 1 - Пример команд Linux в терминале
+Рисунок 1 — Пример команд Linux в терминале
 ```
 <br>
 
@@ -87,14 +87,14 @@ Linux-команды нужны для навигации по папкам, з�
 
 ## Основные команды ROS2
 
-Команда `ros2` состоит из подкоманд. Например, `ros2 topic list` работает с топиками, а `ros2 node list` - с нодами.
+Команда `ros2` состоит из подкоманд. Например, `ros2 topic list` работает с топиками, а `ros2 node list` — с нодами.
 
 ```{figure} @assets@/common/programming/ros2/terminal-ros2-topic.webp
-:alt: Рисунок 2 - Пример команд ros2 node и ros2 topic
+:alt: Рисунок 2 — Пример команд ros2 node и ros2 topic
 :width: 90%
 :align: center
 
-Рисунок 2 - Пример команд `ros2 node` и `ros2 topic`
+Рисунок 2 — Пример команд `ros2 node` и `ros2 topic`
 ```
 <br>
 

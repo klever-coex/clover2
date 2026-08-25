@@ -8,7 +8,7 @@
 Hailo/HailoModel
 ```
 
-Hailo-8L - это нейронный ускоритель, подключенный к Raspberry Pi 5 по PCIe. Он позволяет запускать нейросети, не нагружая основной процессор Raspberry Pi.
+Hailo-8L — это нейронный ускоритель, подключенный к Raspberry Pi 5 по PCIe. Он позволяет запускать нейросети, не нагружая основной процессор Raspberry Pi.
 
 Hailo работает с моделями в формате **Hailo Executable Format** (`.hef`). Обычные веса PyTorch (`.pt`) и модели ONNX (`.onnx`) сначала необходимо скомпилировать в HEF на компьютере. Этот процесс описан в разделе [Перевод YOLOv8 в HEF](Hailo/HailoModel.md).
 
@@ -54,7 +54,7 @@ Co-processor: Hailo Technologies Ltd. Hailo-8 AI Processor
 
 ## Установка HailoRT
 
-HailoRT - это библиотека для загрузки и запуска HEF. Установите необходимые пакеты:
+HailoRT — это библиотека для загрузки и запуска HEF. Установите необходимые пакеты:
 
 ```bash
 sudo apt update
@@ -88,7 +88,7 @@ hailortcli --version
 hailortcli scan
 ```
 
-Команда `which hailortcli` должна вывести `/usr/bin/hailortcli`, а `hailortcli scan` - подключенный ускоритель.
+Команда `which hailortcli` должна вывести `/usr/bin/hailortcli`, а `hailortcli scan` — подключенный ускоритель.
 
 ## Установка Python-модуля
 
