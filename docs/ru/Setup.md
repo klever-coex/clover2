@@ -9,7 +9,6 @@ Setup/Calibration
 Setup/Radio
 Setup/Modes
 Setup/Power
-Setup/DroneSettings
 ```
 
 ```{figure} ../assets/common/setup/qgc.webp

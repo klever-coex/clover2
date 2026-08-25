@@ -1,3 +1,5 @@
+breathe
+furo
 myst-parser
 pillow
 sphinx-copybutton
@@ -7,4 +9,3 @@ sphinx-markdown-tables
 sphinx-rtd-theme
 sphinx-simplepdf
 sphinx>=9.0
-furo

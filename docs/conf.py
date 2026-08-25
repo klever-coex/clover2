@@ -19,8 +19,16 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     "sphinx_copybutton",
     "sphinx_simplepdf",
+    "breathe",
 ]
 
+breathe_projects = {
+    "clover2": "./build/doxygen/xml"
+}
+
+breathe_default_project = "clover2"
+
+pygments_style = 'sphinx'
 autosectionlabel_prefix_document = True
 
 myst_enable_extensions = [
@@ -42,11 +50,25 @@ exclude_patterns = [
     "Thumbs.db",
     ".DS_Store",
     "**/_*.rst",
+    "Events/TemplateEvents.md",
 ]
 
 master_doc = "index"
 
 html_theme = "furo"
+html_sidebars = {
+    '**': [
+        "sidebar/brand.html",
+        "sidebar/search.html",
+        "sidebar/scroll-start.html",
+        "sidebar/navigation.html",
+        "sidebar/ethical-ads.html",
+        "sidebar/scroll-end.html",
+        "sidebar/variant-selector.html",
+        "language-selector.html",
+    ]
+}
+
 html_theme_options = {
     "light_css_variables": {
         "color-brand-primary": "#fb4616",
@@ -63,12 +85,41 @@ html_theme_options = {
 
 html_static_path = ["assets"]
 
+html_show_sourcelink = True
+html_favicon = "assets/coex.svg"
+
+LANGUAGES = [
+    ("ru", "Русский"),
+    ("en", "English"),
+]
 
 def setup(app):
     def on_config_inited(app, config):
-        lang = config.language or "en"
+        lang = config.language or "ru"
 
         config.html_theme_options["source_directory"] = f"docs/{lang}/"
+
+        other_languages = []
+        for code, name in LANGUAGES:
+            if code == lang:
+                continue
+            src_dir = PROJECT_DIR / code
+            pages = {
+                p.relative_to(src_dir).with_suffix("").as_posix()
+                for p in src_dir.rglob("*.md")
+                if not p.name.startswith("_")
+            }
+            other_languages.append({"code": code, "name": name, "pages": pages})
+
+        config.html_context["lang_selector"] = {
+            "title": "Язык" if lang == "ru" else "Language",
+            "languages": [
+                {"code": code, "name": name}
+                for code, name in LANGUAGES
+                if code == lang
+            ]
+            + other_languages,
+        }
 
     def on_source_read(app, docname, source):
         depth = len(docname.split("/"))
