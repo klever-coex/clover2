@@ -38,11 +38,9 @@ server::server(const rclcpp::NodeOptions& options)
 
             m_provider->load();
 
-            m_map_path = new_file.string();
-
             auto diagnostics = get_node_diagnostics_interface();
             diagnostics->get<diagnostics::map_server_task>().set_map_path(
-                m_map_path);
+                new_file.string());
             diagnostics->get<diagnostics::map_server_task>().set_provider(
                 m_provider);
         },
@@ -58,26 +56,25 @@ server::server(const rclcpp::NodeOptions& options)
         rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable();
     m_map_update_pub = create_publisher<std_msgs::msg::Empty>("~/map_update",
                                                               qos_notification);
-    m_tf_broadcaster =
-        std::make_shared<tf2_ros::TransformBroadcaster>(this);
+    m_tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this);
 
     auto map_group = get_node_base_interface()->get_default_callback_group();
 
     m_tf_timer = create_wall_timer(
-        std::chrono::seconds(1),
-        std::bind(&server::publish_tf_snapshot, this), map_group);
+        std::chrono::seconds(1), std::bind(&server::publish_tf_snapshot, this),
+        map_group);
 
     m_map_service = create_service<clover2_pose_msgs::srv::GetMap>(
-        "~/get_map", std::bind(&server::map_callback, this,
-                               std::placeholders::_1, std::placeholders::_2),
+        "~/get_map",
+        std::bind(&server::map_callback, this, std::placeholders::_1,
+                  std::placeholders::_2),
         rclcpp::ServicesQoS(), map_group);
 
-    m_modify_map_service =
-        create_service<clover2_pose_msgs::srv::ModifyMap>(
-            "~/modify_map",
-            std::bind(&server::modify_map_callback, this,
-                      std::placeholders::_1, std::placeholders::_2),
-            rclcpp::ServicesQoS(), map_group);
+    m_modify_map_service = create_service<clover2_pose_msgs::srv::ModifyMap>(
+        "~/modify_map",
+        std::bind(&server::modify_map_callback, this, std::placeholders::_1,
+                  std::placeholders::_2),
+        rclcpp::ServicesQoS(), map_group);
 
     try {
         RCLCPP_INFO(get_logger(), "Using map '%s'",
@@ -104,9 +101,8 @@ void server::modify_map_callback(
         auto mk = clover2_map::marker::from_msg(request->marker);
 
         auto find_marker = [&m](int id) {
-            return std::find_if(
-                m.markers.begin(), m.markers.end(),
-                [id](const auto& x) { return x.id == id; });
+            return std::find_if(m.markers.begin(), m.markers.end(),
+                                [id](const auto& x) { return x.id == id; });
         };
 
         using Request = clover2_pose_msgs::srv::ModifyMap::Request;
@@ -114,8 +110,7 @@ void server::modify_map_callback(
         switch (request->operation) {
             case Request::OPERATION_ADD: {
                 if (find_marker(mk.id) != m.markers.end()) {
-                    throw std::runtime_error("Marker " +
-                                             std::to_string(mk.id) +
+                    throw std::runtime_error("Marker " + std::to_string(mk.id) +
                                              " already exists");
                 }
 
@@ -131,8 +126,7 @@ void server::modify_map_callback(
             case Request::OPERATION_EDIT: {
                 auto it = find_marker(mk.id);
                 if (it == m.markers.end()) {
-                    throw std::runtime_error("Marker " +
-                                             std::to_string(mk.id) +
+                    throw std::runtime_error("Marker " + std::to_string(mk.id) +
                                              " not found");
                 }
 
@@ -148,8 +142,7 @@ void server::modify_map_callback(
             case Request::OPERATION_DELETE: {
                 auto it = find_marker(mk.id);
                 if (it == m.markers.end()) {
-                    throw std::runtime_error("Marker " +
-                                             std::to_string(mk.id) +
+                    throw std::runtime_error("Marker " + std::to_string(mk.id) +
                                              " not found");
                 }
 
@@ -158,9 +151,8 @@ void server::modify_map_callback(
             }
 
             default:
-                throw std::runtime_error(
-                    "Unknown operation: " +
-                    std::to_string(request->operation));
+                throw std::runtime_error("Unknown operation: " +
+                                         std::to_string(request->operation));
         }
 
         m_provider->save();

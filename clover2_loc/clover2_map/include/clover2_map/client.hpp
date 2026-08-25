@@ -22,7 +22,6 @@
 #include <functional>
 #include <mutex>
 #include <string>
-#include <unordered_map>
 
 namespace clover2_map {
 
@@ -56,19 +55,19 @@ public:
         rclcpp::SubscriptionOptions options;
         options.callback_group = cb_group;
 
-        m_diagnostics->add<clover2::map::diagnostics::map_client_task>();
+        m_diagnostics->add<diagnostics::map_client_task>();
 
         m_diagnostics
-            ->get<clover2::map::diagnostics::map_client_task>()  //
+            ->get<diagnostics::map_client_task>()  //
             .set_name_getter([this]() { return get_name(); });
         m_diagnostics
-            ->get<clover2::map::diagnostics::map_client_task>()  //
+            ->get<diagnostics::map_client_task>()  //
             .set_frame_id_getter([this]() { return get_map_id(); });
         m_diagnostics
-            ->get<clover2::map::diagnostics::map_client_task>()  //
+            ->get<diagnostics::map_client_task>()  //
             .set_marker_count_getter([this]() { return get_count(); });
         m_diagnostics
-            ->get<clover2::map::diagnostics::map_client_task>()  //
+            ->get<diagnostics::map_client_task>()  //
             .set_map_valid_getter([this]() { return valid(); });
 
         m_map_update_sub = rclcpp::create_subscription<std_msgs::msg::Empty>(
@@ -95,19 +94,20 @@ public:
     explicit client(const NodeT& node,
                     rclcpp::CallbackGroup::SharedPtr cb_group = nullptr,
                     std::string map_node_name = "")
-        : client(rclcpp::node_interfaces::get_node_base_interface(node),
-                 rclcpp::node_interfaces::get_node_graph_interface(node),
-                 rclcpp::node_interfaces::get_node_parameters_interface(node),
-                 rclcpp::node_interfaces::get_node_topics_interface(node),
-                 rclcpp::node_interfaces::get_node_services_interface(node),
-                 rclcpp::node_interfaces::get_node_logging_interface(node),
-                 cb_group, std::move(map_node_name)) {}
+        : client(node->get_node_base_interface(),
+                 node->get_node_graph_interface(),
+                 node->get_node_parameters_interface(),
+                 node->get_node_topics_interface(),
+                 node->get_node_services_interface(),
+                 node->get_node_logging_interface(),
+                 node->get_node_diagnostics_interface(), cb_group,
+                 std::move(map_node_name)) {}
 
     ~client() {
         m_map_update_sub.reset();
         m_get_map_client.reset();
 
-        m_diagnostics->remove<clover2::map::diagnostics::map_client_task>();
+        m_diagnostics->remove<diagnostics::map_client_task>();
     }
 
     bool valid() const { return m_map_valid; }

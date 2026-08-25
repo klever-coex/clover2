@@ -45,9 +45,6 @@ public:
     explicit reply_base(response_sender sender);
     ~reply_base();
 
-    // Only move without copy. The move is hand-written because
-    // std::atomic_bool is not movable; the moved-from sender is reset so
-    // that a moved-from reply never sends the 500 fallback.
     reply_base(const reply_base&) = delete;
     reply_base& operator=(const reply_base&) = delete;
 
@@ -61,7 +58,6 @@ public:
     void header(std::string_view header, std::string_view value);
 
 protected:
-    // Atomic: a deferred reply may be completed from another thread.
     std::atomic_bool m_sent{false};
     response_sender m_sender;
     http_response m_response;
@@ -113,13 +109,6 @@ public:
     }
 };
 
-// A shared handle to a reply that outlives the handler. Handlers receive
-// it by value; a copy captured into a callback keeps the reply alive, and
-// the response may be sent from any thread after the handler returned
-// (the underlying send is serialized by the session strand, and the
-// atomic send-once guard makes concurrent completions safe). If the last
-// copy is destroyed without a response, the reply destructor sends the
-// usual 500 fallback.
 template <typename T>
 class deferred_reply {
 public:

@@ -17,6 +17,9 @@ ament_auto_find_build_dependencies()
 
 ament_auto_add_library(${PROJECT_NAME}_data SHARED DIRECTORY "src/data")
 
+ament_auto_add_library(${PROJECT_NAME}_diagnostics SHARED DIRECTORY "src/diagnostics")
+target_link_libraries(${PROJECT_NAME}_diagnostics ${PROJECT_NAME}_data)
+
 ament_auto_add_library(${PROJECT_NAME}_io SHARED DIRECTORY "src/io")
 target_link_libraries(${PROJECT_NAME}_io ${PROJECT_NAME}_data yaml-cpp)
 

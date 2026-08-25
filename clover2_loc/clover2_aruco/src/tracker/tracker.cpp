@@ -66,7 +66,7 @@ tracker::CallbackReturn tracker::on_configure(
 
     try {
         m_map_client = std::make_shared<clover2_map::client>(
-            shared_from_this(), m_callback_group);
+            this, m_callback_group);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map client. Exception: %s",
                      e.what());

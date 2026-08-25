@@ -206,6 +206,7 @@ void http_session::on_write(boost::beast::error_code ec, std::size_t,
         do_close();
         return;
     }
+
     if (close) {
         do_close();
         return;

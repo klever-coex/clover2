@@ -114,9 +114,6 @@ bool router::dispatch_http(boost::beast::http::verb method,
 
     bool found = false;
 
-    // The reply lives on the heap: the endpoint may complete it after
-    // the dispatch returns (deferred replies); the last shared copy
-    // dropping unsent sends the 500 fallback.
     auto reply = std::make_shared<endpoint::reply_base>(std::move(sender));
 
     middleware_terminal terminal = [this, method, target, &segs, &found,

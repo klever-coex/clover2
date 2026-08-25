@@ -14,7 +14,6 @@
 #include <boost/url.hpp>
 
 #include <memory>
-#include <unordered_map>
 
 namespace clover2_http::http::routing {
 class router;

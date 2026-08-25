@@ -3,33 +3,47 @@
 
 // STL
 #include <format>
+#include <memory>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
 namespace clover2_http_plugins::utils {
 
-void node_info_storage::update(
-    std::shared_ptr<clover2_common::node_context> ctx) {
-    std::unordered_map<std::string, node_info> nodes;
+node_info_storage::node_info_storage(
+    std::shared_ptr<clover2_common::node_context> ctx)
+    : m_ctx(std::move(ctx)) {}
 
-    const auto graph = ctx->get_node_graph_interface();
-    const auto services = graph->get_service_names_and_types();
+void node_info_storage::update() {
+    std::lock_guard lock(m_mtx);
+    
+    const auto graph = m_ctx->get_node_graph_interface();
+    auto node_names = graph->get_node_names_and_namespaces();
 
-    for (const auto& [name, ns] : graph->get_node_names_and_namespaces()) {
-        node_info info;
-        info.name = name;
-        info.ns = ns;
+    std::unordered_set<std::string> present;
+    present.reserve(node_names.size());
 
+    std::unordered_map<std::string, std::shared_ptr<detail::node_client>> nodes;
+    for (const auto& [name, ns] : node_names) {
         const auto full_name = data::full_node_name(ns, name);
-        info.is_lifecycle = services.contains(full_name + "/change_state");
+        present.emplace(full_name);
 
-        nodes.emplace(full_name, std::move(info));
+        if (auto it = m_nodes.find(full_name); it == m_nodes.end()) {
+            nodes.emplace(full_name, std::make_shared<detail::node_client>(
+                                         m_ctx, name, ns));
+        }
     }
 
-    std::lock_guard lock(m_mtx);
-    m_ctx = std::move(ctx);
-    m_nodes = std::move(nodes);
+    for (auto it = m_nodes.begin(); it != m_nodes.end();) {
+        if (!present.contains(it->first)) {
+            it = m_nodes.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    m_nodes.merge(nodes);
 }
 
 std::vector<std::string> node_info_storage::names() const {
@@ -50,7 +64,7 @@ bool node_info_storage::has_node(const std::string& full_name) const {
     return m_nodes.contains(full_name);
 }
 
-node_info_storage::node_info node_info_storage::operator[](
+node_info_storage::node_info node_info_storage::get_info(
     const std::string& full_name) const {
     std::lock_guard lock(m_mtx);
 
@@ -59,7 +73,7 @@ node_info_storage::node_info node_info_storage::operator[](
         throw std::invalid_argument(std::format("Unknown node {}", full_name));
     }
 
-    return it->second;
+    return it->second->get_node_info();
 }
 
 std::vector<node_info_storage::topic_endpoint>
@@ -76,7 +90,7 @@ std::vector<node_info_storage::topic_endpoint> node_info_storage::endpoints(
     const std::string& full_name, bool publishers) const {
     const auto graph = m_ctx->get_node_graph_interface();
 
-    const auto node_info = (*this)[full_name];
+    const auto node_info = get_info(full_name);
     const auto& name = node_info.name;
     const auto& ns = node_info.ns;
 
@@ -109,13 +123,13 @@ std::vector<node_info_storage::topic_endpoint> node_info_storage::endpoints(
     return result;
 }
 
-std::vector<node_info_storage::service_endpoint>
-node_info_storage::get_servers(const std::string& full_name) const {
+std::vector<node_info_storage::service_endpoint> node_info_storage::get_servers(
+    const std::string& full_name) const {
     return service_endpoints(full_name, true);
 }
 
-std::vector<node_info_storage::service_endpoint>
-node_info_storage::get_clients(const std::string& full_name) const {
+std::vector<node_info_storage::service_endpoint> node_info_storage::get_clients(
+    const std::string& full_name) const {
     return service_endpoints(full_name, false);
 }
 
@@ -124,7 +138,7 @@ node_info_storage::service_endpoints(const std::string& full_name,
                                      bool servers) const {
     const auto graph = m_ctx->get_node_graph_interface();
 
-    const auto node_info = (*this)[full_name];
+    const auto node_info = get_info(full_name);
     const auto& name = node_info.name;
     const auto& ns = node_info.ns;
 

@@ -20,9 +20,6 @@ struct marker_info {
     std::optional<marker_pose> pose;
 };
 
-// Hand-written conversions: marker_frame_id and pose are optional (the
-// map server generates the frame id and only fixed markers carry a
-// pose). The json define cannot express optional-with-default fields.
 inline void to_json(nlohmann::json& j, const marker_info& m) {
     j = nlohmann::json{{"id", m.id},
                        {"type", m.type},

@@ -2,7 +2,7 @@
 
 // clover2
 #include <clover2/cam_feature/base_plugin.hpp>
-#include <clover2/map/client.hpp>
+#include <clover2_map/client.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 #include <clover2_common/node.hpp>
 #include <clover2_map/client.hpp>

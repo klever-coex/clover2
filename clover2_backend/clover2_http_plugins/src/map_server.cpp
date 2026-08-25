@@ -7,9 +7,6 @@
 #include <tf2/LinearMath/Matrix3x3.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 
-// pluginlib
-#include <pluginlib/class_list_macros.hpp>
-
 // STL
 #include <string>
 #include <utility>
@@ -112,13 +109,8 @@ void map_server::on_initialize() {
         map_node.insert(map_node.begin(), '/');
     }
 
-    m_map_client = std::make_shared<clover2_map::client>(
-        m_node_context->get_node_base_interface(),
-        m_node_context->get_node_graph_interface(),
-        m_node_context->get_node_parameters_interface(),
-        m_node_context->get_node_topics_interface(),
-        m_node_context->get_node_services_interface(),
-        m_node_context->get_node_logging_interface(), m_map_group, map_node);
+    m_map_client = std::make_shared<clover2_map::client>(m_node_context,
+                                                         m_map_group, map_node);
 
     m_refresh_timer = rclcpp::create_timer(
         m_node_context->get_node_base_interface(),
@@ -307,6 +299,8 @@ void map_server::handle_delete(
 }
 
 }  // namespace clover2_http_plugins
+
+#include <pluginlib/class_list_macros.hpp>
 
 PLUGINLIB_EXPORT_CLASS(clover2_http_plugins::map_server,
                        clover2_http::base_plugin)

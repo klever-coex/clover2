@@ -47,8 +47,7 @@ void map_server_task::run(diagnostic_updater::DiagnosticStatusWrapper& stat) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "Map loaded");
     }
 
-    stat.add("Map frame",
-             map.header.frame_id.empty() ? "unknown" : map.header.frame_id);
+    stat.add("Map frame", map.frame_id.empty() ? "unknown" : map.frame_id);
     stat.add("Map path", m_map_path.empty() ? "unknown" : m_map_path);
     stat.add("Marker count", std::to_string(map.markers.size()));
 }

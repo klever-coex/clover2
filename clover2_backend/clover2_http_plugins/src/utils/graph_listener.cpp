@@ -2,13 +2,12 @@
 #include <clover2_http_plugins/utils/graph_listener.hpp>
 
 // ROS2
+#include <rclcpp/create_timer.hpp>
 #include <rclcpp/logging.hpp>
 #include <rclcpp/utilities.hpp>
 
 // STL
 #include <chrono>
-#include <exception>
-#include <pthread.h>
 #include <utility>
 
 using namespace std::chrono_literals;
@@ -20,6 +19,31 @@ graph_listener::graph_listener(
     : m_node_context(std::move(node_context))
     , m_callback(std::move(cb)) {
     m_event = m_node_context->get_node_graph_interface()->get_graph_event();
+
+    m_timer = rclcpp::create_wall_timer(
+        std::chrono::seconds(5),  //
+        [this]() {
+            m_timer->cancel();
+
+            if (!m_callback) {
+                return;
+            }
+
+            try {
+                m_callback();
+            } catch (const std::exception& e) {
+                RCLCPP_ERROR(m_node_context->get_logger(),
+                             "graph_listener callback failed: %s", e.what());
+            } catch (...) {
+                RCLCPP_ERROR(
+                    m_node_context->get_logger(),
+                    "graph_listener callback failed with an unknown error");
+            }
+        },
+        m_node_context->get_node_base_interface()->get_default_callback_group(),
+        m_node_context->get_node_base_interface().get(),
+        m_node_context->get_node_timers_interface().get());
+
     m_thread = std::thread(&graph_listener::run, this);
 }
 
@@ -29,6 +53,8 @@ graph_listener::~graph_listener() {
     if (m_thread.joinable()) {
         m_thread.join();
     }
+
+    m_timer.reset();
 }
 
 void graph_listener::run() {
@@ -40,16 +66,9 @@ void graph_listener::run() {
             continue;
         }
 
-        try {
-            m_callback();
-        } catch (const std::exception& e) {
-            RCLCPP_ERROR(m_node_context->get_logger(),
-                         "graph_listener callback failed: %s", e.what());
-        } catch (...) {
-            RCLCPP_ERROR(
-                m_node_context->get_logger(),
-                "graph_listener callback failed with an unknown error");
-        }
+        // reset timer, not pointer
+        m_timer->cancel();
+        m_timer->reset();
     }
 }
 

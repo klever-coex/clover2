@@ -1,6 +1,7 @@
 #pragma once
 
 // JSON
+#include <nlohmann/detail/macro_scope.hpp>
 #include <nlohmann/json.hpp>
 
 // STL
@@ -10,9 +11,9 @@ namespace clover2_http_plugins::data {
 
 struct modify_result {
     bool success = false;
-    std::string error_message;
+    std::string error_message = "";
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(modify_result, success, error_message)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(modify_result, success, error_message)
 
 }  // namespace clover2_http_plugins::data

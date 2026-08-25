@@ -70,8 +70,7 @@ void reply_base::header(std::string_view header, std::string_view value) {
 
 void reply_base::send_raw(std::string body, std::string_view content_type,
                           int status) {
-    // Send-once guard must be the first statement: concurrent completions
-    // of a deferred reply race here.
+
     if (m_sent.exchange(true)) return;
 
     m_response.result(status);

@@ -12,9 +12,6 @@ class interface {
 public:
     virtual ~interface() = default;
 
-    // The reply is shared so handlers may complete it after returning
-    // (deferred replies from async callbacks); when the last shared copy
-    // drops unsent, the destructor sends the 500 fallback.
     virtual void invoke(core::request_context& ctx, http_request& req,
                         std::shared_ptr<reply_base> reply) = 0;
 };

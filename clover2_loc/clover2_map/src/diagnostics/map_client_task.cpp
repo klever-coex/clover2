@@ -1,4 +1,4 @@
-#include <clover2/map/diagnostics/map_client_task.hpp>
+#include <clover2_map/diagnostics/map_client_task.hpp>
 
 // ROS2
 #include <diagnostic_msgs/msg/diagnostic_status.hpp>

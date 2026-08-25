@@ -7,6 +7,7 @@
 #include <clover2_http_plugins/data/topics.hpp>
 #include <clover2_http_plugins/utils/graph_listener.hpp>
 #include <clover2_http_plugins/utils/node_info_storage.hpp>
+#include <memory>
 
 namespace clover2_http_plugins {
 
@@ -40,7 +41,7 @@ private:
             session);
 
     double m_rate_limit = 100000.0;
-    clover2_http_plugins::utils::node_info_storage m_node_info_storage;
+    std::shared_ptr<clover2_http_plugins::utils::node_info_storage> m_node_info_storage;
     std::shared_ptr<clover2_http_plugins::utils::graph_listener>
         m_graph_listener;
 };

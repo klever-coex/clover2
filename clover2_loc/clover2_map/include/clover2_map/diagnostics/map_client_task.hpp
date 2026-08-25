@@ -7,11 +7,12 @@
 #include <memory>
 #include <string>
 
-namespace clover2::map::diagnostics {
+namespace clover2_map::diagnostics {
 
 class map_client_task : public diagnostic_updater::DiagnosticTask {
 public:
-    explicit map_client_task(const std::string& name = "/localization/map/client");
+    explicit map_client_task(
+        const std::string& name = "/localization/map/client");
 
     void set_name_getter(const std::function<std::string()>& getter) {
         m_name_getter = getter;
@@ -38,4 +39,4 @@ private:
     std::function<bool()> m_map_valid_getter{nullptr};
 };
 
-}  // namespace clover2::map::diagnostics
+}  // namespace clover2_map::diagnostics

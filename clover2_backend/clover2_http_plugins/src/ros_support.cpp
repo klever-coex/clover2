@@ -11,10 +11,10 @@
 #include <clover2_http_plugins/utils/universal_subscriber.hpp>
 
 // ROS2
-#include <pluginlib/class_list_macros.hpp>
 #include <rclcpp/graph_listener.hpp>
 
 // STL
+#include <memory>
 #include <string>
 
 namespace {
@@ -79,11 +79,14 @@ void ros_support::on_initialize() {
     auto parameters_watcher =
         m_node_context->get_node_parameters_watcher_interface();
 
+    m_node_info_storage =
+        std::make_shared<utils::node_info_storage>(m_node_context);
+
     m_graph_listener =
         std::make_shared<clover2_http_plugins::utils::graph_listener>(
             m_node_context, [this]() {
-                RCLCPP_DEBUG(get_logger(), "Update graph signal");
-                m_node_info_storage.update(m_node_context);
+                RCLCPP_INFO(get_logger(), "Update graph signal");
+                m_node_info_storage->update();
             });
 
     clover2_common::util::declare_and_watch_parameter<double>(
@@ -93,11 +96,11 @@ void ros_support::on_initialize() {
 
     m_server->get<topics>(
         "/api/topics", std::bind(&ros_support::handle_topics, this,
-                             std::placeholders::_1, std::placeholders::_2));
+                                 std::placeholders::_1, std::placeholders::_2));
 
     m_server->get<nodes>(
         "/api/nodes", std::bind(&ros_support::handle_nodes, this,
-                            std::placeholders::_1, std::placeholders::_2));
+                                std::placeholders::_1, std::placeholders::_2));
 
     m_server->get<node_info>(
         "/api/node/info/-/{node...}",
@@ -106,60 +109,64 @@ void ros_support::on_initialize() {
 
     m_server->get<node_topics>(
         "/api/node/publishers/-/{node...}",
-        [this](clover2_http::http::core::request_context ctx,
-               clover2_http::http::endpoint::deferred_reply<node_topics> reply) {
+        [this](
+            clover2_http::http::core::request_context ctx,
+            clover2_http::http::endpoint::deferred_reply<node_topics> reply) {
             std::string node_name = ctx.param<std::string>("node");
             if (node_name.empty() || node_name.front() != '/') {
                 node_name.insert(node_name.begin(), '/');
             }
 
             node_topics response;
-            response.topics = m_node_info_storage.get_publishers(node_name);
+            response.topics = m_node_info_storage->get_publishers(node_name);
 
             reply(response, 200);
         });
 
     m_server->get<node_topics>(
         "/api/node/subscribes/-/{node...}",
-        [this](clover2_http::http::core::request_context ctx,
-               clover2_http::http::endpoint::deferred_reply<node_topics> reply) {
+        [this](
+            clover2_http::http::core::request_context ctx,
+            clover2_http::http::endpoint::deferred_reply<node_topics> reply) {
             std::string node_name = ctx.param<std::string>("node");
             if (node_name.empty() || node_name.front() != '/') {
                 node_name.insert(node_name.begin(), '/');
             }
 
             node_topics response;
-            response.topics = m_node_info_storage.get_subscribes(node_name);
+            response.topics = m_node_info_storage->get_subscribes(node_name);
 
             reply(response, 200);
         });
 
     m_server->get<node_services>(
         "/api/node/servers/-/{node...}",
-        [this](clover2_http::http::core::request_context ctx,
-               clover2_http::http::endpoint::deferred_reply<node_services> reply) {
+        [this](
+            clover2_http::http::core::request_context ctx,
+            clover2_http::http::endpoint::deferred_reply<node_services> reply) {
             std::string node_name = ctx.param<std::string>("node");
             if (node_name.empty() || node_name.front() != '/') {
                 node_name.insert(node_name.begin(), '/');
             }
 
             node_services response;
-            response.services = m_node_info_storage.get_servers(node_name);
+            response.services = m_node_info_storage->get_servers(node_name);
 
             reply(response, 200);
         });
 
     m_server->get<node_services>(
         "/api/node/clients/-/{node...}",
-        [this](clover2_http::http::core::request_context ctx,
-               clover2_http::http::endpoint::deferred_reply<node_services> reply) {
+        [this](
+            clover2_http::http::core::request_context ctx,
+            clover2_http::http::endpoint::deferred_reply<node_services> reply) {
             std::string node_name = ctx.param<std::string>("node");
             if (node_name.empty() || node_name.front() != '/') {
                 node_name.insert(node_name.begin(), '/');
             }
 
             node_services response;
-            response.services = m_node_info_storage.get_clients(node_name);
+            response.services = m_node_info_storage->get_clients(node_name);
 
             reply(response, 200);
         });
@@ -184,7 +191,7 @@ void ros_support::handle_nodes(
     clover2_http::http::endpoint::deferred_reply<nodes> reply) {
     nodes response;
 
-    response.nodes = m_node_info_storage.names();
+    response.nodes = m_node_info_storage->names();
 
     reply(response, 200);
 }
@@ -198,7 +205,7 @@ void ros_support::handle_node_info(
     }
 
     try {
-        node_info response = m_node_info_storage[node_name];
+        node_info response = m_node_info_storage->get_info(node_name);
 
         reply(response, 200);
     } catch (const std::exception& e) {
@@ -267,6 +274,8 @@ void ros_support::handle_topic_json_stream(
 }
 
 }  // namespace clover2_http_plugins
+
+#include <pluginlib/class_list_macros.hpp>
 
 PLUGINLIB_EXPORT_CLASS(clover2_http_plugins::ros_support,
                        clover2_http::base_plugin)

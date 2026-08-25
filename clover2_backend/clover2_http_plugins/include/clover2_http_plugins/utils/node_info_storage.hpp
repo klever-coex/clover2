@@ -5,6 +5,7 @@
 #include <clover2_http_plugins/data/node_info.hpp>
 #include <clover2_http_plugins/data/service_endpoint.hpp>
 #include <clover2_http_plugins/data/topic_endpoint.hpp>
+#include <clover2_http_plugins/utils/detail/node_client.hpp>
 
 // STL
 #include <memory>
@@ -21,14 +22,15 @@ class node_info_storage {
     using topic_endpoint = clover2_http_plugins::data::topic_endpoint;
 
 public:
-    explicit node_info_storage() = default;
+    explicit node_info_storage(
+        std::shared_ptr<clover2_common::node_context> ctx);
     ~node_info_storage() = default;
 
-    void update(std::shared_ptr<clover2_common::node_context> ctx);
+    void update();
 
     std::vector<std::string> names() const;
     bool has_node(const std::string& full_name) const;
-    node_info operator[](const std::string& full_name) const;
+    node_info get_info(const std::string& full_name) const;
 
     std::vector<topic_endpoint> get_publishers(
         const std::string& full_name) const;
@@ -46,8 +48,9 @@ private:
         const std::string& full_name, bool servers) const;
 
     mutable std::mutex m_mtx;
-    std::unordered_map<std::string, node_info> m_nodes;
     std::shared_ptr<clover2_common::node_context> m_ctx;
+    std::unordered_map<std::string, std::shared_ptr<detail::node_client>>
+        m_nodes;
 };
 
 }  // namespace clover2_http_plugins::utils
