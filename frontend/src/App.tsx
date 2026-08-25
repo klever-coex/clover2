@@ -1,11 +1,16 @@
+import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router';
 import { Sidebar } from './components/layout/Sidebar.tsx';
+import { LoadingState } from './components/ui/LoadingState.tsx';
 import { Dashboard } from './pages/Dashboard.tsx';
 import { Settings } from './pages/Settings.tsx';
 import { NodeDetailPage } from './pages/ros2/NodeDetailPage.tsx';
 import { NodesPage } from './pages/ros2/NodesPage.tsx';
 import { TopicDetailPage } from './pages/ros2/TopicDetailPage.tsx';
 import { TopicsPage } from './pages/ros2/TopicsPage.tsx';
+
+// Lazy route: three/fiber/drei (~1 MB) land in a separate chunk.
+const MapPage = lazy(() => import('./pages/map/MapPage.tsx'));
 
 export default function App() {
   return (
@@ -14,6 +19,14 @@ export default function App() {
       <main className="flex-1 overflow-y-auto">
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route
+            path="/map"
+            element={
+              <Suspense fallback={<LoadingState variant="centered" />}>
+                <MapPage />
+              </Suspense>
+            }
+          />
           <Route path="/ros2/nodes" element={<NodesPage />} />
           <Route path="/ros2/nodes/detail" element={<NodeDetailPage />} />
           <Route path="/ros2/topics" element={<TopicsPage />} />

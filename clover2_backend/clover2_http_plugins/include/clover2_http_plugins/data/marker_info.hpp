@@ -2,6 +2,7 @@
 
 // clover2
 #include <clover2_http_plugins/data/marker_pose.hpp>
+#include <clover2_http_plugins/utils/json_adl.hpp>
 
 // JSON
 #include <nlohmann/json.hpp>
@@ -20,31 +21,7 @@ struct marker_info {
     std::optional<marker_pose> pose;
 };
 
-inline void to_json(nlohmann::json& j, const marker_info& m) {
-    j = nlohmann::json{{"id", m.id},
-                       {"type", m.type},
-                       {"size", m.size},
-                       {"marker_frame_id", m.marker_frame_id}};
-    if (m.pose) {
-        j["pose"] = *m.pose;
-    }
-}
-
-inline void from_json(const nlohmann::json& j, marker_info& m) {
-    j.at("id").get_to(m.id);
-    j.at("type").get_to(m.type);
-
-    if (j.contains("size")) {
-        j.at("size").get_to(m.size);
-    }
-
-    if (j.contains("marker_frame_id")) {
-        j.at("marker_frame_id").get_to(m.marker_frame_id);
-    }
-
-    if (j.contains("pose") && !j.at("pose").is_null()) {
-        m.pose = j.at("pose").get<marker_pose>();
-    }
-}
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(marker_info, id, type, size,
+                                                marker_frame_id, pose);
 
 }  // namespace clover2_http_plugins::data

@@ -21,8 +21,9 @@ export function createFetchExecutor(): TransportExecutor {
 
 async function readErrorMessage(response: Response): Promise<string> {
   try {
-    const body = (await response.json()) as { error?: unknown };
+    const body = (await response.json()) as { error?: unknown; error_message?: unknown };
     if (typeof body.error === 'string') return body.error;
+    if (typeof body.error_message === 'string') return body.error_message;
   } catch {
   }
   return `HTTP ${response.status}`;

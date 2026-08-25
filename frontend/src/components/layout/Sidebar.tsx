@@ -9,6 +9,7 @@ import {
   Drone,
   EthernetPort,
   Globe,
+  Map,
   Menu,
   Network,
   Orbit,
@@ -43,6 +44,7 @@ const { protocol, hostname } = window.location;
 /** Single unified navigation tree — groups nest their children without any offset. */
 const MENU: NavItem[] = [
   { key: 'dashboard', labelKey: 'sidebar.dashboard', icon: Drone, to: '/' },
+  { key: 'map', labelKey: 'sidebar.map', icon: Map, to: '/map' },
   { key: 'settings', labelKey: 'sidebar.settings', icon: Settings, to: '/settings' },
   {
     key: 'ros2',
