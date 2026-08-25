@@ -183,5 +183,5 @@ px   └──────────────┘
 ```python
 raw = np.frombuffer(msg.data[:msg.height * msg.width * 2], dtype="<u2").reshape(msg.height, msg.width)
 temperature_raw = raw[msg.height // 2:, :]
-temperature_c = temperature_raw.astype(np.float32) / 64.0 — 273.15
+temperature_c = temperature_raw.astype(np.float32) / 64.0 - 273.15
 ```
