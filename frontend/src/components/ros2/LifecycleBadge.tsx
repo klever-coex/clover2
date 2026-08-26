@@ -26,7 +26,7 @@ const STATE_KEYS: Record<LifecycleState, TranslationKey> = {
 export function LifecycleBadge({ state }: LifecycleBadgeProps) {
   const { t } = useTranslation();
 
-  if (state !== undefined) {
+  if (state !== undefined && state != null) {
     return <Badge tone={STATE_TONES[state]}>{t(STATE_KEYS[state])}</Badge>;
   }
 

@@ -5,6 +5,7 @@
     "ros2": "ROS2",
     "nodes": "Nodes",
     "topics": "Topics",
+    "logs": "Logs",
     "settings": "Settings",
     "documentation": "Documentation",
     "video": "Video",
@@ -79,6 +80,24 @@
     "sortType": "Type",
     "empty": "No topics found",
     "noCapability": "ROS backend plugin is not available"
+  },
+  "logs": {
+    "title": "ROS Logs",
+    "noCapability": "ROS topics plugin is not available",
+    "searchPlaceholder": "Search by message, node or file...",
+    "minLevel": "Minimum level",
+    "levelAll": "All",
+    "levelInfo": "Info+",
+    "levelWarn": "Warn+",
+    "levelError": "Error+",
+    "levelFatal": "Fatal only",
+    "pause": "Pause",
+    "resume": "Resume",
+    "clear": "Clear",
+    "empty": "Waiting for messages...",
+    "noMatches": "No messages match the filter",
+    "pausedBadge": "Paused, missed: {{count}}",
+    "received": "received"
   },
   "topicDetail": {
     "unknownTopic": "Unknown topic",

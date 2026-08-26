@@ -29,7 +29,8 @@ get_ros_pkg_share() {
 
 log_info "Install some scripts"
 sudo cp $ASSETS_DIR/clover2_firstboot.sh /root/
-sudo cp $ASSETS_DIR/ros2_launch.sh /opt/clover2/
+sudo cp $ASSETS_DIR/bin/* /usr/local/bin/
+
 cp $ASSETS_DIR/ros2.env /opt/clover2/.ros2.env
 cp $REPO_DIR/tooling/configs/cyclonedds.xml /opt/clover2/cyclonedds.xml
 cp $REPO_DIR/tooling/configs/cyclonedds_lo.xml /opt/clover2/cyclonedds_lo.xml
@@ -41,7 +42,7 @@ sudo mkdir /var/log/clover2
 sudo chmod 755 /var/log/clover2
 
 sudo chmod +x /root/clover2_firstboot.sh
-sudo chmod +x /opt/clover2/ros2_launch.sh
+sudo chmod +x /usr/local/bin/clover2_*.sh
 
 log_info "Install clover2 services"
 sudo cp $ASSETS_DIR/systemd/* /etc/systemd/system/

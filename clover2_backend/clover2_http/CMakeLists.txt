@@ -27,6 +27,11 @@ rclcpp_components_register_node(${PROJECT_NAME}_node
   EXECUTABLE server
 )
 
+install(
+  DIRECTORY launch params
+  DESTINATION share/${PROJECT_NAME}
+)
+
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
 

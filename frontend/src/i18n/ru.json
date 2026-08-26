@@ -5,6 +5,7 @@
     "ros2": "ROS2",
     "nodes": "Узлы",
     "topics": "Топики",
+    "logs": "Логи",
     "settings": "Настройки",
     "documentation": "Документация",
     "video": "Видео",
@@ -79,6 +80,24 @@
     "sortType": "По типу",
     "empty": "Топики не найдены",
     "noCapability": "Плагин бэкенда ROS недоступен"
+  },
+  "logs": {
+    "title": "Логи ROS",
+    "noCapability": "Плагин топиков ROS недоступен",
+    "searchPlaceholder": "Поиск по сообщению, узлу или файлу...",
+    "minLevel": "Минимальный уровень",
+    "levelAll": "Все",
+    "levelInfo": "Info+",
+    "levelWarn": "Warn+",
+    "levelError": "Error+",
+    "levelFatal": "Только Fatal",
+    "pause": "Приостановить",
+    "resume": "Продолжить",
+    "clear": "Очистить",
+    "empty": "Ожидание сообщений...",
+    "noMatches": "Нет сообщений по фильтру",
+    "pausedBadge": "Приостановлено, пропущено: {{count}}",
+    "received": "получено"
   },
   "topicDetail": {
     "unknownTopic": "Топик не найден",

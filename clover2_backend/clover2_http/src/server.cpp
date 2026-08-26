@@ -3,6 +3,8 @@
 #include <clover2_http/logger.hpp>
 #include <clover2_http/server.hpp>
 
+#include <exception>
+
 namespace clover2_http {
 
 server::server(const rclcpp::NodeOptions& options)
@@ -39,14 +41,13 @@ server::server(const rclcpp::NodeOptions& options)
         RCLCPP_INFO(get_logger(), "Loading http plugin: %s",
                     plugin_class.c_str());
 
-        plugin->initialize(node_context, m_server);
+        try {
+            plugin->initialize(node_context, m_server);
 
-        auto info = plugin->manifest();
-        if (info.name.empty()) {
-            info.name = plugin_class;
+            m_plugins[plugin_class] = std::move(plugin);
+        } catch (const std::exception& e) {
+            RCLCPP_ERROR(get_logger(), "Loading failed: %s", e.what());
         }
-
-        m_plugins[plugin_class] = std::move(plugin);
     }
 
     m_server->listen(address, static_cast<uint16_t>(port));

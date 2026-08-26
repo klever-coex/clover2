@@ -100,10 +100,10 @@ void map_server::on_initialize() {
 
     auto parameters = m_node_context->get_node_parameters_interface();
     clover2_common::util::declare_parameter_if_not_declared(
-        parameters, "map_node", "map_server");
+        parameters, "map_server.map_node", "map_server");
 
     rclcpp::Parameter map_node_param;
-    parameters->get_parameter("map_node", map_node_param);
+    parameters->get_parameter("map_server.map_node", map_node_param);
     std::string map_node = map_node_param.as_string();
     if (!map_node.empty() && map_node.front() != '/') {
         map_node.insert(map_node.begin(), '/');

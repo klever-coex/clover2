@@ -1,18 +1,14 @@
-import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
   BookOpenText,
-  ChevronDown,
-  Drone,
   EthernetPort,
   Globe,
   Map,
   Menu,
   Network,
-  Orbit,
-  Settings,
+  ScrollText,
   SquarePen,
   Video,
 } from 'lucide-react';
@@ -29,42 +25,48 @@ interface NavLinkItem {
   to: string | ((lang: string) => string);
 }
 
-interface NavGroupItem {
+interface NavSection {
   key: string;
-  labelKey: TranslationKey;
-  icon: LucideIcon;
-  children: NavLinkItem[];
+  /** Uppercase caption with a hairline rule; sections without one are separated by the rule alone. */
+  labelKey?: TranslationKey;
+  items: NavLinkItem[];
 }
-
-type NavItem = NavLinkItem | NavGroupItem;
 
 const { protocol, hostname } = window.location;
 
-const MENU: NavItem[] = [
-  // { key: 'dashboard', labelKey: 'sidebar.dashboard', icon: Drone, to: '/' },
-  { key: 'map', labelKey: 'sidebar.map', icon: Map, to: '/map' },
-  { key: 'video', labelKey: 'sidebar.video', icon: Video, to: '/video' },
-  // { key: 'settings', labelKey: 'sidebar.settings', icon: Settings, to: '/settings' },
+const MENU: NavSection[] = [
   {
-    key: 'ros2',
-    labelKey: 'sidebar.ros2',
-    icon: Orbit,
-    children: [
-      { key: 'nodes', labelKey: 'sidebar.nodes', icon: Network, to: '/ros2/nodes' },
-      { key: 'topics', labelKey: 'sidebar.topics', icon: EthernetPort, to: '/ros2/topics' },
+    key: 'main',
+    items: [
+      { key: 'map', labelKey: 'sidebar.map', icon: Map, to: '/map' },
+      { key: 'video', labelKey: 'sidebar.video', icon: Video, to: '/video' },
     ],
   },
   {
-    key: 'documentation',
-    labelKey: 'sidebar.documentation',
-    icon: BookOpenText,
-    to: (lang) => `${protocol}//${hostname}:9000/${lang}/index.html`,
+    key: 'ros2',
+    labelKey: 'sidebar.ros2',
+    items: [
+      { key: 'nodes', labelKey: 'sidebar.nodes', icon: Network, to: '/ros2/nodes' },
+      { key: 'topics', labelKey: 'sidebar.topics', icon: EthernetPort, to: '/ros2/topics' },
+      { key: 'logs', labelKey: 'sidebar.logs', icon: ScrollText, to: '/ros2/logs' },
+    ],
   },
   {
-    key: 'ide',
-    labelKey: 'sidebar.ide',
-    icon: SquarePen,
-    to: () => `${protocol}//${hostname}:9880/?folder=/home/pi`,
+    key: 'external',
+    items: [
+      {
+        key: 'documentation',
+        labelKey: 'sidebar.documentation',
+        icon: BookOpenText,
+        to: (lang) => `${protocol}//${hostname}:9000/${lang}/index.html`,
+      },
+      {
+        key: 'ide',
+        labelKey: 'sidebar.ide',
+        icon: SquarePen,
+        to: () => `${protocol}//${hostname}:9880/?folder=/home/pi`,
+      },
+    ],
   },
 ];
 
@@ -78,9 +80,6 @@ const rowBase =
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(true);
-  const [openGroups, setOpenGroups] = useState<Set<string>>(() => new Set(['ros2']));
-  const [flyoutKey, setFlyoutKey] = useState<string | null>(null);
-  const [flyoutRect, setFlyoutRect] = useState<DOMRect | null>(null);
   const { t, i18n } = useTranslation();
   const { pathname } = useLocation();
 
@@ -89,68 +88,28 @@ export function Sidebar() {
     localStorage.setItem('language', lang);
   };
 
-  useEffect(() => {
-    if (flyoutKey === null) return;
-
-    const onMouseDown = (event: MouseEvent) => {
-      const target = event.target;
-      if (!(target instanceof Element) || !target.closest('[data-nav-flyout]')) {
-        setFlyoutKey(null);
-      }
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setFlyoutKey(null);
-    };
-
-    document.addEventListener('mousedown', onMouseDown);
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', onMouseDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [flyoutKey]);
-
-  const itemClasses = (active: boolean, showLabel: boolean) =>
+  const itemClasses = (active: boolean) =>
     cn(
       rowBase,
-      showLabel ? 'gap-3 justify-start' : 'justify-center',
+      isOpen ? 'gap-3 justify-start' : 'justify-center',
       active
         ? 'bg-surface-2 text-accent-text shadow-[inset_2px_0_0_0_var(--color-accent)]'
         : 'text-ink-muted hover:bg-surface-2 hover:text-ink',
     );
 
-  const isGroupOpen = (key: string) => openGroups.has(key);
+  const isItemActive = (item: NavLinkItem) =>
+    typeof item.to === 'string' &&
+    (pathname === item.to || pathname.startsWith(`${item.to}/`));
 
-  const toggleGroup = (key: string, rect?: DOMRect) => {
-    if (!isOpen) {
-      const nextOpen = flyoutKey !== key;
-      setFlyoutKey(nextOpen ? key : null);
-      if (nextOpen && rect !== undefined) setFlyoutRect(rect);
-      return;
-    }
-    setFlyoutKey(null);
-    setOpenGroups((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  };
-
-  const renderLink = (item: NavLinkItem, showLabel = isOpen) => {
+  const renderLink = (item: NavLinkItem) => {
     const Icon = item.icon;
     const label = (
-      <span className={showLabel ? 'whitespace-nowrap' : 'sr-only'}>{t(item.labelKey)}</span>
+      <span className={isOpen ? 'whitespace-nowrap' : 'sr-only'}>{t(item.labelKey)}</span>
     );
 
     if (typeof item.to === 'string') {
       return (
-        <NavLink
-          key={item.key}
-          to={item.to}
-          onClick={() => setFlyoutKey(null)}
-          className={({ isActive }) => itemClasses(isActive, showLabel)}
-        >
+        <NavLink key={item.key} to={item.to} className={() => itemClasses(isItemActive(item))}>
           <Icon size={20} className="shrink-0" />
           {label}
         </NavLink>
@@ -163,99 +122,12 @@ export function Sidebar() {
         href={item.to(i18n.language)}
         target="_blank"
         rel="noreferrer"
-        onClick={() => setFlyoutKey(null)}
-        className={itemClasses(false, showLabel)}
+        className={itemClasses(false)}
       >
         <Icon size={20} className="shrink-0" />
         {label}
       </a>
     );
-  };
-
-  const renderItem = (item: NavItem) => {
-    if ('children' in item) {
-      const expanded = isGroupOpen(item.key);
-      const flyoutOpen = flyoutKey === item.key;
-      const Icon = item.icon;
-      const groupActive = item.children.some(
-        (child) =>
-          typeof child.to === 'string' &&
-          (pathname === child.to || pathname.startsWith(`${child.to}/`)),
-      );
-
-      return (
-        <div key={item.key} data-nav-flyout>
-          <button
-            type="button"
-            onClick={(event) => toggleGroup(item.key, event.currentTarget.getBoundingClientRect())}
-            aria-expanded={isOpen ? expanded : flyoutOpen}
-            aria-controls={isOpen ? `nav-group-${item.key}` : `nav-flyout-${item.key}`}
-            className={cn(
-              rowBase,
-              'w-full',
-              isOpen ? 'gap-3 justify-start' : 'justify-center',
-              groupActive
-                ? 'bg-surface-2 text-accent-text shadow-[inset_2px_0_0_0_var(--color-accent)]'
-                : isOpen && expanded
-                  ? 'text-ink'
-                  : 'text-ink-muted',
-              'hover:bg-surface-2 hover:text-ink',
-            )}
-          >
-            <Icon size={20} className="shrink-0" />
-            {isOpen ? (
-              <>
-                <span className="flex-1 text-left whitespace-nowrap">{t(item.labelKey)}</span>
-                <ChevronDown
-                  size={16}
-                  className={cn(
-                    'shrink-0 transition-transform duration-normal',
-                    expanded && 'rotate-180',
-                  )}
-                />
-              </>
-            ) : (
-              <span className="sr-only">{t(item.labelKey)}</span>
-            )}
-          </button>
-
-          {isOpen ? (
-            <div
-              id={`nav-group-${item.key}`}
-              className={cn(
-                'grid transition-[grid-template-rows] duration-normal',
-                expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
-              )}
-            >
-              <div
-                className={cn(
-                  'overflow-hidden min-h-0 space-y-1',
-                  expanded ? 'visible' : 'invisible',
-                )}
-              >
-                {item.children.map((child) => renderLink(child))}
-              </div>
-            </div>
-          ) : (
-            flyoutOpen &&
-            flyoutRect !== null &&
-            createPortal(
-              <div
-                id={`nav-flyout-${item.key}`}
-                data-nav-flyout
-                className="fixed z-50 w-56 rounded-panel border border-line bg-surface-1 p-1 space-y-1"
-                style={{ left: flyoutRect.right + 8, top: flyoutRect.top }}
-              >
-                {item.children.map((child) => renderLink(child, true))}
-              </div>,
-              document.body,
-            )
-          )}
-        </div>
-      );
-    }
-
-    return renderLink(item);
   };
 
   return (
@@ -277,16 +149,30 @@ export function Sidebar() {
           icon={Menu}
           label={t('sidebar.toggleMenu')}
           expanded={isOpen}
-          onClick={() => {
-            setIsOpen((current) => !current);
-            setFlyoutKey(null);
-          }}
+          onClick={() => setIsOpen((current) => !current)}
         />
       </div>
 
       {/* Menu */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {MENU.map(renderItem)}
+      <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
+        {MENU.map((section, index) => (
+          <div key={section.key}>
+            {section.labelKey !== undefined && isOpen ? (
+              <div
+                className={cn(
+                  'flex items-center gap-2 px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest',
+                  section.items.some(isItemActive) ? 'text-ink' : 'text-ink-faint',
+                )}
+              >
+                {t(section.labelKey)}
+                <span className="h-px flex-1 bg-line/40" />
+              </div>
+            ) : (
+              index > 0 && <div className="mx-2 mb-2 h-px bg-line/40" />
+            )}
+            <div className="space-y-1">{section.items.map(renderLink)}</div>
+          </div>
+        ))}
       </nav>
 
       {/* Language Selector */}

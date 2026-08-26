@@ -81,7 +81,6 @@ export async function saveMap(): Promise<void> {
   s.setSaving(true);
   s.setMutationError(null);
   try {
-    // Sequential on purpose: deterministic order and the first failure stops the batch.
     for (const op of ops) {
       const result = await op();
       if (!result.success) {
@@ -94,54 +93,6 @@ export async function saveMap(): Promise<void> {
     return;
   }
   s.setSaving(false);
-  await s.reloadMap(); // refetch backend truth and recapture the baseline
+  await s.reloadMap();
 }
 
-export function downloadProject(): void {
-  const data = exportProjectSnapshot();
-  const name = useMapStore.getState().mapMeta?.name || DEFAULT_PROJECT_NAME;
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-export function exportProjectSnapshot(): ProjectFile {
-  const s = useMapStore.getState();
-  const dictionary = s.mapMeta?.dictionary ?? 'DICT_4X4_1000';
-
-  const markers: MarkerSnapshot[] = Object.values(s.markers).map((m) => {
-    const ui = s.markerUi[String(m.id)];
-    const positionExpr = ui?.positionExpr
-      ?? (m.pose ? vec3ToPositionExpr([m.pose.x, m.pose.y, m.pose.z]) : [...DEFAULT_POSITION_EXPR]);
-    const rotationExpr = ui?.rotationExpr
-      ?? (m.pose ? eulerDegToRotationExpr(rpyToEulerYxzDeg(m.pose.roll, m.pose.pitch, m.pose.yaw)) : [...DEFAULT_ROTATION_EXPR]);
-
-    return {
-      id: String(m.id),
-      markerId: m.id,
-      dictionary,
-      label: m.markerFrameId,
-      sizeM: m.sizeM,
-      positionExpr,
-      rotationExpr,
-      visible: true,
-    };
-  });
-
-  return {
-    version: 1,
-    meta: {
-      name: s.mapMeta?.name || DEFAULT_PROJECT_NAME,
-      description: '',
-      createdAt: new Date().toISOString(),
-      gridStepMm: DEFAULT_GRID_STEP_MM,
-      angleSnapDeg: 15,
-    },
-    markers,
-    dictionaryName: dictionary,
-  };
-}

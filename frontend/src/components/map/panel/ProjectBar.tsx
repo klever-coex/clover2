@@ -1,12 +1,11 @@
 import { useTranslation } from 'react-i18next';
 
-import { downloadProject, saveMap } from '../../../store/mapMutations.ts';
+import { saveMap } from '../../../store/mapMutations.ts';
 import { mapDirtyIds } from '../../../store/slices/mapSlice.ts';
 import { useMapStore } from '../../../store/useMapStore.ts';
 import { Badge } from '../../ui/Badge.tsx';
 import { Button } from '../../ui/Button.tsx';
 
-/** Map name (read-only), frame/dictionary/count badges, save and JSON export. */
 export function ProjectBar() {
   const { t } = useTranslation();
   const mapMeta = useMapStore((s) => s.mapMeta);
@@ -18,20 +17,17 @@ export function ProjectBar() {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-semibold text-ink truncate">
+        <span className="text-md font-semibold text-ink truncate">
           {mapMeta?.name || t('map.title')}
         </span>
         <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="primary"
-            size="sm"
+            size="md"
             disabled={!dirty || saving}
             onClick={() => void saveMap()}
           >
             {saving ? t('map.saving') : t('map.save')}
-          </Button>
-          <Button variant="secondary" size="sm" onClick={downloadProject}>
-            {t('map.export')}
           </Button>
         </div>
       </div>

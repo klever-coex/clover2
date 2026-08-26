@@ -8,6 +8,11 @@ export interface TopicSubscriptionOptions {
   onMessage: (message: RosJsonValue) => void;
   onError?: (error: ApiError) => void;
   onClose?: (info: { code: number; reason: string }) => void;
+  /**
+   * The backend closes idle connections after 60 s even while streaming;
+   * periodically sending a text frame (ignored by the server) keeps it alive.
+   */
+  keepaliveIntervalMs?: number;
 }
 
 export interface TopicSubscription {
@@ -32,6 +37,7 @@ export function createStreamsEndpoints(
       let socket: WebSocket | null = null;
       let disposed = false;
       let connectTimer: ReturnType<typeof setTimeout> | null = null;
+      let keepaliveTimer: ReturnType<typeof setInterval> | null = null;
 
       const clearConnectTimer = () => {
         if (connectTimer === null) return;
@@ -39,8 +45,15 @@ export function createStreamsEndpoints(
         connectTimer = null;
       };
 
+      const clearKeepaliveTimer = () => {
+        if (keepaliveTimer === null) return;
+        clearInterval(keepaliveTimer);
+        keepaliveTimer = null;
+      };
+
       const fail = (error: ApiError) => {
         clearConnectTimer();
+        clearKeepaliveTimer();
         if (disposed) return;
         disposed = true;
         options.onError?.(error);
@@ -64,7 +77,16 @@ export function createStreamsEndpoints(
             pending.close();
           }, WS_CONNECT_TIMEOUT_MS);
 
-          socket.onopen = clearConnectTimer;
+          socket.onopen = () => {
+            clearConnectTimer();
+            if (options.keepaliveIntervalMs !== undefined) {
+              keepaliveTimer = setInterval(() => {
+                if (socket?.readyState === WebSocket.OPEN) {
+                  socket.send('ping');
+                }
+              }, options.keepaliveIntervalMs);
+            }
+          };
 
           socket.onerror = () => {
             fail(new ApiError(`WebSocket error on ${topicName}`, 0, 'network'));
@@ -91,6 +113,7 @@ export function createStreamsEndpoints(
 
           socket.onclose = (event) => {
             clearConnectTimer();
+            clearKeepaliveTimer();
             if (disposed) return;
             disposed = true;
 
@@ -115,6 +138,7 @@ export function createStreamsEndpoints(
       return {
         close: () => {
           clearConnectTimer();
+          clearKeepaliveTimer();
           if (disposed) return;
           disposed = true;
           socket?.close();

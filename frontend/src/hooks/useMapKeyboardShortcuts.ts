@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 import i18n from '../i18n/index.ts';
 import { mToMm } from '../constants/units.ts';
-import { deleteMarkers, downloadProject, saveMap } from '../store/mapMutations.ts';
+import { deleteMarkers, saveMap } from '../store/mapMutations.ts';
 import { useMapStore } from '../store/useMapStore.ts';
 import { useMapUIStore } from '../store/useMapUIStore.ts';
 import { resolvePosition } from '../utils/transformUtils.ts';
@@ -80,10 +80,7 @@ export function useMapKeyboardShortcuts() {
 
         case 's':
         case 'S':
-          if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
-            e.preventDefault();
-            downloadProject();
-          } else if (e.ctrlKey || e.metaKey) {
+          if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
             void saveMap();
           }
