@@ -26,13 +26,9 @@ const STATE_KEYS: Record<LifecycleState, TranslationKey> = {
 export function LifecycleBadge({ state }: LifecycleBadgeProps) {
   const { t } = useTranslation();
 
-  console.error(state)
-
-  if (state != null) {
+  if (state !== undefined) {
     return <Badge tone={STATE_TONES[state]}>{t(STATE_KEYS[state])}</Badge>;
   }
 
-  return (
-    <Badge tone="neutral"> {t('nodes.regular')} </Badge>
-  );
+  return <Badge tone="neutral">{t('nodes.regular')}</Badge>;
 }

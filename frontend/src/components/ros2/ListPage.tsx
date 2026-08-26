@@ -1,7 +1,8 @@
-import { useEffect, useEffectEvent, useState } from 'react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 
 import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
+import { useCapabilityFetch } from '../../hooks/useCapabilityFetch.ts';
 import type { RosCapability } from '../../hooks/useRosCapability.ts';
 import type { ApiError } from '../../types/errors.ts';
 import { EmptyState } from '../ui/EmptyState.tsx';
@@ -20,13 +21,15 @@ interface ListPageProps<T> {
   items: readonly T[];
   loading: boolean;
   error: ApiError | null;
-  onReload: () => void;
+  onReload: () => void | Promise<void>;
   /** Query is already trimmed and lowercased. */
   filter: (item: T, query: string) => boolean;
   keyOf: (item: T) => string;
   renderItem: (item: T) => ReactNode;
   toolbarExtra?: ReactNode;
   sortItems?: (items: readonly T[]) => readonly T[];
+  /** Classes of the items container; defaults to a vertical list. */
+  itemsClassName?: string;
 }
 
 export function ListPage<T>({
@@ -44,17 +47,12 @@ export function ListPage<T>({
   renderItem,
   toolbarExtra,
   sortItems,
+  itemsClassName = 'mt-4 space-y-1',
 }: ListPageProps<T>) {
   const [query, setQuery] = useState('');
   const errorMessage = useApiErrorMessage();
 
-  const runReload = useEffectEvent(onReload);
-
-  useEffect(() => {
-    if (capability.ready && capability.allowed) {
-      void runReload();
-    }
-  }, [capability.ready, capability.allowed]);
+  useCapabilityFetch(capability, onReload);
 
   const q = query.trim().toLowerCase();
   const filtered = q === '' ? items : items.filter((item) => filter(item, q));
@@ -84,7 +82,7 @@ export function ListPage<T>({
           )}
 
           {visible.length > 0 && (
-            <div className="mt-4 space-y-1">
+            <div className={itemsClassName}>
               {visible.map((item) => (
                 <div key={keyOf(item)}>{renderItem(item)}</div>
               ))}

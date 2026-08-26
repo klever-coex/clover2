@@ -1,6 +1,7 @@
 import { Component } from 'react';
 import type { ReactNode } from 'react';
 
+import i18n from '../../i18n/index.ts';
 import { ErrorState } from '../ui/ErrorState.tsx';
 
 interface Props {
@@ -30,7 +31,7 @@ export class ErrorBoundary extends Component<Props, State> {
         this.props.fallback ?? (
           <div className="h-full flex items-center justify-center p-6">
             <ErrorState
-              message={this.state.error?.message ?? 'An unexpected error occurred'}
+              message={this.state.error?.message ?? i18n.t('common.unexpectedError')}
               onRetry={() => this.setState({ hasError: false, error: null })}
             />
           </div>

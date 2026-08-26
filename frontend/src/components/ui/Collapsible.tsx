@@ -10,7 +10,6 @@ interface CollapsibleProps {
   defaultOpen?: boolean;
 }
 
-/** Keyboard-accessible collapsible section (native button semantics). */
 export function Collapsible({ label, children, defaultOpen = true }: CollapsibleProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const contentId = useId();

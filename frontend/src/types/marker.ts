@@ -45,7 +45,6 @@ export interface MarkerUi {
   positionExpr: [string, string, string];
   /** degrees, Euler YXZ convention. */
   rotationExpr: [string, string, string];
-  visible: boolean;
 }
 
 export interface ProjectMeta {

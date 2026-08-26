@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 import i18n from '../i18n/index.ts';
 import { mToMm } from '../constants/units.ts';
-import { deleteMarkers, applyPose, downloadProject } from '../pages/map/mutations.ts';
+import { deleteMarkers, downloadProject, saveMap } from '../store/mapMutations.ts';
 import { useMapStore } from '../store/useMapStore.ts';
 import { useMapUIStore } from '../store/useMapUIStore.ts';
 import { resolvePosition } from '../utils/transformUtils.ts';
@@ -10,7 +10,6 @@ import { resolvePosition } from '../utils/transformUtils.ts';
 export function useMapKeyboardShortcuts() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't capture events when input/textarea/select is focused
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
 
@@ -36,7 +35,7 @@ export function useMapKeyboardShortcuts() {
 
         case 'a':
         case 'A':
-          if (e.ctrlKey) {
+          if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
             state.selectAll();
           }
@@ -44,22 +43,9 @@ export function useMapKeyboardShortcuts() {
 
         case 'g':
         case 'G':
-          // Toggle coordinate axes visibility
           e.preventDefault();
           useMapUIStore.getState().toggleAxes();
           break;
-
-        case 'h':
-        case 'H': {
-          // Toggle selected marker visibility (session only)
-          if (selIds.length > 0) {
-            e.preventDefault();
-            const firstUi = state.markerUi[selIds[0]!];
-            const newVisible = firstUi === undefined ? false : !firstUi.visible;
-            selIds.forEach((id) => state.setVisible(id, newVisible));
-          }
-          break;
-        }
 
         case 'ArrowUp':
         case 'ArrowDown':
@@ -71,7 +57,6 @@ export function useMapKeyboardShortcuts() {
 
           let axis: 0 | 1 | 2 = 0;
           let sign = 0;
-          // Z-up: X=right, Y=forward/back, Z=up
           if (e.key === 'ArrowUp') { axis = 1; sign = -1; }
           else if (e.key === 'ArrowDown') { axis = 1; sign = 1; }
           else if (e.key === 'ArrowLeft') { axis = 0; sign = -1; }
@@ -81,7 +66,6 @@ export function useMapKeyboardShortcuts() {
             const marker = state.markers[id];
             const ui = state.markerUi[id];
             if (!marker || !ui || marker.type !== 'fixed' || marker.pose === null) return;
-            // Move marker by updating expression to new constant value
             const pos = resolvePosition(ui.positionExpr, marker.id);
             const posMm: [number, number, number] = [
               mToMm(pos[0]),
@@ -90,16 +74,18 @@ export function useMapKeyboardShortcuts() {
             ];
             const newVal = posMm[axis] + sign * stepMm;
             state.setExpr(id, axis, 'position', newVal.toString());
-            void applyPose(id);
           });
           break;
         }
 
         case 's':
         case 'S':
-          if (e.ctrlKey && e.shiftKey) {
+          if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
             e.preventDefault();
             downloadProject();
+          } else if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            void saveMap();
           }
           break;
       }

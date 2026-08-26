@@ -14,18 +14,6 @@ const DICT_META: Record<ArUcoDictionary, DictionaryMeta> = {
   'DICT_APRILTAG_36h11': { name: 'DICT_APRILTAG_36h11', gridSize: 6, maxMarkerId: 586,  totalCells: 8 },
 };
 
-const DICT_BASE: Record<ArUcoDictionary, string> = {
-  'DICT_4X4_1000': 'DICT_4X4_1000',
-  'DICT_5X5_1000': 'DICT_5X5_1000',
-  'DICT_6X6_1000': 'DICT_6X6_1000',
-  'DICT_7X7_1000': 'DICT_7X7_1000',
-  'DICT_ARUCO_ORIGINAL':  'DICT_ARUCO_ORIGINAL',
-  'DICT_APRILTAG_16h5':  'DICT_APRILTAG_16h5',
-  'DICT_APRILTAG_25h9':  'DICT_APRILTAG_25h9',
-  'DICT_APRILTAG_36h10': 'DICT_APRILTAG_36h10',
-  'DICT_APRILTAG_36h11': 'DICT_APRILTAG_36h11',
-};
-
 interface MarkerJsonFile {
   dictionary: string;
   markerSize: number;
@@ -33,7 +21,6 @@ interface MarkerJsonFile {
 }
 
 const promiseCache = new Map<ArUcoDictionary, Promise<DictionaryData>>();
-const fetchCache = new Map<string, Promise<MarkerJsonFile>>();
 
 export function loadDictionary(name: ArUcoDictionary): Promise<DictionaryData> {
   let promise = promiseCache.get(name);
@@ -44,10 +31,10 @@ export function loadDictionary(name: ArUcoDictionary): Promise<DictionaryData> {
   return promise;
 }
 
-async function fetchWithRetry(baseName: string, retries = 2): Promise<MarkerJsonFile> {
+async function fetchWithRetry(name: ArUcoDictionary, retries = 2): Promise<MarkerJsonFile> {
   for (let i = 0; i <= retries; i++) {
     try {
-      const resp = await fetch(`${import.meta.env.BASE_URL}markers/${baseName}.json`);
+      const resp = await fetch(`${import.meta.env.BASE_URL}markers/${name}.json`);
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       return await resp.json() as MarkerJsonFile;
     } catch (e) {
@@ -58,19 +45,9 @@ async function fetchWithRetry(baseName: string, retries = 2): Promise<MarkerJson
   throw new Error('unreachable');
 }
 
-async function fetchJson(baseName: string): Promise<MarkerJsonFile> {
-  if (!fetchCache.has(baseName)) {
-    fetchCache.set(baseName, fetchWithRetry(baseName));
-  }
-  return fetchCache.get(baseName)!;
-}
-
 async function loadAndParse(name: ArUcoDictionary): Promise<DictionaryData> {
   const meta = DICT_META[name];
-  if (!meta) throw new Error(`Unknown dictionary: ${name}`);
-
-  const baseName = DICT_BASE[name];
-  const json = await fetchJson(baseName);
+  const json = await fetchWithRetry(name);
 
   const count = meta.maxMarkerId + 1;
   const rawMarkers = json.markers.slice(0, count);
@@ -79,14 +56,6 @@ async function loadAndParse(name: ArUcoDictionary): Promise<DictionaryData> {
   return { meta, bytesList };
 }
 
-export function getDictionaryMeta(name: ArUcoDictionary): DictionaryMeta {
-  const meta = DICT_META[name];
-  if (!meta) throw new Error(`Unknown dictionary: ${name}`);
-  return meta;
-}
-
 export function isDictionaryName(name: string): name is ArUcoDictionary {
   return name in DICT_META;
 }
-
-export { DICT_META };

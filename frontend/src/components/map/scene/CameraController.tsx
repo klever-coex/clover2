@@ -5,7 +5,7 @@ import { useThree } from '@react-three/fiber';
 import { useMapUIStore } from '../../../store/useMapUIStore.ts';
 
 export function CameraController() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- drei ref type is opaque
+  // drei does not export a ref type for the controls instance.
   const controlsRef = useRef<any>(null);
   const isTransforming = useMapUIStore((s) => s.isTransforming);
   const { invalidate } = useThree();

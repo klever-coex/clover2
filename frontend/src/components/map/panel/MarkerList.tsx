@@ -1,28 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { TranslationKey } from '../../../i18n/index.ts';
-import { cn } from '../../../lib/cn.ts';
-import { deleteMarkers } from '../../../pages/map/mutations.ts';
+import { cn } from '../../../lib/cn';
+import { deleteMarkers } from '../../../store/mapMutations.ts';
 import { useMapStore } from '../../../store/useMapStore.ts';
-import type { MarkerType } from '../../../types/marker.ts';
-import { Badge } from '../../ui/Badge.tsx';
-import type { BadgeTone } from '../../ui/Badge.tsx';
 import { EmptyState } from '../../ui/EmptyState.tsx';
 import { ListToolbar } from '../../ros2/ListToolbar.tsx';
 import { SortSelect } from '../../ros2/SortSelect.tsx';
-
-const TYPE_TONES: Record<MarkerType, BadgeTone> = {
-  fixed: 'accent',
-  static: 'neutral',
-  dynamic: 'warning',
-};
-
-const TYPE_KEYS: Record<MarkerType, TranslationKey> = {
-  fixed: 'map.typeFixed',
-  static: 'map.typeStatic',
-  dynamic: 'map.typeDynamic',
-};
+import { MarkerTypeBadge } from './MarkerTypeBadge.tsx';
 
 export function MarkerList() {
   const { t } = useTranslation();
@@ -109,7 +94,7 @@ export function MarkerList() {
               <span className="truncate font-mono">
                 #{m.id} <span className="text-ink-faint">{m.markerFrameId}</span>
               </span>
-              <Badge tone={TYPE_TONES[m.type]}>{t(TYPE_KEYS[m.type])}</Badge>
+              <MarkerTypeBadge type={m.type} />
             </button>
           );
         })}

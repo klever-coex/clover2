@@ -1,15 +1,15 @@
-import { useEffect, useEffectEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 
 import { CapabilityGate } from '../../components/ros2/CapabilityGate.tsx';
-import { H264VideoStream } from '../../components/video/H264VideoStream.tsx';
+import { MseVideoStream } from '../../components/video/MseVideoStream.tsx';
 import { VideoTopicList } from '../../components/video/VideoTopicList.tsx';
 import { EmptyState } from '../../components/ui/EmptyState.tsx';
 import { ErrorState } from '../../components/ui/ErrorState.tsx';
 import { LoadingState } from '../../components/ui/LoadingState.tsx';
 import { PageHeader } from '../../components/ui/PageHeader.tsx';
 import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
+import { useCapabilityFetch } from '../../hooks/useCapabilityFetch.ts';
 import { useRosCapability } from '../../hooks/useRosCapability.ts';
 import { useRosStore } from '../../store/useRosStore.ts';
 
@@ -24,13 +24,7 @@ export function VideoPage() {
   const [searchParams] = useSearchParams();
   const topicName = searchParams.get('topic');
 
-  const runReload = useEffectEvent(reloadTopics);
-
-  useEffect(() => {
-    if (capability.ready && capability.allowed) {
-      void runReload();
-    }
-  }, [capability.ready, capability.allowed]);
+  useCapabilityFetch(capability, reloadTopics);
 
   return (
     <div className="p-6 h-full flex flex-col">
@@ -64,7 +58,7 @@ export function VideoPage() {
                     <EmptyState message={t('video.selectHint')} />
                   </div>
                 ) : (
-                  <H264VideoStream key={topicName} topicName={topicName} />
+                  <MseVideoStream key={topicName} topicName={topicName} />
                 )}
               </div>
             </div>

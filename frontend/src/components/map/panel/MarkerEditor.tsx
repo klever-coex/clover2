@@ -1,65 +1,88 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { TranslationKey } from '../../../i18n/index.ts';
-import { mToMm } from '../../../constants/units.ts';
-import { applyPose, deleteMarkers, updateMarkerInfo } from '../../../pages/map/mutations.ts';
+import { mToMm } from '../../../constants/units';
+import { cn } from '../../../lib/cn';
+import { deleteMarkers, validateSize } from '../../../store/mapMutations.ts';
 import { useMapStore } from '../../../store/useMapStore.ts';
-import type { MapMarker, MarkerType } from '../../../types/marker.ts';
+import type { MapMarker } from '../../../types/marker.ts';
 import { evaluateExpr } from '../../../utils/exprEval.ts';
 import { quatToEulerDeg, resolvePosition, resolveRotation } from '../../../utils/transformUtils.ts';
-import { Badge } from '../../ui/Badge.tsx';
-import type { BadgeTone } from '../../ui/Badge.tsx';
 import { Button } from '../../ui/Button.tsx';
 import { Panel } from '../../ui/Panel.tsx';
+import { MarkerTypeBadge } from './MarkerTypeBadge.tsx';
 
 interface Props {
   marker: MapMarker;
   selectedIds: string[];
 }
 
-const TYPE_TONES: Record<MarkerType, BadgeTone> = {
-  fixed: 'accent',
-  static: 'neutral',
-  dynamic: 'warning',
-};
-
-const TYPE_KEYS: Record<MarkerType, TranslationKey> = {
-  fixed: 'map.typeFixed',
-  static: 'map.typeStatic',
-  dynamic: 'map.typeDynamic',
-};
-
 const inputClasses =
   'w-full rounded-row border border-line bg-surface-1 px-2 py-1.5 text-xs font-mono text-ink outline-none transition-colors duration-fast focus:border-accent/60 focus:ring-2 focus:ring-accent/20';
 
-function posPreview(expr: string, markerId: number): string | null {
+/** Formats an expression for the hint under the input, or null when it does not evaluate. */
+function exprPreview(expr: string, markerId: number, unit: string): string | null {
   if (!expr.trim()) return null;
   try {
-    const mm = evaluateExpr(expr, { id: markerId });
-    if (!Number.isFinite(mm)) return null;
-    return `${mm.toFixed(1)} mm`;
+    const value = evaluateExpr(expr, { id: markerId });
+    if (!Number.isFinite(value)) return null;
+    return `${value.toFixed(1)} ${unit}`;
   } catch {
     return null;
   }
 }
 
-function rotPreview(expr: string, markerId: number): string | null {
-  if (!expr.trim()) return null;
-  try {
-    const deg = evaluateExpr(expr, { id: markerId });
-    if (!Number.isFinite(deg)) return null;
-    return `${deg.toFixed(1)}°`;
-  } catch {
-    return null;
-  }
+interface ExprAxisRowProps {
+  label: string;
+  unit: string;
+  values: [string, string, string];
+  /** Resolved value shown above each input (already formatted with its unit). */
+  resolved: (axis: 0 | 1 | 2) => string;
+  markerId: number;
+  onChange: (axis: 0 | 1 | 2, value: string) => void;
+  onApply: (axis: 0 | 1 | 2) => void;
+}
+
+/** Three X/Y/Z expression inputs sharing label, preview and commit behaviour. */
+function ExprAxisRow({ label, unit, values, resolved, markerId, onChange, onApply }: ExprAxisRowProps) {
+  return (
+    <div>
+      <div className="text-xs text-ink-muted mb-1">{label}</div>
+      <div className="flex gap-1">
+        {(['X', 'Y', 'Z'] as const).map((axis, i) => {
+          const ax = i as 0 | 1 | 2;
+          const preview = exprPreview(values[ax], markerId, unit);
+          return (
+            <div key={axis} className="flex-1">
+              <div className="text-[10px] text-ink-faint text-center mb-0.5">{axis} = {resolved(ax)}</div>
+              <input
+                type="text"
+                value={values[ax]}
+                onChange={(e) => onChange(ax, e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') onApply(ax);
+                }}
+                onBlur={() => onApply(ax)}
+                placeholder={`${axis.toLowerCase()} expr`}
+                className={cn(inputClasses, 'text-center')}
+              />
+              {preview && (
+                <div className="text-[10px] text-success mt-0.5 text-center">{preview}</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export function MarkerEditor({ marker, selectedIds }: Props) {
   const { t } = useTranslation();
   const ui = useMapStore((s) => s.markerUi[String(marker.id)]);
   const setExpr = useMapStore((s) => s.setExpr);
-  const setVisible = useMapStore((s) => s.setVisible);
+  const setMarkerInfoLocal = useMapStore((s) => s.setMarkerInfoLocal);
+  const setMutationError = useMapStore((s) => s.setMutationError);
   const deselectAll = useMapStore((s) => s.deselectAll);
 
   const isMulti = selectedIds.length > 1;
@@ -93,32 +116,30 @@ export function MarkerEditor({ marker, selectedIds }: Props) {
   const primaryRotEuler = quatToEulerDeg(resolveRotation(primaryExprs.rotationExpr, marker.id));
 
   const commitLabel = useCallback(() => {
-    selectedIds.forEach((id) => void updateMarkerInfo(id, { markerFrameId: labelLocal }));
-  }, [selectedIds, labelLocal]);
+    selectedIds.forEach((id) => setMarkerInfoLocal(id, { markerFrameId: labelLocal }));
+  }, [selectedIds, labelLocal, setMarkerInfoLocal]);
 
   const commitSize = useCallback(() => {
     const val = parseFloat(sizeLocal);
-    if (!isNaN(val) && val > 0) {
-      selectedIds.forEach((id) => void updateMarkerInfo(id, { sizeM: val / 1000 }));
+    if (isNaN(val)) return;
+    const error = validateSize(val / 1000);
+    if (error !== null) {
+      setMutationError(error);
+      return;
     }
-  }, [selectedIds, sizeLocal]);
+    selectedIds.forEach((id) => setMarkerInfoLocal(id, { sizeM: val / 1000 }));
+  }, [selectedIds, sizeLocal, setMarkerInfoLocal, setMutationError]);
 
   const applyPosExpr = useCallback(
     (axis: 0 | 1 | 2) => {
-      selectedIds.forEach((id) => {
-        setExpr(id, axis, 'position', posExprLocal[axis]);
-        void applyPose(id);
-      });
+      selectedIds.forEach((id) => setExpr(id, axis, 'position', posExprLocal[axis]));
     },
     [posExprLocal, selectedIds, setExpr],
   );
 
   const applyRotExpr = useCallback(
     (axis: 0 | 1 | 2) => {
-      selectedIds.forEach((id) => {
-        setExpr(id, axis, 'rotation', rotExprLocal[axis]);
-        void applyPose(id);
-      });
+      selectedIds.forEach((id) => setExpr(id, axis, 'rotation', rotExprLocal[axis]));
     },
     [rotExprLocal, selectedIds, setExpr],
   );
@@ -140,7 +161,7 @@ export function MarkerEditor({ marker, selectedIds }: Props) {
           #{marker.id} {marker.markerFrameId}
         </span>
       }
-      actions={<Badge tone={TYPE_TONES[marker.type]}>{t(TYPE_KEYS[marker.type])}</Badge>}
+      actions={<MarkerTypeBadge type={marker.type} />}
     >
       <div className="p-4 space-y-3">
         {/* Multi-selection banner */}
@@ -191,94 +212,39 @@ export function MarkerEditor({ marker, selectedIds }: Props) {
 
         {canEditPose && (
           <>
-            {/* Position — always expressions */}
-            <div>
-              <div className="text-xs text-ink-muted mb-1">{t('map.positionExpr')}</div>
-              <div className="flex gap-1">
-                {(['X', 'Y', 'Z'] as const).map((axis, i) => {
-                  const ax = i as 0 | 1 | 2;
-                  const preview = posPreview(posExprLocal[ax], marker.id);
-                  return (
-                    <div key={axis} className="flex-1">
-                      <div className="text-[10px] text-ink-faint text-center mb-0.5">
-                        {axis} = {mToMm(primaryPos[ax]).toFixed(1)}
-                      </div>
-                      <input
-                        type="text"
-                        value={posExprLocal[ax]}
-                        onChange={(e) =>
-                          setPosExprLocal((prev) => {
-                            const n: [string, string, string] = [...prev];
-                            n[ax] = e.target.value;
-                            return n;
-                          })
-                        }
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') applyPosExpr(ax);
-                        }}
-                        onBlur={() => applyPosExpr(ax)}
-                        placeholder={`${axis.toLowerCase()} expr`}
-                        className={`${inputClasses} text-center`}
-                      />
-                      {preview && (
-                        <div className="text-[10px] text-success mt-0.5 text-center">{preview}</div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <ExprAxisRow
+              label={t('map.positionExpr')}
+              unit="mm"
+              values={posExprLocal}
+              markerId={marker.id}
+              resolved={(axis) => `${mToMm(primaryPos[axis]).toFixed(1)}`}
+              onChange={(axis, value) =>
+                setPosExprLocal((prev) => {
+                  const next: [string, string, string] = [...prev];
+                  next[axis] = value;
+                  return next;
+                })
+              }
+              onApply={applyPosExpr}
+            />
 
-            {/* Rotation — always expressions */}
-            <div>
-              <div className="text-xs text-ink-muted mb-1">{t('map.rotationExpr')}</div>
-              <div className="flex gap-1">
-                {(['X', 'Y', 'Z'] as const).map((axis, i) => {
-                  const ax = i as 0 | 1 | 2;
-                  const preview = rotPreview(rotExprLocal[ax], marker.id);
-                  return (
-                    <div key={axis} className="flex-1">
-                      <div className="text-[10px] text-ink-faint text-center mb-0.5">
-                        {axis} = {primaryRotEuler[ax].toFixed(1)}°
-                      </div>
-                      <input
-                        type="text"
-                        value={rotExprLocal[ax]}
-                        onChange={(e) =>
-                          setRotExprLocal((prev) => {
-                            const n: [string, string, string] = [...prev];
-                            n[ax] = e.target.value;
-                            return n;
-                          })
-                        }
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') applyRotExpr(ax);
-                        }}
-                        onBlur={() => applyRotExpr(ax)}
-                        placeholder={`${axis.toLowerCase()} expr`}
-                        className={`${inputClasses} text-center`}
-                      />
-                      {preview && (
-                        <div className="text-[10px] text-success mt-0.5 text-center">{preview}</div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <ExprAxisRow
+              label={t('map.rotationExpr')}
+              unit="°"
+              values={rotExprLocal}
+              markerId={marker.id}
+              resolved={(axis) => `${primaryRotEuler[axis].toFixed(1)}°`}
+              onChange={(axis, value) =>
+                setRotExprLocal((prev) => {
+                  const next: [string, string, string] = [...prev];
+                  next[axis] = value;
+                  return next;
+                })
+              }
+              onApply={applyRotExpr}
+            />
           </>
         )}
-
-        {/* Visibility toggle — session only */}
-        <label className="flex items-center gap-2 cursor-pointer text-xs text-ink">
-          <input
-            type="checkbox"
-            checked={ui?.visible ?? true}
-            onChange={(e) => selectedIds.forEach((id) => setVisible(id, e.target.checked))}
-            className="accent-[var(--color-accent)]"
-          />
-          {t('map.visible')}
-        </label>
 
         {/* Delete */}
         <Button variant="danger" className="w-full" onClick={handleDelete}>

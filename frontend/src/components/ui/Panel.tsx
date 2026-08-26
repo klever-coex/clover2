@@ -11,9 +11,7 @@ interface PanelProps {
   actions?: ReactNode;
   padded?: boolean;
   className?: string;
-  /** Collapsible header with a rotating chevron; content stays mounted. */
   collapsible?: boolean;
-  /** Initial open state of a collapsible panel. */
   defaultOpen?: boolean;
   children: ReactNode;
 }

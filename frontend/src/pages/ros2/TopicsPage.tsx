@@ -7,7 +7,6 @@ import { useRosCapability } from '../../hooks/useRosCapability.ts';
 import { useRosStore } from '../../store/useRosStore.ts';
 import type { TopicInfo } from '../../types/topic.ts';
 
-/** Flat topic list with search and sort; gated on the backend 'topics' capability. */
 export function TopicsPage() {
   const { t } = useTranslation();
   const capability = useRosCapability('topics');

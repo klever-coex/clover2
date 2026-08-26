@@ -9,13 +9,26 @@ import type { MarkerInfo, MarkerPose } from '../../types/map.ts';
 import type { ArUcoDictionary, MapMarker, MarkerType } from '../../types/marker.ts';
 import type { MapStore } from '../useMapStore.ts';
 
+/** Marker fields as of the last load/save — the diff target for unsaved changes. */
+export interface MapBaselineEntry {
+  markerFrameId: string;
+  sizeM: number;
+  positionExpr: readonly [string, string, string];
+  rotationExpr: readonly [string, string, string];
+}
+
 export interface MapSlice {
   markers: Record<string, MapMarker>;
   mapMeta: { dictionary: ArUcoDictionary; frameId: string; name: string } | null;
   mapLoading: boolean;
   mapError: ApiError | null;
   mutationError: string | null;
+  baseline: Record<string, MapBaselineEntry>;
+  saving: boolean;
   setMutationError: (message: string | null) => void;
+  setSaving: (saving: boolean) => void;
+  /** Snapshots the current markers/exprs as the saved baseline. */
+  captureBaseline: () => void;
   reloadMap: () => Promise<void>;
   setMarkerPoseLocal: (id: string, pose: MarkerPose) => void;
   setMarkerInfoLocal: (id: string, patch: Partial<Pick<MapMarker, 'sizeM' | 'markerFrameId'>>) => void;
@@ -24,14 +37,71 @@ export interface MapSlice {
   pruneSelection: () => void;
 }
 
+/** Ids whose current state deviates from the baseline: edits, local adds and local deletes. */
+export function mapDirtyIds(state: MapStore): string[] {
+  const dirty: string[] = [];
+
+  for (const [id, marker] of Object.entries(state.markers)) {
+    const base = state.baseline[id];
+    if (base === undefined) {
+      dirty.push(id); // added locally, not yet saved
+      continue;
+    }
+    const ui = state.markerUi[id];
+    const exprsChanged =
+      ui !== undefined &&
+      (ui.positionExpr[0] !== base.positionExpr[0] ||
+        ui.positionExpr[1] !== base.positionExpr[1] ||
+        ui.positionExpr[2] !== base.positionExpr[2] ||
+        ui.rotationExpr[0] !== base.rotationExpr[0] ||
+        ui.rotationExpr[1] !== base.rotationExpr[1] ||
+        ui.rotationExpr[2] !== base.rotationExpr[2]);
+    if (
+      marker.markerFrameId !== base.markerFrameId ||
+      marker.sizeM !== base.sizeM ||
+      exprsChanged
+    ) {
+      dirty.push(id);
+    }
+  }
+
+  // Locally deleted markers are still in the baseline and need a server delete.
+  for (const id of Object.keys(state.baseline)) {
+    if (!(id in state.markers)) dirty.push(id);
+  }
+
+  return dirty;
+}
+
 export const createMapSlice: StateCreator<MapStore, [], [], MapSlice> = (set, get) => ({
   markers: {},
   mapMeta: null,
   mapLoading: false,
   mapError: null,
   mutationError: null,
+  baseline: {},
+  saving: false,
 
   setMutationError: (message) => set({ mutationError: message }),
+
+  setSaving: (saving) => set({ saving }),
+
+  captureBaseline: () =>
+    set((s) => {
+      const baseline: Record<string, MapBaselineEntry> = {};
+      for (const [id, marker] of Object.entries(s.markers)) {
+        const ui = s.markerUi[id];
+        const positionExpr: [string, string, string] = ui ? [...ui.positionExpr] : ['0', '0', '0'];
+        const rotationExpr: [string, string, string] = ui ? [...ui.rotationExpr] : ['0', '0', '0'];
+        baseline[id] = {
+          markerFrameId: marker.markerFrameId,
+          sizeM: marker.sizeM,
+          positionExpr,
+          rotationExpr,
+        };
+      }
+      return { baseline };
+    }),
 
   reloadMap: async () => {
     if (get().mapLoading) return; // dedup, like createResourceSlice
@@ -59,6 +129,7 @@ export const createMapSlice: StateCreator<MapStore, [], [], MapSlice> = (set, ge
       });
       get().seedUiFor(markers); // cross-slice: seed exprs only for unseen markers
       get().pruneSelection(); // drop selection for deleted markers
+      get().captureBaseline(); // everything loaded is considered saved
     } catch (error) {
       set({ mapLoading: false, mapError: toApiError(error) });
     }

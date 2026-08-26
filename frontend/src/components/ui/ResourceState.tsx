@@ -6,13 +6,23 @@ import { EmptyState } from './EmptyState.tsx';
 import { ErrorState } from './ErrorState.tsx';
 import { LoadingState } from './LoadingState.tsx';
 
-interface ResourceStateProps {
-  resource: AsyncResource<readonly unknown[]>;
-  emptyMessage: string;
-  children: ReactNode;
+interface ResourceStateProps<T> {
+  resource: AsyncResource<T>;
+  emptyMessage?: string;
+  isEmpty?: (data: T) => boolean;
+  children: (data: T) => ReactNode;
 }
 
-export function ResourceState({ resource, emptyMessage, children }: ResourceStateProps) {
+function arrayIsEmpty(data: unknown): boolean {
+  return Array.isArray(data) && data.length === 0;
+}
+
+export function ResourceState<T>({
+  resource,
+  emptyMessage,
+  isEmpty = arrayIsEmpty,
+  children,
+}: ResourceStateProps<T>) {
   const errorMessage = useApiErrorMessage();
 
   if (resource.loading && resource.data === null) {
@@ -25,9 +35,9 @@ export function ResourceState({ resource, emptyMessage, children }: ResourceStat
     );
   }
 
-  if (resource.data !== null && resource.data.length === 0) {
-    return <EmptyState message={emptyMessage} />;
+  if (resource.data !== null && isEmpty(resource.data)) {
+    return emptyMessage !== undefined ? <EmptyState message={emptyMessage} /> : null;
   }
 
-  return children;
+  return <>{resource.data === null ? null : children(resource.data)}</>;
 }

@@ -10,7 +10,6 @@ import { TopicDetailPage } from './pages/ros2/TopicDetailPage.tsx';
 import { TopicsPage } from './pages/ros2/TopicsPage.tsx';
 import { VideoPage } from './pages/video/VideoPage.tsx';
 
-// Lazy route: three/fiber/drei (~1 MB) land in a separate chunk.
 const MapPage = lazy(() => import('./pages/map/MapPage.tsx'));
 
 export default function App() {

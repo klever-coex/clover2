@@ -7,7 +7,6 @@ import { DEFAULT_GRID_STEP_MM } from '../../../constants/defaults.ts';
 import { mmToM } from '../../../constants/units.ts';
 import { useMapStore } from '../../../store/useMapStore.ts';
 import { useMapUIStore } from '../../../store/useMapUIStore.ts';
-import { applyPose } from '../../../pages/map/mutations.ts';
 import type { Vec3 } from '../../../types/marker.ts';
 import { sanitizeVec3, vec3ToPositionExpr } from '../../../utils/transformUtils.ts';
 
@@ -34,7 +33,7 @@ export function TransformController() {
   const setTransforming = useMapUIStore((s) => s.setTransforming);
 
   const dragPosRef = useRef<Vec3 | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- drei ref type is opaque
+  // drei does not export a ref type for the controls instance.
   const controlsRef = useRef<any>(null);
   const gridStepM = useMemo(() => mmToM(DEFAULT_GRID_STEP_MM), []);
 
@@ -107,7 +106,6 @@ export function TransformController() {
           for (const axis of [0, 1, 2] as const) {
             setExpr(sel, axis, 'position', expr[axis]);
           }
-          void applyPose(sel);
         }
         setTransforming(false);
         dragPosRef.current = null;

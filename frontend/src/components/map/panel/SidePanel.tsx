@@ -1,6 +1,7 @@
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { cn } from '../../../lib/cn';
 import { useMapStore } from '../../../store/useMapStore.ts';
 import { useMapUIStore } from '../../../store/useMapUIStore.ts';
 import { IconButton } from '../../ui/IconButton.tsx';
@@ -37,7 +38,7 @@ export function SidePanel({ className }: SidePanelProps) {
   }
 
   return (
-    <div className={`flex flex-col gap-3 ${className ?? ''}`}>
+    <div className={cn('flex flex-col gap-3', className)}>
       <div className="flex items-start gap-2">
         <div className="flex-1 min-w-0">
           <ProjectBar />

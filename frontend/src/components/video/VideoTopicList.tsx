@@ -9,7 +9,6 @@ import { ListToolbar } from '../ros2/ListToolbar.tsx';
 import { TypeBadge } from '../ros2/TypeBadge.tsx';
 import { EmptyState } from '../ui/EmptyState.tsx';
 
-/** Side list of image topics; click selects the stream via the ?topic= URL. */
 export function VideoTopicList() {
   const { t } = useTranslation();
   const topics = useRosStore((s) => s.topics);

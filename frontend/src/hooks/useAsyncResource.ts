@@ -16,7 +16,6 @@ export function useAsyncResource<T>(
   deps: DependencyList,
   enabled = true,
 ): AsyncResource<T> {
-  // Always calls the latest fetcher without re-running the effect.
   const runFetch = useEffectEvent(fetcher);
 
   const [data, setData] = useState<T | null>(null);

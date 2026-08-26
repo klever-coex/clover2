@@ -18,14 +18,13 @@
 #include <std_msgs/msg/empty.hpp>
 
 // STL
-#include <cstdint>
 #include <functional>
 #include <mutex>
 #include <string>
 
 namespace clover2_map {
 
-class client {
+class client : public std::enable_shared_from_this<client> {
 public:
     using modify_callback =
         std::function<void(bool success, std::string error_message)>;
@@ -139,17 +138,13 @@ public:
 
     void modify_marker(uint8_t operation, const clover2_map::marker& mk,
                        modify_callback callback = {}) {
-        auto fail = [&](const std::string& message) {
-            if (callback) {
-                callback(false, message);
-            } else {
-                RCLCPP_ERROR(m_logger, "Fail to modify map: %s",
-                             message.c_str());
-            }
-        };
-
         if (!m_modify_map_client->service_is_ready()) {
-            fail("modify_map service is not available");
+            if (callback) {
+                callback(false, "modify_map service is not available");
+            } else {
+                RCLCPP_ERROR(m_logger, "modify_map service is not available");
+            }
+
             return;
         }
 
@@ -160,31 +155,31 @@ public:
 
         m_modify_map_client->async_send_request(
             request,
-            [this, callback](
+            [self = shared_from_this(), callback = std::move(callback)](
                 rclcpp::Client<clover2_pose_msgs::srv::ModifyMap>::SharedFuture
                     future) {
-                try {
-                    if (!future.valid()) {
-                        if (callback) {
-                            callback(false, "Invalid future");
-                        } else {
-                            RCLCPP_ERROR(m_logger, "Fail to modify map");
-                        }
-                        return;
+                if (!future.valid()) {
+                    if (callback) {
+                        callback(false, "Invalid future");
+                    } else {
+                        RCLCPP_ERROR(self->m_logger, "Fail to modify map");
                     }
+                    return;
+                }
 
+                try {
                     auto resp = future.get();
                     if (callback) {
                         callback(resp->success, resp->error_message);
                     } else if (!resp->success) {
-                        RCLCPP_ERROR(m_logger, "Fail to modify map: %s",
+                        RCLCPP_ERROR(self->m_logger, "Fail to modify map: %s",
                                      resp->error_message.c_str());
                     }
                 } catch (const std::exception& e) {
                     if (callback) {
                         callback(false, e.what());
                     } else {
-                        RCLCPP_ERROR(m_logger, "Fail to modify map: %s",
+                        RCLCPP_ERROR(self->m_logger, "Fail to modify map: %s",
                                      e.what());
                     }
                 }

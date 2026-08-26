@@ -1,7 +1,14 @@
+import { useTranslation } from 'react-i18next';
+
+import { PageHeader } from '../components/ui/PageHeader.tsx';
+
 export function Dashboard() {
+  const { t } = useTranslation();
+
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-4">Construction zone</h1>
+      <PageHeader title={t('sidebar.dashboard')} />
+      <p className="mt-4 text-sm text-ink-faint">{t('common.underConstruction')}</p>
     </div>
   );
 }

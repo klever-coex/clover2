@@ -10,7 +10,6 @@ export interface MarkerUiSlice {
   /** Session-only editing layer; seeded from pose on first sight, never refetched. */
   markerUi: Record<string, MarkerUi>;
   setExpr: (id: string, axis: 0 | 1 | 2, kind: 'position' | 'rotation', value: string) => void;
-  setVisible: (id: string, visible: boolean) => void;
   seedUiFor: (markers: Record<string, MapMarker>) => void;
 }
 
@@ -20,13 +19,11 @@ function uiFromMarker(m: MapMarker): MarkerUi {
     return {
       positionExpr: [String(mToMm(m.pose.x)), String(mToMm(m.pose.y)), String(mToMm(m.pose.z))],
       rotationExpr: [String(rx), String(ry), String(rz)],
-      visible: true,
     };
   }
   return {
     positionExpr: [...DEFAULT_POSITION_EXPR],
     rotationExpr: [...DEFAULT_ROTATION_EXPR],
-    visible: true,
   };
 }
 
@@ -41,13 +38,6 @@ export const createMarkerUiSlice: StateCreator<MapStore, [], [], MarkerUiSlice> 
       const expr = [...ui[key]] as [string, string, string];
       expr[axis] = value;
       return { markerUi: { ...s.markerUi, [id]: { ...ui, [key]: expr } } };
-    }),
-
-  setVisible: (id, visible) =>
-    set((s) => {
-      const ui = s.markerUi[id];
-      if (!ui) return s;
-      return { markerUi: { ...s.markerUi, [id]: { ...ui, visible } } };
     }),
 
   seedUiFor: (markers) =>

@@ -7,16 +7,6 @@ import { evaluateExpr } from './exprEval.ts';
 const _euler = new THREE.Euler();
 const _quat = new THREE.Quaternion();
 
-export function quatToEuler(q: Quat4): THREE.Euler {
-  _quat.set(q[0], q[1], q[2], q[3]);
-  return _euler.copy(_euler.setFromQuaternion(_quat, 'YXZ'));
-}
-
-export function eulerToQuat(e: THREE.Euler): Quat4 {
-  _quat.setFromEuler(e);
-  return [_quat.x, _quat.y, _quat.z, _quat.w];
-}
-
 export function quatToEulerDeg(q: Quat4): Vec3 {
   _quat.set(q[0], q[1], q[2], q[3]);
   _euler.setFromQuaternion(_quat, 'YXZ');
@@ -57,11 +47,11 @@ export function resolveRotation(expr: [string, string, string], markerId: number
   return eulerDegToQuat(x, y, z);
 }
 
-export function resolveRotationDeg(expr: [string, string, string], markerId: number): Vec3 {
+function resolveRotationDeg(expr: [string, string, string], markerId: number): Vec3 {
   return [safeEval(expr[0], markerId, 0), safeEval(expr[1], markerId, 0), safeEval(expr[2], markerId, 0)];
 }
 
-export function eulerYxzDegToRpy(xDeg: number, yDeg: number, zDeg: number): [number, number, number] {
+function eulerYxzDegToRpy(xDeg: number, yDeg: number, zDeg: number): [number, number, number] {
   const q = eulerDegToQuat(xDeg, yDeg, zDeg);
   _quat.set(q[0], q[1], q[2], q[3]);
   _euler.setFromQuaternion(_quat, 'ZYX');
@@ -100,24 +90,4 @@ export function sanitizeVec3(v: Vec3): Vec3 {
     Number.isFinite(v[1]) ? v[1] : 0,
     Number.isFinite(v[2]) ? v[2] : 0,
   ];
-}
-
-export function sanitizeQuat(q: Quat4): Quat4 {
-  if (!q.every(Number.isFinite)) return [0, 0, 0, 1];
-
-  const magSq = q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3];
-
-  if (magSq < 1e-10) return [0, 0, 0, 1];
-
-  const invMag = 1 / Math.sqrt(magSq);
-  return [q[0] * invMag, q[1] * invMag, q[2] * invMag, q[3] * invMag];
-}
-
-export function quatEquals(a: Quat4, b: Quat4, epsilon = 1e-6): boolean {
-  const dot = Math.abs(a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3]);
-  return dot > 1 - epsilon;
-}
-
-export function toVec3(arr: number[]): Vec3 {
-  return [arr[0] ?? 0, arr[1] ?? 0, arr[2] ?? 0];
 }

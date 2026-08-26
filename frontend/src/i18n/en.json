@@ -18,7 +18,10 @@
   "common": {
     "retry": "Retry",
     "loading": "Loading...",
-    "sortBy": "Sort by"
+    "sortBy": "Sort by",
+    "unknownError": "Unknown error",
+    "unexpectedError": "An unexpected error occurred",
+    "underConstruction": "Under construction"
   },
   "errors": {
     "backendUnavailable": "Backend is unavailable — check that clover2_http is running",
@@ -41,6 +44,8 @@
     "dictionary": "Dictionary",
     "markers": "Markers",
     "export": "Export",
+    "save": "Save",
+    "saving": "Saving...",
     "addMarker": "Add marker",
     "searchPlaceholder": "Search by id or name...",
     "sortId": "By ID",
@@ -53,18 +58,19 @@
     "editingMany": "Editing {{count}} markers",
     "multiExprHint": "Expressions use id = markerId",
     "label": "Label",
-    "markerId": "Marker ID",
     "sizeMm": "Size (mm)",
     "positionExpr": "Position (mm) — expression f(id)",
     "rotationExpr": "Rotation (°) — Euler YXZ — expression f(id)",
-    "visible": "Visible",
     "delete": "Delete marker",
     "deleteMany": "Delete {{count}} markers",
     "type": "Type",
     "typeFixed": "Fixed",
     "typeStatic": "Static",
     "typeDynamic": "Dynamic",
-    "poseUnknown": "Pose is unknown for this marker type — position and rotation editing are not available"
+    "poseUnknown": "Pose is unknown for this marker type — position and rotation editing are not available",
+    "sizeFinite": "Size must be a finite number",
+    "sizePositive": "Size must be positive",
+    "sizeMin": "Size must be at least 0.01 m (10 mm)"
   },
   "topics": {
     "title": "ROS Topics",

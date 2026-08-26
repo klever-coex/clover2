@@ -11,5 +11,5 @@ export function isVideoTopic(type: string): boolean {
 
 export function videoStreamUrl(topicName: string, codec: 'h264' | 'vp8' | 'vp9' = 'vp8'): string {
   const { protocol, hostname } = window.location;
-  return `${protocol}//${hostname}:${VIDEO_SERVER_PORT}/stream?topic=${topicName}&type=${codec}`;
+  return `${protocol}//${hostname}:${VIDEO_SERVER_PORT}/stream?topic=${encodeURIComponent(topicName)}&type=${codec}`;
 }

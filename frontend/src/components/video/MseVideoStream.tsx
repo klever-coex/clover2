@@ -6,27 +6,29 @@ import { videoStreamUrl } from '../../utils/videoStream.ts';
 import { ErrorState } from '../ui/ErrorState.tsx';
 import { Spinner } from '../ui/Spinner.tsx';
 
-interface H264VideoStreamProps {
+interface MseVideoStreamProps {
   topicName: string;
 }
 
 const STALL_TIMEOUT_MS = 10_000;
 
-export function H264VideoStream({ topicName }: H264VideoStreamProps) {
+export function MseVideoStream({ topicName }: MseVideoStreamProps) {
   const { t } = useTranslation();
+  const mseSupported =
+    typeof MediaSource !== 'undefined' && MediaSource.isTypeSupported(VIDEO_VP8_MIME);
   const [status, setStatus] = useState<'loading' | 'playing' | 'error'>('loading');
   const [attempt, setAttempt] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
+    if (!mseSupported) return;
+
     let aborted = false;
     let objectUrl: string | null = null;
     let sourceBuffer: SourceBuffer | null = null;
     let reader: ReadableStreamDefaultReader<Uint8Array<ArrayBuffer>> | null = null;
     let watchdog: number | null = null;
     const mediaSource = new MediaSource();
-
-    setStatus('loading');
 
     const clearWatchdog = () => {
       if (watchdog !== null) window.clearTimeout(watchdog);
@@ -111,11 +113,6 @@ export function H264VideoStream({ topicName }: H264VideoStreamProps) {
 
     mediaSource.addEventListener('sourceopen', onSourceOpen);
 
-    if (typeof MediaSource === 'undefined' || !MediaSource.isTypeSupported(VIDEO_VP8_MIME)) {
-      setStatus('error');
-      return;
-    }
-
     objectUrl = URL.createObjectURL(mediaSource);
     video.src = objectUrl;
     void video.play().catch(() => {});
@@ -139,9 +136,9 @@ export function H264VideoStream({ topicName }: H264VideoStreamProps) {
       }
       if (objectUrl !== null) URL.revokeObjectURL(objectUrl);
     };
-  }, [topicName, attempt]);
+  }, [topicName, attempt, mseSupported]);
 
-  if (status === 'error') {
+  if (!mseSupported || status === 'error') {
     return (
       <div className="h-full flex items-center justify-center p-6">
         <ErrorState

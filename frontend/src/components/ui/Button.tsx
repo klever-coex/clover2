@@ -2,7 +2,6 @@ import type { ButtonHTMLAttributes } from 'react';
 
 import { cn } from '../../lib/cn.ts';
 
-/** Shared base classes for button-like elements (Button, IconButton, nav items). */
 export const buttonBase =
   'inline-flex items-center justify-center gap-2 font-medium rounded-row transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus/60 disabled:opacity-50 disabled:pointer-events-none';
 

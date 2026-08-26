@@ -1,4 +1,3 @@
-import { useEffect, useEffectEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { CapabilityGate } from '../../components/ros2/CapabilityGate.tsx';
@@ -11,6 +10,7 @@ import { PageHeader } from '../../components/ui/PageHeader.tsx';
 import { cn } from '../../lib/cn.ts';
 import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
 import { useMapKeyboardShortcuts } from '../../hooks/useMapKeyboardShortcuts.ts';
+import { useCapabilityFetch } from '../../hooks/useCapabilityFetch.ts';
 import { useRosCapability } from '../../hooks/useRosCapability.ts';
 import { useMapStore } from '../../store/useMapStore.ts';
 import { useMapUIStore } from '../../store/useMapUIStore.ts';
@@ -25,13 +25,7 @@ export default function MapPage() {
   const reloadMap = useMapStore((s) => s.reloadMap);
   const sidePanelOpen = useMapUIStore((s) => s.sidePanelOpen);
 
-  const runReload = useEffectEvent(reloadMap);
-
-  useEffect(() => {
-    if (capability.ready && capability.allowed) {
-      void runReload();
-    }
-  }, [capability.ready, capability.allowed]);
+  useCapabilityFetch(capability, reloadMap);
 
   useMapKeyboardShortcuts();
 

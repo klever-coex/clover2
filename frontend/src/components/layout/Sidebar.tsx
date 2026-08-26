@@ -41,10 +41,10 @@ type NavItem = NavLinkItem | NavGroupItem;
 const { protocol, hostname } = window.location;
 
 const MENU: NavItem[] = [
-  { key: 'dashboard', labelKey: 'sidebar.dashboard', icon: Drone, to: '/' },
+  // { key: 'dashboard', labelKey: 'sidebar.dashboard', icon: Drone, to: '/' },
   { key: 'map', labelKey: 'sidebar.map', icon: Map, to: '/map' },
   { key: 'video', labelKey: 'sidebar.video', icon: Video, to: '/video' },
-  { key: 'settings', labelKey: 'sidebar.settings', icon: Settings, to: '/settings' },
+  // { key: 'settings', labelKey: 'sidebar.settings', icon: Settings, to: '/settings' },
   {
     key: 'ros2',
     labelKey: 'sidebar.ros2',

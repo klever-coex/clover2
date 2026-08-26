@@ -41,8 +41,6 @@ export function TopicDetailPage() {
     return <Navigate to="/ros2/topics" replace />;
   }
 
-  // 1008 is the backend's "unknown topic" signal; everything else (including a
-  // 1006 drop) goes through the shared network/timeout wording.
   const errorMessage =
     stream.error === null
       ? null

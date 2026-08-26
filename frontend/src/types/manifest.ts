@@ -1,4 +1,4 @@
-// Wire types of the clover2_http backend (default port 8080).
+// Wire types of the clover2_http backend (default port 3000).
 
 export type Capability = 'nodes' | 'topics' | 'services' | (string & {});
 

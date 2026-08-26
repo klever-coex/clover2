@@ -1,11 +1,14 @@
 import type { Capability } from '../types/manifest.ts';
 
-export interface ApiRequest {
-  path: string;
+export interface ApiCallOptions {
   capabilities?: readonly Capability[];
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   body?: unknown;
   timeoutMs?: number;
+}
+
+export interface ApiRequest extends ApiCallOptions {
+  path: string;
 }
 
 export interface ApiContext {
@@ -25,15 +28,7 @@ export type HttpMiddleware = (
 export type TransportExecutor = (ctx: ApiContext) => Promise<void>;
 
 export interface HttpCall {
-  <T>(
-    path: string,
-    options?: {
-      capabilities?: readonly Capability[];
-      method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-      body?: unknown;
-      timeoutMs?: number;
-    },
-  ): Promise<T>;
+  <T>(path: string, options?: ApiCallOptions): Promise<T>;
 }
 
 export function createHttpCall(
@@ -41,15 +36,7 @@ export function createHttpCall(
   middlewares: readonly HttpMiddleware[],
   executor: TransportExecutor,
 ): HttpCall {
-  return async <T>(
-    path: string,
-    options?: {
-      capabilities?: readonly Capability[];
-      method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-      body?: unknown;
-      timeoutMs?: number;
-    },
-  ): Promise<T> => {
+  return async <T>(path: string, options?: ApiCallOptions): Promise<T> => {
     const ctx: ApiContext = {
       request: {
         path,

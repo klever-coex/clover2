@@ -7,19 +7,25 @@ import { Panel } from '../ui/Panel.tsx';
 import { ResourceState } from '../ui/ResourceState.tsx';
 import { ServiceEndpointRow, TopicEndpointRow } from './EndpointRow.tsx';
 
-interface EndpointPanelProps {
+interface EndpointPanelProps<T> {
   title: string;
   empty: string;
-  resource: AsyncResource<readonly unknown[]>;
+  resource: AsyncResource<T[]>;
   defaultOpen?: boolean;
-  children: ReactNode;
+  children: (data: T[]) => ReactNode;
 }
 
-function EndpointPanel({ title, empty, resource, defaultOpen, children }: EndpointPanelProps) {
+function EndpointPanel<T>({
+  title,
+  empty,
+  resource,
+  defaultOpen,
+  children,
+}: EndpointPanelProps<T>) {
   return (
     <Panel title={title} count={resource.data?.length} collapsible defaultOpen={defaultOpen}>
       <ResourceState resource={resource} emptyMessage={empty}>
-        <div className="space-y-1">{children}</div>
+        {(data) => <div className="space-y-1">{children(data)}</div>}
       </ResourceState>
     </Panel>
   );
@@ -38,9 +44,9 @@ export function TopicPanel({
 }) {
   return (
     <EndpointPanel title={title} empty={empty} resource={resource} defaultOpen={defaultOpen}>
-      {resource.data?.map((endpoint) => (
-        <TopicEndpointRow key={endpoint.info.name} endpoint={endpoint} />
-      ))}
+      {(data) =>
+        data.map((endpoint) => <TopicEndpointRow key={endpoint.info.name} endpoint={endpoint} />)
+      }
     </EndpointPanel>
   );
 }
@@ -58,9 +64,9 @@ export function ServicePanel({
 }) {
   return (
     <EndpointPanel title={title} empty={empty} resource={resource} defaultOpen={defaultOpen}>
-      {resource.data?.map((endpoint) => (
-        <ServiceEndpointRow key={endpoint.info.name} endpoint={endpoint} />
-      ))}
+      {(data) =>
+        data.map((endpoint) => <ServiceEndpointRow key={endpoint.info.name} endpoint={endpoint} />)
+      }
     </EndpointPanel>
   );
 }

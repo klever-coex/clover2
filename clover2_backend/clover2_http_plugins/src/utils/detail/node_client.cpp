@@ -46,7 +46,6 @@ node_client::node_client(
                 m_node_services,  //
                 m_full_name + "/get_state");
 
-        // init current state
         auto req = std::make_shared<lifecycle_msgs::srv::GetState::Request>();
         m_get_state_client->async_send_request(
             req,

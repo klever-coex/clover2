@@ -53,7 +53,6 @@ export const MarkerMesh = memo(function MarkerMesh({ markerId }: Props) {
       ref={groupRef}
       position={positionM}
       rotation={rotationEuler}
-      visible={ui.visible}
       onClick={handleClick}
       userData={{ markerId }}
     >

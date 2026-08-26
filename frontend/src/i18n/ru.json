@@ -18,7 +18,10 @@
   "common": {
     "retry": "Повторить",
     "loading": "Загрузка...",
-    "sortBy": "Сортировка"
+    "sortBy": "Сортировка",
+    "unknownError": "Неизвестная ошибка",
+    "unexpectedError": "Произошла непредвиденная ошибка",
+    "underConstruction": "В разработке"
   },
   "errors": {
     "backendUnavailable": "Бэкенд недоступен — проверьте, запущен ли clover2_http",
@@ -41,6 +44,8 @@
     "dictionary": "Словарь",
     "markers": "Маркеры",
     "export": "Экспорт",
+    "save": "Сохранить",
+    "saving": "Сохранение...",
     "addMarker": "Добавить маркер",
     "searchPlaceholder": "Поиск по ID или имени...",
     "sortId": "По ID",
@@ -53,18 +58,19 @@
     "editingMany": "Редактируется маркеров: {{count}}",
     "multiExprHint": "Выражения используют id = markerId",
     "label": "Название",
-    "markerId": "ID маркера",
     "sizeMm": "Размер (мм)",
     "positionExpr": "Позиция (мм) — выражение f(id)",
     "rotationExpr": "Поворот (°) — Euler YXZ — выражение f(id)",
-    "visible": "Видимость",
     "delete": "Удалить маркер",
     "deleteMany": "Удалить маркеров: {{count}}",
     "type": "Тип",
     "typeFixed": "Фиксированный",
     "typeStatic": "Статичный",
     "typeDynamic": "Динамический",
-    "poseUnknown": "Поза неизвестна для этого типа маркера — позиция и поворот недоступны"
+    "poseUnknown": "Поза неизвестна для этого типа маркера — позиция и поворот недоступны",
+    "sizeFinite": "Размер должен быть числом",
+    "sizePositive": "Размер должен быть положительным",
+    "sizeMin": "Размер должен быть не меньше 0,01 м (10 мм)"
   },
   "topics": {
     "title": "Топики ROS",
