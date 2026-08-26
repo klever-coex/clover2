@@ -8,6 +8,7 @@ import { ErrorState } from '../../components/ui/ErrorState.tsx';
 import { LoadingState } from '../../components/ui/LoadingState.tsx';
 import { PageHeader } from '../../components/ui/PageHeader.tsx';
 import { Panel } from '../../components/ui/Panel.tsx';
+import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
 import { useNodeResources } from '../../hooks/useNodeResources.ts';
 import type { AsyncResource } from '../../hooks/useAsyncResource.ts';
 import type { NodeInfo } from '../../types/node.ts';
@@ -63,12 +64,13 @@ function NodeDetailView({ nodeName }: { nodeName: string }) {
 
 function InfoPanel({ resource }: { resource: AsyncResource<NodeInfo> }) {
   const { t } = useTranslation();
+  const errorMessage = useApiErrorMessage();
 
   return (
     <Panel title={t('nodes.info')}>
       {resource.loading && resource.data === null && <LoadingState size={24} />}
       {resource.error !== null && (
-        <ErrorState message={resource.error.message} onRetry={resource.reload} />
+        <ErrorState message={errorMessage(resource.error)} onRetry={resource.reload} />
       )}
       {resource.data !== null && (
         <div className="space-y-2">

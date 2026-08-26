@@ -9,12 +9,14 @@ import { EmptyState } from '../../components/ui/EmptyState.tsx';
 import { ErrorState } from '../../components/ui/ErrorState.tsx';
 import { LoadingState } from '../../components/ui/LoadingState.tsx';
 import { PageHeader } from '../../components/ui/PageHeader.tsx';
+import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
 import { useNodeInfos } from '../../hooks/useNodeInfos.ts';
 import { useRosCapability } from '../../hooks/useRosCapability.ts';
 import { useRosStore } from '../../store/useRosStore.ts';
 
 export function NodesPage() {
   const { t } = useTranslation();
+  const errorMessage = useApiErrorMessage();
   const capability = useRosCapability('nodes');
   const nodes = useRosStore((s) => s.nodes);
   const nodesLoading = useRosStore((s) => s.nodesLoading);
@@ -70,7 +72,7 @@ export function NodesPage() {
           {nodesLoading && nodes.length === 0 && <LoadingState />}
 
           {nodesError !== null && (
-            <ErrorState message={nodesError.message} onRetry={reloadNodes} />
+            <ErrorState message={errorMessage(nodesError)} onRetry={reloadNodes} />
           )}
 
           {nodesError === null && !nodesLoading && filtered.length === 0 && (

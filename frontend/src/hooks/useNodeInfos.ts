@@ -3,10 +3,6 @@ import type { NodeInfo } from '../types/node.ts';
 import { useAsyncResource } from './useAsyncResource.ts';
 import type { AsyncResource } from './useAsyncResource.ts';
 
-/**
- * Fetches info for all nodes in one batch (allSettled): a failed request just
- * leaves that node without info — the map only holds fulfilled results.
- */
 export function useNodeInfos(names: readonly string[]): AsyncResource<Map<string, NodeInfo>> {
   return useAsyncResource(
     async () => {

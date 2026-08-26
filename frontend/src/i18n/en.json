@@ -20,6 +20,10 @@
     "loading": "Loading...",
     "sortBy": "Sort by"
   },
+  "errors": {
+    "backendUnavailable": "Backend is unavailable — check that clover2_http is running",
+    "timeout": "Backend is not responding — the request timed out"
+  },
   "map": {
     "title": "ArUco Map",
     "noCapability": "Map backend plugin is not available",
@@ -51,10 +55,7 @@
     "typeFixed": "Fixed",
     "typeStatic": "Static",
     "typeDynamic": "Dynamic",
-    "poseUnknown": "Pose is unknown for this marker type — position and rotation editing are not available",
-    "saveError": "Save failed: {{message}}",
-    "addError": "Add failed: {{message}}",
-    "deleteError": "Delete failed: {{message}}"
+    "poseUnknown": "Pose is unknown for this marker type — position and rotation editing are not available"
   },
   "topics": {
     "title": "ROS Topics",

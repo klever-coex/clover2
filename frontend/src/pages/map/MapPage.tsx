@@ -9,14 +9,15 @@ import { ErrorState } from '../../components/ui/ErrorState.tsx';
 import { LoadingState } from '../../components/ui/LoadingState.tsx';
 import { PageHeader } from '../../components/ui/PageHeader.tsx';
 import { cn } from '../../lib/cn.ts';
+import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
 import { useMapKeyboardShortcuts } from '../../hooks/useMapKeyboardShortcuts.ts';
 import { useRosCapability } from '../../hooks/useRosCapability.ts';
 import { useMapStore } from '../../store/useMapStore.ts';
 import { useMapUIStore } from '../../store/useMapUIStore.ts';
 
-/** ArUco map editor: 3D scene + marker panel, backed by the clover2 map API. */
 export default function MapPage() {
   const { t } = useTranslation();
+  const errorMessage = useApiErrorMessage();
   const capability = useRosCapability('map');
   const markers = useMapStore((s) => s.markers);
   const mapLoading = useMapStore((s) => s.mapLoading);
@@ -24,8 +25,6 @@ export default function MapPage() {
   const reloadMap = useMapStore((s) => s.reloadMap);
   const sidePanelOpen = useMapUIStore((s) => s.sidePanelOpen);
 
-  // Effect event: the reload action must not be an effect dependency, otherwise
-  // an inline onReload prop would retrigger the fetch on every render.
   const runReload = useEffectEvent(reloadMap);
 
   useEffect(() => {
@@ -45,7 +44,10 @@ export default function MapPage() {
           {mapLoading && Object.keys(markers).length === 0 ? (
             <LoadingState variant="centered" />
           ) : mapError !== null ? (
-            <ErrorState message={mapError.message} onRetry={() => void reloadMap()} />
+            <ErrorState
+              message={errorMessage(mapError)}
+              onRetry={() => void reloadMap()}
+            />
           ) : (
             <div
               className={cn(

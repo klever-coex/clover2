@@ -17,6 +17,12 @@
 #include <string>
 #include <unordered_set>
 
+namespace {
+
+constexpr static const float k_epsilon = 1e-5f;
+
+}  // namespace
+
 namespace YAML {
 
 template <>
@@ -52,21 +58,36 @@ struct convert<Eigen::Isometry3d> {
         const auto& t = pose.translation();
 
         Node node;
-        node["x"] = t.x();
-        node["y"] = t.y();
-        node["z"] = t.z();
+        if (std::abs(t.x()) >= k_epsilon) {
+            node["x"] = t.x();
+        }
+
+        if (std::abs(t.y()) >= k_epsilon) {
+            node["y"] = t.y();
+        }
+
+        if (std::abs(t.z()) >= k_epsilon) {
+            node["z"] = t.z();
+        }
 
         Eigen::Quaterniond eq(pose.linear());
         tf2::Quaternion q(eq.x(), eq.y(), eq.z(), eq.w());
-        double roll = 0.0;
-        double pitch = 0.0;
-        double yaw = 0.0;
+        double roll = 0.0, pitch = 0.0, yaw = 0.0;
         tf2::Matrix3x3(q).getRPY(roll, pitch, yaw);
 
         Node rot;
-        rot["roll"] = roll;
-        rot["pitch"] = pitch;
-        rot["yaw"] = yaw;
+        if (std::abs(roll) >= k_epsilon) {
+            rot["roll"] = roll;
+        }
+
+        if (std::abs(pitch) >= k_epsilon) {
+            rot["pitch"] = pitch;
+        }
+
+        if (std::abs(yaw) >= k_epsilon) {
+            rot["yaw"] = yaw;
+        }
+
         node["rot"] = rot;
 
         return node;

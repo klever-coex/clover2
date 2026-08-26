@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
 import type { RosCapability } from '../../hooks/useRosCapability.ts';
 import { ErrorState } from '../ui/ErrorState.tsx';
 import { LoadingState } from '../ui/LoadingState.tsx';
@@ -10,14 +11,17 @@ interface CapabilityGateProps {
   children: ReactNode;
 }
 
-/** Manifest capability gate: error → loading → not-allowed → content. */
 export function CapabilityGate({
   capability,
   noCapability,
   children,
 }: CapabilityGateProps) {
+  const errorMessage = useApiErrorMessage();
+
   if (capability.error !== null) {
-    return <ErrorState message={capability.error} onRetry={capability.retry} />;
+    return (
+      <ErrorState message={errorMessage(capability.error)} onRetry={capability.retry} />
+    );
   }
 
   if (!capability.ready) {

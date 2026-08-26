@@ -42,7 +42,6 @@ async function run(
   }
 }
 
-/** Editor Enter/blur, transform-gizmo pointer-up, arrow-nudge → PUT resolved pose. */
 export async function applyPose(id: string): Promise<{ ok: boolean; error: string | null }> {
   const s = useMapStore.getState();
   const marker = s.markers[id];
@@ -57,7 +56,6 @@ export async function applyPose(id: string): Promise<{ ok: boolean; error: strin
   );
 }
 
-/** Label (marker_frame_id) and size edits. */
 export async function updateMarkerInfo(
   id: string,
   patch: Partial<Pick<MapMarker, 'sizeM' | 'markerFrameId'>>,
@@ -81,7 +79,6 @@ export async function updateMarkerInfo(
   );
 }
 
-/** Add a marker on the web3d cascade position; backend takes id from the body. */
 export async function addMarker(): Promise<{ ok: boolean; error: string | null }> {
   const s = useMapStore.getState();
   const count = Object.keys(s.markers).length;
@@ -112,7 +109,6 @@ export async function addMarker(): Promise<{ ok: boolean; error: string | null }
   );
 }
 
-/** Delete one or more markers; the first failure is surfaced. */
 export async function deleteMarkers(ids: string[]): Promise<{ ok: boolean; error: string | null }> {
   const s = useMapStore.getState();
   s.setMutationError(null);
@@ -140,7 +136,6 @@ export async function deleteMarkers(ids: string[]): Promise<{ ok: boolean; error
   return { ok: true, error: null };
 }
 
-/** Download the export snapshot as a JSON file (shared by the panel and Ctrl+Shift+S). */
 export function downloadProject(): void {
   const data = exportProjectSnapshot();
   const name = useMapStore.getState().mapMeta?.name || DEFAULT_PROJECT_NAME;
@@ -153,7 +148,6 @@ export function downloadProject(): void {
   URL.revokeObjectURL(url);
 }
 
-/** Export snapshot of the current backend state in web3d ProjectFile v1 format. */
 export function exportProjectSnapshot(): ProjectFile {
   const s = useMapStore.getState();
   const dictionary = s.mapMeta?.dictionary ?? 'DICT_4X4_1000';

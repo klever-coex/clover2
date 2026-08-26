@@ -1,9 +1,9 @@
 name: simulation
 frame_id: map
 dict: 4X4_1000
+default_size: 0.36000001430511475
 markers:
   - id: 0
-    size: 0.35999999999999999
     pose:
       x: 0
       y: 0
@@ -14,7 +14,36 @@ markers:
         yaw: 0
     frame_id: map_aruco_0
   - id: 1
-    size: 0.35999999999999999
+    pose:
+      x: 2
+      y: 0
+      z: 0
+      rot:
+        roll: 0
+        pitch: -0
+        yaw: 0
+    frame_id: map_aruco_1
+  - id: 2
+    pose:
+      x: 4
+      y: 0
+      z: 0
+      rot:
+        roll: 0
+        pitch: -0
+        yaw: 0
+    frame_id: map_aruco_2
+  - id: 3
+    pose:
+      x: 6
+      y: 0
+      z: 0
+      rot:
+        roll: 0
+        pitch: -0
+        yaw: 0
+    frame_id: map_aruco_3
+  - id: 4
     pose:
       x: 0
       y: -1
@@ -23,44 +52,10 @@ markers:
         roll: 0
         pitch: -0
         yaw: 0
-    frame_id: map_aruco_1
-  - id: 2
-    size: 0.35999999999999999
-    pose:
-      x: 0
-      y: -2
-      z: 0
-      rot:
-        roll: 0
-        pitch: -0
-        yaw: 0
-    frame_id: map_aruco_2
-  - id: 3
-    size: 0.35999999999999999
-    pose:
-      x: 0
-      y: -3
-      z: 0
-      rot:
-        roll: 0
-        pitch: -0
-        yaw: 0
-    frame_id: map_aruco_3
-  - id: 4
-    size: 0.35999999999999999
-    pose:
-      x: -1
-      y: 0
-      z: 0
-      rot:
-        roll: 0
-        pitch: -0
-        yaw: 0
     frame_id: map_aruco_4
   - id: 5
-    size: 0.35999999999999999
     pose:
-      x: -1
+      x: 2
       y: -1
       z: 0
       rot:
@@ -69,10 +64,9 @@ markers:
         yaw: 0
     frame_id: map_aruco_5
   - id: 6
-    size: 0.35999999999999999
     pose:
-      x: -1
-      y: -2
+      x: 4
+      y: -1
       z: 0
       rot:
         roll: 0
@@ -80,10 +74,9 @@ markers:
         yaw: 0
     frame_id: map_aruco_6
   - id: 7
-    size: 0.35999999999999999
     pose:
-      x: -1
-      y: -3
+      x: 6
+      y: -1
       z: 0
       rot:
         roll: 0
@@ -91,10 +84,9 @@ markers:
         yaw: 0
     frame_id: map_aruco_7
   - id: 8
-    size: 0.35999999999999999
     pose:
-      x: -2
-      y: 0
+      x: 0
+      y: -2
       z: 0
       rot:
         roll: 0
@@ -102,10 +94,9 @@ markers:
         yaw: 0
     frame_id: map_aruco_8
   - id: 9
-    size: 0.35999999999999999
     pose:
-      x: -2
-      y: -1
+      x: 2
+      y: -2
       z: 0
       rot:
         roll: 0
@@ -113,9 +104,8 @@ markers:
         yaw: 0
     frame_id: map_aruco_9
   - id: 10
-    size: 0.35999999999999999
     pose:
-      x: -2
+      x: 4
       y: -2
       z: 0
       rot:
@@ -124,10 +114,9 @@ markers:
         yaw: 0
     frame_id: map_aruco_10
   - id: 11
-    size: 0.35999999999999999
     pose:
-      x: -2
-      y: -3
+      x: 6
+      y: -2
       z: 0
       rot:
         roll: 0
@@ -135,10 +124,9 @@ markers:
         yaw: 0
     frame_id: map_aruco_11
   - id: 12
-    size: 0.35999999999999999
     pose:
-      x: -3
-      y: 0
+      x: 0
+      y: -3
       z: 0
       rot:
         roll: 0
@@ -146,10 +134,9 @@ markers:
         yaw: 0
     frame_id: map_aruco_12
   - id: 13
-    size: 0.35999999999999999
     pose:
-      x: -3
-      y: -1
+      x: 2
+      y: -3
       z: 0
       rot:
         roll: 0
@@ -157,10 +144,9 @@ markers:
         yaw: 0
     frame_id: map_aruco_13
   - id: 14
-    size: 0.35999999999999999
     pose:
-      x: -3
-      y: -2
+      x: 4
+      y: -3
       z: 0
       rot:
         roll: 0
@@ -168,9 +154,8 @@ markers:
         yaw: 0
     frame_id: map_aruco_14
   - id: 15
-    size: 0.35999999999999999
     pose:
-      x: -3
+      x: 6
       y: -3
       z: 0
       rot:
@@ -178,14 +163,3 @@ markers:
         pitch: -0
         yaw: 0
     frame_id: map_aruco_15
-  - id: 22
-    size: 0.36000001430511475
-    pose:
-      x: 0
-      y: 0
-      z: 1
-      rot:
-        roll: 0
-        pitch: -0
-        yaw: 0
-    frame_id: map_aruco_22
