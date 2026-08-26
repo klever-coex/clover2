@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
+import { Video } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Navigate, useSearchParams } from 'react-router';
+import { Navigate, useNavigate, useSearchParams } from 'react-router';
 import { MessageViewer } from '../../components/ros2/MessageViewer.tsx';
 import { StatusBadge } from '../../components/ros2/StatusBadge.tsx';
 import { TypeBadge } from '../../components/ros2/TypeBadge.tsx';
@@ -12,10 +13,12 @@ import { PageHeader } from '../../components/ui/PageHeader.tsx';
 import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
 import { useTopicStream } from '../../hooks/useTopicStream.ts';
 import { useRosStore } from '../../store/useRosStore.ts';
+import { isVideoTopic } from '../../utils/videoStream.ts';
 
 export function TopicDetailPage() {
   const { t } = useTranslation();
   const apiErrorMessage = useApiErrorMessage();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const topicName = searchParams.get('topic');
   const topics = useRosStore((s) => s.topics);
@@ -54,6 +57,16 @@ export function TopicDetailPage() {
         backTo={{ to: '/ros2/topics', label: t('topicDetail.backToTopics') }}
         actions={
           <div className="flex gap-2">
+            {topic !== null && isVideoTopic(topic.type) && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate(`/video?topic=${encodeURIComponent(topic.name)}`)}
+              >
+                <Video size={14} />
+                {t('video.openVideo')}
+              </Button>
+            )}
             <Button variant="secondary" size="sm" onClick={stream.clear}>
               {t('topicDetail.clear')}
             </Button>

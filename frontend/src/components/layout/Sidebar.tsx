@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { NavLink } from 'react-router';
+import { NavLink, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
   BookOpenText,
-  Camera,
   ChevronDown,
   Drone,
   EthernetPort,
@@ -15,6 +14,7 @@ import {
   Orbit,
   Settings,
   SquarePen,
+  Video,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '../../lib/cn.ts';
@@ -26,7 +26,6 @@ interface NavLinkItem {
   key: string;
   labelKey: TranslationKey;
   icon: LucideIcon;
-  /** Internal route path or an external-URL builder. */
   to: string | ((lang: string) => string);
 }
 
@@ -44,6 +43,7 @@ const { protocol, hostname } = window.location;
 const MENU: NavItem[] = [
   { key: 'dashboard', labelKey: 'sidebar.dashboard', icon: Drone, to: '/' },
   { key: 'map', labelKey: 'sidebar.map', icon: Map, to: '/map' },
+  { key: 'video', labelKey: 'sidebar.video', icon: Video, to: '/video' },
   { key: 'settings', labelKey: 'sidebar.settings', icon: Settings, to: '/settings' },
   {
     key: 'ros2',
@@ -59,12 +59,6 @@ const MENU: NavItem[] = [
     labelKey: 'sidebar.documentation',
     icon: BookOpenText,
     to: (lang) => `${protocol}//${hostname}:9000/${lang}/index.html`,
-  },
-  {
-    key: 'camera',
-    labelKey: 'sidebar.camera',
-    icon: Camera,
-    to: () => `${protocol}//${hostname}:8081`,
   },
   {
     key: 'ide',
@@ -88,6 +82,7 @@ export function Sidebar() {
   const [flyoutKey, setFlyoutKey] = useState<string | null>(null);
   const [flyoutRect, setFlyoutRect] = useState<DOMRect | null>(null);
   const { t, i18n } = useTranslation();
+  const { pathname } = useLocation();
 
   const changeLanguage = (lang: string) => {
     void i18n.changeLanguage(lang);
@@ -127,7 +122,6 @@ export function Sidebar() {
   const isGroupOpen = (key: string) => openGroups.has(key);
 
   const toggleGroup = (key: string, rect?: DOMRect) => {
-    // Collapsed sidebar: toggle a flyout with the group children — no expansion.
     if (!isOpen) {
       const nextOpen = flyoutKey !== key;
       setFlyoutKey(nextOpen ? key : null);
@@ -183,6 +177,11 @@ export function Sidebar() {
       const expanded = isGroupOpen(item.key);
       const flyoutOpen = flyoutKey === item.key;
       const Icon = item.icon;
+      const groupActive = item.children.some(
+        (child) =>
+          typeof child.to === 'string' &&
+          (pathname === child.to || pathname.startsWith(`${child.to}/`)),
+      );
 
       return (
         <div key={item.key} data-nav-flyout>
@@ -195,7 +194,11 @@ export function Sidebar() {
               rowBase,
               'w-full',
               isOpen ? 'gap-3 justify-start' : 'justify-center',
-              isOpen && expanded ? 'text-ink' : 'text-ink-muted',
+              groupActive
+                ? 'bg-surface-2 text-accent-text shadow-[inset_2px_0_0_0_var(--color-accent)]'
+                : isOpen && expanded
+                  ? 'text-ink'
+                  : 'text-ink-muted',
               'hover:bg-surface-2 hover:text-ink',
             )}
           >

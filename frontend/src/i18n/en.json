@@ -7,7 +7,7 @@
     "topics": "Topics",
     "settings": "Settings",
     "documentation": "Documentation",
-    "camera": "Camera Viewer",
+    "video": "Video",
     "ide": "IDE",
     "toggleMenu": "Toggle menu",
     "language": "Language"
@@ -23,6 +23,15 @@
   "errors": {
     "backendUnavailable": "Backend is unavailable — check that clover2_http is running",
     "timeout": "Backend is not responding — the request timed out"
+  },
+  "video": {
+    "title": "Video Streams",
+    "noCapability": "ROS topics plugin is not available",
+    "searchPlaceholder": "Search video topics...",
+    "noTopics": "No video topics found",
+    "selectHint": "Select a topic to view the stream",
+    "streamError": "Video stream is unavailable",
+    "openVideo": "Watch video"
   },
   "map": {
     "title": "ArUco Map",
