@@ -42,10 +42,8 @@ public:
         const std::string& full_name) const;
 
 private:
-    std::vector<topic_endpoint> endpoints(const std::string& full_name,
-                                          bool publishers) const;
-    std::vector<service_endpoint> service_endpoints(
-        const std::string& full_name, bool servers) const;
+    std::shared_ptr<detail::node_client> find_client(
+        const std::string& full_name) const;
 
     mutable std::mutex m_mtx;
     std::shared_ptr<clover2_common::node_context> m_ctx;

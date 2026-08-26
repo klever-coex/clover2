@@ -73,14 +73,85 @@ data::node_info node_client::get_node_info() const {
     info.name = m_name;
     info.ns = m_ns;
     info.is_lifecycle = m_lifecycle;
-    info.lifecycle_state = m_state;
+    if (!m_state.empty()) {
+        info.lifecycle_state = m_state;
+    }
 
     return info;
+}
+
+std::vector<data::topic_endpoint> node_client::get_publishers() const {
+    return endpoints(true);
+}
+
+std::vector<data::topic_endpoint> node_client::get_subscribes() const {
+    return endpoints(false);
+}
+
+std::vector<data::service_endpoint> node_client::get_servers() const {
+    return service_endpoints(true);
+}
+
+std::vector<data::service_endpoint> node_client::get_clients() const {
+    return service_endpoints(false);
 }
 
 void node_client::transition_cb(
     const lifecycle_msgs::msg::Transition::SharedPtr msg) {
     m_state = msg->label;
+}
+
+std::vector<data::topic_endpoint> node_client::endpoints(
+    bool publishers) const {
+    const auto names_and_types =
+        publishers
+            ? m_node_graph->get_publisher_names_and_types_by_node(m_name, m_ns)
+            : m_node_graph->get_subscriber_names_and_types_by_node(m_name,
+                                                                   m_ns);
+
+    std::vector<data::topic_endpoint> result;
+    for (const auto& [topic, types] : names_and_types) {
+        data::topic_endpoint endpoint;
+        endpoint.info.name = topic;
+        endpoint.info.type = types.empty() ? std::string{} : types.front();
+
+        const auto infos =
+            publishers ? m_node_graph->get_publishers_info_by_topic(topic)
+                       : m_node_graph->get_subscriptions_info_by_topic(topic);
+
+        for (const auto& info : infos) {
+            if (data::full_node_name(info.node_namespace(), info.node_name()) ==
+                m_full_name) {
+                endpoint.info.type = info.topic_type();
+                endpoint.qos_profile = data::to_qos(info.qos_profile());
+
+                break;
+            }
+        }
+
+        result.push_back(std::move(endpoint));
+    }
+
+    return result;
+}
+
+std::vector<data::service_endpoint> node_client::service_endpoints(
+    bool servers) const {
+    const auto names_and_types =
+        servers
+            ? m_node_graph->get_service_names_and_types_by_node(m_name, m_ns)
+            : m_node_graph->get_client_names_and_types_by_node(m_name, m_ns);
+
+    std::vector<data::service_endpoint> result;
+    for (const auto& [service, types] : names_and_types) {
+        data::service_endpoint endpoint;
+        endpoint.info.name = service;
+        endpoint.info.type = types.empty() ? std::string{} : types.front();
+
+        result.push_back(std::move(endpoint));
+    }
+
+    return result;
 }
 
 }  // namespace clover2_http_plugins::utils::detail

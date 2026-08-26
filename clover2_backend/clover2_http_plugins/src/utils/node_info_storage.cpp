@@ -17,7 +17,7 @@ node_info_storage::node_info_storage(
 
 void node_info_storage::update() {
     std::lock_guard lock(m_mtx);
-    
+
     const auto graph = m_ctx->get_node_graph_interface();
     auto node_names = graph->get_node_names_and_namespaces();
 
@@ -66,6 +66,31 @@ bool node_info_storage::has_node(const std::string& full_name) const {
 
 node_info_storage::node_info node_info_storage::get_info(
     const std::string& full_name) const {
+    return find_client(full_name)->get_node_info();
+}
+
+std::vector<node_info_storage::topic_endpoint>
+node_info_storage::get_publishers(const std::string& full_name) const {
+    return find_client(full_name)->get_publishers();
+}
+
+std::vector<node_info_storage::topic_endpoint>
+node_info_storage::get_subscribes(const std::string& full_name) const {
+    return find_client(full_name)->get_subscribes();
+}
+
+std::vector<node_info_storage::service_endpoint> node_info_storage::get_servers(
+    const std::string& full_name) const {
+    return find_client(full_name)->get_servers();
+}
+
+std::vector<node_info_storage::service_endpoint> node_info_storage::get_clients(
+    const std::string& full_name) const {
+    return find_client(full_name)->get_clients();
+}
+
+std::shared_ptr<detail::node_client> node_info_storage::find_client(
+    const std::string& full_name) const {
     std::lock_guard lock(m_mtx);
 
     const auto it = m_nodes.find(full_name);
@@ -73,89 +98,7 @@ node_info_storage::node_info node_info_storage::get_info(
         throw std::invalid_argument(std::format("Unknown node {}", full_name));
     }
 
-    return it->second->get_node_info();
-}
-
-std::vector<node_info_storage::topic_endpoint>
-node_info_storage::get_publishers(const std::string& full_name) const {
-    return endpoints(full_name, true);
-}
-
-std::vector<node_info_storage::topic_endpoint>
-node_info_storage::get_subscribes(const std::string& full_name) const {
-    return endpoints(full_name, false);
-}
-
-std::vector<node_info_storage::topic_endpoint> node_info_storage::endpoints(
-    const std::string& full_name, bool publishers) const {
-    const auto graph = m_ctx->get_node_graph_interface();
-
-    const auto node_info = get_info(full_name);
-    const auto& name = node_info.name;
-    const auto& ns = node_info.ns;
-
-    const auto names_and_types =
-        publishers ? graph->get_publisher_names_and_types_by_node(name, ns)
-                   : graph->get_subscriber_names_and_types_by_node(name, ns);
-
-    std::vector<topic_endpoint> result;
-    for (const auto& [topic, types] : names_and_types) {
-        topic_endpoint endpoint;
-        endpoint.info.name = topic;
-        endpoint.info.type = types.empty() ? std::string{} : types.front();
-
-        const auto infos = publishers
-                               ? graph->get_publishers_info_by_topic(topic)
-                               : graph->get_subscriptions_info_by_topic(topic);
-
-        for (const auto& info : infos) {
-            if (data::full_node_name(info.node_namespace(), info.node_name()) ==
-                full_name) {
-                endpoint.info.type = info.topic_type();
-                endpoint.qos_profile = data::to_qos(info.qos_profile());
-                break;
-            }
-        }
-
-        result.push_back(std::move(endpoint));
-    }
-
-    return result;
-}
-
-std::vector<node_info_storage::service_endpoint> node_info_storage::get_servers(
-    const std::string& full_name) const {
-    return service_endpoints(full_name, true);
-}
-
-std::vector<node_info_storage::service_endpoint> node_info_storage::get_clients(
-    const std::string& full_name) const {
-    return service_endpoints(full_name, false);
-}
-
-std::vector<node_info_storage::service_endpoint>
-node_info_storage::service_endpoints(const std::string& full_name,
-                                     bool servers) const {
-    const auto graph = m_ctx->get_node_graph_interface();
-
-    const auto node_info = get_info(full_name);
-    const auto& name = node_info.name;
-    const auto& ns = node_info.ns;
-
-    const auto names_and_types =
-        servers ? graph->get_service_names_and_types_by_node(name, ns)
-                : graph->get_client_names_and_types_by_node(name, ns);
-
-    std::vector<service_endpoint> result;
-    for (const auto& [service, types] : names_and_types) {
-        service_endpoint endpoint;
-        endpoint.info.name = service;
-        endpoint.info.type = types.empty() ? std::string{} : types.front();
-
-        result.push_back(std::move(endpoint));
-    }
-
-    return result;
+    return it->second;
 }
 
 }  // namespace clover2_http_plugins::utils

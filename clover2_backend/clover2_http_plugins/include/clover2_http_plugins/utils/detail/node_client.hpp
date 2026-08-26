@@ -3,11 +3,11 @@
 // clover2
 #include <clover2_common/node_context.hpp>
 #include <clover2_http_plugins/data/node_info.hpp>
+#include <clover2_http_plugins/data/service_endpoint.hpp>
+#include <clover2_http_plugins/data/topic_endpoint.hpp>
 
 // ROS2
 #include <rclcpp/client.hpp>
-#include <rclcpp/node_interfaces/node_base_interface.hpp>
-#include <rclcpp/node_interfaces/node_logging_interface.hpp>
 #include <rclcpp/subscription.hpp>
 
 // msgs
@@ -45,8 +45,16 @@ public:
     std::string_view full_name() const;
     data::node_info get_node_info() const;
 
+    std::vector<data::topic_endpoint> get_publishers() const;
+    std::vector<data::topic_endpoint> get_subscribes() const;
+    std::vector<data::service_endpoint> get_servers() const;
+    std::vector<data::service_endpoint> get_clients() const;
+
 private:
     void transition_cb(const lifecycle_msgs::msg::Transition::SharedPtr msg);
+
+    std::vector<data::topic_endpoint> endpoints(bool publishers) const;
+    std::vector<data::service_endpoint> service_endpoints(bool servers) const;
 
     rclcpp::node_interfaces::NodeBaseInterface::SharedPtr m_node_base;
     rclcpp::node_interfaces::NodeGraphInterface::SharedPtr m_node_graph;

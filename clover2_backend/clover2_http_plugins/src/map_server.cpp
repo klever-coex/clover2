@@ -149,7 +149,15 @@ void map_server::on_initialize() {
                   std::placeholders::_2));
 }
 
-std::vector<std::string> map_server::capabilities() const { return {"map"}; }
+std::vector<std::string> map_server::capabilities() const {
+    std::vector<std::string> capabilities_list;
+
+    if (m_map_client && m_map_client->valid()) {
+        capabilities_list.push_back("map");
+    }
+    
+    return capabilities_list;
+}
 
 void map_server::handle_map(
     http::core::request_context /*ctx*/,

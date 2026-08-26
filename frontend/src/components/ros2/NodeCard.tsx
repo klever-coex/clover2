@@ -25,7 +25,7 @@ export function NodeCard({ name, info }: NodeCardProps) {
               {info.ns}
             </Badge>
           )}
-          <LifecycleBadge isLifecycle={info.is_lifecycle} state={info.lifecycle_state} />
+          <LifecycleBadge state={info.lifecycle_state} />
         </span>
       )}
     </button>

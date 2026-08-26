@@ -6,8 +6,7 @@ import { Badge } from '../ui/Badge.tsx';
 import type { BadgeTone } from '../ui/Badge.tsx';
 
 interface LifecycleBadgeProps {
-  isLifecycle: boolean;
-  state?: LifecycleState | '';
+  state?: LifecycleState;
 }
 
 const STATE_TONES: Record<LifecycleState, BadgeTone> = {
@@ -24,16 +23,16 @@ const STATE_KEYS: Record<LifecycleState, TranslationKey> = {
   finalized: 'nodes.lifecycleState.finalized',
 };
 
-export function LifecycleBadge({ isLifecycle, state }: LifecycleBadgeProps) {
+export function LifecycleBadge({ state }: LifecycleBadgeProps) {
   const { t } = useTranslation();
 
-  if (state !== undefined && state !== '') {
+  console.error(state)
+
+  if (state != null) {
     return <Badge tone={STATE_TONES[state]}>{t(STATE_KEYS[state])}</Badge>;
   }
 
   return (
-    <Badge tone="neutral">
-      {isLifecycle ? t('nodes.lifecycle') : t('nodes.regular')}
-    </Badge>
+    <Badge tone="neutral"> {t('nodes.regular')} </Badge>
   );
 }

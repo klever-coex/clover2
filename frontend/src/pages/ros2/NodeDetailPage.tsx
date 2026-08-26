@@ -40,21 +40,25 @@ function NodeDetailView({ nodeName }: { nodeName: string }) {
           title={t('nodes.publishers')}
           empty={t('nodes.noPublishers')}
           resource={resources.publishers}
+          defaultOpen={false}
         />
         <TopicPanel
           title={t('nodes.subscribers')}
           empty={t('nodes.noSubscribers')}
           resource={resources.subscribes}
+          defaultOpen={false}
         />
         <ServicePanel
           title={t('nodes.servers')}
           empty={t('nodes.noServers')}
           resource={resources.servers}
+          defaultOpen={false}
         />
         <ServicePanel
           title={t('nodes.clients')}
           empty={t('nodes.noClients')}
           resource={resources.clients}
+          defaultOpen={false}
         />
       </div>
     </div>
@@ -78,7 +82,6 @@ function InfoPanel({ resource }: { resource: AsyncResource<NodeInfo> }) {
             label={t('nodes.lifecycle')}
             value={
               <LifecycleBadge
-                isLifecycle={resource.data.is_lifecycle}
                 state={resource.data.lifecycle_state}
               />
             }

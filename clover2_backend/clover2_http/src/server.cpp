@@ -11,18 +11,26 @@ server::server(const rclcpp::NodeOptions& options)
     , m_server(std::make_shared<clover2_http::http::server>(
           *m_io, logger(get_logger().get_child("server"))))
     , m_plugin_loader("clover2_http", "clover2_http::base_plugin") {
-    const auto address =
-        declare_parameter<std::string>("address", "0.0.0.0");
+    const auto address = declare_parameter<std::string>("address", "0.0.0.0");
     const auto port = declare_parameter<int64_t>("port", 8080);
 
     m_server->use<clover2_http::http::middleware::cors>("/");
 
-    auto manifest = std::make_shared<data::manifest>();
     m_server->get<data::manifest>(
         "/api/manifest",
-        [manifest](clover2_http::http::core::request_context,
-                   clover2_http::http::endpoint::deferred_reply<
-                       data::manifest> reply) { reply(*manifest, 200); });
+        [this](clover2_http::http::core::request_context,
+               clover2_http::http::endpoint::deferred_reply<data::manifest>
+                   reply) {
+            data::manifest manifest;
+
+            for (const auto& [_, plugin] : m_plugins) {
+                auto info = plugin->manifest();
+
+                manifest.plugins.push_back(std::move(info));
+            }
+
+            reply(manifest, 200);
+        });
 
     auto node_context = std::make_shared<clover2_common::node_context>(*this);
 
@@ -38,7 +46,6 @@ server::server(const rclcpp::NodeOptions& options)
             info.name = plugin_class;
         }
 
-        manifest->plugins.push_back(std::move(info));
         m_plugins[plugin_class] = std::move(plugin);
     }
 
