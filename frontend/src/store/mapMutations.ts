@@ -1,10 +1,10 @@
 import i18n from '../i18n/index.ts';
 import { clover2Api } from '../api/clover2.ts';
 import { ApiError } from '../types/errors.ts';
-import { DEFAULT_GRID_STEP_MM, DEFAULT_MARKER_SIZE_M, DEFAULT_POSITION_EXPR, DEFAULT_PROJECT_NAME, DEFAULT_ROTATION_EXPR } from '../constants/defaults.ts';
+import { DEFAULT_MARKER_SIZE_M } from '../constants/defaults.ts';
 import type { MarkerInfo, ModifyResult } from '../types/map.ts';
-import type { MapMarker, MarkerSnapshot, ProjectFile } from '../types/marker.ts';
-import { eulerDegToRotationExpr, resolvePose, rpyToEulerYxzDeg, vec3ToPositionExpr } from '../utils/transformUtils.ts';
+import type { MapMarker } from '../types/marker.ts';
+import { resolvePose } from '../utils/transformUtils.ts';
 import { mapDirtyIds } from './slices/mapSlice.ts';
 import { useMapStore } from './useMapStore.ts';
 
@@ -21,10 +21,8 @@ function markerToInfo(m: MapMarker, ui: { positionExpr: [string, string, string]
   return { id: m.id, type: m.type, size: m.sizeM, marker_frame_id: m.markerFrameId, pose };
 }
 
-/** Local-only: registers a new marker; committed to the backend by saveMap(). */
 export function addMarker(): void {
   const s = useMapStore.getState();
-  // Take pending deletions into account so a reused id is never ambiguous at save time.
   const knownIds = [
     ...Object.values(s.markers).map((m) => m.id),
     ...Object.keys(s.baseline).map(Number),
