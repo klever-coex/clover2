@@ -84,6 +84,11 @@ clover2-bake-save-%:
 clover2-docs-%:
 	$(MAKE) -C $(PROJECT_DIR)/docs $*
 
+## clover2-docs-doxygen: Generate doxygen output
+clover2-docs-doxygen:
+	mkdir -p $(PROJECT_DIR)/docs/build/doxygen
+	doxygen
+
 ## builder-download: Download base disk image for builder
 builder-download:
 	$(PROJECT_DIR)/tooling/builder/download.py \

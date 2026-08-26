@@ -1,7 +1,9 @@
 import { useEffect, useEffectEvent, useState } from 'react';
 import type { ReactNode } from 'react';
 
+import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
 import type { RosCapability } from '../../hooks/useRosCapability.ts';
+import type { ApiError } from '../../types/errors.ts';
 import { EmptyState } from '../ui/EmptyState.tsx';
 import { ErrorState } from '../ui/ErrorState.tsx';
 import { LoadingState } from '../ui/LoadingState.tsx';
@@ -17,22 +19,16 @@ interface ListPageProps<T> {
   emptyMessage: string;
   items: readonly T[];
   loading: boolean;
-  error: string | null;
+  error: ApiError | null;
   onReload: () => void;
   /** Query is already trimmed and lowercased. */
   filter: (item: T, query: string) => boolean;
   keyOf: (item: T) => string;
   renderItem: (item: T) => ReactNode;
-  /** Optional control (e.g. SortSelect) rendered next to the search input. */
   toolbarExtra?: ReactNode;
-  /** Optional sorter applied after filtering. */
   sortItems?: (items: readonly T[]) => readonly T[];
 }
 
-/**
- * Canonical searchable resource-list page: capability gate → search (+ optional
- * sort) → loading/error/empty states → row list.
- */
 export function ListPage<T>({
   title,
   capability,
@@ -50,9 +46,8 @@ export function ListPage<T>({
   sortItems,
 }: ListPageProps<T>) {
   const [query, setQuery] = useState('');
+  const errorMessage = useApiErrorMessage();
 
-  // Effect event: the reload action must not be an effect dependency, otherwise
-  // an inline onReload prop would retrigger the fetch on every render.
   const runReload = useEffectEvent(onReload);
 
   useEffect(() => {
@@ -80,7 +75,9 @@ export function ListPage<T>({
 
           {loading && items.length === 0 && <LoadingState />}
 
-          {error !== null && <ErrorState message={error} onRetry={onReload} />}
+          {error !== null && (
+            <ErrorState message={errorMessage(error)} onRetry={onReload} />
+          )}
 
           {error === null && !loading && visible.length === 0 && (
             <EmptyState message={emptyMessage} />

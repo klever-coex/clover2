@@ -33,7 +33,6 @@ const TYPE_KEYS: Record<MarkerType, TranslationKey> = {
 const inputClasses =
   'w-full rounded-row border border-line bg-surface-1 px-2 py-1.5 text-xs font-mono text-ink outline-none transition-colors duration-fast focus:border-accent/60 focus:ring-2 focus:ring-accent/20';
 
-/** Preview the result of evaluating a position expression for a single marker's markerId */
 function posPreview(expr: string, markerId: number): string | null {
   if (!expr.trim()) return null;
   try {
@@ -45,7 +44,6 @@ function posPreview(expr: string, markerId: number): string | null {
   }
 }
 
-/** Preview the result of evaluating a rotation expression (in degrees) */
 function rotPreview(expr: string, markerId: number): string | null {
   if (!expr.trim()) return null;
   try {
@@ -67,8 +65,6 @@ export function MarkerEditor({ marker, selectedIds }: Props) {
   const isMulti = selectedIds.length > 1;
   const canEditPose = marker.type === 'fixed' && marker.pose !== null;
 
-  // Local inputs: label and size commit on Enter/blur; expressions commit on
-  // Enter/blur for ALL selected markers.
   const [labelLocal, setLabelLocal] = useState(marker.markerFrameId);
   const [sizeLocal, setSizeLocal] = useState(String(mToMm(marker.sizeM)));
   const [posExprLocal, setPosExprLocal] = useState<[string, string, string]>(
@@ -89,7 +85,6 @@ export function MarkerEditor({ marker, selectedIds }: Props) {
     setRotExprLocal(nextUi ? [...nextUi.rotationExpr] : ['0', '0', '0']);
   }
 
-  // Computed position / rotation for the primary marker (used for preview display)
   const primaryExprs = ui ?? {
     positionExpr: posExprLocal,
     rotationExpr: rotExprLocal,
@@ -108,7 +103,6 @@ export function MarkerEditor({ marker, selectedIds }: Props) {
     }
   }, [selectedIds, sizeLocal]);
 
-  /** Apply position expression for a single axis to ALL selected markers, then persist. */
   const applyPosExpr = useCallback(
     (axis: 0 | 1 | 2) => {
       selectedIds.forEach((id) => {
@@ -119,7 +113,6 @@ export function MarkerEditor({ marker, selectedIds }: Props) {
     [posExprLocal, selectedIds, setExpr],
   );
 
-  /** Apply rotation expression for a single axis to ALL selected markers, then persist. */
   const applyRotExpr = useCallback(
     (axis: 0 | 1 | 2) => {
       selectedIds.forEach((id) => {

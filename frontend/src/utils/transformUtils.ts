@@ -57,16 +57,10 @@ export function resolveRotation(expr: [string, string, string], markerId: number
   return eulerDegToQuat(x, y, z);
 }
 
-/** Rotation expressions resolved to YXZ degrees (editor display convention). */
 export function resolveRotationDeg(expr: [string, string, string], markerId: number): Vec3 {
   return [safeEval(expr[0], markerId, 0), safeEval(expr[1], markerId, 0), safeEval(expr[2], markerId, 0)];
 }
 
-/**
- * Backend RPY == three.js Euler order 'ZYX' with x=roll, y=pitch, z=yaw
- * (tf2 setRPY builds q = qyaw·qpitch·qroll, matching Euler 'ZYX' matrix order
- * R = Rz(yaw)·Ry(pitch)·Rx(roll) — matches map_server.cpp to_info/from_info).
- */
 export function eulerYxzDegToRpy(xDeg: number, yDeg: number, zDeg: number): [number, number, number] {
   const q = eulerDegToQuat(xDeg, yDeg, zDeg);
   _quat.set(q[0], q[1], q[2], q[3]);
@@ -74,7 +68,6 @@ export function eulerYxzDegToRpy(xDeg: number, yDeg: number, zDeg: number): [num
   return [_euler.x, _euler.y, _euler.z]; // [roll, pitch, yaw] rad
 }
 
-/** Backend RPY (rad) → editor YXZ degrees. Round-trip through the quaternion is exact. */
 export function rpyToEulerYxzDeg(roll: number, pitch: number, yaw: number): Vec3 {
   _euler.set(roll, pitch, yaw, 'ZYX');
   _quat.setFromEuler(_euler);
@@ -82,7 +75,6 @@ export function rpyToEulerYxzDeg(roll: number, pitch: number, yaw: number): Vec3
   return [radToDeg(_euler.x), radToDeg(_euler.y), radToDeg(_euler.z)];
 }
 
-/** Session exprs → full backend pose: position mm→m, rotation YXZ deg → RPY rad. */
 export function resolvePose(
   positionExpr: [string, string, string],
   rotationExpr: [string, string, string],

@@ -9,11 +9,13 @@ import { EmptyState } from '../../components/ui/EmptyState.tsx';
 import { ErrorState } from '../../components/ui/ErrorState.tsx';
 import { LoadingState } from '../../components/ui/LoadingState.tsx';
 import { PageHeader } from '../../components/ui/PageHeader.tsx';
+import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
 import { useTopicStream } from '../../hooks/useTopicStream.ts';
 import { useRosStore } from '../../store/useRosStore.ts';
 
 export function TopicDetailPage() {
   const { t } = useTranslation();
+  const apiErrorMessage = useApiErrorMessage();
   const [searchParams] = useSearchParams();
   const topicName = searchParams.get('topic');
   const topics = useRosStore((s) => s.topics);
@@ -36,8 +38,14 @@ export function TopicDetailPage() {
     return <Navigate to="/ros2/topics" replace />;
   }
 
+  // 1008 is the backend's "unknown topic" signal; everything else (including a
+  // 1006 drop) goes through the shared network/timeout wording.
   const errorMessage =
-    stream.error?.status === 1008 ? t('topicDetail.unknownTopic') : stream.error?.message;
+    stream.error === null
+      ? null
+      : stream.error.status === 1008
+        ? t('topicDetail.unknownTopic')
+        : apiErrorMessage(stream.error);
 
   return (
     <div className="p-6">
@@ -68,10 +76,9 @@ export function TopicDetailPage() {
         <MessageViewer messages={stream.messages} />
       ) : (
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
-          <LoadingState
-            size={48}
-            className={stream.state === 'error' ? 'text-error' : undefined}
-          />
+          {stream.state !== 'error' && stream.state !== 'closed' && (
+            <LoadingState size={48} />
+          )}
           {stream.state === 'error' && stream.error !== null ? (
             <ErrorState message={errorMessage ?? ''} onRetry={stream.retry} />
           ) : stream.state === 'closed' ? (

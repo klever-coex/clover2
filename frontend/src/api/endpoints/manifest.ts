@@ -10,19 +10,23 @@ export interface ManifestEndpoints {
 
 export function createManifestEndpoints(http: HttpCall): ManifestEndpoints {
   let manifestPromise: Promise<Manifest> | null = null;
+  const ensureManifest = (): Promise<Manifest> => {
+    manifestPromise ??= http<Manifest>('/api/manifest').catch((error: unknown) => {
+      manifestPromise = null;
+      throw error;
+    });
+    return manifestPromise;
+  };
 
   return {
-    get: () => {
-      manifestPromise ??= http<Manifest>('/api/manifest');
-      return manifestPromise;
-    },
+    get: ensureManifest,
 
     clearCache: () => {
       manifestPromise = null;
     },
 
     requireCapability: async (capability) => {
-      const manifest = await (manifestPromise ??= http<Manifest>('/api/manifest'));
+      const manifest = await ensureManifest();
       const supported = manifest.plugins.some((plugin) =>
         plugin.capabilities.includes(capability),
       );

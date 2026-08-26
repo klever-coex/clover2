@@ -1,3 +1,4 @@
+import { MUTATION_TIMEOUT_MS } from '../../constants/ros.ts';
 import type { MapInfo, MarkerInfo, ModifyResult } from '../../types/map.ts';
 import type { HttpCall } from '../core.ts';
 
@@ -21,6 +22,7 @@ export function createMapEndpoints(http: HttpCall): MapEndpoints {
         capabilities: ['map'],
         method: 'POST',
         body: marker,
+        timeoutMs: MUTATION_TIMEOUT_MS,
       }),
 
     edit: (id, marker) =>
@@ -28,12 +30,14 @@ export function createMapEndpoints(http: HttpCall): MapEndpoints {
         capabilities: ['map'],
         method: 'PUT',
         body: marker,
+        timeoutMs: MUTATION_TIMEOUT_MS,
       }),
 
     delete: (id) =>
       http<ModifyResult>(`/api/map/marker/-/${id}`, {
         capabilities: ['map'],
         method: 'DELETE',
+        timeoutMs: MUTATION_TIMEOUT_MS,
       }),
   };
 }

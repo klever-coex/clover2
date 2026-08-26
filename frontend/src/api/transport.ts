@@ -1,15 +1,30 @@
+import { REQUEST_TIMEOUT_MS } from '../constants/ros.ts';
 import { ApiError } from '../types/errors.ts';
 import type { TransportExecutor } from './core.ts';
 
 export function createFetchExecutor(): TransportExecutor {
   return async (ctx) => {
-    const response = await fetch(ctx.url, {
-      method: ctx.request.method ?? 'GET',
-      ...(ctx.request.body !== undefined && {
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(ctx.request.body),
-      }),
-    });
+    let response: Response;
+    try {
+      response = await fetch(ctx.url, {
+        method: ctx.request.method ?? 'GET',
+        signal: AbortSignal.timeout(ctx.request.timeoutMs ?? REQUEST_TIMEOUT_MS),
+        ...(ctx.request.body !== undefined && {
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(ctx.request.body),
+        }),
+      });
+    } catch (error) {
+      const aborted =
+        error instanceof Error &&
+        (error.name === 'TimeoutError' || error.name === 'AbortError');
+      throw new ApiError(
+        aborted ? `Request to ${ctx.url} timed out` : `Cannot reach ${ctx.url}`,
+        0,
+        aborted ? 'timeout' : 'network',
+        { cause: error },
+      );
+    }
 
     if (!response.ok) {
       throw new ApiError(await readErrorMessage(response), response.status);

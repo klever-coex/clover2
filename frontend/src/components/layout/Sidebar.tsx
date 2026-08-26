@@ -41,7 +41,6 @@ type NavItem = NavLinkItem | NavGroupItem;
 
 const { protocol, hostname } = window.location;
 
-/** Single unified navigation tree — groups nest their children without any offset. */
 const MENU: NavItem[] = [
   { key: 'dashboard', labelKey: 'sidebar.dashboard', icon: Drone, to: '/' },
   { key: 'map', labelKey: 'sidebar.map', icon: Map, to: '/map' },
@@ -80,7 +79,6 @@ const LANGUAGES = [
   { code: 'ru', label: 'Русский' },
 ] as const;
 
-/** Shared row style for every nav item — links, groups, and their children. */
 const rowBase =
   'flex items-center p-2 rounded-panel transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus/60';
 
@@ -96,7 +94,6 @@ export function Sidebar() {
     localStorage.setItem('language', lang);
   };
 
-  // Close the collapsed-sidebar group flyout on outside click or Escape.
   useEffect(() => {
     if (flyoutKey === null) return;
 
@@ -262,8 +259,6 @@ export function Sidebar() {
     <div
       className={cn(
         'h-screen bg-surface-1 border-r border-line flex flex-col transition-all duration-slow',
-        // Clip content only while expanding — the group flyout lives outside
-        // the sidebar (portal), so a closed sidebar must not clip horizontally.
         isOpen ? 'w-64 overflow-hidden' : 'w-20',
       )}
     >

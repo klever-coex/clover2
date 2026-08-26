@@ -1,3 +1,4 @@
+import { WS_CONNECT_TIMEOUT_MS } from '../../constants/ros.ts';
 import { ApiError, isErrorFrame, toApiError } from '../../types/errors.ts';
 import type { Capability } from '../../types/manifest.ts';
 import type { RosJsonValue } from '../../types/stream.ts';
@@ -30,8 +31,16 @@ export function createStreamsEndpoints(
     subscribe(topicName, options) {
       let socket: WebSocket | null = null;
       let disposed = false;
+      let connectTimer: ReturnType<typeof setTimeout> | null = null;
+
+      const clearConnectTimer = () => {
+        if (connectTimer === null) return;
+        clearTimeout(connectTimer);
+        connectTimer = null;
+      };
 
       const fail = (error: ApiError) => {
+        clearConnectTimer();
         if (disposed) return;
         disposed = true;
         options.onError?.(error);
@@ -44,6 +53,22 @@ export function createStreamsEndpoints(
           socket = new WebSocket(
             `${wsBase}/ws/topic/json/-/${encodeRosPath(topicName)}`,
           );
+
+          // A handshake that stalls (host reachable, nothing answering) fires
+          // neither onclose nor onerror, which used to leave the page connecting
+          // forever.
+          const pending = socket;
+          connectTimer = setTimeout(() => {
+            connectTimer = null;
+            fail(new ApiError(`WebSocket connect to ${topicName} timed out`, 0, 'network'));
+            pending.close();
+          }, WS_CONNECT_TIMEOUT_MS);
+
+          socket.onopen = clearConnectTimer;
+
+          socket.onerror = () => {
+            fail(new ApiError(`WebSocket error on ${topicName}`, 0, 'network'));
+          };
 
           socket.onmessage = (event) => {
             if (disposed) return;
@@ -65,13 +90,18 @@ export function createStreamsEndpoints(
           };
 
           socket.onclose = (event) => {
+            clearConnectTimer();
             if (disposed) return;
             disposed = true;
 
             if (ERROR_CLOSE_CODES.has(event.code)) {
               const reason = event.reason ? ` ${event.reason}` : '';
               options.onError?.(
-                new ApiError(`WebSocket closed (${event.code})${reason}`, event.code),
+                new ApiError(
+                  `WebSocket closed (${event.code})${reason}`,
+                  event.code,
+                  event.code === 1006 ? 'network' : 'backend',
+                ),
               );
             } else {
               options.onClose?.({ code: event.code, reason: event.reason });
@@ -84,6 +114,7 @@ export function createStreamsEndpoints(
 
       return {
         close: () => {
+          clearConnectTimer();
           if (disposed) return;
           disposed = true;
           socket?.close();

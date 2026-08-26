@@ -26,7 +26,7 @@ export function TopicsPage() {
       emptyMessage={t('topics.empty')}
       items={topics}
       loading={topicsLoading}
-      error={topicsError?.message ?? null}
+      error={topicsError}
       onReload={reloadTopics}
       filter={(topic, q) =>
         topic.name.toLowerCase().includes(q) || topic.type.toLowerCase().includes(q)

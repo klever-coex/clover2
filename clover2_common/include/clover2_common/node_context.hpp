@@ -1,3 +1,8 @@
+/**
+ * @file node_context.hpp
+ * @brief Provides project node context.
+ */
+
 #pragma once
 
 // clover2
@@ -26,6 +31,11 @@ namespace clover2_common {
 
 using namespace rclcpp::node_interfaces;
 using namespace clover2_common::node_interfaces;
+/**
+ * @brief Project node context.
+ *
+ * Aggregates standard ROS 2 node interfaces and project custom interfaces.
+ */
 class node_context : public NodeInterfaces<NodeBaseInterface,              //
                                            NodeClockInterface,             //
                                            NodeGraphInterface,             //
@@ -40,10 +50,17 @@ class node_context : public NodeInterfaces<NodeBaseInterface,              //
                                            NodeDiagnosticsInterface,       //
                                            NodeParametersWatcherInterface> {
 public:
+    /**
+     * @brief Construct the node context from a node.
+     *
+     * @tparam NodeT Node type.
+     * @param node Node instance.
+     */
     template <typename NodeT>
     explicit node_context(NodeT& node)
         : NodeInterfaces(node) {}
 
+    /** @brief Get the node logger. */
     rclcpp::Logger get_logger() const {
         return get_node_logging_interface()->get_logger();
     }

@@ -1,3 +1,8 @@
+/**
+ * @file node_diagnostics_interface.hpp
+ * @brief Provides project node diagnostics interface.
+ */
+
 #pragma once
 
 // ROS2
@@ -15,6 +20,10 @@
 
 namespace clover2_common::node_interfaces {
 
+/**
+ * @interface NodeDiagnosticsInterface
+ * @brief Project node diagnostics interface.
+ */
 class NodeDiagnosticsInterface {
 public:
     RCLCPP_SMART_PTR_ALIASES_ONLY(NodeDiagnosticsInterface)
@@ -22,9 +31,18 @@ public:
     RCLCPP_PUBLIC
     virtual ~NodeDiagnosticsInterface() = default;
 
+    /** @brief Add a diagnostic task. */
     RCLCPP_PUBLIC
     virtual void add(diagnostic_updater::DiagnosticTask& task) = 0;
 
+    /**
+     * @brief Add a diagnostic task of the given type.
+     *
+     * @tparam T Task type. Must inherit from diagnostic_updater::DiagnosticTask.
+     * @tparam Args Types of task constructor arguments.
+     *
+     * @param args Task constructor arguments.
+     */
     template <typename T, typename... Args>
     void add(Args&&... args) {
         static_assert(std::is_base_of_v<diagnostic_updater::DiagnosticTask, T>,
@@ -34,6 +52,13 @@ public:
                     std::make_unique<T>(std::forward<Args>(args)...));
     }
 
+    /**
+     * @brief Get a diagnostic task by type.
+     *
+     * @tparam T Task type. Must inherit from diagnostic_updater::DiagnosticTask.
+     *
+     * @return Reference to the task.
+     */
     template <typename T>
     T& get() {
         static_assert(std::is_base_of_v<diagnostic_updater::DiagnosticTask, T>,
@@ -42,6 +67,11 @@ public:
         return dynamic_cast<T&>(get_by_type(std::type_index(typeid(T))));
     }
 
+    /**
+     * @brief Remove a diagnostic task by type.
+     *
+     * @tparam T Task type. Must inherit from diagnostic_updater::DiagnosticTask.
+     */
     template <typename T>
     void remove() {
         static_assert(std::is_base_of_v<diagnostic_updater::DiagnosticTask, T>,
@@ -50,6 +80,7 @@ public:
         remove_by_type(std::type_index(typeid(T)));
     }
 
+    /** @brief Force update of all diagnostics. */
     RCLCPP_PUBLIC
     virtual void force_update() = 0;
 

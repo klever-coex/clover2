@@ -24,9 +24,6 @@ export function useAsyncResource<T>(
   const [error, setError] = useState<ApiError | null>(null);
   const [generation, setGeneration] = useState(0);
 
-  // Any dep / generation / enabled change starts a new request. Reset the
-  // in-flight state during render so the UI never shows the previous
-  // request's loading/error state.
   const depsKey = JSON.stringify(deps);
   const requestKey = `${enabled}:${generation}:${depsKey}`;
   const [prevKey, setPrevKey] = useState(requestKey);
