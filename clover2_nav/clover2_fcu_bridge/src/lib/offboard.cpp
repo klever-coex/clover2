@@ -159,7 +159,7 @@ void offboard::complete_setpoint(
                 ref_tf.header.stamp.sec = 0;
                 ref_tf.header.stamp.nanosec = 0;
                 pose_in_req = m_tf_buffer->transform(
-                    ref_tf, frame_id, tf2::durationFromSec(0.05));
+                    ref_tf, frame_id, tf2::durationFromSec(0.5));
             } else {
                 pose_in_req.header.frame_id = frame_id;
             }
