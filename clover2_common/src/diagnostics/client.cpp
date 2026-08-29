@@ -29,11 +29,8 @@ void client::cleanup() {
     m_node_context.reset();
 }
 
-void client::diagnostics_callback(
-    diagnostic_msgs::msg::DiagnosticArray::SharedPtr msg) {
-    for (const auto& status : msg->status) {
-        m_callback(status);
-    }
+void client::diagnostics_callback(message_type::SharedPtr msg) {
+    m_callback(*msg);
 }
 
 bool client::status_changed(const status_type& previous,

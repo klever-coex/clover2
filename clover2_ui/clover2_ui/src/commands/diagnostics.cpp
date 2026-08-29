@@ -1,5 +1,6 @@
+#include <clover2_common/diagnostics/client.hpp>
 #include <clover2_common/node_runtime.hpp>
-#include <clover2_ui/api/diagnostics/diagnostic_monitor.hpp>
+#include <clover2_ui/api/diagnostics/diagnostic_model.hpp>
 #include <clover2_ui/tui/components/diagnostics_screen.hpp>
 #include <clover2_ui/tui/core/navigator.hpp>
 #include <cpptui/cpptui.hpp>
@@ -7,6 +8,7 @@
 
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <string>
 
 using namespace clover2_ui;
@@ -52,21 +54,48 @@ int main(int argc, char** argv) {
 
     cpptui::App app;
     clover2_common::node_runtime runtime("clover2_diagnostics_tui");
-    auto monitor = std::make_shared<api::diagnostics::monitor>(
-        runtime.get_node_context(), opts.topic);
+    auto node_context = runtime.get_node_context();
+
+    clover2_common::diagnostics::client diagnostics_client;
+    api::diagnostics::model diagnostics_model;
+    std::mutex diagnostics_mutex;
+    rclcpp::Time last_update;
+
     auto nav =
         std::make_shared<tui::core::navigator>(app, "Clover2 diagnostics");
     auto screen = std::make_shared<tui::components::diagnostics_screen>(
-        monitor, nav);
+        [&diagnostics_mutex, &diagnostics_model, &last_update,
+         node_context]() {
+            std::lock_guard<std::mutex> lock(diagnostics_mutex);
+            auto out = diagnostics_model.get_snapshot();
+            if (out.received) {
+                const auto now =
+                    node_context->get_node_clock_interface()->get_clock()->now();
+                out.age_sec = (now - last_update).seconds();
+            }
+            return out;
+        },
+        opts.topic, nav);
+
+    diagnostics_client.initialize(
+        node_context, opts.topic,
+        [&diagnostics_mutex, &diagnostics_model, &last_update, node_context](
+            const clover2_common::diagnostics::client::message_type& msg) {
+            std::lock_guard<std::mutex> lock(diagnostics_mutex);
+            diagnostics_model.update(msg);
+            last_update =
+                node_context->get_node_clock_interface()->get_clock()->now();
+        });
 
     runtime.start();
     const auto refresh_timer =
-        app.add_timer(500, [screen]() { screen->refresh_from_monitor(); });
+        app.add_timer(500, [screen]() { screen->refresh(); });
 
     nav->push(screen);
     app.run(nav);
 
     app.remove_timer(refresh_timer);
+    diagnostics_client.cleanup();
     runtime.stop();
     rclcpp::shutdown();
 

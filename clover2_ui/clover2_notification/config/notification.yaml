@@ -1,22 +1,23 @@
 /**/notification:
   ros__parameters:
-    providers:
+    providers_list:
       - diagnostics
 
     output_plugins:
       - led_strip
 
-    diagnostics:
-      topic: /diagnostics_agg
-      ignore_names:
-        - "/Aggregation"
-        - "/Aggregation/Other"
-        - "/Aggregation/Other/*"
-        - "/Aggregation/System"
-        - "/Aggregation/System/*"
-        - "/Aggregation/Vision"
-        - "/Aggregation/Localization"
-        - "/Aggregation/FCU"
+    providers:
+      diagnostics:
+        topic: /diagnostics_agg
+        ignore_names:
+          - "/Aggregation"
+          - "/Aggregation/Other"
+          - "/Aggregation/Other/*"
+          - "/Aggregation/System"
+          - "/Aggregation/System/*"
+          - "/Aggregation/Vision"
+          - "/Aggregation/Localization"
+          - "/Aggregation/FCU"
 
     led_strip:
       plugin: led

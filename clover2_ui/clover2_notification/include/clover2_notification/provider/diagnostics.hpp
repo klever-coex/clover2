@@ -57,15 +57,23 @@ public:
     void cleanup() override;
 
 private:
+    using message_type = clover2_common::diagnostics::client::message_type;
     using status_type = clover2_common::diagnostics::client::status_type;
     using status_map = std::unordered_map<std::string, status_type>;
 
     /**
-     * @brief Handle a diagnostic status update.
+     * @brief Handle a diagnostic message update.
      *
-     * @param status Diagnostic status received from the diagnostics client.
+     * @param msg Diagnostic message received from the diagnostics client.
      */
-    void diagnostics_callback(const status_type& status);
+    void diagnostics_callback(const message_type& msg);
+
+    /**
+     * @brief Process a single diagnostic status.
+     *
+     * @param status Diagnostic status from a diagnostics message.
+     */
+    void process_status(const status_type& status);
 
     /**
      * @brief Check whether a diagnostic status should be ignored by name.

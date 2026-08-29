@@ -10,7 +10,7 @@ namespace clover2_notification {
 controller::controller(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("notification", options) {
     m_provider_names = declare_parameter<std::vector<std::string>>(
-        "providers", {"diagnostics"});
+        "providers_list", {"diagnostics"});
     m_output_ids = declare_parameter<std::vector<std::string>>(
         "output_plugins", {"led_strip"});
     declare_parameter<std::string>("led_strip.plugin", "led");

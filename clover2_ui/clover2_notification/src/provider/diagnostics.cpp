@@ -28,14 +28,14 @@ void diagnostics::initialize(
     const auto topic =
         rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
             ->declare_parameter(
-                "diagnostics.topic",
+                "providers.diagnostics.topic",
                 rclcpp::ParameterValue(std::string{"/diagnostics_agg"}))
             .get<std::string>();
 
     m_ignore_name_patterns =
         rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
             ->declare_parameter(
-                "diagnostics.ignore_names",
+                "providers.diagnostics.ignore_names",
                 rclcpp::ParameterValue(std::vector<std::string>{}))
             .get<std::vector<std::string>>();
 
@@ -59,7 +59,13 @@ void diagnostics::cleanup() {
     m_node_context.reset();
 }
 
-void diagnostics::diagnostics_callback(const status_type& status) {
+void diagnostics::diagnostics_callback(const message_type& msg) {
+    for (const auto& status : msg.status) {
+        process_status(status);
+    }
+}
+
+void diagnostics::process_status(const status_type& status) {
     if (is_ignored(status)) {
         return;
     }

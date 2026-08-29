@@ -13,8 +13,9 @@ namespace clover2_common::diagnostics {
 
 class client {
 public:
+    using message_type = diagnostic_msgs::msg::DiagnosticArray;
     using status_type = diagnostic_msgs::msg::DiagnosticStatus;
-    using callback_type = std::function<void(const status_type&)>;
+    using callback_type = std::function<void(const message_type&)>;
 
     client() = default;
     ~client() = default;
@@ -26,8 +27,7 @@ public:
                                const status_type& current);
 
 private:
-    void diagnostics_callback(
-        diagnostic_msgs::msg::DiagnosticArray::SharedPtr msg);
+    void diagnostics_callback(message_type::SharedPtr msg);
 
     std::shared_ptr<node_context> m_node_context;
     callback_type m_callback;
