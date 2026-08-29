@@ -1,0 +1,17 @@
+<launch>
+    <arg name="use_sim_time" default="false" />
+    <arg name="ns" default="" />
+    <arg name="params_file" default="$(find-pkg-share clover2_http)/params/clover2.yaml" />
+
+    <node pkg="web_video_server" exec="web_video_server" name="web_video_server" namespace="$(var ns)">
+        <param name="use_sim_time" value="$(var use_sim_time)" />
+
+        <param from="$(var params_file)" allow_substs="true" />
+    </node>
+
+    <node pkg="clover2_http" exec="server" name="http" namespace="$(var ns)">
+        <param name="use_sim_time" value="$(var use_sim_time)" />
+
+        <param from="$(var params_file)" allow_substs="true" />
+    </node>
+</launch>

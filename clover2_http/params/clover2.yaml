@@ -1,0 +1,15 @@
+/**/http:
+  ros__parameters:
+    address: "0.0.0.0"
+    port: 3000
+
+    map_server:
+      map_node: "map_server"
+    
+    settings_server:
+      schema_path: $(find-pkg-share clover2_bringup)/schemas/klever5.yaml
+      values_path: "$(env CLOVER2_CONFIG_FILE)"
+
+/**/web_video_server:
+  ros__parameters:
+    port: 8081
