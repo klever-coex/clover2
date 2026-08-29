@@ -9,6 +9,7 @@ import {
   Menu,
   Network,
   ScrollText,
+  Settings,
   SquarePen,
   Video,
 } from 'lucide-react';
@@ -27,7 +28,6 @@ interface NavLinkItem {
 
 interface NavSection {
   key: string;
-  /** Uppercase caption with a hairline rule; sections without one are separated by the rule alone. */
   labelKey?: TranslationKey;
   items: NavLinkItem[];
 }
@@ -40,6 +40,7 @@ const MENU: NavSection[] = [
     items: [
       { key: 'map', labelKey: 'sidebar.map', icon: Map, to: '/map' },
       { key: 'video', labelKey: 'sidebar.video', icon: Video, to: '/video' },
+      { key: 'settings', labelKey: 'sidebar.settings', icon: Settings, to: '/settings' },
     ],
   },
   {

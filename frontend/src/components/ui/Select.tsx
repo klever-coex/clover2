@@ -1,5 +1,6 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 
 import { cn } from '../../lib/cn.ts';
@@ -31,29 +32,53 @@ export function Select({
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [menuPos, setMenuPos] = useState<{
+    left: number;
+    width: number;
+    top?: number;
+    bottom?: number;
+  } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const listboxId = useId();
+
+  const updateMenuPos = useCallback(() => {
+    const rect = rootRef.current?.getBoundingClientRect();
+    if (rect === undefined) return;
+    setMenuPos(
+      direction === 'up'
+        ? { left: rect.left, width: rect.width, bottom: window.innerHeight - rect.top + 4 }
+        : { left: rect.left, width: rect.width, top: rect.bottom + 4 },
+    );
+  }, [direction]);
 
   useEffect(() => {
     if (!isOpen) return;
 
     const onMouseDown = (event: MouseEvent) => {
-      if (rootRef.current !== null && !rootRef.current.contains(event.target as Node)) {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (!rootRef.current?.contains(target) && !listRef.current?.contains(target)) {
         setIsOpen(false);
       }
     };
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key === 'Escape') setIsOpen(false);
     };
+    const onResizeScroll = () => updateMenuPos();
 
     document.addEventListener('mousedown', onMouseDown);
     document.addEventListener('keydown', onKeyDown);
+    window.addEventListener('resize', onResizeScroll);
+    window.addEventListener('scroll', onResizeScroll, true);
     return () => {
       document.removeEventListener('mousedown', onMouseDown);
       document.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('resize', onResizeScroll);
+      window.removeEventListener('scroll', onResizeScroll, true);
     };
-  }, [isOpen]);
+  }, [isOpen, updateMenuPos]);
 
   useEffect(() => {
     if (isOpen) {
@@ -64,6 +89,7 @@ export function Select({
   const openMenu = () => {
     const selected = options.findIndex((option) => option.value === value);
     setActiveIndex(selected === -1 ? 0 : selected);
+    updateMenuPos();
     setIsOpen(true);
   };
 
@@ -131,47 +157,55 @@ export function Select({
         />
       </button>
 
-      {isOpen && (
-        <ul
-          id={listboxId}
-          role="listbox"
-          aria-activedescendant={
-            activeOption === undefined ? undefined : `${listboxId}-${activeIndex}`
-          }
-          className={cn(
-            'absolute z-10 left-0 right-0 max-h-64 overflow-y-auto rounded-panel border border-line bg-surface-1 p-1',
-            direction === 'up' ? 'bottom-full mb-1' : 'top-full mt-1',
-          )}
-        >
-          {options.map((option, index) => {
-            const isSelected = option.value === value;
+      {isOpen &&
+        menuPos !== null &&
+        createPortal(
+          <ul
+            ref={listRef}
+            id={listboxId}
+            role="listbox"
+            aria-activedescendant={
+              activeOption === undefined ? undefined : `${listboxId}-${activeIndex}`
+            }
+            style={{
+              position: 'fixed',
+              left: menuPos.left,
+              width: menuPos.width,
+              top: menuPos.top,
+              bottom: menuPos.bottom,
+            }}
+            className="z-50 max-h-64 overflow-y-auto rounded-panel border border-line bg-surface-1 p-1 shadow-lg"
+          >
+            {options.map((option, index) => {
+              const isSelected = option.value === value;
 
-            return (
-              <li key={option.value} role="none">
-                <button
-                  type="button"
-                  ref={(element) => {
-                    itemRefs.current[index] = element;
-                  }}
-                  id={`${listboxId}-${index}`}
-                  role="option"
-                  aria-selected={isSelected}
-                  tabIndex={-1}
-                  onClick={() => commit(option)}
-                  onMouseEnter={() => setActiveIndex(index)}
-                  className={cn(
-                    'w-full flex items-center justify-between gap-2 px-3 py-2 rounded-row text-sm text-left transition-colors duration-fast',
-                    index === activeIndex && 'bg-surface-2',
-                    isSelected ? 'text-accent-text' : 'text-ink',
-                  )}
-                >
-                  <span className="truncate">{option.label}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+              return (
+                <li key={option.value} role="none">
+                  <button
+                    type="button"
+                    ref={(element) => {
+                      itemRefs.current[index] = element;
+                    }}
+                    id={`${listboxId}-${index}`}
+                    role="option"
+                    aria-selected={isSelected}
+                    tabIndex={-1}
+                    onClick={() => commit(option)}
+                    onMouseEnter={() => setActiveIndex(index)}
+                    className={cn(
+                      'w-full flex items-center justify-between gap-2 px-3 py-2 rounded-row text-sm text-left transition-colors duration-fast',
+                      index === activeIndex && 'bg-surface-2',
+                      isSelected ? 'text-accent-text' : 'text-ink',
+                    )}
+                  >
+                    <span className="truncate">{option.label}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>,
+          document.body,
+        )}
     </div>
   );
 }

@@ -99,6 +99,18 @@
     "pausedBadge": "Paused, missed: {{count}}",
     "received": "received"
   },
+  "settings": {
+    "title": "Settings",
+    "noCapability": "Clover2 settings plugin is not available",
+    "save": "Save",
+    "saving": "Saving...",
+    "resetAll": "Reset all",
+    "resetAllConfirm": "Reset all fields to their defaults? Unsaved changes will be lost.",
+    "resetField": "Reset to default",
+    "defaultValue": "default",
+    "invalidInt": "Must be an integer",
+    "invalidFloat": "Must be a number"
+  },
   "topicDetail": {
     "unknownTopic": "Unknown topic",
     "connecting": "Connecting...",

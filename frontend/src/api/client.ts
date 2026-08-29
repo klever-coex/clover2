@@ -4,6 +4,7 @@ import { createManifestEndpoints } from './endpoints/manifest.ts';
 import { createMapEndpoints } from './endpoints/map.ts';
 import { createNodesEndpoints } from './endpoints/nodes.ts';
 import { createServicesEndpoints } from './endpoints/services.ts';
+import { createSettingsEndpoints } from './endpoints/settings.ts';
 import { createStreamsEndpoints } from './endpoints/streams.ts';
 import { createTopicsEndpoints } from './endpoints/topics.ts';
 import { baseUrlMiddleware } from './middleware/baseUrl.ts';
@@ -43,17 +44,18 @@ export function createClient(baseUrl?: string): Clover2Api {
     manifestEndpoints.requireCapability,
   );
 
-  return {
-    manifest: {
-      get: manifestEndpoints.get,
-      clearCache: manifestEndpoints.clearCache,
-    },
-    topics: {
-      ...createTopicsEndpoints(http),
-      subscribe: streams.subscribe,
-    },
-    nodes: createNodesEndpoints(http),
-    services: createServicesEndpoints(http),
-    map: createMapEndpoints(http),
-  };
+	return {
+		manifest: {
+			get: manifestEndpoints.get,
+			clearCache: manifestEndpoints.clearCache,
+		},
+		topics: {
+			...createTopicsEndpoints(http),
+			subscribe: streams.subscribe,
+		},
+		nodes: createNodesEndpoints(http),
+		services: createServicesEndpoints(http),
+		map: createMapEndpoints(http),
+		settings: createSettingsEndpoints(http),
+	};
 }

@@ -2,6 +2,7 @@ import type { Manifest } from '../types/manifest.ts';
 import type { MapInfo, MarkerInfo, ModifyResult } from '../types/map.ts';
 import type { NodeInfo } from '../types/node.ts';
 import type { ServiceEndpoint } from '../types/service.ts';
+import type { SettingsModifyResult, SettingsSchemaResponse } from '../types/settings.ts';
 import type { TopicEndpoint, TopicInfo } from '../types/topic.ts';
 
 import { createClient } from './client.ts';
@@ -45,12 +46,18 @@ export interface MapApi {
   delete(id: number): Promise<ModifyResult>;
 }
 
+export interface SettingsApi {
+  schema(): Promise<SettingsSchemaResponse>;
+  save(values: unknown): Promise<SettingsModifyResult>;
+}
+
 export interface Clover2Api {
   readonly manifest: ManifestApi;
   readonly topics: TopicsApi;
   readonly nodes: NodesApi;
   readonly services: ServicesApi;
   readonly map: MapApi;
+  readonly settings: SettingsApi;
 }
 
 export function createClover2Api(baseUrl?: string): Clover2Api {
