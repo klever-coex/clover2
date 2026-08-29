@@ -6,6 +6,7 @@
 #pragma once
 
 // STL
+#include <compare>
 #include <string>
 
 namespace clover2_notification::data {
@@ -28,25 +29,22 @@ struct event {
     std::string message;
 
     /**
+     * @brief Compare two notification events by priority.
+     *
+     * @param other Event to compare with.
+     * @return Ordering result based on event priority.
+     */
+    auto operator<=>(const event& other) const {
+        return priority <=> other.priority;
+    }
+
+    /**
      * @brief Compare two notification events for equality.
      *
      * @param other Event to compare with.
      * @return true if all event fields are equal, false otherwise.
      */
-    bool operator==(const event& other) const {
-        return priority == other.priority && source == other.source &&
-               name == other.name && message == other.message;
-    }
-
-    /**
-     * @brief Compare two notification events for inequality.
-     *
-     * @param other Event to compare with.
-     * @return true if at least one event field differs, false otherwise.
-     */
-    bool operator!=(const event& other) const {
-        return !(*this == other);
-    }
+    bool operator==(const event& other) const = default;
 };
 
 }  // namespace clover2_notification::data

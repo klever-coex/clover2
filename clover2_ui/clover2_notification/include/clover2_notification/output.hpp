@@ -18,6 +18,7 @@
 #include <mutex>
 #include <optional>
 #include <queue>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -45,10 +46,24 @@ public:
      *
      * @param node Lifecycle node that owns the plugin.
      * @param id Output instance identifier used as a parameter namespace.
+     *
+     * @throws std::invalid_argument if @p node is null or @p id is empty.
      */
-    virtual void initialize(
-        const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
-        const std::string& id) = 0;
+    void initialize(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
+                    const std::string& id) {
+        if (!node) {
+            throw std::invalid_argument(
+                "Notification output received a null node");
+        }
+
+        if (id.empty()) {
+            throw std::invalid_argument(
+                "Notification output received an empty id");
+        }
+
+        m_id = id;
+        on_initialize(node);
+    }
 
     /**
      * @brief Add an event to the output queue and start processing if idle.
@@ -70,11 +85,29 @@ public:
     /** @brief Clear queued and currently tracked events. */
     virtual void clear() {
         std::lock_guard<std::mutex> lock(m_queue_mutex);
-        m_queue = queue_type{};
+        m_queue = std::priority_queue<data::event>{};
         m_current_event.reset();
     }
 
 protected:
+    /**
+     * @brief Get the output instance identifier.
+     *
+     * @return Output instance identifier used as a parameter namespace.
+     */
+    const std::string& id() const { return m_id; }
+
+    /**
+     * @brief Perform implementation-specific initialization.
+     *
+     * This method is called by initialize() after common validation and id
+     * storage are complete.
+     *
+     * @param node Lifecycle node that owns the plugin.
+     */
+    virtual void on_initialize(
+        const rclcpp_lifecycle::LifecycleNode::SharedPtr& node) = 0;
+
     /**
      * @brief Process a single notification event.
      *
@@ -98,24 +131,6 @@ protected:
     }
 
 private:
-    /** @brief Priority comparator that puts higher-priority events first. */
-    struct priority_less {
-        /**
-         * @brief Compare two events by priority.
-         *
-         * @param lhs Left-hand event.
-         * @param rhs Right-hand event.
-         * @return true if @p lhs has lower priority than @p rhs.
-         */
-        bool operator()(const data::event& lhs, const data::event& rhs) const {
-            return lhs.priority < rhs.priority;
-        }
-    };
-
-    using queue_type =
-        std::priority_queue<data::event, std::vector<data::event>,
-                            priority_less>;
-
     /** @brief Start processing the next queued event when no event is active.
      */
     void try_process_next() {
@@ -131,9 +146,7 @@ private:
             m_queue.pop();
         }
 
-        process_event(event, [this]() {
-            complete_current_event();
-        });
+        process_event(event, [this]() { complete_current_event(); });
     }
 
     /** @brief Mark the current event as completed and process the next one. */
@@ -146,7 +159,8 @@ private:
         try_process_next();
     }
 
-    queue_type m_queue;
+    std::string m_id;
+    std::priority_queue<data::event> m_queue;
     std::optional<data::event> m_current_event;
     mutable std::mutex m_queue_mutex;
 };

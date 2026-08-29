@@ -14,6 +14,7 @@
     <arg name="front_camera.enable" default="false" />
 
     <arg name="indication.led_strip" default="false" />
+    <arg name="notification.led_strip" default="true" />
     <arg name="2d_lidar.enable" default="false" />
 
     <arg name="display.display" default="false" />
@@ -111,6 +112,7 @@
           namespace="$(var root_ns)" if="$(var indication.led_strip)">
         <param name="use_sim_time" value="$(var use_sim_time)" />
         <param from="$(find-pkg-share clover2_notification)/config/notification.yaml" />
+        <param name="led_strip.enabled" value="$(var notification.led_strip)" />
     </node>
 
     <include file="$(find-pkg-share $(var sensing_pkg))/launch/sensing/2d_lidar.launch.xml" if="$(var 2d_lidar.enable)">

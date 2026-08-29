@@ -73,6 +73,15 @@ indication:
       default: true
       description: "Enable LED Strip driver"
 
+notification:
+  type: object
+  description: "Notification settings"
+  fields:
+    led_strip:
+      type: bool
+      default: true
+      description: "Enable LED Strip notification output"
+
 display:
   type: object
   description: "Display settings"

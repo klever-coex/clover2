@@ -51,6 +51,19 @@ controller::CallbackReturn controller::on_configure(
         }
 
         for (const auto& output_id : m_output_ids) {
+            const auto enabled_param = output_id + ".enabled";
+            if (!has_parameter(enabled_param)) {
+                declare_parameter<bool>(enabled_param, true);
+            }
+
+            bool enabled = true;
+            if (!get_parameter(enabled_param, enabled) || !enabled) {
+                RCLCPP_INFO(get_logger(),
+                            "Notification output disabled: id='%s'",
+                            output_id.c_str());
+                continue;
+            }
+
             const auto plugin_param = output_id + ".plugin";
             if (!has_parameter(plugin_param)) {
                 declare_parameter<std::string>(plugin_param);

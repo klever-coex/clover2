@@ -1,13 +1,130 @@
-#include <clover2_notification/outputs/led.hpp>
+#include <clover2_led/client.hpp>
+#include <clover2_notification/output.hpp>
 #include <pluginlib/class_list_macros.hpp>
 
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace clover2_notification::outputs {
+
+/**
+ * @class led
+ * @brief Notification output that displays events using LED animations.
+ *
+ * The output selects animation configuration by event name override first and
+ * by event priority second. Supported animations are handled by
+ * clover2_led::client.
+ */
+class led final : public clover2_notification::output {
+public:
+    /** @brief Construct an LED notification output. */
+    led() = default;
+
+    /** @brief Destroy an LED notification output. */
+    ~led() override = default;
+
+    /**
+     * @brief Cancel active timers, clear queued events, and turn LEDs off.
+     */
+    void clear() override;
+
+private:
+    /**
+     * @brief Initialize LED-specific resources and configuration.
+     *
+     * Creates a LED client, declares output parameters, and loads default and
+     * per-diagnostic animation configurations.
+     *
+     * @param node Lifecycle node that owns the output plugin.
+     */
+    void on_initialize(
+        const rclcpp_lifecycle::LifecycleNode::SharedPtr& node) override;
+
+    /** @brief LED animation parameters used for one notification event. */
+    struct animation_config {
+        /** @brief Animation name supported by clover2_led::client. */
+        std::string animation{"blink"};
+
+        /** @brief Primary animation color. */
+        clover2_led::data::color color{255, 255, 255};
+
+        /** @brief Animation brightness in the range expected by LED driver. */
+        float brightness{1.0F};
+
+        /** @brief Animation period in seconds. */
+        float period{1.0F};
+
+        /** @brief Animation duration in seconds. */
+        float duration{3.0F};
+    };
+
+    /**
+     * @brief Declare and read one animation configuration block.
+     *
+     * @param node Lifecycle node used to declare parameters.
+     * @param prefix Parameter prefix for the animation block.
+     * @param defaults Default values used for missing parameters.
+     * @return Loaded animation configuration.
+     *
+     * @throws std::invalid_argument if configured duration is not positive.
+     * @throws std::runtime_error if configured color does not contain three
+     * components.
+     */
+    animation_config declare_animation_config(
+        const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
+        const std::string& prefix, const animation_config& defaults) const;
+
+    /**
+     * @brief Load default priority-based and name-based override animations.
+     *
+     * @param node Lifecycle node used to declare and read parameters.
+     */
+    void load_animation_configs(
+        const rclcpp_lifecycle::LifecycleNode::SharedPtr& node);
+
+    /**
+     * @brief Find animation configuration for an event.
+     *
+     * @param event Notification event to resolve.
+     * @return Pointer to matching animation configuration, or nullptr if none
+     * exists.
+     */
+    const animation_config* find_animation_config(
+        const data::event& event) const;
+
+    /**
+     * @brief Start the configured LED animation.
+     *
+     * @param config Animation configuration to execute.
+     *
+     * @throws std::runtime_error if the animation name is unsupported or the
+     * LED client call fails.
+     */
+    void start_animation(const animation_config& config) const;
+
+    /**
+     * @brief Process one notification event as an LED animation.
+     *
+     * @param event Notification event to display.
+     * @param done Completion callback called when display duration expires or
+     * when processing cannot be started.
+     */
+    void process_event(const data::event& event, done_callback done) override;
+
+    std::string m_base_path{"led_strip"};
+    rclcpp_lifecycle::LifecycleNode::SharedPtr m_node;
+    std::shared_ptr<clover2_led::client> m_client;
+    rclcpp::TimerBase::SharedPtr m_timer;
+    rclcpp::Logger m_logger{rclcpp::get_logger("notification_led_output")};
+    std::unordered_map<int, animation_config> m_default_animations;
+    std::unordered_map<std::string, animation_config> m_override_animations;
+};
 
 namespace {
 
@@ -30,25 +147,13 @@ clover2_led::data::color parse_color(const std::vector<int64_t>& values) {
 
 }  // namespace
 
-void led::initialize(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
-                     const std::string& id) {
-    if (!node) {
-        throw std::invalid_argument("LED output received a null node");
-    }
-
-    if (id.empty()) {
-        throw std::invalid_argument("LED output received an empty id");
-    }
-
-    m_id = id;
-    m_logger = node->get_logger().get_child("led_output").get_child(m_id);
+void led::on_initialize(
+    const rclcpp_lifecycle::LifecycleNode::SharedPtr& node) {
+    m_logger = node->get_logger().get_child("led_output").get_child(id());
     m_node = node;
 
-    m_base_path = node->declare_parameter<std::string>(m_id + ".base_path", m_id);
-    m_client_callback_group =
-        node->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
-    m_client = std::make_shared<clover2_led::client>(node, m_base_path,
-                                                     m_client_callback_group);
+    m_base_path = node->declare_parameter<std::string>(id() + ".base_path", id());
+    m_client = std::make_shared<clover2_led::client>(node, m_base_path);
     load_animation_configs(node);
 }
 
@@ -76,7 +181,7 @@ void led::process_event(const data::event& event, done_callback done) {
                     "animation='%s' duration=%.2fs",
                     event.source.c_str(), event.name.c_str(),
                     event.message.c_str(), event.priority, queued_size(),
-                    m_id.c_str(), m_base_path.c_str(), config->animation.c_str(),
+                    id().c_str(), m_base_path.c_str(), config->animation.c_str(),
                     config->duration);
         start_animation(*config);
     } catch (const std::exception& e) {
@@ -146,7 +251,7 @@ void led::load_animation_configs(
     const auto load_default = [&](const std::string& name,
                                   const animation_config& defaults,
                                   int default_priority) {
-        const auto prefix = m_id + ".defaults." + name;
+        const auto prefix = id() + ".defaults." + name;
         const auto priority = node->declare_parameter<int>(prefix + ".priority",
                                                            default_priority);
         m_default_animations.emplace(
@@ -159,9 +264,9 @@ void led::load_animation_configs(
 
     const auto override_names =
         node->declare_parameter<std::vector<std::string>>(
-            m_id + ".override_names", std::vector<std::string>{});
+            id() + ".override_names", std::vector<std::string>{});
     for (const auto& override_name : override_names) {
-        const auto prefix = m_id + ".overrides." + override_name;
+        const auto prefix = id() + ".overrides." + override_name;
         const auto diagnostic_name = node->declare_parameter<std::string>(
             prefix + ".diagnostic_name", override_name);
         auto config = declare_animation_config(node, prefix, warn_defaults);

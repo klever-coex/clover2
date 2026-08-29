@@ -1,7 +1,8 @@
 #include <clover2_led_msgs/srv/get_driver_info.hpp>
 #include <clover2_led_msgs/srv/start_animation.hpp>
-#include <clover2_notification/outputs/led.hpp>
+#include <clover2_notification/output.hpp>
 #include <gtest/gtest.h>
+#include <pluginlib/class_loader.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
@@ -94,13 +95,15 @@ protected:
     std::condition_variable m_cv;
     bool m_received{false};
     start_animation::Request m_request;
+    pluginlib::ClassLoader<clover2_notification::output> m_output_loader{
+        "clover2_notification", "clover2_notification::output"};
 };
 
 TEST_F(led_output_test, maps_warning_event_to_default_yellow_blink) {
-    clover2_notification::outputs::led output;
-    output.initialize(m_notification, "led_strip");
+    auto output = m_output_loader.createSharedInstance("led");
+    output->initialize(m_notification, "led_strip");
 
-    output.push2queue({1, "diagnostics", "Test warning", "low battery"});
+    output->push2queue({1, "diagnostics", "Test warning", "low battery"});
 
     ASSERT_TRUE(wait_for_request());
     EXPECT_EQ(m_request.animation_name, "blink");

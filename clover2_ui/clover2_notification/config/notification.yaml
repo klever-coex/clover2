@@ -20,6 +20,7 @@
           - "/Aggregation/FCU"
 
     led_strip:
+      enabled: true
       plugin: led
       base_path: led_strip
 
