@@ -24,17 +24,21 @@ void base_backend::set_velocity_setpoint(double vx, double vy, double vz,
     set_setpoint(std::nullopt, v, std::nullopt, std::nullopt, yaw_rate_op);
 }
 
-data::fcu_state_data base_backend::get_fcu_state() const {
-    data::fcu_state_data state;
-    state.value = data::fcu_state{connected(), is_armed(), get_mode()};
-    state.stamp = get_clock()->now();
-    return state;
+std::optional<data::fcu_state> base_backend::get_fcu_state() const {
+    return data::fcu_state{connected(), is_armed(), get_mode()};
 }
 
-data::power_data base_backend::get_power() const { return {}; }
+std::optional<sensor_msgs::msg::BatteryState> base_backend::get_power() const {
+    return {};
+}
 
-data::imu_data base_backend::get_imu() const { return {}; }
+std::optional<sensor_msgs::msg::Imu> base_backend::get_imu() const {
+    return {};
+}
 
-data::barometer_data base_backend::get_barometer() const { return {}; }
+std::optional<sensor_msgs::msg::FluidPressure> base_backend::get_barometer()
+    const {
+    return {};
+}
 
 }  // namespace clover2_fcu_bridge::backend

@@ -13,9 +13,13 @@
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/subscription.hpp>
+#include <sensor_msgs/msg/battery_state.hpp>
+#include <sensor_msgs/msg/fluid_pressure.hpp>
+#include <sensor_msgs/msg/imu.hpp>
 
 // STL
 #include <mutex>
+#include <optional>
 
 namespace clover2_fcu_bridge::backend {
 
@@ -36,10 +40,10 @@ public:
     void set_mode(const data::mode& mode) final;
     data::mode get_mode() const final;
 
-    data::fcu_state_data get_fcu_state() const final;
-    data::power_data get_power() const final;
-    data::imu_data get_imu() const final;
-    data::barometer_data get_barometer() const final;
+    std::optional<data::fcu_state> get_fcu_state() const final;
+    std::optional<sensor_msgs::msg::BatteryState> get_power() const final;
+    std::optional<sensor_msgs::msg::Imu> get_imu() const final;
+    std::optional<sensor_msgs::msg::FluidPressure> get_barometer() const final;
 
     void set_setpoint(const std::optional<tf2::Vector3> p,
                       const std::optional<tf2::Vector3> v,
@@ -64,10 +68,10 @@ private:
     rclcpp::Client<mavros_msgs::srv::CommandTOL>::SharedPtr m_land_client;
 
     data::mode m_mode;
-    data::fcu_state_data m_fcu_state;
-    data::power_data m_power;
-    data::imu_data m_imu;
-    data::barometer_data m_barometer;
+    std::optional<data::fcu_state> m_fcu_state;
+    std::optional<sensor_msgs::msg::BatteryState> m_power;
+    std::optional<sensor_msgs::msg::Imu> m_imu;
+    std::optional<sensor_msgs::msg::FluidPressure> m_barometer;
     mutable std::mutex m_state_mtx;
     bool m_pose_received{false};
 };

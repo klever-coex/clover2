@@ -1,10 +1,5 @@
 ---
 BasedOnStyle: Google
-AllowShortBlocksOnASingleLine: Never
-AllowShortFunctionsOnASingleLine: Empty
-AllowShortLambdasOnASingleLine: None
-AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: false
 BreakConstructorInitializers: BeforeComma
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 IndentWidth: 4

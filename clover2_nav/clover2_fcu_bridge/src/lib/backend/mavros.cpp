@@ -119,26 +119,23 @@ mavros::mavros(const context& ctx)
         m_ctx, "/mavros/state", rclcpp::QoS(10),
         [&](const mavros_msgs::msg::State::SharedPtr msg) {
             std::lock_guard<std::mutex> guard(m_state_mtx);
-            m_fcu_state.value = data::fcu_state{msg->connected, msg->armed,
-                                                mode_from_mavros(msg->mode)};
-            m_fcu_state.stamp = get_clock()->now();
-            m_mode = m_fcu_state.value->flight_mode;
+            m_fcu_state = data::fcu_state{msg->connected, msg->armed,
+                                          mode_from_mavros(msg->mode)};
+            m_mode = m_fcu_state->flight_mode;
         });
 
     m_battery_sub = rclcpp::create_subscription<sensor_msgs::msg::BatteryState>(
         m_ctx, "/mavros/battery", rclcpp::SensorDataQoS(),
         [&](const sensor_msgs::msg::BatteryState::SharedPtr msg) {
             std::lock_guard<std::mutex> guard(m_state_mtx);
-            m_power.value = data::power{msg->voltage, msg->percentage};
-            m_power.stamp = get_clock()->now();
+            m_power = *msg;
         });
 
     m_imu_sub = rclcpp::create_subscription<sensor_msgs::msg::Imu>(
         m_ctx, "/mavros/imu/data", rclcpp::SensorDataQoS(),
         [&](const sensor_msgs::msg::Imu::SharedPtr msg) {
             std::lock_guard<std::mutex> guard(m_state_mtx);
-            m_imu.stamp = get_clock()->now();
-            m_imu.value = *msg;
+            m_imu = *msg;
         });
 
     m_barometer_sub =
@@ -146,8 +143,7 @@ mavros::mavros(const context& ctx)
             m_ctx, "/mavros/imu/static_pressure", rclcpp::SensorDataQoS(),
             [&](const sensor_msgs::msg::FluidPressure::SharedPtr msg) {
                 std::lock_guard<std::mutex> guard(m_state_mtx);
-                m_barometer.stamp = get_clock()->now();
-                m_barometer.value = *msg;
+                m_barometer = *msg;
             });
 
     m_arming_client = rclcpp::create_client<mavros_msgs::srv::CommandBool>(
@@ -160,17 +156,17 @@ mavros::mavros(const context& ctx)
 
 bool mavros::ready() const {
     std::lock_guard<std::mutex> guard(m_state_mtx);
-    return m_pose_received && m_fcu_state.value && m_fcu_state.value->connected;
+    return m_pose_received && m_fcu_state && m_fcu_state->connected;
 }
 
 bool mavros::connected() const {
     std::lock_guard<std::mutex> guard(m_state_mtx);
-    return m_fcu_state.value && m_fcu_state.value->connected;
+    return m_fcu_state && m_fcu_state->connected;
 }
 
 bool mavros::is_armed() const {
     std::lock_guard<std::mutex> guard(m_state_mtx);
-    return m_fcu_state.value && m_fcu_state.value->armed;
+    return m_fcu_state && m_fcu_state->armed;
 }
 
 void mavros::arm() {
@@ -272,22 +268,22 @@ data::mode mavros::get_mode() const {
     return m_mode;
 }
 
-data::fcu_state_data mavros::get_fcu_state() const {
+std::optional<data::fcu_state> mavros::get_fcu_state() const {
     std::lock_guard<std::mutex> guard(m_state_mtx);
     return m_fcu_state;
 }
 
-data::power_data mavros::get_power() const {
+std::optional<sensor_msgs::msg::BatteryState> mavros::get_power() const {
     std::lock_guard<std::mutex> guard(m_state_mtx);
     return m_power;
 }
 
-data::imu_data mavros::get_imu() const {
+std::optional<sensor_msgs::msg::Imu> mavros::get_imu() const {
     std::lock_guard<std::mutex> guard(m_state_mtx);
     return m_imu;
 }
 
-data::barometer_data mavros::get_barometer() const {
+std::optional<sensor_msgs::msg::FluidPressure> mavros::get_barometer() const {
     std::lock_guard<std::mutex> guard(m_state_mtx);
     return m_barometer;
 }
