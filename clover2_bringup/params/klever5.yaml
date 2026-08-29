@@ -18,10 +18,6 @@
       sensors:
         stale_timeout_sec: 1.0
 
-/**/web_video_server:
-  ros__parameters:
-    port: 8081
-
 /**/led_strip:
   ros__parameters:
     device_plugin: "ws2812_spi"

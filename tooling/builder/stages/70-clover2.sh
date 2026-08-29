@@ -14,7 +14,7 @@ cat >> ~/.bashrc <<'EOF'
 clover2-settings() {
     ros2 run clover2_ui settings \
         "$(ros2 pkg prefix clover2_bringup --share)/schemas/klever5.yaml" \
-        /opt/clover2/.config.yaml
+        "$CLOVER2_CONFIG_FILE" # CLOVER2_CONFIG_FILE sets in ros2.env file
 }
 EOF
 
