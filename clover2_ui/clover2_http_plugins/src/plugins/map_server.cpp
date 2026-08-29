@@ -1,24 +1,64 @@
 // clover2
 #include <clover2_common/util/parameter.hpp>
-#include <clover2_http_plugins/map_server.hpp>
+#include <clover2_http/plugin.hpp>
+#include <clover2_http_plugins/data/map_info.hpp>
+#include <clover2_http_plugins/data/marker_info.hpp>
+#include <clover2_http_plugins/data/modify_result.hpp>
+#include <clover2_map/client.hpp>
 #include <clover2_pose_msgs/srv/modify_map.hpp>
+
+// ROS2
+#include <rclcpp/rclcpp.hpp>
 
 // tf2
 #include <tf2/LinearMath/Matrix3x3.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 
 // STL
+#include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace clover2_http_plugins {
 
-namespace {
-
 namespace http = clover2_http::http;
+using clover2_http_plugins::data::map_info;
 using clover2_http_plugins::data::marker_info;
 using clover2_http_plugins::data::marker_pose;
 using clover2_http_plugins::data::modify_result;
+
+class map_server : public clover2_http::plugin<map_server> {
+public:
+    static constexpr std::string_view k_name = "map_server";
+    static constexpr int k_version = 1;
+
+protected:
+    void on_initialize() override;
+    std::vector<std::string> capabilities() const override;
+
+private:
+    void handle_map(http::core::request_context ctx,
+                    http::endpoint::deferred_reply<map_info> reply);
+
+    void handle_marker(http::core::request_context ctx,
+                       http::endpoint::deferred_reply<marker_info> reply);
+
+    void handle_add(http::core::request_context ctx, marker_info request,
+                    http::endpoint::deferred_reply<modify_result> reply);
+
+    void handle_edit(http::core::request_context ctx, marker_info request,
+                     http::endpoint::deferred_reply<modify_result> reply);
+
+    void handle_delete(http::core::request_context ctx,
+                       http::endpoint::deferred_reply<modify_result> reply);
+
+    std::shared_ptr<clover2_map::client> m_map_client;
+    rclcpp::CallbackGroup::SharedPtr m_map_group;
+    rclcpp::TimerBase::SharedPtr m_refresh_timer;
+};
+
+namespace {
 
 data::marker_pose to_pose(const Eigen::Isometry3d& pose) {
     Eigen::Quaterniond eq(pose.linear());
@@ -92,8 +132,6 @@ clover2_map::marker from_info(const marker_info& info) {
 }  // namespace
 
 void map_server::on_initialize() {
-    using clover2_http::http::core::request_context;
-
     m_map_group =
         m_node_context->get_node_base_interface()->create_callback_group(
             rclcpp::CallbackGroupType::MutuallyExclusive);
@@ -155,13 +193,13 @@ std::vector<std::string> map_server::capabilities() const {
     if (m_map_client && m_map_client->valid()) {
         capabilities_list.push_back("map");
     }
-    
+
     return capabilities_list;
 }
 
 void map_server::handle_map(
     http::core::request_context /*ctx*/,
-    http::endpoint::deferred_reply<data::map_info> reply) {
+    http::endpoint::deferred_reply<map_info> reply) {
     if (!m_map_client) {
         reply.error_json(503, "Map client is not initialized");
         return;
@@ -169,7 +207,7 @@ void map_server::handle_map(
 
     const auto map = m_map_client->snapshot();
 
-    data::map_info info;
+    map_info info;
     info.valid = m_map_client->valid();
     if (info.valid) {
         info.name = map.name;
@@ -188,7 +226,7 @@ void map_server::handle_map(
 
 void map_server::handle_marker(
     http::core::request_context ctx,
-    http::endpoint::deferred_reply<data::marker_info> reply) {
+    http::endpoint::deferred_reply<marker_info> reply) {
     const int id = ctx.param<int>("id");
 
     if (!m_map_client || !m_map_client->valid()) {
@@ -208,8 +246,8 @@ void map_server::handle_marker(
 }
 
 void map_server::handle_add(
-    http::core::request_context /*ctx*/, data::marker_info request,
-    http::endpoint::deferred_reply<data::modify_result> reply) {
+    http::core::request_context /*ctx*/, marker_info request,
+    http::endpoint::deferred_reply<modify_result> reply) {
     clover2_map::marker mk;
     try {
         mk = from_info(request);
@@ -239,8 +277,8 @@ void map_server::handle_add(
 }
 
 void map_server::handle_edit(
-    http::core::request_context ctx, data::marker_info request,
-    http::endpoint::deferred_reply<data::modify_result> reply) {
+    http::core::request_context ctx, marker_info request,
+    http::endpoint::deferred_reply<modify_result> reply) {
     const int id = ctx.param<int>("id");
 
     if (request.id != id) {
@@ -280,7 +318,7 @@ void map_server::handle_edit(
 
 void map_server::handle_delete(
     http::core::request_context ctx,
-    http::endpoint::deferred_reply<data::modify_result> reply) {
+    http::endpoint::deferred_reply<modify_result> reply) {
     const int id = ctx.param<int>("id");
 
     clover2_map::marker mk;

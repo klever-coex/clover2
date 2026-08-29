@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>clover2_http_plugins</name>
+  <version>0.1.9</version>
+  <description>clover2-specific HTTP plugins for the clover2_http server</description>
+  <maintainer email="2663161@mail.ru">l_motya</maintainer>
+  <license>TODO: License declaration</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_auto</buildtool_depend>
+
+  <depend>clover2_common</depend>
+  <depend>clover2_http</depend>
+  <depend>clover2_map</depend>
+  <depend>clover2_pose_msgs</depend>
+  <depend>clover2_ui</depend>
+  <depend>nlohmann-json-dev</depend>
+  <depend>pluginlib</depend>
+  <depend>rclcpp</depend>
+  <depend>tf2</depend>
+  <depend>yaml-cpp</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+    <pluginlib plugin="${prefix}/plugins.xml"/>
+  </export>
+</package>

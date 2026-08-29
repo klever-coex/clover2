@@ -62,6 +62,11 @@ public:
 
     bool set_enum(const std::string& val);
 
+    /** Parses text per the field type (enum membership for enums) and sets the
+     *  value. Throws std::invalid_argument with a user-facing message.
+     *  The single rules path shared by the TUI editor and the HTTP plugin. */
+    void set_from_string(const std::string& text);
+
     const std::vector<std::shared_ptr<config_field>>& children()
         const noexcept {
         return m_children;
@@ -73,6 +78,9 @@ public:
     void mark_clean();
 
     YAML::Node to_yaml_value() const;
+
+    /** Atomic write: emits to a sibling .tmp file, then renames over the
+     *  target. Throws std::runtime_error and leaves no .tmp on failure. */
     void save_to_file(const std::filesystem::path& file) const;
 
     static std::shared_ptr<config_field> load(
