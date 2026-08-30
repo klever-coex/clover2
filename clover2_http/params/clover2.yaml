@@ -3,6 +3,9 @@
     address: "0.0.0.0"
     port: 3000
 
+    ros_support:
+      topics_rate_limit_bps: 100000.0
+
     map_server:
       map_node: "map_server"
     

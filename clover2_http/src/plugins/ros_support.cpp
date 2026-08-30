@@ -125,7 +125,7 @@ void ros_support::on_initialize() {
             });
 
     clover2_common::util::declare_and_watch_parameter<double>(
-        parameters_watcher, "topics.rate_limit_bps", m_rate_limit,
+        parameters_watcher, "ros_support.topics_rate_limit_bps", m_rate_limit,
         [this](const rclcpp::Parameter& p) { m_rate_limit = p.as_double(); },
         "Rate limit for topic streams in bytes per second");
 
