@@ -9,7 +9,7 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>diagnostic_updater</depend>
+  <depend>diagnostics</depend>
   <depend>lifecycle_msgs</depend>
   <depend>rclcpp_lifecycle</depend>
   <depend>rclcpp</depend>
