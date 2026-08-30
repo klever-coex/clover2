@@ -26,27 +26,23 @@ ament_auto_add_library(notification_core SHARED
   src/provider/diagnostics.cpp)
 target_link_libraries(notification_core notification_outputs)
 
-ament_auto_add_executable(notification src/main.cpp)
-target_link_libraries(notification notification_core)
+rclcpp_components_register_node(notification_core
+  PLUGIN "clover2_notification::controller"
+  EXECUTABLE notification
+)
 
 install(DIRECTORY config
   DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
   find_package(ament_cmake_gtest REQUIRED)
-  set(ament_cmake_copyright_FOUND TRUE)
-  set(ament_cmake_cpplint_FOUND TRUE)
-  # The repository uses clang-format; do not register the incompatible
-  # ament_uncrustify check for this package.
-  set(ament_cmake_uncrustify_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
 
-  ament_auto_add_gtest(test_output test/test_output.cpp)
-
-  ament_auto_add_gtest(test_led_output test/test_led_output.cpp)
-  target_link_libraries(test_led_output notification_outputs)
+  ament_auto_add_gtest(test_clover2_notification
+    test/test_output.cpp
+    test/test_led_output.cpp
+  )
+  target_link_libraries(test_clover2_notification notification_outputs)
 endif()
 
 ament_auto_package(

@@ -24,7 +24,12 @@
       plugin: led
       base_path: led_strip
 
-      defaults:
+      reaction_names:
+        - warn
+        - error
+        - stale
+
+      reactions:
         warn:
           priority: 1
           animation: blink

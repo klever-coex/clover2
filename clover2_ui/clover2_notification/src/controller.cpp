@@ -145,3 +145,7 @@ void controller::provider_callback(const data::event& event) {
 }
 
 }  // namespace clover2_notification
+
+#include <rclcpp_components/register_node_macro.hpp>
+
+RCLCPP_COMPONENTS_REGISTER_NODE(clover2_notification::controller)

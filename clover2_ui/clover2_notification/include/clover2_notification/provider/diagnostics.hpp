@@ -84,18 +84,6 @@ private:
      */
     bool is_ignored(const status_type& status) const;
 
-    /**
-     * @brief Match a string against a simple wildcard pattern.
-     *
-     * The wildcard character '*' matches any sequence of characters.
-     *
-     * @param pattern Pattern to match.
-     * @param value Value to test.
-     * @return true if @p value matches @p pattern, false otherwise.
-     */
-    static bool wildcard_match(const std::string& pattern,
-                               const std::string& value);
-
     std::shared_ptr<clover2_common::node_context> m_node_context;
     callback_type m_callback;
     clover2_common::diagnostics::client m_client;

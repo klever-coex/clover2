@@ -4,7 +4,23 @@
 #include <functional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
+
+namespace {
+
+bool matches_ignore_pattern(std::string_view pattern, std::string_view value) {
+    constexpr std::string_view subtree_suffix = "/*";
+
+    if (!pattern.ends_with(subtree_suffix)) {
+        return pattern == value;
+    }
+
+    pattern.remove_suffix(1);
+    return value.starts_with(pattern);
+}
+
+}  // namespace
 
 namespace clover2_notification::provider {
 
@@ -87,7 +103,7 @@ void diagnostics::process_status(const status_type& status) {
 
 bool diagnostics::is_ignored(const status_type& status) const {
     for (const auto& pattern : m_ignore_name_patterns) {
-        if (wildcard_match(pattern, status.name)) {
+        if (matches_ignore_pattern(pattern, status.name)) {
             RCLCPP_DEBUG(*m_logger,
                          "Ignored diagnostic notification: name='%s' "
                          "pattern='%s'",
@@ -97,37 +113,6 @@ bool diagnostics::is_ignored(const status_type& status) const {
     }
 
     return false;
-}
-
-bool diagnostics::wildcard_match(const std::string& pattern,
-                                 const std::string& value) {
-    size_t pattern_pos = 0;
-    size_t value_pos = 0;
-    size_t star_pos = std::string::npos;
-    size_t match_pos = 0;
-
-    while (value_pos < value.size()) {
-        if (pattern_pos < pattern.size() &&
-            pattern[pattern_pos] == value[value_pos]) {
-            ++pattern_pos;
-            ++value_pos;
-        } else if (pattern_pos < pattern.size() &&
-                   pattern[pattern_pos] == '*') {
-            star_pos = pattern_pos++;
-            match_pos = value_pos;
-        } else if (star_pos != std::string::npos) {
-            pattern_pos = star_pos + 1;
-            value_pos = ++match_pos;
-        } else {
-            return false;
-        }
-    }
-
-    while (pattern_pos < pattern.size() && pattern[pattern_pos] == '*') {
-        ++pattern_pos;
-    }
-
-    return pattern_pos == pattern.size();
 }
 
 }  // namespace clover2_notification::provider

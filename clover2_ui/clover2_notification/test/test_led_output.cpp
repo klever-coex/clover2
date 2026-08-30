@@ -11,6 +11,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <vector>
 
 namespace {
 
@@ -25,9 +26,7 @@ protected:
         }
     }
 
-    static void TearDownTestSuite() {
-        rclcpp::shutdown();
-    }
+    static void TearDownTestSuite() { rclcpp::shutdown(); }
 
     void SetUp() override {
         m_fake_driver = std::make_shared<rclcpp::Node>("fake_led_driver");
@@ -57,15 +56,10 @@ protected:
                 response->message = "ok";
             });
 
-        rclcpp::NodeOptions options;
-        options.append_parameter_override("led_strip.base_path", "test_led");
-        m_notification = std::make_shared<rclcpp_lifecycle::LifecycleNode>(
-            "notification_test", options);
+        m_notification = create_notification_node(make_valid_options());
         m_executor.add_node(m_fake_driver);
         m_executor.add_node(m_notification->get_node_base_interface());
-        m_spin_thread = std::thread([this]() {
-            m_executor.spin();
-        });
+        m_spin_thread = std::thread([this]() { m_executor.spin(); });
     }
 
     void TearDown() override {
@@ -77,11 +71,54 @@ protected:
         m_executor.remove_node(m_fake_driver);
     }
 
-    bool wait_for_request() {
+    rclcpp::NodeOptions make_base_options() const {
+        rclcpp::NodeOptions options;
+        options.append_parameter_override("led_strip.base_path", "test_led");
+        return options;
+    }
+
+    rclcpp::NodeOptions make_valid_options() const {
+        auto options = make_base_options();
+        options.append_parameter_override("led_strip.reaction_names",
+                                          std::vector<std::string>{"warn"});
+        options.append_parameter_override("led_strip.reactions.warn.priority",
+                                          1);
+        options.append_parameter_override("led_strip.reactions.warn.animation",
+                                          "blink");
+        options.append_parameter_override("led_strip.reactions.warn.color",
+                                          std::vector<int64_t>{255, 255, 0});
+        options.append_parameter_override("led_strip.reactions.warn.brightness",
+                                          0.7);
+        options.append_parameter_override("led_strip.reactions.warn.period",
+                                          1.0);
+        options.append_parameter_override("led_strip.reactions.warn.duration",
+                                          3.0);
+        options.append_parameter_override("led_strip.override_names",
+                                          std::vector<std::string>{"power"});
+        options.append_parameter_override(
+            "led_strip.overrides.power.diagnostic_name", "Power");
+        options.append_parameter_override("led_strip.overrides.power.animation",
+                                          "blink");
+        options.append_parameter_override("led_strip.overrides.power.color",
+                                          std::vector<int64_t>{255, 128, 0});
+        options.append_parameter_override(
+            "led_strip.overrides.power.brightness", 0.8);
+        options.append_parameter_override("led_strip.overrides.power.period",
+                                          0.8);
+        options.append_parameter_override("led_strip.overrides.power.duration",
+                                          3.0);
+        return options;
+    }
+
+    rclcpp_lifecycle::LifecycleNode::SharedPtr create_notification_node(
+        const rclcpp::NodeOptions& options) const {
+        return std::make_shared<rclcpp_lifecycle::LifecycleNode>(
+            "notification_test", options);
+    }
+
+    bool wait_for_request(const std::chrono::milliseconds timeout = 2s) {
         std::unique_lock<std::mutex> lock(m_mutex);
-        return m_cv.wait_for(lock, 2s, [this]() {
-            return m_received;
-        });
+        return m_cv.wait_for(lock, timeout, [this]() { return m_received; });
     }
 
     rclcpp::executors::MultiThreadedExecutor m_executor;
@@ -99,7 +136,7 @@ protected:
         "clover2_notification", "clover2_notification::output"};
 };
 
-TEST_F(led_output_test, maps_warning_event_to_default_yellow_blink) {
+TEST_F(led_output_test, maps_configured_warning_reaction_to_led_animation) {
     auto output = m_output_loader.createSharedInstance("led");
     output->initialize(m_notification, "led_strip");
 
@@ -113,6 +150,75 @@ TEST_F(led_output_test, maps_warning_event_to_default_yellow_blink) {
     ASSERT_EQ(m_request.colors.size(), 1U);
     EXPECT_EQ(m_request.colors[0].r, 255U);
     EXPECT_EQ(m_request.colors[0].g, 255U);
+    EXPECT_EQ(m_request.colors[0].b, 0U);
+}
+
+TEST_F(led_output_test, ignores_event_without_configured_reaction) {
+    auto output = m_output_loader.createSharedInstance("led");
+    output->initialize(m_notification, "led_strip");
+
+    output->push2queue({2, "diagnostics", "Test error", "failure"});
+
+    EXPECT_FALSE(wait_for_request(200ms));
+}
+
+TEST_F(led_output_test, throws_when_configured_reaction_is_incomplete) {
+    m_executor.remove_node(m_notification->get_node_base_interface());
+    auto options = make_base_options();
+    options.append_parameter_override("led_strip.reaction_names",
+                                      std::vector<std::string>{"warn"});
+    options.append_parameter_override("led_strip.reactions.warn.priority", 1);
+    options.append_parameter_override("led_strip.reactions.warn.animation",
+                                      "blink");
+    options.append_parameter_override("led_strip.reactions.warn.color",
+                                      std::vector<int64_t>{255, 255, 0});
+    options.append_parameter_override("led_strip.reactions.warn.brightness",
+                                      0.7);
+    options.append_parameter_override("led_strip.reactions.warn.period", 1.0);
+    m_notification = create_notification_node(options);
+    m_executor.add_node(m_notification->get_node_base_interface());
+
+    auto output = m_output_loader.createSharedInstance("led");
+    EXPECT_THROW(output->initialize(m_notification, "led_strip"),
+                 std::runtime_error);
+}
+
+TEST_F(led_output_test, throws_when_configured_override_is_incomplete) {
+    m_executor.remove_node(m_notification->get_node_base_interface());
+    auto options = make_base_options();
+    options.append_parameter_override("led_strip.override_names",
+                                      std::vector<std::string>{"power"});
+    options.append_parameter_override(
+        "led_strip.overrides.power.diagnostic_name", "Power");
+    options.append_parameter_override("led_strip.overrides.power.animation",
+                                      "blink");
+    options.append_parameter_override("led_strip.overrides.power.color",
+                                      std::vector<int64_t>{255, 128, 0});
+    options.append_parameter_override("led_strip.overrides.power.brightness",
+                                      0.8);
+    options.append_parameter_override("led_strip.overrides.power.period", 0.8);
+    m_notification = create_notification_node(options);
+    m_executor.add_node(m_notification->get_node_base_interface());
+
+    auto output = m_output_loader.createSharedInstance("led");
+    EXPECT_THROW(output->initialize(m_notification, "led_strip"),
+                 std::runtime_error);
+}
+
+TEST_F(led_output_test, maps_configured_override_to_led_animation) {
+    auto output = m_output_loader.createSharedInstance("led");
+    output->initialize(m_notification, "led_strip");
+
+    output->push2queue({1, "diagnostics", "Power", "Test warning"});
+
+    ASSERT_TRUE(wait_for_request());
+    EXPECT_EQ(m_request.animation_name, "blink");
+    EXPECT_FLOAT_EQ(m_request.brightness, 0.8F);
+    EXPECT_FLOAT_EQ(m_request.period, 0.8F);
+    EXPECT_FLOAT_EQ(m_request.duration, 3.0F);
+    ASSERT_EQ(m_request.colors.size(), 1U);
+    EXPECT_EQ(m_request.colors[0].r, 255U);
+    EXPECT_EQ(m_request.colors[0].g, 128U);
     EXPECT_EQ(m_request.colors[0].b, 0U);
 }
 

@@ -11,13 +11,12 @@
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
 
   <depend>rclcpp</depend>
+  <depend>rclcpp_components</depend>
   <depend>diagnostic_msgs</depend>
   <depend>clover2_common</depend>
   <depend>clover2_led</depend>
   <depend>pluginlib</depend>
 
-  <test_depend>ament_lint_auto</test_depend>
-  <test_depend>ament_lint_common</test_depend>
   <test_depend>ament_cmake_gtest</test_depend>
 
   <export>
