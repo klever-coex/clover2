@@ -2,6 +2,7 @@
 #include <diagnostic_msgs/msg/diagnostic_status.hpp>
 
 #include <functional>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -45,7 +46,8 @@ void diagnostics::initialize(
         rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
             ->declare_parameter(
                 "providers.diagnostics.topic",
-                rclcpp::ParameterValue(std::string{"/diagnostics_agg"}))
+                rclcpp::ParameterValue(
+                    std::string{clover2_common::diagnostics::client::default_topic}))
             .get<std::string>();
 
     m_ignore_name_patterns =
@@ -55,9 +57,10 @@ void diagnostics::initialize(
                 rclcpp::ParameterValue(std::vector<std::string>{}))
             .get<std::vector<std::string>>();
 
-    m_client.initialize(m_node_context, topic,
-                        std::bind(&diagnostics::diagnostics_callback, this,
-                                  std::placeholders::_1));
+    m_client = std::make_shared<clover2_common::diagnostics::client>(
+        m_node_context, topic);
+    m_client->set_callback(std::bind(&diagnostics::diagnostics_callback, this,
+                                     std::placeholders::_1));
 
     RCLCPP_INFO(*m_logger, "Subscribed to diagnostics topic: %s",
                 topic.c_str());
@@ -68,7 +71,10 @@ void diagnostics::initialize(
 }
 
 void diagnostics::cleanup() {
-    m_client.cleanup();
+    if (m_client) {
+        m_client->cleanup();
+        m_client.reset();
+    }
     m_previous.clear();
     m_ignore_name_patterns.clear();
     m_callback = nullptr;

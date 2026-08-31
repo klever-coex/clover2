@@ -72,8 +72,8 @@ public:
     }
 
 private:
-    /** @brief LED animation parameters used for one notification event. */
-    struct animation_config {
+    /** @brief LED reaction parameters used for one notification event. */
+    struct reaction_config {
         /** @brief Animation name supported by clover2_led::client. */
         std::string animation{"blink"};
 
@@ -95,16 +95,16 @@ private:
      *
      * @param node Lifecycle node used to declare parameters.
      * @param prefix Parameter prefix for the animation block.
-     * @return Loaded animation configuration.
+     * @return Loaded reaction configuration.
      *
      * @throws std::invalid_argument if configured duration is not positive.
      * @throws std::runtime_error if a required parameter is missing or if
      * configured color does not contain three components.
      */
-    animation_config declare_animation_config(
+    reaction_config declare_reaction_config(
         const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
         const std::string& prefix) const {
-        animation_config config;
+        reaction_config config;
         config.animation = declare_required_parameter<std::string>(
             node, prefix + ".animation");
         config.color =
@@ -126,14 +126,14 @@ private:
     }
 
     /**
-     * @brief Load priority-based reactions and name-based override animations.
+     * @brief Load priority-based reactions and name-based reaction overrides.
      *
      * @param node Lifecycle node used to declare and read parameters.
      */
-    void load_animation_configs(
+    void load_reaction_configs(
         const rclcpp_lifecycle::LifecycleNode::SharedPtr& node) {
         m_reactions.clear();
-        m_override_animations.clear();
+        m_override_reactions.clear();
 
         const auto reaction_names =
             node->declare_parameter<std::vector<std::string>>(
@@ -144,7 +144,7 @@ private:
                 declare_required_parameter<int>(node, prefix + ".priority");
 
             m_reactions.emplace(priority,
-                                declare_animation_config(node, prefix));
+                                declare_reaction_config(node, prefix));
 
             RCLCPP_INFO(m_logger, "Loaded LED reaction '%s' for priority %d",
                         reaction_name.c_str(), static_cast<int>(priority));
@@ -158,8 +158,8 @@ private:
             const auto diagnostic_name =
                 declare_required_parameter<std::string>(
                     node, prefix + ".diagnostic_name");
-            auto config = declare_animation_config(node, prefix);
-            m_override_animations.emplace(diagnostic_name, config);
+            auto config = declare_reaction_config(node, prefix);
+            m_override_reactions.emplace(diagnostic_name, config);
 
             RCLCPP_INFO(m_logger,
                         "Loaded LED override '%s' for diagnostic '%s'",
@@ -174,10 +174,10 @@ private:
      * @return Pointer to matching animation configuration, or nullptr if none
      * exists.
      */
-    const animation_config* find_animation_config(
+    const reaction_config* find_reaction_config(
         const data::event& event) const {
-        const auto override_it = m_override_animations.find(event.name);
-        if (override_it != m_override_animations.end()) {
+        const auto override_it = m_override_reactions.find(event.name);
+        if (override_it != m_override_reactions.end()) {
             return &override_it->second;
         }
 
@@ -197,7 +197,7 @@ private:
      * @throws std::runtime_error if the animation name is unsupported or the
      * LED client call fails.
      */
-    void start_animation(const animation_config& config) const {
+    void start_animation(const reaction_config& config) const {
         if (config.animation == "solid_color") {
             m_client->solid_color(config.color, config.brightness,
                                   config.duration);
@@ -216,8 +216,8 @@ private:
     /**
      * @brief Initialize LED-specific resources and configuration.
      *
-     * Creates a LED client, declares output parameters, and loads reaction and
-     * per-diagnostic animation configurations.
+     * Declares output parameters, loads reaction and per-diagnostic animation
+     * configurations, and creates a LED client.
      *
      * @param node Lifecycle node that owns the output plugin.
      */
@@ -225,11 +225,10 @@ private:
         const rclcpp_lifecycle::LifecycleNode::SharedPtr& node) override {
         m_logger = node->get_logger().get_child("led_output").get_child(id());
         m_node = node;
-
         m_base_path =
             node->declare_parameter<std::string>(id() + ".base_path", id());
         m_client = std::make_shared<clover2_led::client>(node, m_base_path);
-        load_animation_configs(node);
+        load_reaction_configs(node);
     }
 
     /**
@@ -246,7 +245,7 @@ private:
             return;
         }
 
-        const auto* config = find_animation_config(event);
+        const auto* config = find_reaction_config(event);
         if (!config) {
             RCLCPP_WARN(m_logger,
                         "No LED animation configured for event '%s' "
@@ -291,8 +290,8 @@ private:
     std::shared_ptr<clover2_led::client> m_client;
     rclcpp::TimerBase::SharedPtr m_timer;
     rclcpp::Logger m_logger{rclcpp::get_logger("notification_led_output")};
-    std::unordered_map<int, animation_config> m_reactions;
-    std::unordered_map<std::string, animation_config> m_override_animations;
+    std::unordered_map<int, reaction_config> m_reactions;
+    std::unordered_map<std::string, reaction_config> m_override_reactions;
 };
 
 }  // namespace clover2_notification::outputs

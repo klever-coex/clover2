@@ -5,22 +5,26 @@
 
 namespace clover2_common::diagnostics {
 
-void client::initialize(std::shared_ptr<node_context> node_context,
-                        const std::string& topic, callback_type callback) {
+client::client(std::shared_ptr<node_context> node_context,
+               const std::string& topic) {
     if (!node_context) {
         throw std::invalid_argument("Diagnostics client received null context");
     }
+
+    m_node_context = std::move(node_context);
+
+    m_sub = rclcpp::create_subscription<diagnostic_msgs::msg::DiagnosticArray>(
+        m_node_context, topic, rclcpp::QoS(10),
+        std::bind(&client::diagnostics_callback, this, std::placeholders::_1));
+}
+
+void client::set_callback(callback_type callback) {
     if (!callback) {
         throw std::invalid_argument(
             "Diagnostics client received empty callback");
     }
 
-    m_node_context = std::move(node_context);
     m_callback = std::move(callback);
-
-    m_sub = rclcpp::create_subscription<diagnostic_msgs::msg::DiagnosticArray>(
-        m_node_context, topic, rclcpp::QoS(10),
-        std::bind(&client::diagnostics_callback, this, std::placeholders::_1));
 }
 
 void client::cleanup() {
@@ -30,7 +34,9 @@ void client::cleanup() {
 }
 
 void client::diagnostics_callback(message_type::SharedPtr msg) {
-    m_callback(*msg);
+    if (m_callback) {
+        m_callback(*msg);
+    }
 }
 
 bool client::status_changed(const status_type& previous,

@@ -1,0 +1,16 @@
+<launch>
+    <arg name="use_sim_time" default="false" />
+    <arg name="ns" default="" />
+
+    <arg name="led_strip" default="true" />
+    <arg name="start_delay" default="5.0" />
+
+    <timer period="$(var start_delay)">
+        <node pkg="clover2_notification" exec="notification" name="notification"
+              namespace="$(var ns)" if="$(var led_strip)">
+            <param name="use_sim_time" value="$(var use_sim_time)" />
+            <param from="$(find-pkg-share clover2_notification)/config/notification.yaml" />
+            <param name="led_strip.enabled" value="$(var led_strip)" />
+        </node>
+    </timer>
+</launch>

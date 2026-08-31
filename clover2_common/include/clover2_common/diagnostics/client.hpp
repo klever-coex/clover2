@@ -17,11 +17,13 @@ public:
     using status_type = diagnostic_msgs::msg::DiagnosticStatus;
     using callback_type = std::function<void(const message_type&)>;
 
-    client() = default;
+    static constexpr const char* default_topic = "/diagnostics_agg";
+
+    explicit client(std::shared_ptr<node_context> node_context,
+                    const std::string& topic = default_topic);
     ~client() = default;
 
-    void initialize(std::shared_ptr<node_context> node_context,
-                    const std::string& topic, callback_type callback);
+    void set_callback(callback_type callback);
     void cleanup();
     static bool status_changed(const status_type& previous,
                                const status_type& current);
