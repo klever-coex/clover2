@@ -82,7 +82,7 @@ notification:
       default: true
       description: "Enable LED Strip notification output"
     start_delay:
-      type: double
+      type: float
       default: 5.0
       description: "Delay before starting notification node, seconds"
 
