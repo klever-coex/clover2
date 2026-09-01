@@ -1,10 +1,12 @@
 #include <clover2_notification/provider/diagnostics.hpp>
 #include <clover2_notification/provider/factory.hpp>
+#include <clover2_notification/provider/system.hpp>
 
 namespace clover2_notification::provider {
 
 factory::factory() {
     add<diagnostics>();
+    add<system>();
 }
 
 factory& factory::instance() {

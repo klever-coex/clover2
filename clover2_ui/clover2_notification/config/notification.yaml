@@ -2,9 +2,11 @@
   ros__parameters:
     providers_list:
       - diagnostics
+      - system
 
     output_plugins:
       - led_strip
+      - display
 
     providers:
       diagnostics:
@@ -18,6 +20,31 @@
           - "/Aggregation/Vision"
           - "/Aggregation/Localization"
           - "/Aggregation/FCU"
+
+      system:
+        enabled: false
+        period: 1.0
+
+        cpu:
+          enabled: true
+          warn_usage: 85.0
+          error_usage: 95.0
+
+        temperature:
+          enabled: true
+          warn_celsius: 70.0
+          error_celsius: 85.0
+          thermal_zone: ""
+
+        network:
+          enabled: true
+          interfaces:
+            - wlan0
+            - eth0
+
+        proc_stat_path: /proc/stat
+        thermal_base_path: /sys/class/thermal
+        net_base_path: /sys/class/net
 
     led_strip:
       enabled: true
@@ -74,4 +101,20 @@
           brightness: 1.0
           period: 0.15
           duration: 3.0
-          
+
+    display:
+      enabled: true
+      plugin: display
+      base_path: display
+      refresh_period: 1.0
+      layout: compact
+      fields:
+        - hostname
+        - network
+      interfaces:
+        - wlan0
+        - eth0
+      notification_overlay:
+        enabled: true
+        duration: 3.0
+
