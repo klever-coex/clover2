@@ -1,10 +1,10 @@
 # Gazebo Dev Container
 
 :::{warning}
-Текущая инструкция прeдназначена для пользователей операционной системы Ubuntu и на других системах не проверялась.
+Инструкция изначально составлялась для Ubuntu. Шаги по установке `xhost` и запуск через Dev Container CLI проверялись также на Arch Linux. На остальных системах может потребоваться адаптация команд под ваш пакетный менеджер.
 :::
 
-Эта инструкция поможет запустить симулятор Gazebo для разработки Clover2 в Visual Studio Code через Dev Container.
+Эта инструкция поможет запустить симулятор Gazebo для разработки Clover2 через Dev Container. Основной способ — в Visual Studio Code; в конце описан запуск напрямую через Dev Container CLI, без редактора.
 
 ## Dev Container
 
@@ -55,6 +55,30 @@ sudo apt install -f ./путь-до-файла/code_*.deb
 :width: 90%
 :align: center
 ```
+
+---
+
+### 1.4. Установка `xhost`
+
+Симулятор Gazebo запускает графическое окно. Чтобы контейнер мог открыть окно на вашем экране, на компьютере нужна утилита `xhost` — она разрешает контейнеру доступ к X-серверу. Dev Container сам вызывает её при запуске, но сама утилита должна быть установлена заранее.
+
+Установите её пакетным менеджером вашей системы:
+
+```bash
+# Ubuntu / Debian
+sudo apt install x11-xserver-utils
+
+# Arch Linux
+sudo pacman -S xorg-xhost
+```
+
+:::{note}
+На многих десктопных системах `xhost` уже установлен как часть графического окружения. Проверить можно командой `xhost` — если она отвечает, а не выдаёт `command not found`, ничего ставить не нужно.
+:::
+
+:::{warning}
+Если `xhost` не установлен, запуск Dev Container завершится ошибкой `xhost: command not found` ещё до старта контейнера.
+:::
 
 ---
 
@@ -123,6 +147,54 @@ code .
 :width: 90%
 :align: center
 ```
+
+---
+
+## 3.3. Запуск без Visual Studio Code
+
+Запустить Dev Container можно и без редактора — через официальный [Dev Container CLI](https://github.com/devcontainers/cli). Это удобно на сервере или в системе без графического редактора, либо если вы предпочитаете работать из терминала.
+
+Установите CLI через npm:
+
+```bash
+npm install -g @devcontainers/cli
+```
+
+:::{note}
+Для установки потребуется Node.js и npm. В большинстве дистрибутивов их ставит пакетный менеджер: `sudo apt install nodejs npm` на Ubuntu/Debian или `sudo pacman -S nodejs npm` на Arch/CachyOS.
+:::
+
+Перейдите в папку с клонированным `clover2-dev` (см. раздел 2) и поднимите контейнер обычной конфигурации:
+
+```bash
+cd clover2-dev
+devcontainer up \
+  --workspace-folder . \
+  --config .devcontainer/universe-devel/devcontainer.json
+```
+
+Если у вас видеокарта NVIDIA, используйте конфигурацию с поддержкой GPU:
+
+```bash
+devcontainer up \
+  --workspace-folder . \
+  --config .devcontainer/universe-devel-nvidia/devcontainer.json
+```
+
+:::{important}
+Параметр `--workspace-folder .` указывает на текущую папку, а `--config` — путь к конкретной конфигурации Dev Container. Не перепутайте обычную и NVIDIA-конфигурацию.
+:::
+
+Чтобы выполнить команду внутри уже запущенного контейнера, используйте тот же путь к конфигурации:
+
+```bash
+devcontainer exec \
+  --workspace-folder . \
+  --config .devcontainer/universe-devel/devcontainer.json \
+  bash
+```
+
+Откроется оболочка внутри контейнера. Дальнейшие шаги — загрузка зависимостей, сборка и запуск симулятора — выполняются так же, как и при работе через VS Code (разделы 4–6).
 
 ---
 
