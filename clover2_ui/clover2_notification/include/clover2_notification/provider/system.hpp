@@ -11,6 +11,9 @@
 
 // ROS2
 #include <rclcpp/rclcpp.hpp>
+#include <diagnostic_msgs/msg/diagnostic_array.hpp>
+#include <sensor_msgs/msg/temperature.hpp>
+#include <std_msgs/msg/float64.hpp>
 
 // STL
 #include <optional>
@@ -121,9 +124,17 @@ private:
     std::string m_proc_stat_path{"/proc/stat"};
     std::string m_thermal_base_path{"/sys/class/thermal"};
     std::string m_net_base_path{"/sys/class/net"};
+    std::string m_cpu_topic{"system/cpu"};
+    std::string m_temperature_topic{"system/temperature"};
+    std::string m_network_topic{"system/network"};
 
     std::optional<cpu_sample> m_previous_cpu_sample;
     std::unordered_map<std::string, int> m_previous_priority;
+    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr m_cpu_publisher;
+    rclcpp::Publisher<sensor_msgs::msg::Temperature>::SharedPtr
+        m_temperature_publisher;
+    rclcpp::Publisher<diagnostic_msgs::msg::DiagnosticArray>::SharedPtr
+        m_network_publisher;
 };
 
 }  // namespace clover2_notification::provider

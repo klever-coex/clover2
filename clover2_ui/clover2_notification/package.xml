@@ -18,6 +18,7 @@
   <depend>clover2_display</depend>
   <depend>clover2_display_msgs</depend>
   <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
   <depend>libopencv-dev</depend>
   <depend>pluginlib</depend>
 

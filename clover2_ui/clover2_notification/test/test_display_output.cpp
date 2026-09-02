@@ -1,10 +1,15 @@
 #include <clover2_display_msgs/srv/get_driver_info.hpp>
 #include <clover2_notification/output.hpp>
+#include <diagnostic_msgs/msg/diagnostic_array.hpp>
+#include <diagnostic_msgs/msg/diagnostic_status.hpp>
+#include <diagnostic_msgs/msg/key_value.hpp>
 #include <gtest/gtest.h>
 #include <pluginlib/class_loader.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <sensor_msgs/msg/image.hpp>
+#include <sensor_msgs/msg/temperature.hpp>
+#include <std_msgs/msg/float64.hpp>
 
 #include <algorithm>
 #include <chrono>
@@ -70,6 +75,16 @@ protected:
                 }
                 m_cv.notify_all();
             });
+        const auto status_qos =
+            rclcpp::QoS(rclcpp::KeepLast(1)).reliable().transient_local();
+        m_cpu_pub = m_fake_driver->create_publisher<std_msgs::msg::Float64>(
+            "/test_system/cpu", status_qos);
+        m_temperature_pub =
+            m_fake_driver->create_publisher<sensor_msgs::msg::Temperature>(
+                "/test_system/temperature", status_qos);
+        m_network_pub =
+            m_fake_driver->create_publisher<diagnostic_msgs::msg::DiagnosticArray>(
+                "/test_system/network", status_qos);
 
         m_notification = std::make_shared<rclcpp_lifecycle::LifecycleNode>(
             "notification_display_test", make_options());
@@ -95,6 +110,17 @@ protected:
                                           true);
         options.append_parameter_override(
             "display.notification_overlay.duration", 0.1);
+        options.append_parameter_override("display.system_topics.cpu",
+                                          "/test_system/cpu");
+        options.append_parameter_override("display.system_topics.temperature",
+                                          "/test_system/temperature");
+        options.append_parameter_override("display.system_topics.network",
+                                          "/test_system/network");
+        options.append_parameter_override("display.fields",
+                                          std::vector<std::string>{"cpu", "temperature",
+                                                                   "network"});
+        options.append_parameter_override("display.interfaces",
+                                          std::vector<std::string>{"wlan0"});
         return options;
     }
 
@@ -110,6 +136,9 @@ protected:
     rclcpp_lifecycle::LifecycleNode::SharedPtr m_notification;
     rclcpp::Service<get_driver_info>::SharedPtr m_info_service;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr m_image_sub;
+    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr m_cpu_pub;
+    rclcpp::Publisher<sensor_msgs::msg::Temperature>::SharedPtr m_temperature_pub;
+    rclcpp::Publisher<diagnostic_msgs::msg::DiagnosticArray>::SharedPtr m_network_pub;
     std::thread m_spin_thread;
     std::mutex m_mutex;
     std::condition_variable m_cv;
@@ -145,6 +174,47 @@ TEST_F(display_output_test, publishes_status_and_notification_overlay_images) {
         EXPECT_TRUE(is_binary_mono8(m_images.back()));
         EXPECT_TRUE(has_lit_pixels(m_images.back()));
         EXPECT_TRUE(has_dark_pixels(m_images.back()));
+    }
+
+    output->clear();
+    output.reset();
+}
+
+TEST_F(display_output_test, redraws_status_when_system_metric_topics_update) {
+    auto output = m_output_loader.createSharedInstance("display");
+    output->initialize(m_notification, "display");
+
+    ASSERT_TRUE(wait_for_images(1));
+    sensor_msgs::msg::Image initial_image;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        initial_image = m_images.back();
+    }
+
+    std_msgs::msg::Float64 cpu;
+    cpu.data = 37.0;
+    m_cpu_pub->publish(cpu);
+
+    sensor_msgs::msg::Temperature temperature;
+    temperature.temperature = 52.0;
+    m_temperature_pub->publish(temperature);
+
+    diagnostic_msgs::msg::DiagnosticArray network;
+    diagnostic_msgs::msg::DiagnosticStatus status;
+    status.hardware_id = "wlan0";
+    status.message = "up";
+    diagnostic_msgs::msg::KeyValue interface;
+    interface.key = "interface";
+    interface.value = "wlan0";
+    status.values.push_back(interface);
+    network.status.push_back(status);
+    m_network_pub->publish(network);
+
+    ASSERT_TRUE(wait_for_images(4));
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        EXPECT_TRUE(is_binary_mono8(m_images.back()));
+        EXPECT_NE(m_images.back().data, initial_image.data);
     }
 
     output->clear();

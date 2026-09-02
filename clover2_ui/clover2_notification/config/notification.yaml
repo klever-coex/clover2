@@ -29,18 +29,21 @@
           enabled: true
           warn_usage: 85.0
           error_usage: 95.0
+          topic: system/cpu
 
         temperature:
           enabled: true
           warn_celsius: 70.0
           error_celsius: 85.0
           thermal_zone: ""
+          topic: system/temperature
 
         network:
           enabled: true
           interfaces:
             - wlan0
             - eth0
+          topic: system/network
 
         proc_stat_path: /proc/stat
         thermal_base_path: /sys/class/thermal
@@ -111,9 +114,15 @@
       fields:
         - hostname
         - network
+        - cpu
+        - temperature
       interfaces:
         - wlan0
         - eth0
+      system_topics:
+        cpu: system/cpu
+        temperature: system/temperature
+        network: system/network
       notification_overlay:
         enabled: true
         duration: 3.0

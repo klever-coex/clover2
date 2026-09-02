@@ -2,6 +2,8 @@
 #include <rclcpp/create_timer.hpp>
 
 #include <arpa/inet.h>
+#include <diagnostic_msgs/msg/diagnostic_status.hpp>
+#include <diagnostic_msgs/msg/key_value.hpp>
 #include <ifaddrs.h>
 #include <netinet/in.h>
 
@@ -80,6 +82,11 @@ void system::initialize(
             ->declare_parameter("providers.system.cpu.error_usage",
                                 rclcpp::ParameterValue(m_cpu_error_usage))
             .get<double>();
+    m_cpu_topic =
+        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
+            ->declare_parameter("providers.system.cpu.topic",
+                                rclcpp::ParameterValue(m_cpu_topic))
+            .get<std::string>();
 
     m_temperature_enabled =
         rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
@@ -104,6 +111,11 @@ void system::initialize(
                 "providers.system.temperature.thermal_zone",
                 rclcpp::ParameterValue(m_temperature_zone))
             .get<std::string>();
+    m_temperature_topic =
+        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
+            ->declare_parameter("providers.system.temperature.topic",
+                                rclcpp::ParameterValue(m_temperature_topic))
+            .get<std::string>();
 
     m_network_enabled =
         rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
@@ -115,6 +127,11 @@ void system::initialize(
             ->declare_parameter("providers.system.network.interfaces",
                                 rclcpp::ParameterValue(m_interfaces))
             .get<std::vector<std::string>>();
+    m_network_topic =
+        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
+            ->declare_parameter("providers.system.network.topic",
+                                rclcpp::ParameterValue(m_network_topic))
+            .get<std::string>();
 
     m_proc_stat_path =
         rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
@@ -150,6 +167,16 @@ void system::initialize(
         return;
     }
 
+    const auto qos = rclcpp::QoS(rclcpp::KeepLast(1)).reliable().transient_local();
+    m_cpu_publisher = rclcpp::create_publisher<std_msgs::msg::Float64>(
+        m_node_context, m_cpu_topic, qos);
+    m_temperature_publisher =
+        rclcpp::create_publisher<sensor_msgs::msg::Temperature>(
+            m_node_context, m_temperature_topic, qos);
+    m_network_publisher =
+        rclcpp::create_publisher<diagnostic_msgs::msg::DiagnosticArray>(
+            m_node_context, m_network_topic, qos);
+
     const auto period = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::duration<double>(m_period));
     m_timer = rclcpp::create_timer(
@@ -175,6 +202,9 @@ void system::cleanup() {
     }
     m_previous_cpu_sample.reset();
     m_previous_priority.clear();
+    m_cpu_publisher.reset();
+    m_temperature_publisher.reset();
+    m_network_publisher.reset();
     m_callback = nullptr;
     m_node_context.reset();
 }
@@ -201,6 +231,10 @@ void system::check_cpu() {
         return;
     }
 
+    std_msgs::msg::Float64 message;
+    message.data = *usage;
+    m_cpu_publisher->publish(message);
+
     int priority = k_ok_priority;
     if (*usage >= m_cpu_error_usage) {
         priority = k_error_priority;
@@ -223,6 +257,14 @@ void system::check_temperature() {
         return;
     }
 
+    sensor_msgs::msg::Temperature message;
+    message.header.stamp =
+        m_node_context->get_node_clock_interface()->get_clock()->now();
+    message.header.frame_id = "cpu";
+    message.temperature = *temperature;
+    message.variance = 0.0;
+    m_temperature_publisher->publish(message);
+
     int priority = k_ok_priority;
     if (*temperature >= m_temperature_error_celsius) {
         priority = k_error_priority;
@@ -236,21 +278,49 @@ void system::check_temperature() {
 }
 
 void system::check_network() {
+    diagnostic_msgs::msg::DiagnosticArray message;
+    message.header.stamp =
+        m_node_context->get_node_clock_interface()->get_clock()->now();
+
     for (const auto& interface : m_interfaces) {
         const auto state = read_interface_state(interface);
         const bool up = state && *state == "up";
         const int priority = up ? k_ok_priority : k_warn_priority;
 
-        std::string message = interface;
+        std::string event_message = interface;
 
         const auto ip_address = read_interface_ipv4_address(interface);
         if (ip_address) {
-            message += " " + *ip_address;
+            event_message += " " + *ip_address;
         }
 
+        diagnostic_msgs::msg::DiagnosticStatus status;
+        status.level = up ? diagnostic_msgs::msg::DiagnosticStatus::OK
+                          : diagnostic_msgs::msg::DiagnosticStatus::WARN;
+        status.name = "system/network/" + interface;
+        status.message = up ? "up" : (state ? *state : "unavailable");
+        status.hardware_id = interface;
+        diagnostic_msgs::msg::KeyValue interface_value;
+        interface_value.key = "interface";
+        interface_value.value = interface;
+        status.values.emplace_back(std::move(interface_value));
+
+        diagnostic_msgs::msg::KeyValue state_value;
+        state_value.key = "state";
+        state_value.value = state ? *state : "unavailable";
+        status.values.emplace_back(std::move(state_value));
+
+        diagnostic_msgs::msg::KeyValue ipv4_value;
+        ipv4_value.key = "ipv4";
+        ipv4_value.value = ip_address ? *ip_address : "";
+        status.values.emplace_back(std::move(ipv4_value));
+        message.status.emplace_back(std::move(status));
+
         emit_on_escalation("network." + interface, priority, "Network interface",
-                           message);
+                           event_message);
     }
+
+    m_network_publisher->publish(message);
 }
 
 void system::emit_on_escalation(const std::string& key, int priority,

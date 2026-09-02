@@ -2,22 +2,28 @@
 #include <clover2_notification/output.hpp>
 #include <pluginlib/class_list_macros.hpp>
 
+#include <diagnostic_msgs/msg/diagnostic_array.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/msg/image.hpp>
+#include <sensor_msgs/msg/temperature.hpp>
+#include <std_msgs/msg/float64.hpp>
 
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <cmath>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <unistd.h>
+#include <unordered_map>
 #include <vector>
 
 namespace clover2_notification::outputs {
@@ -30,6 +36,11 @@ constexpr int k_margin = 2;
 constexpr int k_line_height = 10;
 constexpr uint8_t k_on = 255;
 constexpr uint8_t k_off = 0;
+
+struct network_status {
+    std::string state;
+    std::string ipv4;
+};
 
 std::string trim_to_width(const std::string& text, int max_chars) {
     if (max_chars <= 0 || static_cast<int>(text.size()) <= max_chars) {
@@ -131,6 +142,12 @@ private:
             id() + ".fields", m_fields);
         m_interfaces = node->declare_parameter<std::vector<std::string>>(
             id() + ".interfaces", m_interfaces);
+        m_cpu_topic = node->declare_parameter<std::string>(
+            id() + ".system_topics.cpu", m_cpu_topic);
+        m_temperature_topic = node->declare_parameter<std::string>(
+            id() + ".system_topics.temperature", m_temperature_topic);
+        m_network_topic = node->declare_parameter<std::string>(
+            id() + ".system_topics.network", m_network_topic);
         m_overlay_enabled = node->declare_parameter<bool>(
             id() + ".notification_overlay.enabled", m_overlay_enabled);
         m_overlay_duration = node->declare_parameter<double>(
@@ -146,6 +163,54 @@ private:
         }
 
         m_client = std::make_shared<clover2_display::client>(node, m_base_path);
+
+        const auto status_qos =
+            rclcpp::QoS(rclcpp::KeepLast(1)).reliable().transient_local();
+        m_cpu_subscription = node->create_subscription<std_msgs::msg::Float64>(
+            m_cpu_topic, status_qos,
+            [this](const std_msgs::msg::Float64& message) {
+                {
+                    std::lock_guard<std::mutex> lock(m_status_mutex);
+                    m_cpu_usage = message.data;
+                }
+                render_and_send();
+            });
+        m_temperature_subscription =
+            node->create_subscription<sensor_msgs::msg::Temperature>(
+                m_temperature_topic, status_qos,
+                [this](const sensor_msgs::msg::Temperature& message) {
+                    {
+                        std::lock_guard<std::mutex> lock(m_status_mutex);
+                        m_temperature_celsius = message.temperature;
+                    }
+                    render_and_send();
+                });
+        m_network_subscription =
+            node->create_subscription<diagnostic_msgs::msg::DiagnosticArray>(
+                m_network_topic, status_qos,
+                [this](const diagnostic_msgs::msg::DiagnosticArray& message) {
+                    std::unordered_map<std::string, network_status> statuses;
+                    for (const auto& status : message.status) {
+                        std::string interface = status.hardware_id;
+                        std::string ipv4;
+                        for (const auto& value : status.values) {
+                            if (value.key == "interface") {
+                                interface = value.value;
+                            } else if (value.key == "ipv4") {
+                                ipv4 = value.value;
+                            }
+                        }
+                        if (!interface.empty()) {
+                            statuses.insert_or_assign(
+                                interface, network_status{status.message, ipv4});
+                        }
+                    }
+                    {
+                        std::lock_guard<std::mutex> lock(m_status_mutex);
+                        m_network_statuses = std::move(statuses);
+                    }
+                    render_and_send();
+                });
 
         const auto refresh_period =
             std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -209,6 +274,8 @@ private:
 
     /** @brief Render the current screen state and publish it to display. */
     void render_and_send() {
+        std::lock_guard<std::mutex> render_lock(m_render_mutex);
+
         if (!m_client) {
             return;
         }
@@ -296,18 +363,37 @@ private:
                 return "net: n/a";
             }
 
+            std::lock_guard<std::mutex> lock(m_status_mutex);
             std::ostringstream stream;
             stream << "net:";
             for (const auto& interface : m_interfaces) {
-                stream << " " << interface;
+                const auto status = m_network_statuses.find(interface);
+                if (status == m_network_statuses.end()) {
+                    stream << " " << interface << "?";
+                } else {
+                    stream << " " << interface
+                           << (status->second.state == "up" ? "+" : "-");
+                }
             }
             return stream.str();
         }
         if (field == "cpu") {
-            return "cpu: n/a";
+            std::lock_guard<std::mutex> lock(m_status_mutex);
+            if (!m_cpu_usage) {
+                return "cpu: n/a";
+            }
+            return "cpu: " +
+                   std::to_string(static_cast<int>(std::lround(*m_cpu_usage))) +
+                   "%";
         }
         if (field == "temperature") {
-            return "temp: n/a";
+            std::lock_guard<std::mutex> lock(m_status_mutex);
+            if (!m_temperature_celsius) {
+                return "temp: n/a";
+            }
+            return "temp: " + std::to_string(
+                                 static_cast<int>(std::lround(*m_temperature_celsius))) +
+                   "C";
         }
 
         return field + ": n/a";
@@ -319,6 +405,9 @@ private:
     std::vector<std::string> m_fields{"hostname", "network", "cpu",
                                       "temperature"};
     std::vector<std::string> m_interfaces;
+    std::string m_cpu_topic{"system/cpu"};
+    std::string m_temperature_topic{"system/temperature"};
+    std::string m_network_topic{"system/network"};
     bool m_overlay_enabled{true};
     double m_overlay_duration{3.0};
 
@@ -326,7 +415,17 @@ private:
     std::shared_ptr<clover2_display::client> m_client;
     rclcpp::TimerBase::SharedPtr m_refresh_timer;
     rclcpp::TimerBase::SharedPtr m_overlay_timer;
+    rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr m_cpu_subscription;
+    rclcpp::Subscription<sensor_msgs::msg::Temperature>::SharedPtr
+        m_temperature_subscription;
+    rclcpp::Subscription<diagnostic_msgs::msg::DiagnosticArray>::SharedPtr
+        m_network_subscription;
     std::optional<data::event> m_active_event;
+    std::mutex m_render_mutex;
+    mutable std::mutex m_status_mutex;
+    std::optional<double> m_cpu_usage;
+    std::optional<double> m_temperature_celsius;
+    std::unordered_map<std::string, network_status> m_network_statuses;
     rclcpp::Logger m_logger{rclcpp::get_logger("notification_display_output")};
 };
 
