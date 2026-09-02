@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -27,6 +28,8 @@ constexpr int k_default_width = 128;
 constexpr int k_default_height = 64;
 constexpr int k_margin = 2;
 constexpr int k_line_height = 10;
+constexpr uint8_t k_on = 255;
+constexpr uint8_t k_off = 0;
 
 std::string trim_to_width(const std::string& text, int max_chars) {
     if (max_chars <= 0 || static_cast<int>(text.size()) <= max_chars) {
@@ -217,13 +220,15 @@ private:
                                ? static_cast<int>(m_client->get_height())
                                : k_default_height;
 
-        cv::Mat image(height, width, CV_8UC1, cv::Scalar(0));
+        cv::Mat image(height, width, CV_8UC1, cv::Scalar(k_off));
 
         if (m_active_event) {
             render_overlay(image, *m_active_event);
         } else {
             render_status(image);
         }
+
+        cv::threshold(image, image, 127, 255, cv::THRESH_BINARY);
 
         sensor_msgs::msg::Image msg;
         msg.header.stamp = m_node ? m_node->now() : rclcpp::Clock().now();
@@ -259,24 +264,26 @@ private:
 
     /** @brief Render active notification overlay. */
     void render_overlay(cv::Mat& image, const data::event& event) const {
-        cv::rectangle(image, cv::Rect(0, 0, image.cols, image.rows),
-                      cv::Scalar(255), cv::FILLED);
+        image.setTo(cv::Scalar(k_on));
 
-        const cv::Scalar text_color(0);
         draw_text(image,
                   source_label(event.source) + " " +
                       priority_label(event.priority),
-                  k_margin, 10, text_color);
-        draw_text(image, event.name, k_margin, 22, text_color);
-        draw_text(image, event.message, k_margin, 36, text_color);
+                  k_margin, 10, k_off);
+        draw_text(image, event.name, k_margin, 22, k_off);
+        draw_text(image, event.message, k_margin, 36, k_off);
     }
 
-    /** @brief Draw small text clipped to image width. */
+    /** @brief Draw clipped non-antialiased text for a monochrome display. */
     void draw_text(cv::Mat& image, const std::string& text, int x, int y,
-                   const cv::Scalar& color = cv::Scalar(255)) const {
+                   uint8_t value = k_on) const {
+        constexpr double font_scale = 0.30;
+        constexpr int thickness = 1;
         const int max_chars = std::max(1, (image.cols - x) / 6);
+
         cv::putText(image, trim_to_width(text, max_chars), cv::Point(x, y),
-                    cv::FONT_HERSHEY_SIMPLEX, 0.28, color, 1, cv::LINE_AA);
+                    cv::FONT_HERSHEY_SIMPLEX, font_scale, cv::Scalar(value),
+                    thickness, cv::LINE_8);
     }
 
     /** @brief Format one configured status field for the MVP status screen. */

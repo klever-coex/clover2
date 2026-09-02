@@ -6,6 +6,7 @@
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
+#include <algorithm>
 #include <chrono>
 #include <condition_variable>
 #include <memory>
@@ -18,6 +19,24 @@ namespace {
 
 using namespace std::chrono_literals;
 using get_driver_info = clover2_display_msgs::srv::GetDriverInfo;
+
+bool is_binary_mono8(const sensor_msgs::msg::Image& image) {
+    return std::all_of(image.data.begin(), image.data.end(), [](const auto pixel) {
+        return pixel == 0 || pixel == 255;
+    });
+}
+
+bool has_lit_pixels(const sensor_msgs::msg::Image& image) {
+    return std::any_of(image.data.begin(), image.data.end(), [](const auto pixel) {
+        return pixel == 255;
+    });
+}
+
+bool has_dark_pixels(const sensor_msgs::msg::Image& image) {
+    return std::any_of(image.data.begin(), image.data.end(), [](const auto pixel) {
+        return pixel == 0;
+    });
+}
 
 class display_output_test : public ::testing::Test {
 protected:
@@ -109,6 +128,9 @@ TEST_F(display_output_test, publishes_status_and_notification_overlay_images) {
         EXPECT_EQ(m_images.back().width, 128U);
         EXPECT_EQ(m_images.back().height, 64U);
         EXPECT_EQ(m_images.back().encoding, "mono8");
+        EXPECT_TRUE(is_binary_mono8(m_images.back()));
+        EXPECT_TRUE(has_lit_pixels(m_images.back()));
+        EXPECT_TRUE(has_dark_pixels(m_images.back()));
     }
 
     output->push2queue({1, "system", "Network", "wlan0 192.168.1.10"});
@@ -120,6 +142,9 @@ TEST_F(display_output_test, publishes_status_and_notification_overlay_images) {
         EXPECT_EQ(m_images.back().height, 64U);
         EXPECT_EQ(m_images.back().encoding, "mono8");
         EXPECT_FALSE(m_images.back().data.empty());
+        EXPECT_TRUE(is_binary_mono8(m_images.back()));
+        EXPECT_TRUE(has_lit_pixels(m_images.back()));
+        EXPECT_TRUE(has_dark_pixels(m_images.back()));
     }
 
     output->clear();
