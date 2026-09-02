@@ -24,7 +24,7 @@ QGroundControl
 
 **QGroundControl** — программа для прошивки, настройки и калибровки полётного контроллера.
 
-Скачайте и установите QGroundControl для Windows, Linux или macOS с [официального сайта](https://qgroundcontrol.com/downloads/). Если установщик предложит поставить дополнительные драйверы, согласитесь с установкой.
+Скачайте и установите QGroundControl для Windows, Linux или macOS с [официального сайта](https://docs.qgroundcontrol.com/Stable_V5.0/en/qgc-user-guide/getting_started/download_and_install.html). Если установщик предложит поставить дополнительные драйверы, согласитесь с установкой.
 
 Дополнительная документация доступна на сайте [QGroundControl User Guide](https://docs.qgroundcontrol.com/).
 
