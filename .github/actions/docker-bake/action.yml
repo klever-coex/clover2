@@ -34,6 +34,9 @@ runs:
         ghcr-token: ${{ github.token }}
         login: ${{ inputs.push }}
 
+    - id: cache-epoch
+      run: echo "CACHE_EPOCH=$(cat docker/cache-epoch)" >> "$GITHUB_OUTPUT"
+
     - name: Build (no push) ${{ inputs.target }}
       if: ${{ inputs.push != 'true' }}
       uses: docker/bake-action@v7
@@ -49,6 +52,7 @@ runs:
         vars: |
           REGISTRY=ghcr.io/${{ github.repository_owner }}/clover2/
           BUILD_MODE=${{ inputs.build-mode }}
+          CACHE_EPOCH=${{ steps.cache-epoch.outputs.CACHE_EPOCH }}
           CLOVER2_GIT_HASH=${{ inputs.git-hash }}
           CLOVER2_VERSION=${{ inputs.version || inputs.git-hash }}
 
@@ -67,5 +71,6 @@ runs:
         vars: |
           REGISTRY=ghcr.io/${{ github.repository_owner }}/clover2/
           BUILD_MODE=${{ inputs.build-mode }}
+          CACHE_EPOCH=${{ steps.cache-epoch.outputs.CACHE_EPOCH }}
           CLOVER2_GIT_HASH=${{ inputs.git-hash }}
           CLOVER2_VERSION=${{ inputs.version || inputs.git-hash }}

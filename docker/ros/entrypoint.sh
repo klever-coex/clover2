@@ -1,25 +1,22 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
-USER_ID=${LOCAL_UID}
-USER_NAME=${LOCAL_USER}
-GROUP_ID=${LOCAL_GID}
-GROUP_NAME=${LOCAL_GROUP}
+set +u
+source "/opt/ros/${ROS_DISTRO}/setup.bash"
+source /opt/clover2/setup.bash
+set -u
 
-if [[ -z $USER_ID || -z $USER_NAME || -z $GROUP_ID || -z $GROUP_NAME ]]; then
-    source "/opt/ros/$ROS_DISTRO/setup.bash"
-    source /opt/clover2/install/setup.bash
-    exec ros2 launch clover2 clover2.launch.py "$@"
-else
-    echo "Starting with user: $USER_NAME >> UID $USER_ID, GID: $GROUP_ID"
+if [[ -n "${LOCAL_UID:-}" && -n "${LOCAL_USER:-}" ]]; then
+    local_gid="${LOCAL_GID:-${LOCAL_UID}}"
+    local_group="${LOCAL_GROUP:-${LOCAL_USER}}"
 
-    groupadd -g "$GROUP_ID" "$GROUP_NAME"
-    useradd -u "$USER_ID" -g "$GROUP_ID" -s /bin/bash -m -d /home/"$USER_NAME" "$USER_NAME"
+    echo "Starting with user: ${LOCAL_USER} >> UID ${LOCAL_UID}, GID: ${local_gid}"
 
-    echo "$USER_NAME ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers
+    groupadd -g "${local_gid}" "${local_group}"
+    useradd -u "${LOCAL_UID}" -g "${local_gid}" -s /bin/bash -m -d "/home/${LOCAL_USER}" "${LOCAL_USER}"
+    echo "${LOCAL_USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-    source "/opt/ros/$ROS_DISTRO/setup.bash"
-    source /opt/clover2/install/setup.bash
-
-    exec /usr/sbin/gosu "$USER_NAME" "$@"
+    exec gosu "${LOCAL_USER}" "$@"
 fi
+
+exec "$@"
