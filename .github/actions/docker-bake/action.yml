@@ -35,6 +35,7 @@ runs:
         login: ${{ inputs.push }}
 
     - id: cache-epoch
+      shell: bash
       run: echo "CACHE_EPOCH=$(cat docker/cache-epoch)" >> "$GITHUB_OUTPUT"
 
     - name: Build (no push) ${{ inputs.target }}
