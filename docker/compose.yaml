@@ -1,0 +1,57 @@
+name: clover2
+
+x-ros: &ros
+  image: ${ROS_IMAGE:-ghcr.io/klever-coex/clover2/clover2-ros:${TAG:-latest}}
+  restart: unless-stopped
+  ipc: host
+  stop_signal: SIGINT
+  stop_grace_period: 30s
+  environment: &ros-env
+    ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-67}
+
+services:
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-ghcr.io/klever-coex/clover2/clover2-frontend:${TAG:-latest}}
+    profiles: [ web, web-test, robot ]
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    restart: unless-stopped
+
+  docs:
+    image: ${DOCS_IMAGE:-ghcr.io/klever-coex/clover2/clover2-docs:${TAG:-latest}}
+    profiles: [ web, web-test, docs, robot ]
+    restart: unless-stopped
+    ports:
+      - "9000:80"
+
+  ros-web:
+    <<: *ros
+    profiles: [ web-test, robot ]
+    command: ros2 launch clover2_http web_support.launch.xml
+    environment:
+      <<: *ros-env
+      CLOVER2_CONFIG_FILE: ${CLOVER2_CONFIG_FILE:-/opt/clover2/share/clover2_bringup/schemas/klever5.yaml}
+    ports:
+      - "3000:3000"
+      - "8081:8081"
+    volumes:
+      - clover2-settings:/data
+
+  ros-map:
+    <<: *ros
+    profiles: [ web-test ]
+    command: >-
+      ros2 run clover2_map server --ros-args -p map:=${MAP_FILE:-/opt/clover2/share/clover2_map/map/example-1.yaml}
+
+  ros:
+    <<: *ros
+    profiles: [ robot ]
+    command: klever5_launcher.py --config /opt/clover2/.config.yaml
+    volumes:
+      - ${LAUNCHER_CONFIG:-./config.yaml}:/opt/clover2/.config.yaml:ro
+      - clover2-log:/var/log/clover2
+
+volumes:
+  clover2-settings:
+  clover2-log:
