@@ -1,0 +1,16 @@
+<launch>
+    <arg name="thermal_camera_id" default="/dev/thermal_camera" />
+    <arg name="thermal_camera_name" default="thermal_camera" />
+    <arg name="ns" default="" />
+
+    <node pkg="v4l2_camera" exec="v4l2_camera_node" name="$(var thermal_camera_name)" namespace="$(var ns)">
+        <param name="video_device" value="$(var thermal_camera_id)" />
+        <param name="image_size" value="[256, 384]" />
+        <param name="pixel_format" value="YUYV" />
+        <param name="output_encoding" value="yuv422_yuy2" />
+        <param name="camera_frame_id" value="thermal_camera" />
+
+        <remap from="/image_raw" to="/thermal_camera/image_raw" />
+        <remap from="/camera_info" to="/thermal_camera/camera_info" />
+    </node>
+</launch>

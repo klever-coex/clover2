@@ -14,9 +14,10 @@
     <arg name="front_camera.enable" default="false" />
 
     <arg name="indication.led_strip" default="false" />
-    <arg name="2d_lidar.enable" default="false" />
+    <arg name="indication.display" default="false" />
 
-    <arg name="display.display" default="false" />
+    <arg name="additional_sensors.2d_lidar" default="false" />
+    <arg name="additional_sensors.thermal_camera" default="false" />
 
     <!-- Launch common arguments -->
     <arg name="use_sim_time" default="false" />
@@ -94,7 +95,7 @@
         <arg name="params_file" value="$(var params_file)" />
         <arg name="ns" value="$(var root_ns)" />
 
-        <arg name="display" value="$(var display.display)" />
+        <arg name="display" value="$(var indication.display)" />
     </include>
 
     <include file="$(find-pkg-share clover2_bringup)/launch/web_support.launch.xml">
@@ -107,7 +108,11 @@
         <arg name="use_sim_time" value="$(var use_sim_time)" />
     </include>
 
-    <include file="$(find-pkg-share $(var sensing_pkg))/launch/sensing/2d_lidar.launch.xml" if="$(var 2d_lidar.enable)">
+    <include file="$(find-pkg-share $(var sensing_pkg))/launch/sensing/thermal_camera.launch.xml" if="$(var additional_sensors.thermal_camera)">
+        <arg name="ns" value="$(var root_ns)" />
+    </include>
+
+    <include file="$(find-pkg-share $(var sensing_pkg))/launch/sensing/2d_lidar.launch.xml" if="$(var additional_sensors.2d_lidar)">
         <arg name="params_file" value="$(var params_file)" />
         <arg name="ns" value="$(var root_ns)" />
     </include>

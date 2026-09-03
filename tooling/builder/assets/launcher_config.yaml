@@ -16,7 +16,7 @@ localization:
     enable: true
 indication:
   led_strip: true
-display:
   display: true
-2d_lidar:
-  enable: false
+additional_sensors:
+  thermal_camera: false
+  2d_lidar: false
