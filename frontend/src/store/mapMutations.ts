@@ -56,7 +56,11 @@ export function deleteMarkers(ids: string[]): void {
   s.deselectAll();
 }
 
-/** Pushes every local change (edits, adds, deletes) to the backend, then refetches. */
+export function deleteMarkersAfterDetach(ids: string[]): void {
+  useMapStore.getState().deselectAll();
+  requestAnimationFrame(() => deleteMarkers(ids));
+}
+
 export async function saveMap(): Promise<void> {
   const s = useMapStore.getState();
   if (s.saving) return;

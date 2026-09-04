@@ -6,9 +6,9 @@ import { Badge } from '../../ui/Badge.tsx';
 import type { BadgeTone } from '../../ui/Badge.tsx';
 
 const TYPE_TONES: Record<MarkerType, BadgeTone> = {
-  fixed: 'accent',
-  static: 'neutral',
-  dynamic: 'warning',
+  fixed: 'success',
+  static: 'warning',
+  dynamic: 'neutral',
 };
 
 const TYPE_KEYS: Record<MarkerType, TranslationKey> = {

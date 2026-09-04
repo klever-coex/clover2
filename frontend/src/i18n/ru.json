@@ -22,7 +22,10 @@
     "sortBy": "Сортировка",
     "unknownError": "Неизвестная ошибка",
     "unexpectedError": "Произошла непредвиденная ошибка",
-    "underConstruction": "В разработке"
+    "underConstruction": "В разработке",
+    "skipToContent": "Перейти к содержимому",
+    "cancel": "Отмена",
+    "confirm": "Подтвердить"
   },
   "errors": {
     "backendUnavailable": "Бэкенд недоступен — проверьте, запущен ли clover2_http",

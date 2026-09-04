@@ -42,6 +42,10 @@
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas,
     monospace;
 
+  /* Type scale */
+  --text-micro: 0.625rem; /* 10px — uppercase labels, numeric previews */
+  --text-micro--line-height: 1.2;
+
   /* Radius scale by intent */
   --radius-row: 0.5rem; /* list rows, buttons, inputs */
   --radius-panel: 0.75rem; /* panels, sidebar items, terminal viewer */

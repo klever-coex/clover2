@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 
 import i18n from '../i18n/index.ts';
 import { mToMm } from '../constants/units.ts';
-import { deleteMarkers, saveMap } from '../store/mapMutations.ts';
+import { deleteMarkersAfterDetach, saveMap } from '../store/mapMutations.ts';
+import { confirmDialog } from '../store/useConfirmStore.ts';
 import { useMapStore } from '../store/useMapStore.ts';
 import { useMapUIStore } from '../store/useMapUIStore.ts';
 import { resolvePosition } from '../utils/transformUtils.ts';
@@ -10,8 +11,15 @@ import { resolvePosition } from '../utils/transformUtils.ts';
 export function useMapKeyboardShortcuts() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' ||
+        target.isContentEditable
+      ) {
+        return;
+      }
 
       const state = useMapStore.getState();
       const selIds = state.selectedMarkerIds;
@@ -20,11 +28,14 @@ export function useMapKeyboardShortcuts() {
         case 'Delete':
         case 'Backspace': {
           e.preventDefault();
-          if (selIds.length > 0 && confirm(i18n.t('map.deleteConfirmMany', { count: selIds.length }))) {
-            const ids = [...selIds];
-            state.deselectAll();
-            requestAnimationFrame(() => void deleteMarkers(ids));
-          }
+          if (selIds.length === 0) break;
+          void confirmDialog({
+            message: i18n.t('map.deleteConfirmMany', { count: selIds.length }),
+            tone: 'danger',
+            confirmLabel: i18n.t('map.delete'),
+          }).then((confirmed) => {
+            if (confirmed) deleteMarkersAfterDetach([...selIds]);
+          });
           break;
         }
 

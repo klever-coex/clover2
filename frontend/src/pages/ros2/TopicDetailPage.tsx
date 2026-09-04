@@ -13,6 +13,8 @@ import { PageHeader } from '../../components/ui/PageHeader.tsx';
 import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
 import { useTopicStream } from '../../hooks/useTopicStream.ts';
 import { useRosStore } from '../../store/useRosStore.ts';
+import { cn } from '../../lib/cn.ts';
+import { centerFill } from '../../lib/uiStyles.ts';
 import { isVideoTopic } from '../../utils/videoStream.ts';
 
 export function TopicDetailPage() {
@@ -86,7 +88,7 @@ export function TopicDetailPage() {
       {stream.messages.length > 0 ? (
         <MessageViewer messages={stream.messages} />
       ) : (
-        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <div className={cn('flex flex-col items-center justify-center', centerFill)}>
           {stream.state !== 'error' && stream.state !== 'closed' && (
             <LoadingState size={48} />
           )}

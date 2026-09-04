@@ -22,7 +22,10 @@
     "sortBy": "Sort by",
     "unknownError": "Unknown error",
     "unexpectedError": "An unexpected error occurred",
-    "underConstruction": "Under construction"
+    "underConstruction": "Under construction",
+    "skipToContent": "Skip to content",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   },
   "errors": {
     "backendUnavailable": "Backend is unavailable — check that clover2_http is running",

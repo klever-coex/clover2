@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 
 import { cn } from '../../lib/cn.ts';
+import { inputBase, inputMd } from '../../lib/uiStyles.ts';
 
 export interface SelectOption {
   value: string;
@@ -39,6 +40,7 @@ export function Select({
     bottom?: number;
   } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const listboxId = useId();
@@ -56,15 +58,20 @@ export function Select({
   useEffect(() => {
     if (!isOpen) return;
 
+    const closeWithoutCommit = () => {
+      setIsOpen(false);
+      triggerRef.current?.focus();
+    };
+
     const onMouseDown = (event: MouseEvent) => {
       const target = event.target;
       if (!(target instanceof Node)) return;
       if (!rootRef.current?.contains(target) && !listRef.current?.contains(target)) {
-        setIsOpen(false);
+        closeWithoutCommit();
       }
     };
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') setIsOpen(false);
+      if (event.key === 'Escape') closeWithoutCommit();
     };
     const onResizeScroll = () => updateMenuPos();
 
@@ -121,6 +128,18 @@ export function Select({
           if (option !== undefined) commit(option);
         }
         break;
+      case 'Home':
+        if (isOpen) {
+          event.preventDefault();
+          setActiveIndex(0);
+        }
+        break;
+      case 'End':
+        if (isOpen) {
+          event.preventDefault();
+          setActiveIndex(options.length - 1);
+        }
+        break;
       case 'Tab':
         setIsOpen(false);
         break;
@@ -134,6 +153,7 @@ export function Select({
     <div ref={rootRef} className={cn('relative', className)}>
       <button
         type="button"
+        ref={triggerRef}
         id={labelProps.id}
         aria-label={labelProps['aria-label']}
         aria-haspopup="listbox"
@@ -143,7 +163,9 @@ export function Select({
         onClick={() => (isOpen ? setIsOpen(false) : openMenu())}
         onKeyDown={handleKeyDown}
         className={cn(
-          'w-full flex items-center justify-between gap-2 cursor-pointer rounded-row border border-line bg-surface-1 px-3 py-2 text-sm text-ink text-left outline-none transition-colors duration-fast focus:border-accent/60 focus:ring-2 focus:ring-accent/20 disabled:opacity-50 disabled:pointer-events-none',
+          inputBase,
+          inputMd,
+          'w-full flex items-center justify-between gap-2 cursor-pointer text-left disabled:opacity-50 disabled:pointer-events-none',
           isOpen && 'border-accent/60',
         )}
       >

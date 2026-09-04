@@ -1,9 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { mToMm } from '../../../constants/units';
 import { cn } from '../../../lib/cn';
-import { deleteMarkers, validateSize } from '../../../store/mapMutations.ts';
+import { inputBase, inputSm } from '../../../lib/uiStyles';
+import { deleteMarkersAfterDetach, validateSize } from '../../../store/mapMutations.ts';
+import { confirmDialog } from '../../../store/useConfirmStore.ts';
 import { useMapStore } from '../../../store/useMapStore.ts';
 import type { MapMarker } from '../../../types/marker.ts';
 import { evaluateExpr } from '../../../utils/exprEval.ts';
@@ -17,8 +19,7 @@ interface Props {
   selectedIds: string[];
 }
 
-const inputClasses =
-  'w-full rounded-row border border-line bg-surface-1 px-2 py-1.5 text-xs font-mono text-ink outline-none transition-colors duration-fast focus:border-accent/60 focus:ring-2 focus:ring-accent/20';
+const inputClasses = cn(inputBase, inputSm, 'w-full');
 
 /** Formats an expression for the hint under the input, or null when it does not evaluate. */
 function exprPreview(expr: string, markerId: number, unit: string): string | null {
@@ -36,7 +37,6 @@ interface ExprAxisRowProps {
   label: string;
   unit: string;
   values: [string, string, string];
-  /** Resolved value shown above each input (already formatted with its unit). */
   resolved: (axis: 0 | 1 | 2) => string;
   markerId: number;
   onChange: (axis: 0 | 1 | 2, value: string) => void;
@@ -54,9 +54,10 @@ function ExprAxisRow({ label, unit, values, resolved, markerId, onChange, onAppl
           const preview = exprPreview(values[ax], markerId, unit);
           return (
             <div key={axis} className="flex-1">
-              <div className="text-[10px] text-ink-faint text-center mb-0.5">{axis} = {resolved(ax)}</div>
+              <div className="text-micro text-ink-faint text-center mb-0.5">{axis} = {resolved(ax)}</div>
               <input
                 type="text"
+                aria-label={`${label}: ${axis}`}
                 value={values[ax]}
                 onChange={(e) => onChange(ax, e.target.value)}
                 onKeyDown={(e) => {
@@ -67,7 +68,7 @@ function ExprAxisRow({ label, unit, values, resolved, markerId, onChange, onAppl
                 className={cn(inputClasses, 'text-center')}
               />
               {preview && (
-                <div className="text-[10px] text-success mt-0.5 text-center">{preview}</div>
+                <div className="text-micro text-success mt-0.5 text-center">{preview}</div>
               )}
             </div>
           );
@@ -79,11 +80,12 @@ function ExprAxisRow({ label, unit, values, resolved, markerId, onChange, onAppl
 
 export function MarkerEditor({ marker, selectedIds }: Props) {
   const { t } = useTranslation();
+  const labelInputId = useId();
+  const sizeInputId = useId();
   const ui = useMapStore((s) => s.markerUi[String(marker.id)]);
   const setExpr = useMapStore((s) => s.setExpr);
   const setMarkerInfoLocal = useMapStore((s) => s.setMarkerInfoLocal);
   const setMutationError = useMapStore((s) => s.setMutationError);
-  const deselectAll = useMapStore((s) => s.deselectAll);
 
   const isMulti = selectedIds.length > 1;
   const canEditPose = marker.type === 'fixed' && marker.pose !== null;
@@ -97,17 +99,6 @@ export function MarkerEditor({ marker, selectedIds }: Props) {
     () => (ui ? [...ui.rotationExpr] : ['0', '0', '0']),
   );
 
-  // Sync local state when the primary marker changes
-  const [syncedMarkerId, setSyncedMarkerId] = useState(String(marker.id));
-  if (String(marker.id) !== syncedMarkerId) {
-    setSyncedMarkerId(String(marker.id));
-    setLabelLocal(marker.markerFrameId);
-    setSizeLocal(String(mToMm(marker.sizeM)));
-    const nextUi = useMapStore.getState().markerUi[String(marker.id)];
-    setPosExprLocal(nextUi ? [...nextUi.positionExpr] : ['0', '0', '0']);
-    setRotExprLocal(nextUi ? [...nextUi.rotationExpr] : ['0', '0', '0']);
-  }
-
   const primaryExprs = ui ?? {
     positionExpr: posExprLocal,
     rotationExpr: rotExprLocal,
@@ -115,9 +106,17 @@ export function MarkerEditor({ marker, selectedIds }: Props) {
   const primaryPos = resolvePosition(primaryExprs.positionExpr, marker.id);
   const primaryRotEuler = quatToEulerDeg(resolveRotation(primaryExprs.rotationExpr, marker.id));
 
+  /** Applies a change to every marker in the selection. */
+  const commitSelected = useCallback(
+    (apply: (id: string) => void) => {
+      selectedIds.forEach(apply);
+    },
+    [selectedIds],
+  );
+
   const commitLabel = useCallback(() => {
-    selectedIds.forEach((id) => setMarkerInfoLocal(id, { markerFrameId: labelLocal }));
-  }, [selectedIds, labelLocal, setMarkerInfoLocal]);
+    commitSelected((id) => setMarkerInfoLocal(id, { markerFrameId: labelLocal }));
+  }, [commitSelected, labelLocal, setMarkerInfoLocal]);
 
   const commitSize = useCallback(() => {
     const val = parseFloat(sizeLocal);
@@ -127,31 +126,36 @@ export function MarkerEditor({ marker, selectedIds }: Props) {
       setMutationError(error);
       return;
     }
-    selectedIds.forEach((id) => setMarkerInfoLocal(id, { sizeM: val / 1000 }));
-  }, [selectedIds, sizeLocal, setMarkerInfoLocal, setMutationError]);
+    commitSelected((id) => setMarkerInfoLocal(id, { sizeM: val / 1000 }));
+  }, [commitSelected, sizeLocal, setMarkerInfoLocal, setMutationError]);
 
   const applyPosExpr = useCallback(
     (axis: 0 | 1 | 2) => {
-      selectedIds.forEach((id) => setExpr(id, axis, 'position', posExprLocal[axis]));
+      commitSelected((id) => setExpr(id, axis, 'position', posExprLocal[axis]));
     },
-    [posExprLocal, selectedIds, setExpr],
+    [commitSelected, posExprLocal, setExpr],
   );
 
   const applyRotExpr = useCallback(
     (axis: 0 | 1 | 2) => {
-      selectedIds.forEach((id) => setExpr(id, axis, 'rotation', rotExprLocal[axis]));
+      commitSelected((id) => setExpr(id, axis, 'rotation', rotExprLocal[axis]));
     },
-    [rotExprLocal, selectedIds, setExpr],
+    [commitSelected, rotExprLocal, setExpr],
   );
 
-  const handleDelete = useCallback(() => {
-    const label = isMulti ? t('map.deleteConfirmMany', { count: selectedIds.length }) : t('map.deleteConfirmOne', { id: marker.id });
-    if (confirm(label)) {
-      const ids = [...selectedIds];
-      deselectAll();
-      requestAnimationFrame(() => void deleteMarkers(ids));
+  const handleDelete = useCallback(async () => {
+    const message = isMulti
+      ? t('map.deleteConfirmMany', { count: selectedIds.length })
+      : t('map.deleteConfirmOne', { id: marker.id });
+    const confirmed = await confirmDialog({
+      message,
+      tone: 'danger',
+      confirmLabel: t('map.delete'),
+    });
+    if (confirmed) {
+      deleteMarkersAfterDetach([...selectedIds]);
     }
-  }, [selectedIds, marker.id, deselectAll, isMulti, t]);
+  }, [selectedIds, marker.id, isMulti, t]);
 
   return (
     <Panel
@@ -170,14 +174,17 @@ export function MarkerEditor({ marker, selectedIds }: Props) {
             <div className="text-xs font-semibold text-accent-text">
               {t('map.editingMany', { count: selectedIds.length })}
             </div>
-            <div className="text-[10px] text-ink-faint mt-1">{t('map.multiExprHint')}</div>
+            <div className="text-micro text-ink-faint mt-1">{t('map.multiExprHint')}</div>
           </div>
         )}
 
         {/* Label */}
         <div>
-          <div className="text-xs text-ink-muted mb-1">{t('map.label')}</div>
+          <label htmlFor={labelInputId} className="text-xs text-ink-muted mb-1 block">
+            {t('map.label')}
+          </label>
           <input
+            id={labelInputId}
             type="text"
             value={labelLocal}
             onChange={(e) => setLabelLocal(e.target.value)}
@@ -191,8 +198,11 @@ export function MarkerEditor({ marker, selectedIds }: Props) {
 
         {/* Size */}
         <div>
-          <div className="text-xs text-ink-muted mb-1">{t('map.sizeMm')}</div>
+          <label htmlFor={sizeInputId} className="text-xs text-ink-muted mb-1 block">
+            {t('map.sizeMm')}
+          </label>
           <input
+            id={sizeInputId}
             type="number"
             value={sizeLocal}
             onChange={(e) => setSizeLocal(e.target.value)}

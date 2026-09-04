@@ -1,6 +1,7 @@
 import { useRef, useMemo, useLayoutEffect } from 'react';
 import * as THREE from 'three';
 import { TransformControls } from '@react-three/drei';
+import type { TransformControls as TransformControlsImpl } from 'three-stdlib';
 import { useThree } from '@react-three/fiber';
 
 import { DEFAULT_GRID_STEP_MM } from '../../../constants/defaults.ts';
@@ -10,11 +11,6 @@ import { useMapUIStore } from '../../../store/useMapUIStore.ts';
 import type { Vec3 } from '../../../types/marker.ts';
 import { sanitizeVec3, vec3ToPositionExpr } from '../../../utils/transformUtils.ts';
 
-/**
- * Finds the selected marker's object. three.js `getObjectByProperty` compares by
- * strict object identity while R3F replaces userData on every render, so a fresh
- * literal can never match — traverse and compare the markerId field instead.
- */
 function findMarkerObject(scene: THREE.Scene, id: string): THREE.Object3D | null {
   let found: THREE.Object3D | null = null;
   scene.traverse((obj) => {
@@ -33,34 +29,27 @@ export function TransformController() {
   const setTransforming = useMapUIStore((s) => s.setTransforming);
 
   const dragPosRef = useRef<Vec3 | null>(null);
-  // drei does not export a ref type for the controls instance.
-  const controlsRef = useRef<any>(null);
+  const controlsRef = useRef<TransformControlsImpl | null>(null);
   const gridStepM = useMemo(() => mmToM(DEFAULT_GRID_STEP_MM), []);
 
-  // Remove the 2D plane handles and the free-drag center — keep only the axis
-  // arrows. three-stdlib's gizmo re-asserts `handle.visible = true` on every
-  // rendered frame (TransformControlsGizmo.updateMatrixWorld), so hiding via
-  // `.visible` can never work. The gizmo group is built once per controls
-  // instance — removing the meshes once on mount is durable and idempotent.
   useLayoutEffect(() => {
-    const controls = controlsRef.current as any | null;
+    const controls = controlsRef.current;
     if (controls === null) return;
 
     const gizmo: THREE.Object3D | null =
-      (controls.gizmo as THREE.Object3D | undefined) ?? (() => {
+      (controls as unknown as { gizmo?: THREE.Object3D }).gizmo ??
+      (() => {
         let found: THREE.Object3D | null = null;
-        (controls as THREE.Object3D).traverse((obj) => {
+        (controls as unknown as THREE.Object3D).traverse((obj) => {
           if (found === null && (obj as { isTransformControlsGizmo?: boolean }).isTransformControlsGizmo) {
             found = obj;
           }
         });
         return found;
       })();
+
     if (gizmo === null) return;
 
-    // Visible handles live in gizmo.gizmo['translate']; invisible raycast
-    // targets in gizmo.picker['translate'] — remove the planes from both so
-    // plane-drag picking is disabled too.
     for (const groupKey of ['gizmo', 'picker'] as const) {
       const group = (gizmo as unknown as Record<string, Record<string, THREE.Group>>)[groupKey]?.['translate'];
       if (group === undefined) continue;
@@ -75,7 +64,6 @@ export function TransformController() {
   const marker = sel !== null ? markers[sel] : undefined;
   const isVisible = marker !== undefined && marker.type === 'fixed' && marker.pose !== null;
 
-  // Find the Three.js object for the selected marker
   const targetObj = useMemo(() => {
     if (!isVisible || sel === null) return null;
     return findMarkerObject(scene, sel);

@@ -14,6 +14,7 @@ import { useCapabilityFetch } from '../../hooks/useCapabilityFetch.ts';
 import { useRosCapability } from '../../hooks/useRosCapability.ts';
 import { useMapStore } from '../../store/useMapStore.ts';
 import { useMapUIStore } from '../../store/useMapUIStore.ts';
+import { pageGrid, panelFill } from '../../lib/uiStyles.ts';
 
 export default function MapPage() {
   const { t } = useTranslation();
@@ -45,18 +46,18 @@ export default function MapPage() {
           ) : (
             <div
               className={cn(
-                'grid gap-3 h-full min-h-[420px]',
+                pageGrid,
                 sidePanelOpen
                   ? 'grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px]'
                   : 'grid-cols-1 xl:grid-cols-[minmax(0,1fr)_48px]',
               )}
             >
-              <div className="relative rounded-panel border border-line overflow-hidden bg-surface-1 h-[60vh] xl:h-full min-h-0">
+              <div className="relative rounded-panel border border-line overflow-hidden bg-surface-1">
                 <ErrorBoundary>
                   <SceneCanvas />
                 </ErrorBoundary>
               </div>
-              <SidePanel className="h-[60vh] xl:h-full min-h-0 overflow-y-auto" />
+              <SidePanel className={cn(panelFill, 'overflow-y-auto')} />
             </div>
           )}
         </CapabilityGate>

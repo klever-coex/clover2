@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Trash2 } from 'lucide-react';
 
 import { cn } from '../../../lib/cn';
-import { deleteMarkers } from '../../../store/mapMutations.ts';
+import { deleteMarkersAfterDetach } from '../../../store/mapMutations.ts';
+import { confirmDialog } from '../../../store/useConfirmStore.ts';
 import { useMapStore } from '../../../store/useMapStore.ts';
 import { EmptyState } from '../../ui/EmptyState.tsx';
+import { IconButton } from '../../ui/IconButton.tsx';
 import { ListToolbar } from '../../ros2/ListToolbar.tsx';
 import { SortSelect } from '../../ros2/SortSelect.tsx';
 import { MarkerTypeBadge } from './MarkerTypeBadge.tsx';
@@ -14,7 +17,6 @@ export function MarkerList() {
   const markers = useMapStore((s) => s.markers);
   const selectedMarkerIds = useMapStore((s) => s.selectedMarkerIds);
   const selectMarker = useMapStore((s) => s.selectMarker);
-  const deselectAll = useMapStore((s) => s.deselectAll);
   const mutationError = useMapStore((s) => s.mutationError);
 
   const [search, setSearch] = useState('');
@@ -44,11 +46,14 @@ export function MarkerList() {
     return list;
   }, [markers, search, sortBy]);
 
-  const handleDelete = (id: string) => {
-    if (confirm(t('map.deleteConfirmOne', { id }))) {
-      deselectAll();
-      // Small delay to let TransformControls detach
-      requestAnimationFrame(() => void deleteMarkers([id]));
+  const handleDelete = async (id: string) => {
+    const confirmed = await confirmDialog({
+      message: t('map.deleteConfirmOne', { id }),
+      tone: 'danger',
+      confirmLabel: t('map.delete'),
+    });
+    if (confirmed) {
+      deleteMarkersAfterDetach([id]);
     }
   };
 
@@ -76,32 +81,43 @@ export function MarkerList() {
         }
       />
 
-      <div className="min-h-0 overflow-y-auto space-y-0.5">
+      <ul className="min-h-0 overflow-y-auto space-y-0.5" aria-label={t('map.markers')}>
         {markerList.map((m) => {
           const key = String(m.id);
           const isSel = selectedMarkerIds.includes(key);
           return (
-            <button
-              key={key}
-              type="button"
-              onClick={(e) => selectMarker(key, e.ctrlKey || e.metaKey)}
-              onDoubleClick={() => handleDelete(key)}
-              className={cn(
-                'w-full flex items-center justify-between gap-2 px-2 py-1 rounded-row text-left text-xs transition-colors duration-fast cursor-pointer',
-                isSel ? 'bg-surface-3 text-ink' : 'text-ink-muted hover:bg-surface-2 hover:text-ink',
-              )}
-            >
-              <span className="truncate font-mono">
-                #{m.id} <span className="text-ink-faint">{m.markerFrameId}</span>
-              </span>
-              <MarkerTypeBadge type={m.type} />
-            </button>
+            <li key={key} className="flex items-center gap-0.5">
+              <button
+                type="button"
+                aria-pressed={isSel}
+                onClick={(e) => selectMarker(key, e.ctrlKey || e.metaKey)}
+                className={cn(
+                  'min-w-0 flex-1 flex items-center justify-between gap-2 px-2 py-1 rounded-row text-left text-xs transition-colors duration-fast cursor-pointer',
+                  isSel ? 'bg-surface-3 text-ink' : 'text-ink-muted hover:bg-surface-2 hover:text-ink',
+                )}
+              >
+                <span className="truncate font-mono">
+                  #{m.id} <span className="text-ink-faint">{m.markerFrameId}</span>
+                </span>
+                <MarkerTypeBadge type={m.type} />
+              </button>
+              <IconButton
+                icon={Trash2}
+                size="sm"
+                label={t('map.delete')}
+                onClick={() => void handleDelete(key)}
+              />
+            </li>
           );
         })}
         {markerList.length === 0 && <EmptyState message={t('map.noMarkers')} />}
-      </div>
+      </ul>
 
-      {mutationError !== null && <p className="text-xs text-error">{mutationError}</p>}
+      {mutationError !== null && (
+        <p role="alert" className="text-xs text-error">
+          {mutationError}
+        </p>
+      )}
     </div>
   );
 }

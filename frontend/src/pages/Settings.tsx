@@ -9,16 +9,21 @@ import { PageHeader } from '../components/ui/PageHeader.tsx';
 import { useApiErrorMessage } from '../hooks/useApiErrorMessage.ts';
 import { useRosCapability } from '../hooks/useRosCapability.ts';
 import { useSettingsConfig } from '../hooks/useSettingsConfig.ts';
+import { confirmDialog } from '../store/useConfirmStore.ts';
 
-/** Clover2 configuration editor backed by the settings_server plugin. */
 export function Settings() {
   const { t } = useTranslation();
   const errorMessage = useApiErrorMessage();
   const capability = useRosCapability('settings');
   const config = useSettingsConfig();
 
-  const handleResetAll = () => {
-    if (confirm(t('settings.resetAllConfirm'))) {
+  const handleResetAll = async () => {
+    const confirmed = await confirmDialog({
+      message: t('settings.resetAllConfirm'),
+      tone: 'danger',
+      confirmLabel: t('settings.resetAll'),
+    });
+    if (confirmed) {
       config.resetAll();
     }
   };
@@ -30,11 +35,11 @@ export function Settings() {
         actions={
           <div className="flex items-center gap-2">
             {config.dirty && config.saveError !== null && (
-              <span className="text-xs text-error max-w-72 truncate" title={config.saveError}>
+              <span role="alert" className="text-xs text-error max-w-72">
                 {config.saveError}
               </span>
             )}
-            <Button variant="secondary" size="sm" onClick={handleResetAll}>
+            <Button variant="secondary" size="sm" onClick={() => void handleResetAll()}>
               {t('settings.resetAll')}
             </Button>
             <Button

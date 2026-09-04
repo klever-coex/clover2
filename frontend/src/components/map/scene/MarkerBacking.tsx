@@ -1,3 +1,5 @@
+import { PLACEHOLDER_GRAY } from '../../../constants/scene.ts';
+
 interface Props {
   sizeM: number;
 }
@@ -13,7 +15,7 @@ export function MarkerBacking({ sizeM }: Props) {
     >
       <boxGeometry args={[sizeM, sizeM, thickness]} />
       <meshStandardMaterial
-        color="#888888"
+        color={PLACEHOLDER_GRAY}
         depthWrite={true}
       />
     </mesh>

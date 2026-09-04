@@ -2,6 +2,7 @@ import { Canvas, useThree } from '@react-three/fiber';
 import { Suspense, useEffect } from 'react';
 
 import { DEFAULT_DICTIONARY } from '../../../constants/defaults.ts';
+import { SCENE_BACKGROUND } from '../../../constants/scene.ts';
 import { loadDictionary } from '../../../data/dictionaries/index.ts';
 import { useMapStore } from '../../../store/useMapStore.ts';
 import { useMapUIStore } from '../../../store/useMapUIStore.ts';
@@ -58,7 +59,7 @@ export function SceneCanvas() {
       onPointerMissed={() => deselectAll()}
       style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
     >
-      <color attach="background" args={['#0F172A']} />
+      <color attach="background" args={[SCENE_BACKGROUND]} />
       <StoreInvalidator />
       <SceneCanvasContextHandler />
       <Suspense fallback={null}>

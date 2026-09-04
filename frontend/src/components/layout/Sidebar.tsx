@@ -79,14 +79,25 @@ const LANGUAGES = [
 const rowBase =
   'flex items-center p-2 rounded-panel transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus/60';
 
+const COLLAPSED_STORAGE_KEY = 'sidebar-collapsed';
+
 export function Sidebar() {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(
+    () => localStorage.getItem(COLLAPSED_STORAGE_KEY) !== 'true',
+  );
   const { t, i18n } = useTranslation();
   const { pathname } = useLocation();
 
   const changeLanguage = (lang: string) => {
     void i18n.changeLanguage(lang);
     localStorage.setItem('language', lang);
+  };
+
+  const toggleMenu = () => {
+    setIsOpen((current) => {
+      localStorage.setItem(COLLAPSED_STORAGE_KEY, String(!current));
+      return !current;
+    });
   };
 
   const itemClasses = (active: boolean) =>
@@ -110,7 +121,8 @@ export function Sidebar() {
 
     if (typeof item.to === 'string') {
       return (
-        <NavLink key={item.key} to={item.to} className={() => itemClasses(isItemActive(item))}>
+        // NavLink sets aria-current="page" on the active route itself.
+        <NavLink key={item.key} to={item.to} className={({ isActive }) => itemClasses(isActive)}>
           <Icon size={20} className="shrink-0" />
           {label}
         </NavLink>
@@ -150,7 +162,7 @@ export function Sidebar() {
           icon={Menu}
           label={t('sidebar.toggleMenu')}
           expanded={isOpen}
-          onClick={() => setIsOpen((current) => !current)}
+          onClick={toggleMenu}
         />
       </div>
 
@@ -161,7 +173,7 @@ export function Sidebar() {
             {section.labelKey !== undefined && isOpen ? (
               <div
                 className={cn(
-                  'flex items-center gap-2 px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest',
+                  'flex items-center gap-2 px-2 pb-1 text-micro font-semibold uppercase tracking-widest',
                   section.items.some(isItemActive) ? 'text-ink' : 'text-ink-faint',
                 )}
               >

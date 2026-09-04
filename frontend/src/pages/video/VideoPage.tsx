@@ -12,6 +12,8 @@ import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
 import { useCapabilityFetch } from '../../hooks/useCapabilityFetch.ts';
 import { useRosCapability } from '../../hooks/useRosCapability.ts';
 import { useRosStore } from '../../store/useRosStore.ts';
+import { cn } from '../../lib/cn.ts';
+import { pageGrid, panelFill } from '../../lib/uiStyles.ts';
 
 export function VideoPage() {
   const { t } = useTranslation();
@@ -48,11 +50,11 @@ export function VideoPage() {
               onRetry={() => void reloadTopics()}
             />
           ) : (
-            <div className="grid gap-3 grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] h-full min-h-[420px]">
+            <div className={cn(pageGrid, 'grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)]')}>
               <div className="min-h-0 overflow-y-auto rounded-panel border border-line bg-surface-1 p-2 h-[30vh] xl:h-full">
                 <VideoTopicList />
               </div>
-              <div className="relative rounded-panel border border-line overflow-hidden bg-surface-1 h-[60vh] xl:h-full min-h-0">
+              <div className={cn(panelFill, 'relative rounded-panel border border-line overflow-hidden bg-surface-1')}>
                 {topicName === null ? (
                   <div className="h-full flex items-center justify-center">
                     <EmptyState message={t('video.selectHint')} />

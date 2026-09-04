@@ -16,6 +16,7 @@ import { Spinner } from '../../components/ui/Spinner.tsx';
 import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
 import { useRosCapability } from '../../hooks/useRosCapability.ts';
 import { useRosStore } from '../../store/useRosStore.ts';
+import type { TranslationKey } from '../../i18n/index.ts';
 
 type LevelFilter = 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
@@ -27,7 +28,16 @@ const LEVEL_VALUES: Record<LevelFilter, number> = {
   fatal: 50,
 };
 
-/** Live /rosout viewer: severity threshold, text filter, pause and autoscroll. */
+const LEVEL_LABEL_KEYS: Record<LevelFilter, TranslationKey> = {
+  debug: 'logs.levelAll',
+  info: 'logs.levelInfo',
+  warn: 'logs.levelWarn',
+  error: 'logs.levelError',
+  fatal: 'logs.levelFatal',
+};
+
+const AUTOSCROLL_TOLERANCE_PX = 40;
+
 export function LogsPage() {
   const { t } = useTranslation();
   const errorMessage = useApiErrorMessage();
@@ -61,14 +71,14 @@ export function LogsPage() {
     [logs, minValue, q],
   );
 
-  // Stick to the bottom while the user hasn't scrolled away.
   const scrollRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
 
   const handleScroll = () => {
     const el = scrollRef.current;
     if (el === null) return;
-    stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+    stickToBottomRef.current =
+      el.scrollHeight - el.scrollTop - el.clientHeight < AUTOSCROLL_TOLERANCE_PX;
   };
 
   useEffect(() => {
@@ -78,13 +88,14 @@ export function LogsPage() {
     }
   }, [visible.length, logsPaused]);
 
-  const levelOptions = [
-    { value: 'debug', label: t('logs.levelAll') },
-    { value: 'info', label: t('logs.levelInfo') },
-    { value: 'warn', label: t('logs.levelWarn') },
-    { value: 'error', label: t('logs.levelError') },
-    { value: 'fatal', label: t('logs.levelFatal') },
-  ];
+  const levelOptions = useMemo(
+    () =>
+      (Object.keys(LEVEL_VALUES) as LevelFilter[]).map((level) => ({
+        value: level,
+        label: t(LEVEL_LABEL_KEYS[level]),
+      })),
+    [t],
+  );
 
   const connecting = logsState === 'idle' || logsState === 'connecting';
   const hasError = logsError !== null && logsState !== 'connected';
@@ -112,6 +123,7 @@ export function LogsPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t('logs.searchPlaceholder')}
+              aria-label={t('logs.searchPlaceholder')}
               className="flex-1 min-w-48"
             />
             <Select
@@ -132,15 +144,13 @@ export function LogsPage() {
           </div>
 
           {logs.length === 0 ? (
-            connecting && logsError === null ? (
-              <div className="flex-1 flex items-center justify-center">
-                <Spinner size={32} />
-              </div>
-            ) : hasError ? (
-              <ErrorState message={errorMessage(logsError)} onRetry={retryRosoutStream} />
-            ) : (
-              <EmptyState message={t('logs.empty')} />
-            )
+            <LogsPlaceholder
+              connecting={connecting && logsError === null}
+              hasError={hasError}
+              errorMessage={logsError !== null ? errorMessage(logsError) : null}
+              onRetry={retryRosoutStream}
+              emptyMessage={t('logs.empty')}
+            />
           ) : (
             <div
               ref={scrollRef}
@@ -156,10 +166,38 @@ export function LogsPage() {
           )}
 
           {logs.length > 0 && hasError && logsError !== null && (
-            <p className="text-xs text-error">{errorMessage(logsError)}</p>
+            <p role="alert" className="text-xs text-error">{errorMessage(logsError)}</p>
           )}
         </CapabilityGate>
       </div>
     </div>
   );
+}
+
+interface LogsPlaceholderProps {
+  connecting: boolean;
+  hasError: boolean;
+  errorMessage: string | null;
+  onRetry: () => void;
+  emptyMessage: string;
+}
+
+function LogsPlaceholder({
+  connecting,
+  hasError,
+  errorMessage,
+  onRetry,
+  emptyMessage,
+}: LogsPlaceholderProps) {
+  if (connecting) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <Spinner size={32} />
+      </div>
+    );
+  }
+  if (hasError && errorMessage !== null) {
+    return <ErrorState message={errorMessage} onRetry={onRetry} />;
+  }
+  return <EmptyState message={emptyMessage} />;
 }

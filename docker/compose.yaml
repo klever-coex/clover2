@@ -27,7 +27,7 @@ services:
 
   ros-web:
     <<: *ros
-    profiles: [ web-test, robot ]
+    profiles: [ backend-sim, web-test, robot ]
     command: ros2 launch clover2_http web_support.launch.xml
     environment:
       <<: *ros-env
@@ -40,7 +40,7 @@ services:
 
   ros-map:
     <<: *ros
-    profiles: [ web-test ]
+    profiles: [ backend-sim, web-test ]
     command: >-
       ros2 run clover2_map server --ros-args -p map:=${MAP_FILE:-/opt/clover2/share/clover2_map/map/example-1.yaml}
 

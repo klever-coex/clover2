@@ -3,6 +3,8 @@ import { RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import type { SettingsScalar, SettingsSchemaNode } from '../../types/settings.ts';
+import { cn } from '../../lib/cn';
+import { inputBase, inputSm } from '../../lib/uiStyles';
 import { IconButton } from '../ui/IconButton.tsx';
 import { Select } from '../ui/Select.tsx';
 import { TypeBadge } from '../ros2/TypeBadge.tsx';
@@ -15,8 +17,7 @@ interface Props {
   onReset: (path: string[]) => void;
 }
 
-const inputClasses =
-  'w-56 rounded-row border border-line bg-surface-1 px-2 py-1.5 text-xs font-mono text-ink outline-none transition-colors duration-fast focus:border-accent/60 focus:ring-2 focus:ring-accent/20';
+const inputClasses = cn(inputBase, inputSm, 'w-56');
 
 export function SettingsFieldRow({ node, path, onValue, onReset }: Props) {
   const { t } = useTranslation();
@@ -90,6 +91,7 @@ function FieldControl({
     return (
       <input
         type="checkbox"
+        aria-label={node.name}
         checked={node.value === true}
         onChange={(e) => onValue(path, e.target.checked)}
         className="size-4 accent-[var(--color-accent)]"
@@ -100,6 +102,7 @@ function FieldControl({
   if (node.enum !== undefined) {
     return (
       <Select
+        aria-label={node.name}
         value={String(node.value ?? '')}
         onChange={(value) => onValue(path, value)}
         options={node.enum.map((option) => ({ value: option, label: option }))}
@@ -112,6 +115,7 @@ function FieldControl({
     <div className="flex flex-col items-end">
       <input
         type="text"
+        aria-label={node.name}
         value={local}
         onChange={(e) => setLocal(e.target.value)}
         onKeyDown={(e) => {
@@ -120,7 +124,11 @@ function FieldControl({
         onBlur={commit}
         className={inputClasses}
       />
-      {invalid !== null && <span className="mt-0.5 text-[10px] text-error">{invalid}</span>}
+      {invalid !== null && (
+        <span role="alert" className="mt-0.5 text-micro text-error">
+          {invalid}
+        </span>
+      )}
     </div>
   );
 }

@@ -4,13 +4,11 @@ import { useTexture } from '@react-three/drei';
 
 import type { DictionaryData } from '../../../data/dictionaries/index.ts';
 import { loadDictionary } from '../../../data/dictionaries/index.ts';
+import { PLACEHOLDER_GRAY } from '../../../constants/scene.ts';
 import type { ArUcoDictionary } from '../../../types/marker.ts';
 
 const CELL_PX = 64;
 
-/** Bit extraction matching Python ArucoBits exactly (verified: 0 mismatches on 4024 markers).
- *  Reads gridSize² bits MSB-first from consecutive bytes, handling the partial
- *  last byte where remaining bits are packed into LSB positions. */
 function extractBits(bytes: Uint8Array, totalBits: number): boolean[] {
   const bits: boolean[] = [];
   for (const byte of bytes) {
@@ -22,8 +20,6 @@ function extractBits(bytes: Uint8Array, totalBits: number): boolean[] {
   return bits;
 }
 
-/** Build an SVG string for a single marker.
- *  Black border white inner area black cells for each '1' bit. */
 function buildSvg(dictData: DictionaryData, markerId: number): string {
   const { gridSize } = dictData.meta;
   const { bytesList } = dictData;
@@ -65,8 +61,6 @@ function buildSvg(dictData: DictionaryData, markerId: number): string {
   return svg.outerHTML;
 }
 
-/* ---- SVG data URI cache ---- */
-
 const svgCache = new Map<string, string>();
 
 function getSvgUrl(dict: ArUcoDictionary, dictData: DictionaryData, markerId: number): string {
@@ -78,8 +72,6 @@ function getSvgUrl(dict: ArUcoDictionary, dictData: DictionaryData, markerId: nu
   }
   return url;
 }
-
-/* ---- Component ---- */
 
 function ArUcoPlane({
   sizeM,
@@ -120,14 +112,12 @@ interface Props {
 export function MarkerPlane({ sizeM, dict, markerId }: Props) {
   const dictData = use(loadDictionary(dict));
 
-  // Backend marker ids beyond the dictionary range: render a gray placeholder
-  // instead of throwing (the SVG builder cannot index out-of-range ids).
   if (markerId < 0 || markerId >= dictData.bytesList.length) {
     console.warn(`Marker ID ${markerId} out of range for dictionary ${dict}`);
     return (
       <mesh frustumCulled={false}>
         <planeGeometry args={[sizeM, sizeM]} />
-        <meshBasicMaterial color="#888888" side={THREE.DoubleSide} />
+        <meshBasicMaterial color={PLACEHOLDER_GRAY} side={THREE.DoubleSide} />
       </mesh>
     );
   }

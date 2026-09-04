@@ -52,7 +52,11 @@ export function SidePanel({ className }: SidePanelProps) {
       <AddMarkerButton />
       <MarkerList />
       {primaryMarker !== undefined ? (
-        <MarkerEditor marker={primaryMarker} selectedIds={selectedIds} />
+        <MarkerEditor
+          key={String(primaryMarker.id)}
+          marker={primaryMarker}
+          selectedIds={selectedIds}
+        />
       ) : (
         <Panel padded>
           <p className="text-sm text-ink-faint">{t('map.selectHint')}</p>
