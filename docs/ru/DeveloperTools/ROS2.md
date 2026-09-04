@@ -5,6 +5,7 @@
 :maxdepth: 1
 :hidden:
 
+ROS2/Nodes
 ROS2/Commands
 ```
 
