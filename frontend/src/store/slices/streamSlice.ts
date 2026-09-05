@@ -1,7 +1,7 @@
 import type { StateCreator } from 'zustand';
 import { clover2Api } from '../../api/clover2.ts';
 import type { TopicSubscription } from '../../api/clover2.ts';
-import { STREAM_BUFFER_CAP } from '../../constants/ros.ts';
+import { STREAM_BUFFER_CAP, WS_KEEPALIVE_INTERVAL_MS } from '../../constants/ros.ts';
 import type { ApiError } from '@/types/errors';
 import type { RosJsonValue } from '@/types/stream';
 import type { RosStore } from '../useRosStore.ts';
@@ -33,7 +33,6 @@ export const createStreamSlice: StateCreator<RosStore, [], [], StreamSlice> = (s
     const prev = get();
     if (topicName === prev.streamTopic && prev.streamState === 'connected') return;
 
-    // Tear down any active subscription before switching topics.
     prev.streamSubscription?.close();
     const sameTopic = topicName === prev.streamTopic;
 
@@ -46,6 +45,7 @@ export const createStreamSlice: StateCreator<RosStore, [], [], StreamSlice> = (s
     });
 
     const subscription = clover2Api.topics.subscribe(topicName, {
+      keepaliveIntervalMs: WS_KEEPALIVE_INTERVAL_MS,
       onMessage: (message) => {
         if (get().streamTopic !== topicName) return;
         set((state) => ({

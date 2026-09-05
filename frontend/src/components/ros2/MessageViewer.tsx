@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -119,22 +119,32 @@ export function MessageViewer({ messages }: { messages: RosJsonValue[] }) {
   const [objectCollapsed, setObjectCollapsed] = useState<Set<string>>(new Set());
   const [arrayExpanded, setArrayExpanded] = useState<Set<string>>(new Set());
 
-  const ctx: RenderContext = {
-    objectCollapsed,
-    arrayExpanded,
-    toggleObject: (path) =>
-      setObjectCollapsed((prev) => {
-        const next = new Set(prev);
-        if (!next.delete(path)) next.add(path);
-        return next;
-      }),
-    toggleArray: (path) =>
-      setArrayExpanded((prev) => {
-        const next = new Set(prev);
-        if (!next.delete(path)) next.add(path);
-        return next;
-      }),
-  };
+  // Stable identity across renders so memo() on MessageRow actually skips work.
+  const toggleObject = useCallback((path: string) => {
+    setObjectCollapsed((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(path)) next.add(path);
+      return next;
+    });
+  }, []);
+
+  const toggleArray = useCallback((path: string) => {
+    setArrayExpanded((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(path)) next.add(path);
+      return next;
+    });
+  }, []);
+
+  const ctx: RenderContext = useMemo(
+    () => ({
+      objectCollapsed,
+      arrayExpanded,
+      toggleObject,
+      toggleArray,
+    }),
+    [objectCollapsed, arrayExpanded, toggleObject, toggleArray],
+  );
 
   useEffect(() => {
     if (messages.length === 0) return;

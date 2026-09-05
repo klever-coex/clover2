@@ -18,5 +18,6 @@ export function useNodeInfos(names: readonly string[]): AsyncResource<Map<string
       return infos;
     },
     [names],
+    names.length > 0,
   );
 }

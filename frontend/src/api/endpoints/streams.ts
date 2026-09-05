@@ -1,4 +1,4 @@
-import { WS_CONNECT_TIMEOUT_MS } from '../../constants/ros.ts';
+import { WS_CONNECT_TIMEOUT_MS, WS_KEEPALIVE_INTERVAL_MS } from '../../constants/ros.ts';
 import { ApiError, isErrorFrame, toApiError } from '@/types/errors';
 import type { Capability } from '@/types/manifest';
 import type { RosJsonValue } from '@/types/stream';
@@ -56,6 +56,7 @@ export function createStreamsEndpoints(
         clearKeepaliveTimer();
         if (disposed) return;
         disposed = true;
+        socket?.close();
         options.onError?.(error);
       };
 
@@ -79,12 +80,16 @@ export function createStreamsEndpoints(
 
           socket.onopen = () => {
             clearConnectTimer();
-            if (options.keepaliveIntervalMs !== undefined) {
+            // Keepalive is on by default: the backend drops connections idle
+            // for 60 s even mid-stream. Pass 0 to opt out.
+            const keepaliveIntervalMs =
+              options.keepaliveIntervalMs ?? WS_KEEPALIVE_INTERVAL_MS;
+            if (keepaliveIntervalMs > 0) {
               keepaliveTimer = setInterval(() => {
                 if (socket?.readyState === WebSocket.OPEN) {
                   socket.send('ping');
                 }
-              }, options.keepaliveIntervalMs);
+              }, keepaliveIntervalMs);
             }
           };
 
@@ -104,7 +109,7 @@ export function createStreamsEndpoints(
             }
 
             if (isErrorFrame(parsed)) {
-              fail(new ApiError(parsed.error));
+              fail(new ApiError(parsed.__error));
               return;
             }
 

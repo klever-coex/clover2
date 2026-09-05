@@ -39,7 +39,9 @@ export function LogRow({ entry }: { entry: RosLogEntry }) {
       : null;
 
   return (
-    <div className="flex items-baseline gap-3 px-3 py-1 border-b border-border text-xs">
+    // content-visibility skips layout/paint for rows scrolled out of view —
+    // a cheap native virtualization for the unbounded log list.
+    <div className="flex items-baseline gap-3 px-3 py-1 border-b border-border text-xs [content-visibility:auto] [contain-intrinsic-size:auto_24px]">
       <span className="text-muted-foreground/80 shrink-0 tabular-nums">{formatTime(entry)}</span>
       <span className={cn('w-14 shrink-0 font-semibold', LEVEL_CLASSES[entry.level])}>
         {levelLabel(entry)}

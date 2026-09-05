@@ -5,19 +5,26 @@ import type { TransportExecutor } from './core.ts';
 export function createFetchExecutor(): TransportExecutor {
   return async (ctx) => {
     let response: Response;
+    const timeoutSignal = AbortSignal.timeout(
+      ctx.request.timeoutMs ?? REQUEST_TIMEOUT_MS,
+    );
+    const signal =
+      ctx.request.signal !== undefined
+        ? AbortSignal.any([ctx.request.signal, timeoutSignal])
+        : timeoutSignal;
     try {
       response = await fetch(ctx.url, {
         method: ctx.request.method ?? 'GET',
-        signal: AbortSignal.timeout(ctx.request.timeoutMs ?? REQUEST_TIMEOUT_MS),
-        ...(ctx.request.body !== undefined && {
+        signal,
+        ...(ctx.request.body != null && {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(ctx.request.body),
         }),
       });
     } catch (error) {
-      const aborted =
-        error instanceof Error &&
-        (error.name === 'TimeoutError' || error.name === 'AbortError');
+      const name = error instanceof Error ? error.name : '';
+      const timedOut = name === 'TimeoutError';
+      const aborted = timedOut || name === 'AbortError';
       throw new ApiError(
         aborted ? `Request to ${ctx.url} timed out` : `Cannot reach ${ctx.url}`,
         0,

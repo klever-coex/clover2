@@ -6,8 +6,14 @@ export const jsonMiddleware: HttpMiddleware = async (ctx, next) => {
 
   if (ctx.response === null) return;
 
+  const text = await ctx.response.text();
+  if (text === '') {
+    ctx.body = null;
+    return;
+  }
+
   try {
-    ctx.body = await ctx.response.json();
+    ctx.body = JSON.parse(text);
   } catch {
     throw new ApiError(
       `Invalid JSON response from ${ctx.request.path}`,

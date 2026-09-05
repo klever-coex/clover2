@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router';
 
 import { ListPage } from '../../components/ros2/ListPage.tsx';
 import { NodeCard } from '../../components/ros2/NodeCard.tsx';
@@ -16,7 +16,20 @@ export function NodesPage() {
   const nodesError = useRosStore((s) => s.nodesError);
   const reloadNodes = useRosStore((s) => s.reloadNodes);
   const infos = useNodeInfos(nodes);
-  const [sort, setSort] = useState<'name' | 'lifecycle'>('name');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sort = searchParams.get('sort') === 'lifecycle' ? 'lifecycle' : 'name';
+  const setSort = (next: string) =>
+    setSearchParams(
+      (current) => {
+        if (next === 'name') {
+          current.delete('sort');
+        } else {
+          current.set('sort', next);
+        }
+        return current;
+      },
+      { replace: true },
+    );
 
   return (
     <ListPage<string>

@@ -1,4 +1,5 @@
 import type { Manifest } from '@/types/manifest';
+import type { LifecycleTransitionDescription } from '@/types/lifecycle';
 import type { MapInfo, MarkerInfo, ModifyResult } from '@/types/map';
 import type { NodeInfo } from '@/types/node';
 import type { ServiceEndpoint } from '@/types/service';
@@ -31,6 +32,10 @@ export interface NodesApi {
   info(nodeName: string): Promise<NodeInfo>;
   publishers(nodeName: string): Promise<TopicEndpoint[]>;
   subscribes(nodeName: string): Promise<TopicEndpoint[]>;
+  availableTransitions(nodeName: string): Promise<
+    LifecycleTransitionDescription[]
+  >;
+  transition(nodeName: string, transition: string): Promise<void>;
 }
 
 export interface ServicesApi {

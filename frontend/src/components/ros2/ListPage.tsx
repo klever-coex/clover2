@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useSearchParams } from 'react-router';
 import type { ReactNode } from 'react';
 
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
@@ -44,7 +44,21 @@ export function ListPage<T>({
   sortItems,
   itemsClassName = 'mt-4 flex flex-col gap-2',
 }: ListPageProps<T>) {
-  const [query, setQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const query = searchParams.get('q') ?? '';
+  const setQuery = (next: string) => {
+    setSearchParams(
+      (current) => {
+        if (next === '') {
+          current.delete('q');
+        } else {
+          current.set('q', next);
+        }
+        return current;
+      },
+      { replace: true },
+    );
+  };
   const errorMessage = useApiErrorMessage();
 
   useCapabilityFetch(capability, onReload);

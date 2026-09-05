@@ -18,14 +18,15 @@
   },
   "common": {
     "retry": "Повторить",
-    "loading": "Загрузка...",
+    "loading": "Загрузка…",
     "sortBy": "Сортировка",
     "unknownError": "Неизвестная ошибка",
     "unexpectedError": "Произошла непредвиденная ошибка",
     "underConstruction": "В разработке",
     "skipToContent": "Перейти к содержимому",
     "cancel": "Отмена",
-    "confirm": "Подтвердить"
+    "confirm": "Подтвердить",
+    "moreInDocs": "Подробнее в документации"
   },
   "errors": {
     "backendUnavailable": "Бэкенд недоступен — проверьте, запущен ли clover2_http",
@@ -33,7 +34,7 @@
   },
   "video": {
     "noCapability": "Плагин топиков ROS недоступен",
-    "searchPlaceholder": "Поиск видео-топиков...",
+    "searchPlaceholder": "Поиск видео-топиков…",
     "noTopics": "Видео-топики не найдены",
     "selectHint": "Выберите топик для просмотра потока",
     "streamError": "Видеопоток недоступен",
@@ -47,9 +48,9 @@
     "dictionary": "Словарь",
     "markers": "Маркеры",
     "save": "Сохранить",
-    "saving": "Сохранение...",
+    "saving": "Сохранение…",
     "addMarker": "Добавить маркер",
-    "searchPlaceholder": "Поиск по ID или имени...",
+    "searchPlaceholder": "Поиск по ID или имени…",
     "sortId": "По ID",
     "sortType": "По типу",
     "sortLabel": "По имени",
@@ -74,7 +75,7 @@
     "sizeMin": "Размер должен быть не меньше 0,01 м (10 мм)"
   },
   "topics": {
-    "searchPlaceholder": "Поиск по имени или типу...",
+    "searchPlaceholder": "Поиск по имени или типу…",
     "sortName": "По имени",
     "sortType": "По типу",
     "empty": "Топики не найдены",
@@ -82,7 +83,7 @@
   },
   "logs": {
     "noCapability": "Плагин топиков ROS недоступен",
-    "searchPlaceholder": "Поиск по сообщению, узлу или файлу...",
+    "searchPlaceholder": "Поиск по сообщению, узлу или файлу…",
     "minLevel": "Минимальный уровень",
     "levelAll": "Все",
     "levelInfo": "Info+",
@@ -92,7 +93,7 @@
     "pause": "Приостановить",
     "resume": "Продолжить",
     "clear": "Очистить",
-    "empty": "Ожидание сообщений...",
+    "empty": "Ожидание сообщений…",
     "noMatches": "Нет сообщений по фильтру",
     "pausedBadge": "Приостановлено, пропущено: {{count}}",
     "received": "получено"
@@ -100,7 +101,7 @@
   "settings": {
     "noCapability": "Плагин настроек Clover2 недоступен",
     "save": "Сохранить",
-    "saving": "Сохранение...",
+    "saving": "Сохранение…",
     "resetAll": "Сбросить все",
     "resetAllConfirm": "Сбросить все поля к значениям по умолчанию? Несохранённые изменения будут потеряны.",
     "resetField": "Вернуть значение по умолчанию",
@@ -110,18 +111,19 @@
   },
   "topicDetail": {
     "unknownTopic": "Топик не найден",
-    "connecting": "Подключение...",
+    "connecting": "Подключение…",
     "connected": "Подключено",
     "closed": "Поток закрыт",
     "error": "Ошибка",
-    "noMessages": "Ожидание сообщений...",
+    "noMessages": "Ожидание сообщений…",
     "clear": "Очистить",
     "received": "получено",
     "object": "объект",
-    "messageActivity": "Получено сообщений: {{count}}"
+    "messageActivity": "Получено сообщений: {{count}}",
+    "idle": "Ожидание"
   },
   "nodes": {
-    "searchPlaceholder": "Поиск по имени...",
+    "searchPlaceholder": "Поиск по имени…",
     "sortName": "По имени",
     "sortLifecycle": "Сначала Lifecycle",
     "empty": "Ноды не найдены",
@@ -133,7 +135,14 @@
       "unconfigured": "Не настроена",
       "inactive": "Неактивна",
       "active": "Активна",
-      "finalized": "Финализирована"
+      "finalized": "Финализирована",
+      "unknown": "Неизвестно",
+      "configuring": "Настраивается",
+      "cleaningup": "Очищается",
+      "shuttingdown": "Завершается",
+      "activating": "Активируется",
+      "deactivating": "Деактивируется",
+      "errorprocessing": "Обработка ошибки"
     },
     "namespace": "Пространство имён",
     "info": "Информация о ноде",
@@ -144,6 +153,13 @@
     "noPublishers": "Нет издателей",
     "noSubscribers": "Нет подписчиков",
     "noServers": "Нет серверов",
-    "noClients": "Нет клиентов"
+    "noClients": "Нет клиентов",
+    "lifecycleControl": "Управление Lifecycle состоянием",
+    "currentState": "Текущее состояние",
+    "noTransitions": "Нет доступных переходов",
+    "qosDepth": "глубина {{count}}",
+    "transitionConfirmTitle": "Подтвердите переход",
+    "transitionConfirmMessage": "Применить «{{label}}» к {{node}}? Нода остановится до перезапуска.",
+    "applyTransitionConfirm": "Применить"
   }
 }

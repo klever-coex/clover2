@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Navigate, useSearchParams } from 'react-router';
 import { ServicePanel, TopicPanel } from '../../components/ros2/EndpointPanels.tsx';
 import { LifecycleBadge } from '../../components/ros2/LifecycleBadge.tsx';
+import { LifecyclePanel } from '../../components/ros2/LifecyclePanel.tsx';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ResourceState } from '../../components/common/ResourceState.tsx';
 import { useNodeResources } from '@/hooks/useNodeResources';
@@ -35,6 +36,13 @@ function NodeDetailView({ nodeName }: { nodeName: string }) {
     <div className="p-6">
       <div className="grid grid-cols-1 gap-4">
         <InfoPanel resource={resources.info} />
+        {resources.info.data?.is_lifecycle === true && (
+          <LifecyclePanel
+            nodeName={nodeName}
+            info={resources.info.data}
+            onTransitioned={resources.info.reload}
+          />
+        )}
         <TopicPanel
           title={t('nodes.publishers')}
           empty={t('nodes.noPublishers')}
@@ -80,7 +88,7 @@ function InfoPanel({ resource }: { resource: AsyncResource<NodeInfo> }) {
               <InfoRow label={t('nodes.namespace')} value={data.ns} />
               <InfoRow
                 label={t('nodes.lifecycle')}
-                value={<LifecycleBadge state={data.lifecycle_state} />}
+                value={<LifecycleBadge state={data.lifecycle_state?.label} />}
               />
             </div>
           )}

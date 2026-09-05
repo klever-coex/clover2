@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { clover2Api } from '../api/clover2.ts';
 import { toApiError } from '@/types/errors';
@@ -29,9 +29,14 @@ export function useSettingsConfig(): SettingsConfig {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  const editedSinceAdoption = useRef(false);
+
   if (resource.data !== adopted) {
     setAdopted(resource.data);
-    setEdited(resource.data?.root ?? null);
+    if (!editedSinceAdoption.current) {
+      setEdited(resource.data?.root ?? null);
+    }
+    editedSinceAdoption.current = false;
     setSaveError(null);
   }
 
@@ -39,8 +44,18 @@ export function useSettingsConfig(): SettingsConfig {
   const snapshot = resource.data !== null ? valuesProjection(resource.data.root) : '';
   const dirty = root !== null && valuesProjection(root) !== snapshot;
 
+  useEffect(() => {
+    if (!dirty) return;
+    const handler = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [dirty]);
+
   const setValue = useCallback((path: readonly string[], value: SettingsScalar) => {
     setSaveError(null);
+    editedSinceAdoption.current = true;
     setEdited((current) =>
       current === null ? current : updateLeaf(current, path, (leaf) => ({ ...leaf, value })),
     );
@@ -48,6 +63,7 @@ export function useSettingsConfig(): SettingsConfig {
 
   const resetField = useCallback((path: readonly string[]) => {
     setSaveError(null);
+    editedSinceAdoption.current = true;
     setEdited((current) =>
       current === null
         ? current
@@ -57,6 +73,7 @@ export function useSettingsConfig(): SettingsConfig {
 
   const resetAll = useCallback(() => {
     setSaveError(null);
+    editedSinceAdoption.current = true;
     setEdited((current) => {
       if (current === null) return current;
       const resetTree = (node: SettingsSchemaNode): SettingsSchemaNode =>

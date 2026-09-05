@@ -20,6 +20,7 @@ import type { TranslationKey } from '@/i18n/index.ts';
 import { route, routeLabelKey } from '@/routes/navigation.ts';
 import { usePageHeaderStore } from '@/store/usePageHeader';
 import { cn } from '@/lib/utils';
+import { docsBaseUrl } from '@/constants/docs';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -60,7 +61,10 @@ interface NavSection {
   items: NavLinkItem[];
 }
 
-const { protocol, hostname } = window.location;
+const ideUrl = () => {
+  const { protocol, hostname } = window.location;
+  return `${protocol}//${hostname}:9880/?folder=/home/pi`;
+};
 
 const MENU: NavSection[] = [
   {
@@ -87,13 +91,13 @@ const MENU: NavSection[] = [
         key: 'documentation',
         labelKey: 'sidebar.documentation',
         icon: BookOpenText,
-        to: (lang) => `${protocol}//${hostname}:9000/${lang}/index.html`,
+        to: (lang) => docsBaseUrl(lang) + 'index.html',
       },
       {
         key: 'ide',
         labelKey: 'sidebar.ide',
         icon: SquarePen,
-        to: () => `${protocol}//${hostname}:9880/?folder=/home/pi`,
+        to: ideUrl,
       },
     ],
   },
@@ -297,6 +301,10 @@ export function SidebarShell({ children }: { children: ReactNode }) {
               );
             })}
           </nav>
+          {/* Pages have no visible heading — the breadcrumb tail is the title. */}
+          <h1 className="sr-only">
+            {items[items.length - 1]?.label ?? t('header.title')}
+          </h1>
           {pageActions !== null && (
             <div className="ml-auto flex shrink-0 items-center gap-2">{pageActions}</div>
           )}

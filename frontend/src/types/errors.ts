@@ -22,10 +22,10 @@ export function toApiError(error: unknown): ApiError {
   return new ApiError(error instanceof Error ? error.message : String(error), 0);
 }
 
-export function isErrorFrame(value: unknown): value is { error: string } {
+export function isErrorFrame(value: unknown): value is { __error: string } {
   return (
     typeof value === 'object' &&
     value !== null &&
-    typeof (value as Record<string, unknown>).error === 'string'
+    typeof (value as Record<string, unknown>).__error === 'string'
   );
 }

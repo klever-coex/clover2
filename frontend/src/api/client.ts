@@ -44,18 +44,18 @@ export function createClient(baseUrl?: string): Clover2Api {
     manifestEndpoints.requireCapability,
   );
 
-	return {
-		manifest: {
-			get: manifestEndpoints.get,
-			clearCache: manifestEndpoints.clearCache,
-		},
-		topics: {
-			...createTopicsEndpoints(http),
-			subscribe: streams.subscribe,
-		},
-		nodes: createNodesEndpoints(http),
-		services: createServicesEndpoints(http),
-		map: createMapEndpoints(http),
-		settings: createSettingsEndpoints(http),
-	};
+  return {
+    manifest: {
+      get: manifestEndpoints.get,
+      clearCache: manifestEndpoints.clearCache,
+    },
+    topics: {
+      ...createTopicsEndpoints(http),
+      subscribe: streams.subscribe,
+    },
+    nodes: createNodesEndpoints(http),
+    services: createServicesEndpoints(http),
+    map: createMapEndpoints(http),
+    settings: createSettingsEndpoints(http),
+  };
 }

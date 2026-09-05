@@ -1,8 +1,10 @@
+import type { LabeledState } from './lifecycle.ts';
+
 export type LifecycleState = 'unconfigured' | 'inactive' | 'active' | 'finalized';
 
 export interface NodeInfo {
   name: string;
   ns: string;
   is_lifecycle: boolean;
-  lifecycle_state?: LifecycleState;
+  lifecycle_state?: LabeledState;
 }

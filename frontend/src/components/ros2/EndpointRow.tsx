@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import type { ServiceEndpoint } from '@/types/service';
 import type { TopicEndpoint } from '@/types/topic';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +11,8 @@ function formatPolicy(value: string): string {
 }
 
 export function TopicEndpointRow({ endpoint }: { endpoint: TopicEndpoint }) {
+  const { t } = useTranslation();
+
   return (
     <Item size="sm">
       <ItemContent>
@@ -19,7 +23,7 @@ export function TopicEndpointRow({ endpoint }: { endpoint: TopicEndpoint }) {
       <ItemActions className="flex-wrap justify-end">
         <TypeBadge type={endpoint.info.type} />
         <Badge variant="secondary" className="font-mono">
-          depth {endpoint.qos_profile.depth}
+          {t('nodes.qosDepth', { count: endpoint.qos_profile.depth })}
         </Badge>
         <Badge variant="secondary" className="font-mono">
           {formatPolicy(endpoint.qos_profile.reliability)}
@@ -46,3 +50,4 @@ export function ServiceEndpointRow({ endpoint }: { endpoint: ServiceEndpoint }) 
     </Item>
   );
 }
+

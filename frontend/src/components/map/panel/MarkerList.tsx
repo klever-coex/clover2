@@ -2,12 +2,12 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trash2 } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
 import { deleteMarkersAfterDetach } from '../../../store/mapMutations.ts';
 import { confirmDialog } from '@/store/useConfirmStore';
 import { useMapStore } from '@/store/useMapStore';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardRow } from '../../common/CardRow.tsx';
 import { EmptyState } from '../../common/EmptyState.tsx';
 import { ListToolbar } from '../../common/ListToolbar.tsx';
 import { SortSelect } from '../../common/SortSelect.tsx';
@@ -94,31 +94,28 @@ export function MarkerList() {
             const key = String(m.id);
             const isSel = selectedMarkerIds.includes(key);
             return (
-              <li key={key} className="flex items-center gap-0.5">
-                <button
-                  type="button"
-                  aria-pressed={isSel}
-                  onClick={(e) => selectMarker(key, e.ctrlKey || e.metaKey)}
-                  className={cn(
-                    'min-w-0 flex-1 flex items-center justify-between gap-2 rounded-row px-2 py-1 text-left text-xs transition-colors duration-fast cursor-pointer',
-                    isSel
-                      ? 'bg-secondary text-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                  )}
+              <li key={key}>
+                <CardRow
+                  variant="compact"
+                  active={isSel}
+                  ariaPressed={isSel}
+                  onSelect={(e) => selectMarker(key, e.ctrlKey || e.metaKey)}
+                  action={
+                    <TooltipButton
+                      variant="ghost"
+                      size="icon-sm"
+                      label={t('map.delete')}
+                      onClick={() => void handleDelete(key)}
+                    >
+                      <Trash2 />
+                    </TooltipButton>
+                  }
                 >
                   <span className="truncate font-mono">
                     #{m.id} <span className="text-muted-foreground/80">{m.markerFrameId}</span>
                   </span>
                   <MarkerTypeBadge type={m.type} />
-                </button>
-                <TooltipButton
-                  variant="ghost"
-                  size="icon-sm"
-                  label={t('map.delete')}
-                  onClick={() => void handleDelete(key)}
-                >
-                  <Trash2 />
-                </TooltipButton>
+                </CardRow>
               </li>
             );
           })}

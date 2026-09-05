@@ -42,7 +42,11 @@ export function usePageHeader(crumbs: PageCrumb[], actions?: ReactNode) {
 
   useLayoutEffect(() => {
     set(crumbs, actions ?? null);
+    return () => clear();
   });
 
-  useEffect(() => () => clear(), []);
+  useEffect(() => {
+    const label = crumbs[crumbs.length - 1]?.label;
+    document.title = label !== undefined ? `${label} · Clover2` : 'Clover2';
+  }, [crumbs]);
 }

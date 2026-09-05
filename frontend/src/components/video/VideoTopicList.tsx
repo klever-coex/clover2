@@ -2,9 +2,9 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 
-import { cn } from '@/lib/utils';
 import { useRosStore } from '@/store/useRosStore';
 import { isVideoTopic } from '../../utils/videoStream.ts';
+import { CardRow } from '../common/CardRow.tsx';
 import { ListToolbar } from '../common/ListToolbar.tsx';
 import { TypeBadge } from '../common/TypeBadge.tsx';
 import { EmptyState } from '../common/EmptyState.tsx';
@@ -32,25 +32,18 @@ export function VideoTopicList() {
         placeholder={t('video.searchPlaceholder')}
       />
       <div className="min-h-0 overflow-y-auto flex flex-col gap-0.5">
-        {videoTopics.map((topic) => {
-          const active = topic.name === activeTopic;
-          return (
-            <button
-              key={topic.name}
-              type="button"
-              onClick={() => setSearchParams({ topic: topic.name })}
-              className={cn(
-                'w-full flex items-center justify-between gap-2 px-2 py-1 rounded-row text-left text-xs transition-colors duration-fast cursor-pointer',
-                active
-                  ? 'bg-secondary text-foreground'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-              )}
-            >
-              <span className="font-mono break-all">{topic.name}</span>
-              <TypeBadge type={topic.type} />
-            </button>
-          );
-        })}
+        {videoTopics.map((topic) => (
+          <CardRow
+            key={topic.name}
+            variant="compact"
+            active={topic.name === activeTopic}
+            onSelect={() => setSearchParams({ topic: topic.name })}
+            contentClassName="break-all"
+          >
+            <span className="font-mono">{topic.name}</span>
+            <TypeBadge type={topic.type} />
+          </CardRow>
+        ))}
         {videoTopics.length === 0 && <EmptyState message={t('video.noTopics')} />}
       </div>
     </div>

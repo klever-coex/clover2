@@ -15,7 +15,7 @@ const STATE_VARIANTS: Record<StreamState, BadgeVariant> = {
 };
 
 const STATE_LABEL_KEYS: Record<StreamState, TranslationKey> = {
-  idle: 'topicDetail.connecting',
+  idle: 'topicDetail.idle',
   connecting: 'topicDetail.connecting',
   connected: 'topicDetail.connected',
   closed: 'topicDetail.closed',

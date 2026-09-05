@@ -18,14 +18,15 @@
   },
   "common": {
     "retry": "Retry",
-    "loading": "Loading...",
+    "loading": "Loading…",
     "sortBy": "Sort by",
     "unknownError": "Unknown error",
     "unexpectedError": "An unexpected error occurred",
     "underConstruction": "Under construction",
     "skipToContent": "Skip to content",
     "cancel": "Cancel",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "moreInDocs": "See the documentation"
   },
   "errors": {
     "backendUnavailable": "Backend is unavailable — check that clover2_http is running",
@@ -33,7 +34,7 @@
   },
   "video": {
     "noCapability": "ROS topics plugin is not available",
-    "searchPlaceholder": "Search video topics...",
+    "searchPlaceholder": "Search video topics…",
     "noTopics": "No video topics found",
     "selectHint": "Select a topic to view the stream",
     "streamError": "Video stream is unavailable",
@@ -47,9 +48,9 @@
     "dictionary": "Dictionary",
     "markers": "Markers",
     "save": "Save",
-    "saving": "Saving...",
+    "saving": "Saving…",
     "addMarker": "Add marker",
-    "searchPlaceholder": "Search by id or name...",
+    "searchPlaceholder": "Search by id or name…",
     "sortId": "By ID",
     "sortType": "By type",
     "sortLabel": "By name",
@@ -74,7 +75,7 @@
     "sizeMin": "Size must be at least 0.01 m (10 mm)"
   },
   "topics": {
-    "searchPlaceholder": "Search by name or type...",
+    "searchPlaceholder": "Search by name or type…",
     "sortName": "Name",
     "sortType": "Type",
     "empty": "No topics found",
@@ -82,7 +83,7 @@
   },
   "logs": {
     "noCapability": "ROS topics plugin is not available",
-    "searchPlaceholder": "Search by message, node or file...",
+    "searchPlaceholder": "Search by message, node or file…",
     "minLevel": "Minimum level",
     "levelAll": "All",
     "levelInfo": "Info+",
@@ -92,7 +93,7 @@
     "pause": "Pause",
     "resume": "Resume",
     "clear": "Clear",
-    "empty": "Waiting for messages...",
+    "empty": "Waiting for messages…",
     "noMatches": "No messages match the filter",
     "pausedBadge": "Paused, missed: {{count}}",
     "received": "received"
@@ -100,7 +101,7 @@
   "settings": {
     "noCapability": "Clover2 settings plugin is not available",
     "save": "Save",
-    "saving": "Saving...",
+    "saving": "Saving…",
     "resetAll": "Reset all",
     "resetAllConfirm": "Reset all fields to their defaults? Unsaved changes will be lost.",
     "resetField": "Reset to default",
@@ -110,18 +111,19 @@
   },
   "topicDetail": {
     "unknownTopic": "Unknown topic",
-    "connecting": "Connecting...",
+    "connecting": "Connecting…",
     "connected": "Connected",
     "closed": "Stream closed",
     "error": "Error",
-    "noMessages": "Waiting for messages...",
+    "noMessages": "Waiting for messages…",
     "clear": "Clear",
     "received": "received",
     "object": "object",
-    "messageActivity": "Received {{count}} messages"
+    "messageActivity": "Received {{count}} messages",
+    "idle": "Idle"
   },
   "nodes": {
-    "searchPlaceholder": "Search by name...",
+    "searchPlaceholder": "Search by name…",
     "sortName": "Name",
     "sortLifecycle": "Lifecycle first",
     "empty": "No nodes found",
@@ -133,7 +135,14 @@
       "unconfigured": "Unconfigured",
       "inactive": "Inactive",
       "active": "Active",
-      "finalized": "Finalized"
+      "finalized": "Finalized",
+      "unknown": "Unknown",
+      "configuring": "Configuring",
+      "cleaningup": "Cleaning up",
+      "shuttingdown": "Shutting down",
+      "activating": "Activating",
+      "deactivating": "Deactivating",
+      "errorprocessing": "Processing error"
     },
     "namespace": "Namespace",
     "info": "Node info",
@@ -144,6 +153,13 @@
     "noPublishers": "No publishers",
     "noSubscribers": "No subscribers",
     "noServers": "No servers",
-    "noClients": "No clients"
+    "noClients": "No clients",
+    "lifecycleControl": "Lifecycle control",
+    "currentState": "Current state",
+    "noTransitions": "No available transitions",
+    "qosDepth": "depth {{count}}",
+    "transitionConfirmTitle": "Confirm transition",
+    "transitionConfirmMessage": "Apply “{{label}}” to {{node}}? The node will stop until restarted.",
+    "applyTransitionConfirm": "Apply"
   }
 }

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { SettingsSection } from '../components/settings/SettingsSection.tsx';
 import { CapabilityGate } from '../components/ros2/CapabilityGate.tsx';
+import { InfoLink } from '../components/common/InfoLink.tsx';
 import { Button } from '@/components/ui/button';
 import { ErrorState } from '../components/common/ErrorState.tsx';
 import { LoadingState } from '../components/common/LoadingState.tsx';
@@ -35,6 +36,7 @@ export function Settings() {
           {config.saveError}
         </span>
       )}
+      <InfoLink docKey="programming.settings" />
       <Button variant="secondary" size="sm" onClick={() => void handleResetAll()}>
         {t('settings.resetAll')}
       </Button>

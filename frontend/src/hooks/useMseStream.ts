@@ -43,7 +43,6 @@ export function useMseStream(
       }, STALL_TIMEOUT_MS);
     };
 
-    /** Cancels the in-flight fetch/reader so no work continues in background. */
     const stopStreaming = () => {
       if (watchdog !== null) window.clearTimeout(watchdog);
       abortController?.abort();
@@ -64,7 +63,6 @@ export function useMseStream(
         sb.addEventListener('updateend', onEnded);
       });
 
-    /** Keeps the SourceBuffer from growing without bound on long streams. */
     const trimBuffer = (sb: SourceBuffer) => {
       if (sb.buffered.length === 0 || sb.updating) return;
       const start = sb.buffered.start(0);
@@ -96,7 +94,9 @@ export function useMseStream(
         resetWatchdog();
 
         const current = sb;
-        if (mediaSource.readyState !== 'open') continue;
+        if (mediaSource.readyState !== 'open') {
+          throw new Error('MediaSource closed');
+        }
         if (current.updating) await waitForUpdateEnd(current);
         if (aborted) break;
 

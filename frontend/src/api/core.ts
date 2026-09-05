@@ -5,6 +5,7 @@ export interface ApiCallOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   body?: unknown;
   timeoutMs?: number;
+  signal?: AbortSignal;
 }
 
 export interface ApiRequest extends ApiCallOptions {
@@ -44,6 +45,7 @@ export function createHttpCall(
         method: options?.method,
         body: options?.body,
         timeoutMs: options?.timeoutMs,
+        signal: options?.signal,
       },
       httpBase,
       url: '',
