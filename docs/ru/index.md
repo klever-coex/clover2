@@ -7,9 +7,9 @@
 
 Assembly
 Setup
-DeveloperTools
-AdditionalEquipment
 Programming
+AdditionalEquipment
+UsefulInformation
 Simulator
 AboutProject
 ```
@@ -42,5 +42,5 @@ AboutProject
 - {doc}`Настройка <Setup>` — калибровка, питание, полётные режимы и радиоаппаратура.
 - {doc}`Симуляция <Simulator>` — запуск дрона в виртуальной среде, без риска для реального аппарата.
 - {doc}`Программирование <Programming>` — подключение к дрону и написание собственной логики полёта.
-- {doc}`Инструменты разработчика <DeveloperTools>` — технологии, на которых построен `clover2`.
+- {doc}`Инструменты разработчика <UsefulInformation>` — технологии, на которых построен `clover2`.
 - {doc}`Описание пакетов <AboutProject/PackageDescription>` — устройство проекта изнутри.

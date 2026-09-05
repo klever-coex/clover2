@@ -10,11 +10,13 @@
 | --- | --- | --- |
 | GET | `/api/topics` | Все топики графа: `{name, type}` |
 | GET | `/api/nodes` | Имена всех нод |
-| GET | `/api/node/info/-/{node...}` | Информация о ноде (namespace, lifecycle-состояние) |
-| GET | `/api/node/publishers/-/{node...}` | Издатели ноды с их QoS-профилями |
-| GET | `/api/node/subscribes/-/{node...}` | Подписчики ноды |
+| GET | `/api/node/info/-/{node...}` | Информация о ноде: имя, неймспейс, признак lifecycle и текущее состояние |
+| GET | `/api/node/publishers/-/{node...}` | Издатели ноды: топик и QoS-профиль |
+| GET | `/api/node/subscribes/-/{node...}` | Подписчики ноды: топик и QoS-профиль |
 | GET | `/api/node/servers/-/{node...}` | Сервисы ноды |
 | GET | `/api/node/clients/-/{node...}` | Клиенты ноды |
+| GET | `/api/node/lifecycle/available_transitions/-/{node...}` | Переходы, доступные из текущего состояния lifecycle-ноды |
+| POST | `/api/node/lifecycle/transition/-/{node...}` | Выполнить переход lifecycle-ноды |
 | WS | `/ws/topic/json/-/{topic...}` | Поток сообщений топика в JSON |
 
 Capabilities: `nodes`, `topics`, `services`.
@@ -22,8 +24,40 @@ Capabilities: `nodes`, `topics`, `services`.
 ## Параметры
 
 | Параметр | По умолчанию | Описание |
-|---|---|---|
+| --- | --- | --- |
 | `ros_support.topics_rate_limit_bps` | `100000.0` | Ограничение скорости потока (байт/с) на одно подключение |
+
+## Управление lifecycle-нодами
+
+Для lifecycle-нод плагин позволяет управлять машиной состояний через REST.
+
+`GET /api/node/lifecycle/available_transitions/-/{node...}` возвращает переходы, доступные из текущего состояния ноды. Каждый переход описан самим переходом и парой состояний (начальное и конечное):
+
+```json
+{
+  "available_transitions": [
+    {
+      "transition": { "label": "configure" },
+      "start_state": { "label": "unconfigured" },
+      "goal_state": { "label": "inactive" }
+    }
+  ]
+}
+```
+
+`POST /api/node/lifecycle/transition/-/{node...}` выполняет переход. Переход задается телом запроса — объектом с полем `label`, например `configure`, `activate`, `deactivate`, `cleanup`, `shutdown`:
+
+```bash
+curl -X POST http://localhost:8080/api/node/lifecycle/transition/-/map_server \
+    -H 'Content-Type: application/json' \
+    -d '{"label": "configure"}'
+```
+
+Возможные коды ответа:
+
+- `200` — переход выполнен;
+- `409` — нода отвергла переход (например, `activate` из состояния `unconfigured`);
+- `502` — не удалось вызвать сервис ноды (нода недоступна).
 
 ## Стриминг сообщений
 
@@ -46,4 +80,3 @@ Capabilities: `nodes`, `topics`, `services`.
 ## Ограничения потока
 
 Подписка создаётся как generic с QoS `best_effort` и глубиной 10 — под нагрузкой сообщения могут пропускаться. Пропускная способность ограничивается по bps для каждого топика (параметр `ros_support.topics_rate_limit_bps`).
-
