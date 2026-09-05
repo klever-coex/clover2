@@ -230,17 +230,37 @@ void system::check_temperature() {
 }
 
 void system::check_network() {
+    std::string selected_interface;
+    std::optional<std::string> selected_ip_address;
+    bool selected_up{};
+    int selected_score{-1};
+
     for (const auto& interface : m_interfaces) {
         const auto state = read_interface_state(interface);
         const bool up = state && *state == "up";
-        const int priority = up ? k_ok_priority : k_warn_priority;
-
         const auto ip_address = read_interface_ipv4_address(interface);
-        const std::string status_message =
-            interface + " " + (ip_address ? *ip_address : std::string{"-"});
 
-        m_callback({priority, "system", "network", status_message});
+        const int score = (up ? 2 : 0) + (ip_address ? 1 : 0);
+        if (score <= selected_score) {
+            continue;
+        }
+
+        selected_interface = interface;
+        selected_ip_address = ip_address;
+        selected_up = up;
+        selected_score = score;
     }
+
+    if (selected_interface.empty()) {
+        return;
+    }
+
+    const int priority = selected_up ? k_ok_priority : k_warn_priority;
+    const std::string status_message =
+        selected_interface + " " +
+        (selected_ip_address ? *selected_ip_address : std::string{"-"});
+
+    m_callback({priority, "system", "network", status_message});
 }
 
 std::optional<system::cpu_sample> system::read_cpu_sample() const {

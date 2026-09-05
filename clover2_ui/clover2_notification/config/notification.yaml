@@ -22,7 +22,7 @@
           - "/Aggregation/FCU"
 
       system:
-        enabled: false
+        enabled: true
         period: 1.0
 
         cpu:
@@ -82,8 +82,7 @@
       status_names:
         - hostname
         - network
-        - cpu
-        - temperature
+        - system
 
       statuses:
         hostname:
@@ -94,6 +93,13 @@
           source: system
           event_name: network
           label: net
+
+        system:
+          type: group
+          items:
+            - cpu
+            - temperature
+          separator: " "
 
         cpu:
           source: system
@@ -108,7 +114,3 @@
       alert:
         enabled: true
         invert_period: 0.5
-
-      notification_overlay:
-        enabled: true
-        duration: 3.0

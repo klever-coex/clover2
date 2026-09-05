@@ -148,6 +148,42 @@ TEST_F(system_provider_test, emits_network_warning_from_fake_interface) {
     provider.cleanup();
 }
 
+TEST_F(system_provider_test, emits_best_available_network_interface) {
+    const auto net_base = m_tmp_dir / "net";
+    write_file(net_base / "wlan0" / "operstate", "down\n");
+    write_file(net_base / "wlan0" / "ipv4_address", "192.168.1.10\n");
+    write_file(net_base / "eth0" / "operstate", "up\n");
+    write_file(net_base / "eth0" / "ipv4_address", "10.0.0.2\n");
+
+    auto options = make_base_options();
+    options.append_parameter_override("providers.system.enabled", true);
+    options.append_parameter_override("providers.system.network.enabled", true);
+    options.append_parameter_override(
+        "providers.system.network.interfaces",
+        std::vector<std::string>{"wlan0", "eth0"});
+    options.append_parameter_override("providers.system.net_base_path",
+                                      net_base.string());
+
+    auto node = std::make_shared<clover2_common::lifecycle_node>(
+        "system_provider_best_net_test", options);
+    std::vector<clover2_notification::data::event> events;
+
+    clover2_notification::provider::system provider;
+    provider.initialize(make_context(*node),
+                        [&events](const clover2_notification::data::event& event) {
+                            events.push_back(event);
+                        });
+
+    rclcpp::spin_some(node->get_node_base_interface());
+
+    ASSERT_EQ(events.size(), 1U);
+    EXPECT_EQ(events[0].priority, 0);
+    EXPECT_EQ(events[0].source, "system");
+    EXPECT_EQ(events[0].name, "network");
+    EXPECT_EQ(events[0].message, "eth0 10.0.0.2");
+    provider.cleanup();
+}
+
 TEST_F(system_provider_test, emits_cpu_usage_status_from_fake_proc_stat) {
     const auto proc_stat = m_tmp_dir / "stat";
     write_file(proc_stat, "cpu  100 0 100 800 0 0 0 0 0 0\n");

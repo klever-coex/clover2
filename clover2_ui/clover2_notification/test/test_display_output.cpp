@@ -102,12 +102,15 @@ protected:
         options.append_parameter_override("display.base_path", "test_display");
         options.append_parameter_override("display.refresh_period", 10.0);
         options.append_parameter_override(
-            "display.notification_overlay.enabled", true);
-        options.append_parameter_override(
-            "display.notification_overlay.duration", 0.1);
-        options.append_parameter_override(
             "display.status_names",
-            std::vector<std::string>{"cpu", "temperature", "network"});
+            std::vector<std::string>{"network", "system"});
+        options.append_parameter_override("display.statuses.system.type",
+                                          "group");
+        options.append_parameter_override(
+            "display.statuses.system.items",
+            std::vector<std::string>{"cpu", "temperature"});
+        options.append_parameter_override("display.statuses.system.separator",
+                                          " ");
         options.append_parameter_override("display.statuses.cpu.source",
                                           "system");
         options.append_parameter_override("display.statuses.cpu.event_name",
@@ -183,11 +186,12 @@ protected:
         "clover2_notification", "clover2_notification::output"};
 };
 
-TEST_F(display_output_test, publishes_status_and_notification_overlay_images) {
+TEST_F(display_output_test, publishes_status_image_and_ignores_unconfigured_events) {
     auto output = m_output_loader.createSharedInstance("display");
     output->initialize(make_context(), "display");
 
     ASSERT_TRUE(wait_for_images(1));
+    size_t image_count{};
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         EXPECT_EQ(m_images.back().width, 128U);
@@ -196,20 +200,15 @@ TEST_F(display_output_test, publishes_status_and_notification_overlay_images) {
         EXPECT_TRUE(is_binary_mono8(m_images.back()));
         EXPECT_TRUE(has_lit_pixels(m_images.back()));
         EXPECT_TRUE(has_dark_pixels(m_images.back()));
+        image_count = m_images.size();
     }
 
     output->push2queue({1, "system", "Network", "wlan0 192.168.1.10"});
+    std::this_thread::sleep_for(200ms);
 
-    ASSERT_TRUE(wait_for_images(2));
     {
         std::lock_guard<std::mutex> lock(m_mutex);
-        EXPECT_EQ(m_images.back().width, 128U);
-        EXPECT_EQ(m_images.back().height, 64U);
-        EXPECT_EQ(m_images.back().encoding, "mono8");
-        EXPECT_FALSE(m_images.back().data.empty());
-        EXPECT_TRUE(is_binary_mono8(m_images.back()));
-        EXPECT_TRUE(has_lit_pixels(m_images.back()));
-        EXPECT_TRUE(has_dark_pixels(m_images.back()));
+        EXPECT_EQ(m_images.size(), image_count);
     }
 
     output->clear();
