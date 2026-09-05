@@ -48,7 +48,7 @@ public:
 
             if (has_default()) return default_value().as<T>();
         } catch (const YAML::BadConversion&) {
-            // Type mismatch — fall through to default
+            // Type mismatch - fall through to default
         }
 
         return T{};
@@ -62,6 +62,8 @@ public:
 
     bool set_enum(const std::string& val);
 
+    void set_from_string(const std::string& text);
+
     const std::vector<std::shared_ptr<config_field>>& children()
         const noexcept {
         return m_children;
@@ -73,6 +75,7 @@ public:
     void mark_clean();
 
     YAML::Node to_yaml_value() const;
+
     void save_to_file(const std::filesystem::path& file) const;
 
     static std::shared_ptr<config_field> load(

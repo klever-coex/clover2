@@ -65,8 +65,8 @@ tracker::CallbackReturn tracker::on_configure(
     auto node_context = std::make_shared<clover2_common::node_context>(*this);
 
     try {
-        m_map_client = std::make_shared<clover2::map::client>(
-            node_context, m_callback_group);
+        m_map_client = std::make_shared<clover2_map::client>(
+            this, m_callback_group);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map client. Exception: %s",
                      e.what());
@@ -116,6 +116,7 @@ tracker::CallbackReturn tracker::on_deactivate(
     m_pose_pub.reset();
     m_pose_cov_pub.reset();
     m_poses_debug_pub.reset();
+    m_tags_pub.reset();
 
     m_tf_listener.reset();
     m_tf_buffer.reset();
@@ -142,9 +143,30 @@ tracker::CallbackReturn tracker::on_shutdown(
 
 void tracker::markers_callback(
     const clover2_pose_msgs::msg::MarkerArray::SharedPtr msg) {
-    auto diagnostic_interface = get_node_diagnostics_interface();
+    if (msg->markers.empty()) {
+        return;
+    }
 
-    if (msg->markers.size() == 0) {
+    std::vector<const clover2_pose_msgs::msg::Marker*> fixed_markers;
+    fixed_markers.reserve(msg->markers.size());
+
+    for (const auto& marker : msg->markers) {
+        if (!m_map_client->has_marker(marker.id)) {
+            RCLCPP_DEBUG(get_logger(),
+                         "Detected marker %d is not in the map, skipping",
+                         marker.id);
+            continue;
+        }
+
+        const auto& map_marker = m_map_client->get_marker(marker.id);
+
+        if (map_marker.type == clover2_map::marker_type::fixed) {
+            fixed_markers.push_back(&marker);
+            continue;
+        }
+    }
+
+    if (fixed_markers.empty()) {
         return;
     }
 
@@ -174,19 +196,21 @@ void tracker::markers_callback(
     geometry_msgs::msg::PoseArray poses_debug;
     poses_debug.header.stamp = msg->header.stamp;
     poses_debug.header.frame_id = m_map_client->get_map_id();
-    poses_debug.poses.reserve(msg->markers.size());
+    poses_debug.poses.reserve(fixed_markers.size());
 
     // temp variables for estimating
     Eigen::Vector3d avg_translation = Eigen::Vector3d::Zero();
     Eigen::Quaterniond avg_quat = Eigen::Quaterniond::Identity();
     Eigen::Vector4d cumulative_q = Eigen::Vector4d::Zero();
 
-    for (const auto& marker : msg->markers) {
+    for (const auto* marker : fixed_markers) {
         Eigen::Isometry3d marker_pose = Eigen::Isometry3d::Identity();
-        tf2::fromMsg(marker.pose.pose, marker_pose);
+        tf2::fromMsg(marker->pose.pose, marker_pose);
+
+        const auto& map_marker = m_map_client->get_marker(marker->id);
 
         Eigen::Isometry3d camera_in_map =
-            m_map_client->get_transform(marker.id) * marker_pose.inverse();
+            *map_marker.pose * marker_pose.inverse();
 
         Eigen::Isometry3d drone_in_map = camera_in_map * camera_transform;
 
@@ -200,8 +224,8 @@ void tracker::markers_callback(
     }
 
     // finalize pose estimation
-    avg_translation /= static_cast<double>(msg->markers.size());
-    cumulative_q /= static_cast<double>(msg->markers.size());
+    avg_translation /= static_cast<double>(fixed_markers.size());
+    cumulative_q /= static_cast<double>(fixed_markers.size());
     avg_quat.coeffs() = cumulative_q.normalized();
 
     // fill pose msg
@@ -224,6 +248,7 @@ void tracker::markers_callback(
     m_pose_cov_pub->publish(estimated_pose_cov);
 
     publish_tf(estimated_pose.header, result_pose.inverse());
+    auto diagnostic_interface = get_node_diagnostics_interface();
     diagnostic_interface->get<diagnostics::pose_task>().update_pose(
         estimated_pose.header.stamp, estimated_pose.pose);
 

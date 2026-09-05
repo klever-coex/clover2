@@ -8,4 +8,5 @@ sphinx-intl
 sphinx-markdown-tables
 sphinx-rtd-theme
 sphinx-simplepdf
+sphinxcontrib-mermaid
 sphinx>=9.0

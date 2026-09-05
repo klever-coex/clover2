@@ -1,1 +1,157 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design tokens — single source of truth.
+ * Semantic layer = shadcn CSS variables below; component code must use
+ * semantic Tailwind classes (bg-background, text-muted-foreground, ...) only.
+ * Raw color values live exclusively in this file.
+ *
+ * Light theme, values sourced from the designer's Figma primitive palette
+ * (W3C design tokens export, "Value"/"Desktop" modes) and expressed in oklch.
+ * Dark text/status steps are the low end of the ramps (12–45), surfaces are
+ * the high end (90–96), mirroring how the designer's scale is built.
+ */
+:root {
+  /* Surfaces & text (light-only theme) */
+  --background: oklch(0.9467 0.0254 261.15); /* blue/94 #E4EEFF — page background */
+  --foreground: oklch(0.2398 0.044 261.04); /* blue/12 #131F34 — primary text */
+  --card: oklch(0.9816 0.0086 264.52); /* blue/96 #F6F9FF — sidebar, panels, cards */
+  --card-foreground: oklch(0.2398 0.044 261.04);
+  --popover: oklch(0.9816 0.0086 264.52); /* blue/96, same as card */
+  --popover-foreground: oklch(0.2398 0.044 261.04);
+  --muted: oklch(0.931 0.033 261.03); /* blue/92 #DCE9FF — hover fills on cards */
+  --muted-foreground: oklch(0.4949 0.0074 255.51); /* cool gray/45 #5F6266 — secondary text */
+
+  /* Brand & actions */
+  --primary: oklch(0.6575 0.2305 32.97); /* brand/Brand A #FF4119 */
+  --primary-foreground: #ffffff;
+  --secondary: oklch(0.9119 0.0425 260.43); /* blue/90 #D2E3FF — chips, secondary buttons */
+  --secondary-foreground: oklch(0.2398 0.044 261.04);
+  --accent: oklch(0.9119 0.0425 260.43); /* subtle hover fill for menu/list items */
+  --accent-foreground: oklch(0.2398 0.044 261.04);
+  --destructive: oklch(0.5804 0.1985 34.4); /* #D63A10 — dark step of the brand hue */
+  --destructive-foreground: #ffffff;
+
+  /* Status (ROS states: lifecycle, logs, connectivity) */
+  --success: oklch(0.4259 0.1083 153.57); /* emerald/35 #005F31 (== brand/Brand B) */
+  --warning: oklch(0.5538 0.1207 66.44); /* #A16207 — not in designer palette yet */
+  --info: oklch(0.4391 0.1369 258.89); /* blue/35 #1C4F9C */
+
+  /* Lines & focus (ring is deliberately muted — brand orange stays on actions) */
+  --border: oklch(0.87 0.0115 269.54); /* cool gray/85 #D1D4DC */
+  --input: oklch(0.6124 0.0083 260.73); /* cool gray/55 #818489 — control borders ≥3:1 */
+  --ring: oklch(0.4391 0.1369 258.89); /* blue/35 #1C4F9C */
+
+  --radius: 0.625rem;
+
+  /* Sidebar (shadcn sidebar tokens mapped to the same palette) */
+  --sidebar: oklch(0.9816 0.0086 264.52);
+  --sidebar-foreground: oklch(0.2398 0.044 261.04);
+  --sidebar-accent: oklch(0.9119 0.0425 260.43);
+  --sidebar-accent-foreground: oklch(0.2398 0.044 261.04);
+  --sidebar-border: oklch(0.87 0.0115 269.54);
+  --sidebar-ring: oklch(0.4391 0.1369 258.89);
+
+  /* JSON / terminal data colors (logo ramp, darkened for light bg) */
+  --json-key: oklch(0.5456 0.1676 282.95); /* purple/45 #665DCD */
+  --json-string: oklch(0.5113 0.1303 153.5); /* emerald/45 #007B41 */
+  --json-null: oklch(0.5804 0.1985 34.4); /* #D63A10 */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-json-key: var(--json-key);
+  --color-json-string: var(--json-string);
+  --color-json-null: var(--json-null);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@theme {
+  /* Fonts (bundled via @fontsource, offline-safe) */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas,
+    monospace;
+
+  /* Type scale */
+  --text-micro: 0.625rem; /* 10px — uppercase labels, numeric previews */
+  --text-micro--line-height: 1.2;
+
+  /* Radius scale by intent */
+  --radius-row: 0.5rem; /* list rows, buttons, inputs */
+  --radius-panel: 0.75rem; /* panels, sidebar items, terminal viewer */
+
+  /* Transition durations */
+  --duration-fast: 200ms; /* hover/focus */
+  --duration-normal: 250ms; /* collapse/expand chevron */
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    /* Removes the tap delay on touch devices without breaking pan/zoom. */
+    touch-action: manipulation;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  ::selection {
+    background: oklch(0.9119 0.0425 260.43); /* blue/90 — calm secondary blue */
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--secondary) transparent;
+    @apply border-border outline-ring/50;
+  }
+}

@@ -23,6 +23,10 @@ variable "PLATFORMS" {
   ]
 }
 
+variable "CACHE_EPOCH" {
+  default = "0"
+}
+
 # Image tags generator
 function "tagged" {
   params = [name]
@@ -98,10 +102,27 @@ target "ros" {
 
   args = {
     ROS_DISTRO = "jazzy"
+    CACHE_EPOCH = CACHE_EPOCH
   }
 
   matrix = {
     tgt = [ "clover2-ros" ]
+  }
+}
+
+# CI only
+target "ros-test" {
+  dockerfile = "docker/ros/Dockerfile"
+  target = "test-results"
+  output = ["type=local,dest=test-results"]
+
+  cache-to = []
+
+  inherits = ["base"]
+
+  args = {
+    ROS_DISTRO = "jazzy"
+    CACHE_EPOCH = CACHE_EPOCH
   }
 }
 

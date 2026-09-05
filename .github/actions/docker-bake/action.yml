@@ -20,6 +20,10 @@ inputs:
     description: Whether to push images to registry
     required: false
     default: 'true'
+  cache-scope:
+    description: Cache scope suffix (defaults to the target name)
+    required: false
+    default: ''
 
 runs:
   using: composite
@@ -30,6 +34,10 @@ runs:
         ghcr-token: ${{ github.token }}
         login: ${{ inputs.push }}
 
+    - id: cache-epoch
+      shell: bash
+      run: echo "CACHE_EPOCH=$(cat docker/cache-epoch)" >> "$GITHUB_OUTPUT"
+
     - name: Build (no push) ${{ inputs.target }}
       if: ${{ inputs.push != 'true' }}
       uses: docker/bake-action@v7
@@ -38,12 +46,14 @@ runs:
         files: docker/docker-bake.hcl
         targets: ${{ inputs.target }}
         push: false
+        provenance: false
         builder: ${{ steps.setup.outputs.builder-name }}
         set: |
-          *.cache-from=type=gha,scope=clover2-${{ inputs.target }}
+          *.cache-from=type=gha,scope=clover2-${{ inputs.cache-scope || inputs.target }}
         vars: |
           REGISTRY=ghcr.io/${{ github.repository_owner }}/clover2/
           BUILD_MODE=${{ inputs.build-mode }}
+          CACHE_EPOCH=${{ steps.cache-epoch.outputs.CACHE_EPOCH }}
           CLOVER2_GIT_HASH=${{ inputs.git-hash }}
           CLOVER2_VERSION=${{ inputs.version || inputs.git-hash }}
 
@@ -57,10 +67,11 @@ runs:
         push: true
         builder: ${{ steps.setup.outputs.builder-name }}
         set: |
-          *.cache-from=type=gha,scope=clover2-${{ inputs.target }}
-          *.cache-to=type=gha,scope=clover2-${{ inputs.target }},mode=max
+          *.cache-from=type=gha,scope=clover2-${{ inputs.cache-scope || inputs.target }}
+          *.cache-to=type=gha,scope=clover2-${{ inputs.cache-scope || inputs.target }},mode=max
         vars: |
           REGISTRY=ghcr.io/${{ github.repository_owner }}/clover2/
           BUILD_MODE=${{ inputs.build-mode }}
+          CACHE_EPOCH=${{ steps.cache-epoch.outputs.CACHE_EPOCH }}
           CLOVER2_GIT_HASH=${{ inputs.git-hash }}
           CLOVER2_VERSION=${{ inputs.version || inputs.git-hash }}

@@ -1,0 +1,35 @@
+name: Test Report
+
+on:
+  workflow_run:
+    workflows: ["Docker Build and Push"]
+    types: [completed]
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  report:
+    runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}
+    if: ${{ github.event.workflow_run.conclusion != 'skipped' && github.event.workflow_run.conclusion != 'cancelled' }}
+    steps:
+      - name: Download test results
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+          name: test-results
+          path: test-results
+          if-no-files-found: warn
+
+      - name: Publish test results
+        uses: dorny/test-reporter@v3
+        with:
+          name: ROS2 tests
+          path: 'test-results/**/*.xml'
+          reporter: java-junit
+          fail-on-error: 'false'
+          fail-on-empty: 'false'

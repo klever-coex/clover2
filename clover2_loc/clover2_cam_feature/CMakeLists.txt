@@ -15,6 +15,7 @@ find_package(diagnostic_msgs REQUIRED)
 find_package(diagnostic_updater REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(image_geometry REQUIRED)
+find_package(image_transport REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
@@ -32,6 +33,7 @@ set(dependencies
   diagnostic_updater
   geometry_msgs
   image_geometry
+  image_transport
   pluginlib
   rclcpp
   rclcpp_components

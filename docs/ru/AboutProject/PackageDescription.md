@@ -6,4 +6,5 @@
 :hidden:
 
 PackageDescription/Clover2Common
+PackageDescription/Clover2HTTP
 ```

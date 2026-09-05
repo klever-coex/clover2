@@ -6,8 +6,9 @@ After=network.target
 Type=simple
 User=pi
 EnvironmentFile=/opt/clover2/.ros2.env
-WorkingDirectory=/opt/clover2/ws
-ExecStart=/opt/clover2/ros2_launch.sh
+ExecStart=/usr/local/bin/clover2_run.sh
+Restart=on-failure
+RestartSec=5s
 StandardOutput=journal
 StandardError=journal
 

@@ -21,7 +21,7 @@ Dev Container — заранее подготовленная среда раз�
 
 ### 1.1. Установка Docker
 
-Воспользуйтесь [документацией по установке Docker](../DeveloperTools/Docker).
+Воспользуйтесь [документацией по установке Docker](../UsefulInformation/Docker).
 
 ---
 

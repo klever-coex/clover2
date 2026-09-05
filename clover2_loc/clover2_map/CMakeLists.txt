@@ -1,66 +1,34 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.20)
 
 project(clover2_map)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_ros REQUIRED)
+find_package(ament_cmake_auto REQUIRED)
 
-find_package(clover2_pose_msgs REQUIRED)
-find_package(clover2_common REQUIRED)
-find_package(diagnostic_msgs REQUIRED)
-find_package(diagnostic_updater REQUIRED)
-find_package(geometry_msgs REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(rclcpp_components REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(tf2_eigen REQUIRED)
-find_package(tf2_geometry_msgs REQUIRED)
-find_package(tf2_ros REQUIRED)
-find_package(yaml-cpp REQUIRED)
+ament_auto_find_build_dependencies()
 
-set(dependencies
-  clover2_pose_msgs
-  clover2_common
-  diagnostic_msgs
-  diagnostic_updater
-  geometry_msgs
-  rclcpp
-  rclcpp_components
-  std_msgs
-  tf2_eigen
-  tf2_geometry_msgs
-  tf2_ros
-)
+ament_auto_add_library(${PROJECT_NAME}_data SHARED DIRECTORY "src/data")
 
-file(GLOB_RECURSE io_sources "src/io/*.cpp")
+ament_auto_add_library(${PROJECT_NAME}_diagnostics SHARED DIRECTORY "src/diagnostics")
+target_link_libraries(${PROJECT_NAME}_diagnostics ${PROJECT_NAME}_data)
 
-clover2_add_library(
-  TARGET clover2_map_server_io
-  SOURCES ${io_sources}
-  LINK_LIBS yaml-cpp
-  DEPENDENCIES ${dependencies}
-)
+ament_auto_add_library(${PROJECT_NAME}_io SHARED DIRECTORY "src/io")
+target_link_libraries(${PROJECT_NAME}_io ${PROJECT_NAME}_data yaml-cpp)
 
-file(GLOB_RECURSE component_sources "src/map/*.cpp")
+ament_auto_add_library(${PROJECT_NAME}_server SHARED "src/server.cpp")
+target_link_libraries(${PROJECT_NAME}_server ${PROJECT_NAME}_io ${PROJECT_NAME}_data)
 
-clover2_add_component_library(
-  TARGET clover2_map_server
-  SOURCES ${component_sources}
-  DEFINES CLOVER2_MAP_SERVER_NODE_BUILDING_LIBRARY
-  LINK_LIBS clover2_map_server_io
-  DEPENDENCIES ${dependencies}
-  COMPONENT_CLASS "clover2::map::server"
-)
-
-clover2_add_executable(
-  TARGET server
-  SOURCES src/main.cpp
-  LINK_LIBS clover2_map_server
-  DEPENDENCIES ${dependencies}
+rclcpp_components_register_node(${PROJECT_NAME}_server
+  PLUGIN "clover2_map::server"
+  EXECUTABLE server
 )
 
 install(
@@ -68,34 +36,6 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
-install(
-  DIRECTORY include/
-  DESTINATION include/${PROJECT_NAME}
+ament_auto_package(
+  USE_SCOPED_HEADER_INSTALL_DIR
 )
-
-install(
-  TARGETS server
-  DESTINATION lib/${PROJECT_NAME}
-)
-
-install(
-  TARGETS clover2_map_server_io clover2_map_server
-  EXPORT export_${PROJECT_NAME}
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
-
-ament_export_include_directories("include/${PROJECT_NAME}")
-ament_export_libraries(clover2_map_server clover2_map_server_io)
-ament_export_targets(export_${PROJECT_NAME})
-ament_export_dependencies(${dependencies})
-
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  set(ament_cmake_copyright_FOUND TRUE)
-  set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
-endif()
-
-ament_package()

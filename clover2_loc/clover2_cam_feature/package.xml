@@ -18,6 +18,7 @@
   <depend>diagnostic_updater</depend>
   <depend>geometry_msgs</depend>
   <depend>image_geometry</depend>
+  <depend>image_transport</depend>
   <depend>libopencv-dev</depend>
   <depend>pluginlib</depend>
   <depend>rclcpp</depend>

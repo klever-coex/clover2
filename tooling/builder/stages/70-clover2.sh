@@ -5,7 +5,7 @@ CLOVER2_WS_DIR="/opt/clover2/ws"
 cd "$CLOVER2_WS_DIR" || exit
 /bin/bash -c "cd $CLOVER2_WS_DIR/src/clover2 && make clover2-devtool-install-repos"
 /bin/bash -c "cd $CLOVER2_WS_DIR && source /opt/ros/$ROS_DISTRO/setup.bash && rosdep install -y --from-paths src --ignore-src --skip-keys=libcamera"
-/bin/bash -c "cd $CLOVER2_WS_DIR && source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --symlink-install"
+/bin/bash -c "cd $CLOVER2_WS_DIR && source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --symlink-install --cmake-args -DBUILD_TESTING=0"
 
 log_info "Add clover2 project to bashrc"
 echo "source $CLOVER2_WS_DIR/install/setup.bash" >> ~/.bashrc
@@ -14,7 +14,7 @@ cat >> ~/.bashrc <<'EOF'
 clover2-settings() {
     ros2 run clover2_ui settings \
         "$(ros2 pkg prefix clover2_bringup --share)/schemas/klever5.yaml" \
-        /opt/clover2/.config.yaml
+        "$CLOVER2_CONFIG_FILE" # CLOVER2_CONFIG_FILE sets in ros2.env file
 }
 EOF
 
@@ -29,7 +29,8 @@ get_ros_pkg_share() {
 
 log_info "Install some scripts"
 sudo cp $ASSETS_DIR/clover2_firstboot.sh /root/
-sudo cp $ASSETS_DIR/ros2_launch.sh /opt/clover2/
+sudo cp $ASSETS_DIR/bin/* /usr/local/bin/
+
 cp $ASSETS_DIR/ros2.env /opt/clover2/.ros2.env
 cp $REPO_DIR/tooling/configs/cyclonedds.xml /opt/clover2/cyclonedds.xml
 cp $REPO_DIR/tooling/configs/cyclonedds_lo.xml /opt/clover2/cyclonedds_lo.xml
@@ -41,7 +42,7 @@ sudo mkdir /var/log/clover2
 sudo chmod 755 /var/log/clover2
 
 sudo chmod +x /root/clover2_firstboot.sh
-sudo chmod +x /opt/clover2/ros2_launch.sh
+sudo chmod +x /usr/local/bin/clover2_*.sh
 
 log_info "Install clover2 services"
 sudo cp $ASSETS_DIR/systemd/* /etc/systemd/system/
