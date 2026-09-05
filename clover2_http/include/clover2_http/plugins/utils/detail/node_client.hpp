@@ -69,6 +69,9 @@ private:
     void transition_callback(
         const lifecycle_msgs::msg::TransitionEvent::SharedPtr msg);
 
+    uint8_t resolve_transition_id(
+        const data::lifecycle_transition& transition) const;
+
     std::vector<data::topic_endpoint> endpoints(bool publishers) const;
     std::vector<data::service_endpoint> service_endpoints(bool servers) const;
 

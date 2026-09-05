@@ -23,6 +23,7 @@ static const std::unordered_map<std::string, uint8_t> ids = {
      lifecycle_msgs::msg::Transition::TRANSITION_INACTIVE_SHUTDOWN},
     {"active_shutdown",
      lifecycle_msgs::msg::Transition::TRANSITION_ACTIVE_SHUTDOWN},
+    {"shutdown", lifecycle_msgs::msg::Transition::TRANSITION_CREATE},
     {"destroy", lifecycle_msgs::msg::Transition::TRANSITION_DESTROY},
 };
 
