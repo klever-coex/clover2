@@ -21,7 +21,7 @@ graph_listener::graph_listener(
     m_event = m_node_context->get_node_graph_interface()->get_graph_event();
 
     m_timer = rclcpp::create_wall_timer(
-        std::chrono::seconds(5),  //
+        std::chrono::seconds(2),  //
         [this]() {
             m_timer->cancel();
 

@@ -53,7 +53,8 @@ public:
      * @brief Registers a GET route.
      *
      * @tparam Resp JSON compatable response type.
-     * @tparam HandlerT void(core::request_context, endpoint::deferred_reply<Resp>).
+     * @tparam HandlerT void(core::request_context,
+     * endpoint::deferred_reply<Resp>).
      *
      * @param path Route pattern.
      * @param handler Handler invoked for the route.
@@ -243,8 +244,8 @@ private:
     template <typename Req, typename Resp, typename Handler>
     void add_http_route(boost::beast::http::verb method,
                         const std::string& path, Handler handler) {
-        auto ep =
-            std::make_unique<endpoint::adapter<Req, Resp>>(std::move(handler));
+        auto ep = std::make_unique<endpoint::adapter<Req, Resp>>(
+            std::move(handler), m_logger);
         m_router->add_http_route(method, path, std::move(ep));
     }
 

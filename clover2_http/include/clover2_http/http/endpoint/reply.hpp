@@ -139,4 +139,26 @@ private:
     std::shared_ptr<reply<T>> m_inner;
 };
 
+template <>
+class deferred_reply<void> {
+public:
+    explicit deferred_reply(std::shared_ptr<reply<void>> inner)
+        : m_inner(std::move(inner)) {}
+
+    void done(int status = 200) {
+        m_inner->done(status);
+    }
+
+    std::string header(std::string_view name) const {
+        return m_inner->header(name);
+    }
+
+    void header(std::string_view name, std::string_view value) const {
+        m_inner->header(name, value);
+    }
+
+private:
+    std::shared_ptr<reply<void>> m_inner;
+};
+
 }  // namespace clover2_http::http::endpoint

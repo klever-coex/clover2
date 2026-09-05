@@ -2,25 +2,36 @@
 
 // clover2
 #include <clover2_common/node_context.hpp>
+#include <clover2_http/plugins/data/lifecycle_state.hpp>
+#include <clover2_http/plugins/data/lifecycle_transition.hpp>
+#include <clover2_http/plugins/data/lifecycle_transition_description.hpp>
 #include <clover2_http/plugins/data/node_info.hpp>
 #include <clover2_http/plugins/data/service_endpoint.hpp>
 #include <clover2_http/plugins/data/topic_endpoint.hpp>
 
 // ROS2
+#include <rclcpp/callback_group.hpp>
 #include <rclcpp/client.hpp>
 #include <rclcpp/subscription.hpp>
 
 // msgs
-#include <lifecycle_msgs/msg/transition.hpp>
+#include <lifecycle_msgs/msg/transition_event.hpp>
+#include <lifecycle_msgs/srv/change_state.hpp>
+#include <lifecycle_msgs/srv/get_available_transitions.hpp>
 #include <lifecycle_msgs/srv/get_state.hpp>
 
+#include <optional>
 #include <string>
 #include <string_view>
 
 namespace clover2_http::plugins::utils::detail {
 
-class node_client {
+class node_client : public std::enable_shared_from_this<node_client> {
 public:
+    using transition_cb = std::function<void(bool, const std::string&)>;
+    using available_transitions_cb = std::function<void(
+        const std::vector<data::lifecycle_transition_description>&)>;
+
     explicit node_client(
         rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_base,
         rclcpp::node_interfaces::NodeGraphInterface::SharedPtr node_graph,
@@ -50,11 +61,18 @@ public:
     std::vector<data::service_endpoint> get_servers() const;
     std::vector<data::service_endpoint> get_clients() const;
 
+    void transition(const data::lifecycle_transition& transition,
+                    transition_cb&& cb);
+    void get_available_transitions(available_transitions_cb&& cb);
+
 private:
-    void transition_cb(const lifecycle_msgs::msg::Transition::SharedPtr msg);
+    void transition_callback(
+        const lifecycle_msgs::msg::TransitionEvent::SharedPtr msg);
 
     std::vector<data::topic_endpoint> endpoints(bool publishers) const;
     std::vector<data::service_endpoint> service_endpoints(bool servers) const;
+
+    rclcpp::Logger get_logger() const { return m_logger; }
 
     rclcpp::node_interfaces::NodeBaseInterface::SharedPtr m_node_base;
     rclcpp::node_interfaces::NodeGraphInterface::SharedPtr m_node_graph;
@@ -67,12 +85,20 @@ private:
     std::string m_name;
     std::string m_ns;
     bool m_lifecycle;
-    std::string m_state;
     std::string m_full_name;
+    std::optional<data::lifecycle_state> m_state;
 
-    rclcpp::Client<lifecycle_msgs::srv::GetState>::SharedPtr m_get_state_client;
-    rclcpp::Subscription<lifecycle_msgs::msg::Transition>::SharedPtr
+    rclcpp::Logger m_logger = rclcpp::get_logger("node_client");
+
+    rclcpp::CallbackGroup::SharedPtr m_lifecycle_cb_group;
+
+    rclcpp::Subscription<lifecycle_msgs::msg::TransitionEvent>::SharedPtr
         m_transition_sub;
+    rclcpp::Client<lifecycle_msgs::srv::GetState>::SharedPtr m_get_state_client;
+    rclcpp::Client<lifecycle_msgs::srv::GetAvailableTransitions>::SharedPtr
+        m_get_available_transitions_client;
+    rclcpp::Client<lifecycle_msgs::srv::ChangeState>::SharedPtr
+        m_change_state_client;
 };
 
 }  // namespace clover2_http::plugins::utils::detail

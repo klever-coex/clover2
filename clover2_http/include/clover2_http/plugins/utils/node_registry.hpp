@@ -16,15 +16,19 @@
 
 namespace clover2_http::plugins::utils {
 
-class node_info_storage {
+class node_registry {
     using node_info = clover2_http::plugins::data::node_info;
     using service_endpoint = clover2_http::plugins::data::service_endpoint;
     using topic_endpoint = clover2_http::plugins::data::topic_endpoint;
 
+    using transition_cb = detail::node_client::transition_cb;
+    using available_transitions_cb =
+        detail::node_client::available_transitions_cb;
+
 public:
-    explicit node_info_storage(
+    explicit node_registry(
         std::shared_ptr<clover2_common::node_context> ctx);
-    ~node_info_storage() = default;
+    ~node_registry() = default;
 
     void update();
 
@@ -40,6 +44,12 @@ public:
         const std::string& full_name) const;
     std::vector<service_endpoint> get_clients(
         const std::string& full_name) const;
+
+    void transition(const std::string& full_name,
+                    const data::lifecycle_transition& transition,
+                    transition_cb&& cb);
+    void get_available_transitions(const std::string& full_name,
+                                   available_transitions_cb&& cb);
 
 private:
     std::shared_ptr<detail::node_client> find_client(

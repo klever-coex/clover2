@@ -171,7 +171,7 @@ void http_session::handle_request() {
         send_error(e.status(), e.message());
     } catch (const std::exception& e) {
         m_logger->error("Exception in request handling: {}", e.what());
-        send_error(500, "Internal Server Error");
+        send_error(500, "Fatal Server Error");
     }
 }
 

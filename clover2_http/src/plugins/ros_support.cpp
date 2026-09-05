@@ -1,6 +1,8 @@
 // clover2
 #include <clover2_common/util/parameter.hpp>
 #include <clover2_http/plugin.hpp>
+#include <clover2_http/plugins/data/lifecycle_available_transitions.hpp>
+#include <clover2_http/plugins/data/lifecycle_transition.hpp>
 #include <clover2_http/plugins/data/node_info.hpp>
 #include <clover2_http/plugins/data/node_services.hpp>
 #include <clover2_http/plugins/data/node_topics.hpp>
@@ -10,7 +12,7 @@
 #include <clover2_http/plugins/utils/graph_listener.hpp>
 #include <clover2_http/plugins/utils/message_type.hpp>
 #include <clover2_http/plugins/utils/msg_json.hpp>
-#include <clover2_http/plugins/utils/node_info_storage.hpp>
+#include <clover2_http/plugins/utils/node_registry.hpp>
 #include <clover2_http/plugins/utils/rate_limiter.hpp>
 #include <clover2_http/plugins/utils/universal_subscriber.hpp>
 
@@ -37,23 +39,44 @@ protected:
 private:
     void handle_nodes(
         clover2_http::http::core::request_context ctx,
-        clover2_http::http::endpoint::deferred_reply<data::nodes> reply);
+        clover2_http::http::endpoint::deferred_reply<data::nodes> reply) const;
 
     void handle_node_info(
         clover2_http::http::core::request_context ctx,
-        clover2_http::http::endpoint::deferred_reply<data::node_info> reply);
+        clover2_http::http::endpoint::deferred_reply<data::node_info> reply)
+        const;
+
+    void handle_node_topics(
+        clover2_http::http::core::request_context ctx,
+        clover2_http::http::endpoint::deferred_reply<data::node_topics> reply,
+        bool publishers) const;
+
+    void handle_node_services(
+        clover2_http::http::core::request_context ctx,
+        clover2_http::http::endpoint::deferred_reply<data::node_services> reply,
+        bool servers) const;
 
     void handle_topics(
         clover2_http::http::core::request_context ctx,
-        clover2_http::http::endpoint::deferred_reply<data::topics> reply);
+        clover2_http::http::endpoint::deferred_reply<data::topics> reply) const;
 
     void handle_topic_json_stream(
         std::shared_ptr<clover2_http::http::transport::base_ws_session>
             session);
 
+    void handle_lifecycle_available_transitions(
+        clover2_http::http::core::request_context ctx,
+        clover2_http::http::endpoint::deferred_reply<
+            data::lifecycle_available_transitions>
+            reply) const;
+
+    void handle_lifecycle_transition(
+        clover2_http::http::core::request_context ctx, lifecycle_transition req,
+        clover2_http::http::endpoint::deferred_reply<void> reply);
+
     double m_rate_limit = 100000.0;
-    std::shared_ptr<clover2_http::plugins::utils::node_info_storage>
-        m_node_info_storage;
+    std::shared_ptr<clover2_http::plugins::utils::node_registry>
+        m_node_registry;
     std::shared_ptr<clover2_http::plugins::utils::graph_listener>
         m_graph_listener;
 };
@@ -102,7 +125,7 @@ std::optional<nlohmann::json> deserialize_message(
 
         state->type.deallocate(msg);
     } catch (const std::exception& e) {
-        j = nlohmann::json{{"error", e.what()}};
+        j = nlohmann::json{{"__error", e.what()}};
     }
 
     return j;
@@ -114,14 +137,13 @@ void ros_support::on_initialize() {
     auto parameters_watcher =
         m_node_context->get_node_parameters_watcher_interface();
 
-    m_node_info_storage =
-        std::make_shared<utils::node_info_storage>(m_node_context);
+    m_node_registry = std::make_shared<utils::node_registry>(m_node_context);
 
     m_graph_listener =
         std::make_shared<clover2_http::plugins::utils::graph_listener>(
             m_node_context, [this]() {
                 RCLCPP_INFO(get_logger(), "Update graph signal");
-                m_node_info_storage->update();
+                m_node_registry->update();
             });
 
     clover2_common::util::declare_and_watch_parameter<double>(
@@ -144,67 +166,34 @@ void ros_support::on_initialize() {
 
     m_server->get<node_topics>(
         "/api/node/publishers/-/{node...}",
-        [this](
-            clover2_http::http::core::request_context ctx,
-            clover2_http::http::endpoint::deferred_reply<node_topics> reply) {
-            std::string node_name = ctx.param<std::string>("node");
-            if (node_name.empty() || node_name.front() != '/') {
-                node_name.insert(node_name.begin(), '/');
-            }
-
-            node_topics response;
-            response.topics = m_node_info_storage->get_publishers(node_name);
-
-            reply(std::move(response), 200);
-        });
+        std::bind(&ros_support::handle_node_topics, this, std::placeholders::_1,
+                  std::placeholders::_2, true));
 
     m_server->get<node_topics>(
         "/api/node/subscribes/-/{node...}",
-        [this](
-            clover2_http::http::core::request_context ctx,
-            clover2_http::http::endpoint::deferred_reply<node_topics> reply) {
-            std::string node_name = ctx.param<std::string>("node");
-            if (node_name.empty() || node_name.front() != '/') {
-                node_name.insert(node_name.begin(), '/');
-            }
-
-            node_topics response;
-            response.topics = m_node_info_storage->get_subscribes(node_name);
-
-            reply(std::move(response), 200);
-        });
+        std::bind(&ros_support::handle_node_topics, this, std::placeholders::_1,
+                  std::placeholders::_2, false));
 
     m_server->get<node_services>(
         "/api/node/servers/-/{node...}",
-        [this](
-            clover2_http::http::core::request_context ctx,
-            clover2_http::http::endpoint::deferred_reply<node_services> reply) {
-            std::string node_name = ctx.param<std::string>("node");
-            if (node_name.empty() || node_name.front() != '/') {
-                node_name.insert(node_name.begin(), '/');
-            }
-
-            node_services response;
-            response.services = m_node_info_storage->get_servers(node_name);
-
-            reply(std::move(response), 200);
-        });
+        std::bind(&ros_support::handle_node_services, this,
+                  std::placeholders::_1, std::placeholders::_2, true));
 
     m_server->get<node_services>(
         "/api/node/clients/-/{node...}",
-        [this](
-            clover2_http::http::core::request_context ctx,
-            clover2_http::http::endpoint::deferred_reply<node_services> reply) {
-            std::string node_name = ctx.param<std::string>("node");
-            if (node_name.empty() || node_name.front() != '/') {
-                node_name.insert(node_name.begin(), '/');
-            }
+        std::bind(&ros_support::handle_node_services, this,
+                  std::placeholders::_1, std::placeholders::_2, false));
 
-            node_services response;
-            response.services = m_node_info_storage->get_clients(node_name);
+    m_server->get<lifecycle_available_transitions>(
+        "/api/node/lifecycle/available_transitions/-/{node...}",
+        std::bind(&ros_support::handle_lifecycle_available_transitions, this,
+                  std::placeholders::_1, std::placeholders::_2));
 
-            reply(std::move(response), 200);
-        });
+    m_server->post<lifecycle_transition, void>(
+        "/api/node/lifecycle/transition/-/{node...}",
+        std::bind(&ros_support::handle_lifecycle_transition, this,
+                  std::placeholders::_1, std::placeholders::_2,
+                  std::placeholders::_3));
 
     m_server->raw_ws("/ws/topic/json/-/{topic...}",
                      std::bind(&ros_support::handle_topic_json_stream, this,
@@ -223,24 +212,24 @@ std::vector<std::string> ros_support::capabilities() const {
 
 void ros_support::handle_nodes(
     [[maybe_unused]] clover2_http::http::core::request_context ctx,
-    clover2_http::http::endpoint::deferred_reply<nodes> reply) {
+    clover2_http::http::endpoint::deferred_reply<nodes> reply) const {
     nodes response;
 
-    response.nodes = m_node_info_storage->names();
+    response.nodes = m_node_registry->names();
 
     reply(std::move(response), 200);
 }
 
 void ros_support::handle_node_info(
     [[maybe_unused]] clover2_http::http::core::request_context ctx,
-    clover2_http::http::endpoint::deferred_reply<node_info> reply) {
+    clover2_http::http::endpoint::deferred_reply<node_info> reply) const {
     std::string node_name = ctx.param<std::string>("node");
     if (node_name.empty() || node_name.front() != '/') {
         node_name.insert(node_name.begin(), '/');
     }
 
     try {
-        node_info response = m_node_info_storage->get_info(node_name);
+        node_info response = m_node_registry->get_info(node_name);
 
         reply(std::move(response), 200);
     } catch (const std::exception& e) {
@@ -249,9 +238,47 @@ void ros_support::handle_node_info(
     }
 }
 
+void ros_support::handle_node_topics(
+    [[maybe_unused]] clover2_http::http::core::request_context ctx,
+    clover2_http::http::endpoint::deferred_reply<data::node_topics> reply,
+    bool publishers) const {
+    std::string node_name = ctx.param<std::string>("node");
+    if (node_name.empty() || node_name.front() != '/') {
+        node_name.insert(node_name.begin(), '/');
+    }
+
+    node_topics response;
+    if (publishers) {
+        response.topics = m_node_registry->get_publishers(node_name);
+    } else {
+        response.topics = m_node_registry->get_subscribes(node_name);
+    }
+
+    reply(std::move(response), 200);
+}
+
+void ros_support::handle_node_services(
+    [[maybe_unused]] clover2_http::http::core::request_context ctx,
+    clover2_http::http::endpoint::deferred_reply<data::node_services> reply,
+    bool servers) const {
+    std::string node_name = ctx.param<std::string>("node");
+    if (node_name.empty() || node_name.front() != '/') {
+        node_name.insert(node_name.begin(), '/');
+    }
+
+    node_services response;
+    if (servers) {
+        response.services = m_node_registry->get_servers(node_name);
+    } else {
+        response.services = m_node_registry->get_clients(node_name);
+    }
+
+    reply(std::move(response), 200);
+}
+
 void ros_support::handle_topics(
     [[maybe_unused]] clover2_http::http::core::request_context ctx,
-    clover2_http::http::endpoint::deferred_reply<topics> reply) {
+    clover2_http::http::endpoint::deferred_reply<topics> reply) const {
     topics response;
     const auto graph = m_node_context->get_node_graph_interface();
 
@@ -276,7 +303,7 @@ void ros_support::handle_topic_json_stream(
         const auto topics_and_types = graph->get_topic_names_and_types();
         const auto found = topics_and_types.find(topic);
         if (found == topics_and_types.end() || found->second.empty()) {
-            session->write_text(R"({"error":"unknown topic"})");
+            session->write_text(R"({"__error":"unknown topic"})");
             session->close(1008);
             return;
         }
@@ -303,9 +330,56 @@ void ros_support::handle_topic_json_stream(
 
         session->start_reading();
     } catch (const std::exception& e) {
-        session->write_text(nlohmann::json{{"error", e.what()}}.dump());
+        session->write_text(nlohmann::json{{"__error", e.what()}}.dump());
         session->close(1011);
     }
+}
+
+void ros_support::handle_lifecycle_available_transitions(
+    [[maybe_unused]] clover2_http::http::core::request_context ctx,
+    clover2_http::http::endpoint::deferred_reply<
+        data::lifecycle_available_transitions>
+        reply) const {
+    std::string node_name = ctx.param<std::string>("node");
+    if (node_name.empty() || node_name.front() != '/') {
+        node_name.insert(node_name.begin(), '/');
+    }
+
+    m_node_registry->get_available_transitions(
+        node_name,
+        [reply = std::move(reply)](
+            const std::vector<data::lifecycle_transition_description>&
+                transitions) {
+            lifecycle_available_transitions response;
+            response.available_transitions = transitions;
+
+            reply(std::move(response), 200);
+        });
+}
+
+void ros_support::handle_lifecycle_transition(
+    [[maybe_unused]] clover2_http::http::core::request_context ctx,
+    lifecycle_transition req,
+    clover2_http::http::endpoint::deferred_reply<void> reply) {
+    std::string node_name = ctx.param<std::string>("node");
+    if (node_name.empty() || node_name.front() != '/') {
+        node_name.insert(node_name.begin(), '/');
+    }
+
+    m_node_registry->transition(
+        node_name, req,
+        [reply = std::move(reply)](bool success,
+                                   const std::string& error) mutable {
+            if (success) {
+                reply.done(200);
+            } else {
+                if (error.empty()) {
+                    reply.done(409);
+                } else {
+                    reply.done(502);
+                }
+            }
+        });
 }
 
 }  // namespace clover2_http::plugins
