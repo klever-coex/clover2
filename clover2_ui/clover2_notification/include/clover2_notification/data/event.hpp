@@ -5,6 +5,9 @@
 
 #pragma once
 
+// clover2
+#include <clover2_notification/data/priority.hpp>
+
 // STL
 #include <compare>
 #include <string>
@@ -16,7 +19,11 @@ namespace clover2_notification::data {
  * @brief Notification event emitted by providers and consumed by outputs.
  */
 struct event {
-    /** @brief Event priority. Higher values are processed first by outputs. */
+    /**
+     * @brief Event priority. Higher values are processed first by outputs.
+     *
+     * Standard status events use values from data::priority.
+     */
     int priority{};
 
     /** @brief Event source identifier, for example a provider name. */

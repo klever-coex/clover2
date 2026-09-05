@@ -38,6 +38,19 @@ bool has_dark_pixels(const sensor_msgs::msg::Image& image) {
                        [](const auto pixel) { return pixel == 0; });
 }
 
+bool has_lit_pixels_in_rows(const sensor_msgs::msg::Image& image,
+                            uint32_t first_row, uint32_t last_row) {
+    for (uint32_t y = first_row; y <= last_row && y < image.height; ++y) {
+        for (uint32_t x = 0; x < image.width; ++x) {
+            if (image.data[y * image.step + x] == 255) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 bool are_inverted(const sensor_msgs::msg::Image& lhs,
                   const sensor_msgs::msg::Image& rhs) {
     return lhs.width == rhs.width && lhs.height == rhs.height &&
@@ -97,7 +110,7 @@ protected:
         m_executor.remove_node(m_fake_driver);
     }
 
-    rclcpp::NodeOptions make_options() const {
+    virtual rclcpp::NodeOptions make_options() const {
         rclcpp::NodeOptions options;
         options.append_parameter_override("display.base_path", "test_display");
         options.append_parameter_override("display.refresh_period", 10.0);
@@ -126,8 +139,7 @@ protected:
                                           "system");
         options.append_parameter_override("display.statuses.network.event_name",
                                           "network");
-        options.append_parameter_override("display.statuses.network.label",
-                                          "");
+        options.append_parameter_override("display.statuses.network.label", "");
         options.append_parameter_override("display.alert.enabled", true);
         options.append_parameter_override("display.alert.invert_period", 0.1);
         return options;
@@ -150,9 +162,8 @@ protected:
         });
     }
 
-    bool wait_for_inverted_image(
-        const sensor_msgs::msg::Image& reference_image,
-        const std::chrono::milliseconds timeout = 2s) {
+    bool wait_for_inverted_image(const sensor_msgs::msg::Image& reference_image,
+                                 const std::chrono::milliseconds timeout = 2s) {
         std::unique_lock<std::mutex> lock(m_mutex);
         return m_cv.wait_for(lock, timeout, [this, &reference_image]() {
             return !m_images.empty() &&
@@ -160,12 +171,12 @@ protected:
         });
     }
 
-    bool wait_for_matching_image(
-        const sensor_msgs::msg::Image& reference_image,
-        const std::chrono::milliseconds timeout = 2s) {
+    bool wait_for_matching_image(const sensor_msgs::msg::Image& reference_image,
+                                 const std::chrono::milliseconds timeout = 2s) {
         std::unique_lock<std::mutex> lock(m_mutex);
         return m_cv.wait_for(lock, timeout, [this, &reference_image]() {
-            return !m_images.empty() && m_images.back().data == reference_image.data;
+            return !m_images.empty() &&
+                   m_images.back().data == reference_image.data;
         });
     }
 
@@ -186,7 +197,41 @@ protected:
         "clover2_notification", "clover2_notification::output"};
 };
 
-TEST_F(display_output_test, publishes_status_image_and_ignores_unconfigured_events) {
+class custom_layout_display_output_test : public display_output_test {
+protected:
+    rclcpp::NodeOptions make_options() const override {
+        auto options = display_output_test::make_options();
+        options.append_parameter_override("display.layout.margin.left", 30);
+        options.append_parameter_override("display.layout.title.baseline_y",
+                                          20);
+        options.append_parameter_override(
+            "display.layout.statuses.first_baseline_y", 40);
+        return options;
+    }
+};
+
+class invalid_layout_display_output_test : public display_output_test {
+protected:
+    rclcpp::NodeOptions make_options() const override {
+        auto options = display_output_test::make_options();
+        options.append_parameter_override("display.layout.font.scale", 0.0);
+        return options;
+    }
+};
+
+class wrapped_status_display_output_test : public display_output_test {
+protected:
+    rclcpp::NodeOptions make_options() const override {
+        auto options = display_output_test::make_options();
+        options.append_parameter_override("display.status_names",
+                                          std::vector<std::string>{"network"});
+        options.append_parameter_override("display.alert.enabled", false);
+        return options;
+    }
+};
+
+TEST_F(display_output_test,
+       publishes_status_image_and_ignores_unconfigured_events) {
     auto output = m_output_loader.createSharedInstance("display");
     output->initialize(make_context(), "display");
 
@@ -210,6 +255,50 @@ TEST_F(display_output_test, publishes_status_image_and_ignores_unconfigured_even
         std::lock_guard<std::mutex> lock(m_mutex);
         EXPECT_EQ(m_images.size(), image_count);
     }
+
+    output->clear();
+    output.reset();
+}
+
+TEST_F(custom_layout_display_output_test,
+       renders_text_at_configured_positions) {
+    auto output = m_output_loader.createSharedInstance("display");
+    output->initialize(make_context(), "display");
+
+    ASSERT_TRUE(wait_for_images(1));
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        const auto& image = m_images.back();
+        for (uint32_t y = 0; y < image.height; ++y) {
+            for (uint32_t x = 0; x < 30U; ++x) {
+                EXPECT_EQ(image.data[y * image.step + x], 0);
+            }
+        }
+    }
+
+    output->clear();
+    output.reset();
+}
+
+TEST_F(invalid_layout_display_output_test,
+       rejects_invalid_layout_configuration) {
+    auto output = m_output_loader.createSharedInstance("display");
+    EXPECT_THROW(output->initialize(make_context(), "display"),
+                 std::invalid_argument);
+}
+
+TEST_F(wrapped_status_display_output_test,
+       wraps_long_status_messages_onto_following_lines) {
+    auto output = m_output_loader.createSharedInstance("display");
+    output->initialize(make_context(), "display");
+
+    ASSERT_TRUE(wait_for_images(1));
+    output->push2queue(
+        {0, "system", "network", "wlan0 address 192 168 1 10 connected"});
+    ASSERT_TRUE(wait_for_images(2));
+
+    std::lock_guard<std::mutex> lock(m_mutex);
+    EXPECT_TRUE(has_lit_pixels_in_rows(m_images.back(), 23, 30));
 
     output->clear();
     output.reset();

@@ -155,6 +155,27 @@ public:
         call_animation(req);
     }
 
+    void call_animation(
+        const std::shared_ptr<clover2_led_msgs::srv::StartAnimation::Request>&
+            request) {
+        if (!m_start_animation_client->wait_for_service(
+                std::chrono::milliseconds(1000))) {
+            throw std::runtime_error("start_animation service not available");
+        }
+
+        auto future = m_start_animation_client->async_send_request(request);
+        auto status = future.wait_for(std::chrono::milliseconds(1000));
+        if (status != std::future_status::ready) {
+            throw std::runtime_error("Timeout waiting for start_animation");
+        }
+
+        auto response = future.get();
+        if (!response->success) {
+            throw std::runtime_error("start_animation failed: " +
+                                     response->message);
+        }
+    }
+
     rclcpp::Publisher<clover2_led_msgs::msg::LedFrame>::SharedPtr
     get_publisher() const {
         return m_frame_pub;
@@ -173,26 +194,6 @@ private:
             return name;
         }
         return m_base_path + "/" + name;
-    }
-
-    void call_animation(
-        std::shared_ptr<clover2_led_msgs::srv::StartAnimation::Request> req) {
-        if (!m_start_animation_client->wait_for_service(
-                std::chrono::milliseconds(1000))) {
-            throw std::runtime_error("start_animation service not available");
-        }
-
-        auto future = m_start_animation_client->async_send_request(req);
-        auto status = future.wait_for(std::chrono::milliseconds(1000));
-        if (status != std::future_status::ready) {
-            throw std::runtime_error("Timeout waiting for start_animation");
-        }
-
-        auto resp = future.get();
-        if (!resp->success) {
-            throw std::runtime_error("start_animation failed: " +
-                                     resp->message);
-        }
     }
 
     void update_driver_info() {

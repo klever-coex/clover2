@@ -3,14 +3,20 @@
     <arg name="ns" default="" />
 
     <arg name="led_strip" default="true" />
+    <arg name="display" default="true" />
     <arg name="start_delay" default="5.0" />
 
     <timer period="$(var start_delay)">
         <node pkg="clover2_notification" exec="notification" name="notification"
-              namespace="$(var ns)" if="$(var led_strip)">
+              namespace="$(var ns)">
             <param name="use_sim_time" value="$(var use_sim_time)" />
             <param from="$(find-pkg-share clover2_notification)/config/notification.yaml" />
+            <param from="$(find-pkg-share clover2_notification)/config/providers/diagnostics.yaml" />
+            <param from="$(find-pkg-share clover2_notification)/config/providers/system.yaml" />
+            <param from="$(find-pkg-share clover2_notification)/config/outputs/led_strip.yaml" />
+            <param from="$(find-pkg-share clover2_notification)/config/outputs/display.yaml" />
             <param name="led_strip.enabled" value="$(var led_strip)" />
+            <param name="display.enabled" value="$(var display)" />
         </node>
     </timer>
 </launch>

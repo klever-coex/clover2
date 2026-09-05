@@ -83,7 +83,7 @@ protected:
         auto options = make_base_options();
         options.append_parameter_override(
             "led_strip.reaction_names",
-            std::vector<std::string>{"test_warning", "power"});
+            std::vector<std::string>{"test_warning", "power", "custom"});
         options.append_parameter_override(
             "led_strip.reactions.test_warning.event_name", "Test warning");
         options.append_parameter_override(
@@ -110,6 +110,19 @@ protected:
                                           0.8);
         options.append_parameter_override("led_strip.reactions.power.duration",
                                           3.0);
+
+        options.append_parameter_override(
+            "led_strip.reactions.custom.event_name", "Custom event");
+        options.append_parameter_override(
+            "led_strip.reactions.custom.animation", "driver_defined_animation");
+        options.append_parameter_override("led_strip.reactions.custom.color",
+                                          std::vector<int64_t>{1, 2, 3});
+        options.append_parameter_override(
+            "led_strip.reactions.custom.brightness", 0.6);
+        options.append_parameter_override("led_strip.reactions.custom.period",
+                                          1.5);
+        options.append_parameter_override("led_strip.reactions.custom.duration",
+                                          2.5);
         return options;
     }
 
@@ -228,6 +241,23 @@ TEST_F(led_output_test, maps_configured_power_reaction_to_led_animation) {
     EXPECT_EQ(m_request.colors[0].r, 255U);
     EXPECT_EQ(m_request.colors[0].g, 128U);
     EXPECT_EQ(m_request.colors[0].b, 0U);
+}
+
+TEST_F(led_output_test, forwards_driver_defined_animation_request) {
+    auto output = m_output_loader.createSharedInstance("led");
+    output->initialize(make_context(), "led_strip");
+
+    output->push2queue({1, "diagnostics", "Custom event", "custom message"});
+
+    ASSERT_TRUE(wait_for_request());
+    EXPECT_EQ(m_request.animation_name, "driver_defined_animation");
+    EXPECT_FLOAT_EQ(m_request.brightness, 0.6F);
+    EXPECT_FLOAT_EQ(m_request.period, 1.5F);
+    EXPECT_FLOAT_EQ(m_request.duration, 2.5F);
+    ASSERT_EQ(m_request.colors.size(), 1U);
+    EXPECT_EQ(m_request.colors[0].r, 1U);
+    EXPECT_EQ(m_request.colors[0].g, 2U);
+    EXPECT_EQ(m_request.colors[0].b, 3U);
 }
 
 }  // namespace

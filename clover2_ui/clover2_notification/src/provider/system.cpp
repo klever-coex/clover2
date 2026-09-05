@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <clover2_notification/data/priority.hpp>
 #include <clover2_notification/provider/system.hpp>
 #include <netinet/in.h>
 #include <rclcpp/create_timer.hpp>
@@ -17,10 +18,6 @@
 #include <utility>
 
 namespace {
-
-constexpr int k_ok_priority = 0;
-constexpr int k_warn_priority = 1;
-constexpr int k_error_priority = 2;
 
 std::string trim(std::string value) {
     value.erase(value.begin(),
@@ -96,12 +93,6 @@ void system::initialize(
                 "providers.system.temperature.error_celsius",
                 rclcpp::ParameterValue(m_temperature_error_celsius))
             .get<double>();
-    m_temperature_zone =
-        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
-            ->declare_parameter("providers.system.temperature.thermal_zone",
-                                rclcpp::ParameterValue(m_temperature_zone))
-            .get<std::string>();
-
     m_network_enabled =
         rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
             ->declare_parameter("providers.system.network.enabled",
@@ -198,11 +189,11 @@ void system::check_cpu() {
         return;
     }
 
-    int priority = k_ok_priority;
+    int priority = static_cast<int>(data::priority::ok);
     if (*usage >= m_cpu_error_usage) {
-        priority = k_error_priority;
+        priority = static_cast<int>(data::priority::error);
     } else if (*usage >= m_cpu_warn_usage) {
-        priority = k_warn_priority;
+        priority = static_cast<int>(data::priority::warning);
     }
 
     m_callback({priority, "system", "cpu", std::format("{:.1f}", *usage)});
@@ -218,11 +209,11 @@ void system::check_temperature() {
         return;
     }
 
-    int priority = k_ok_priority;
+    int priority = static_cast<int>(data::priority::ok);
     if (*temperature >= m_temperature_error_celsius) {
-        priority = k_error_priority;
+        priority = static_cast<int>(data::priority::error);
     } else if (*temperature >= m_temperature_warn_celsius) {
-        priority = k_warn_priority;
+        priority = static_cast<int>(data::priority::warning);
     }
 
     m_callback({priority, "system", "temperature",
@@ -255,7 +246,9 @@ void system::check_network() {
         return;
     }
 
-    const int priority = selected_up ? k_ok_priority : k_warn_priority;
+    const int priority = selected_up
+                             ? static_cast<int>(data::priority::ok)
+                             : static_cast<int>(data::priority::warning);
     const std::string status_message =
         selected_interface + " " +
         (selected_ip_address ? *selected_ip_address : std::string{"-"});
@@ -318,44 +311,19 @@ std::optional<double> system::read_cpu_usage() {
 }
 
 std::optional<double> system::read_temperature_celsius() const {
-    std::vector<std::filesystem::path> candidates;
-    if (!m_temperature_zone.empty()) {
-        candidates.emplace_back(std::filesystem::path(m_thermal_base_path) /
-                                m_temperature_zone / "temp");
-    } else {
-        std::error_code ec;
-        for (const auto& entry : std::filesystem::directory_iterator(
-                 m_thermal_base_path,
-                 std::filesystem::directory_options::skip_permission_denied,
-                 ec)) {
-            if (ec) {
-                break;
-            }
-            if (!entry.is_directory(ec)) {
-                continue;
-            }
-
-            const auto filename = entry.path().filename().string();
-            if (filename.starts_with("thermal_zone")) {
-                candidates.emplace_back(entry.path() / "temp");
-            }
-        }
+    const auto path =
+        (std::filesystem::path(m_thermal_base_path) / "thermal_zone0" / "temp")
+            .string();
+    const auto content = read_text_file(path);
+    if (!content) {
+        return std::nullopt;
     }
 
-    std::sort(candidates.begin(), candidates.end());
-    for (const auto& path : candidates) {
-        const auto content = read_text_file(path.string());
-        if (!content) {
-            continue;
-        }
-
-        try {
-            return std::stod(trim(*content)) / 1000.0;
-        } catch (const std::exception&) {
-        }
+    try {
+        return std::stod(trim(*content)) / 1000.0;
+    } catch (const std::exception&) {
+        return std::nullopt;
     }
-
-    return std::nullopt;
 }
 
 std::optional<std::string> system::read_interface_state(

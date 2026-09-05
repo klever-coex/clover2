@@ -167,30 +167,6 @@ private:
     }
 
     /**
-     * @brief Start the configured LED animation.
-     *
-     * @param config Animation configuration to execute.
-     *
-     * @throws std::runtime_error if the animation name is unsupported or the
-     * LED client call fails.
-     */
-    void start_animation(const reaction_config& config) const {
-        if (config.animation == "solid_color") {
-            m_client->solid_color(config.color, config.brightness,
-                                  config.duration);
-        } else if (config.animation == "blink") {
-            m_client->blink(config.color, config.period, config.brightness,
-                            config.duration);
-        } else if (config.animation == "rainbow") {
-            m_client->rainbow(config.period, config.brightness,
-                              config.duration);
-        } else {
-            throw std::runtime_error("Unsupported LED animation: " +
-                                     config.animation);
-        }
-    }
-
-    /**
      * @brief Initialize LED-specific resources and configuration.
      *
      * Declares output parameters, loads event-name-based reaction
@@ -243,7 +219,14 @@ private:
                 event.source.c_str(), event.name.c_str(), event.message.c_str(),
                 event.priority, queued_size(), id().c_str(),
                 m_base_path.c_str(), config.animation.c_str(), config.duration);
-            start_animation(config);
+            auto request = std::make_shared<
+                clover2_led_msgs::srv::StartAnimation::Request>();
+            request->animation_name = config.animation;
+            request->brightness = config.brightness;
+            request->period = config.period;
+            request->duration = config.duration;
+            request->colors.push_back(config.color.to_msg());
+            m_client->call_animation(request);
         } catch (const std::exception& e) {
             RCLCPP_ERROR(m_logger, "Failed to start LED animation for '%s': %s",
                          event.name.c_str(), e.what());

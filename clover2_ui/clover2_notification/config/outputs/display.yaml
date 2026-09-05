@@ -1,0 +1,56 @@
+/**/notification:
+  ros__parameters:
+    display:
+      enabled: true
+      plugin: display
+      base_path: display
+      refresh_period: 1.0
+      layout:
+        margin:
+          left: 2
+          right: 2
+        font:
+          scale: 0.30
+          thickness: 1
+        title:
+          text: Clover2
+          baseline_y: 9
+        statuses:
+          first_baseline_y: 20
+          line_height: 10
+
+      status_names:
+        - hostname
+        - network
+        - system
+
+      statuses:
+        hostname:
+          type: hostname
+          label: host
+
+        network:
+          source: system
+          event_name: network
+          label: ""
+
+        system:
+          type: group
+          items:
+            - cpu
+            - temperature
+          separator: " "
+
+        cpu:
+          source: system
+          event_name: cpu
+          label: cpu
+
+        temperature:
+          source: system
+          event_name: temperature
+          label: temp
+
+      alert:
+        enabled: true
+        invert_period: 0.5

@@ -1,5 +1,6 @@
-#include <clover2_common/node_context.hpp>
 #include <clover2_common/lifecycle_node.hpp>
+#include <clover2_common/node_context.hpp>
+#include <clover2_notification/data/priority.hpp>
 #include <clover2_notification/provider/system.hpp>
 #include <gtest/gtest.h>
 #include <rclcpp/rclcpp.hpp>
@@ -36,9 +37,10 @@ protected:
         rclcpp::NodeOptions options;
         options.append_parameter_override("autostart", false);
         options.append_parameter_override("providers.system.period", 10.0);
-        options.append_parameter_override("providers.system.cpu.enabled", false);
-        options.append_parameter_override("providers.system.temperature.enabled",
+        options.append_parameter_override("providers.system.cpu.enabled",
                                           false);
+        options.append_parameter_override(
+            "providers.system.temperature.enabled", false);
         options.append_parameter_override("providers.system.network.enabled",
                                           false);
         return options;
@@ -69,10 +71,11 @@ TEST_F(system_provider_test, disabled_provider_does_not_emit_events) {
     std::vector<clover2_notification::data::event> events;
 
     clover2_notification::provider::system provider;
-    provider.initialize(make_context(*node),
-                        [&events](const clover2_notification::data::event& event) {
-                            events.push_back(event);
-                        });
+    provider.initialize(
+        make_context(*node),
+        [&events](const clover2_notification::data::event& event) {
+            events.push_back(event);
+        });
 
     EXPECT_TRUE(events.empty());
     provider.cleanup();
@@ -87,8 +90,6 @@ TEST_F(system_provider_test, emits_temperature_warning_from_fake_thermal_zone) {
     options.append_parameter_override("providers.system.temperature.enabled",
                                       true);
     options.append_parameter_override(
-        "providers.system.temperature.thermal_zone", "thermal_zone0");
-    options.append_parameter_override(
         "providers.system.temperature.warn_celsius", 70.0);
     options.append_parameter_override(
         "providers.system.temperature.error_celsius", 85.0);
@@ -100,15 +101,17 @@ TEST_F(system_provider_test, emits_temperature_warning_from_fake_thermal_zone) {
     std::vector<clover2_notification::data::event> events;
 
     clover2_notification::provider::system provider;
-    provider.initialize(make_context(*node),
-                        [&events](const clover2_notification::data::event& event) {
-                            events.push_back(event);
-                        });
+    provider.initialize(
+        make_context(*node),
+        [&events](const clover2_notification::data::event& event) {
+            events.push_back(event);
+        });
 
     rclcpp::spin_some(node->get_node_base_interface());
 
     ASSERT_EQ(events.size(), 1U);
-    EXPECT_EQ(events[0].priority, 1);
+    EXPECT_EQ(events[0].priority,
+              static_cast<int>(clover2_notification::data::priority::warning));
     EXPECT_EQ(events[0].source, "system");
     EXPECT_EQ(events[0].name, "temperature");
     EXPECT_EQ(events[0].message, "75.0");
@@ -133,15 +136,17 @@ TEST_F(system_provider_test, emits_network_warning_from_fake_interface) {
     std::vector<clover2_notification::data::event> events;
 
     clover2_notification::provider::system provider;
-    provider.initialize(make_context(*node),
-                        [&events](const clover2_notification::data::event& event) {
-                            events.push_back(event);
-                        });
+    provider.initialize(
+        make_context(*node),
+        [&events](const clover2_notification::data::event& event) {
+            events.push_back(event);
+        });
 
     rclcpp::spin_some(node->get_node_base_interface());
 
     ASSERT_EQ(events.size(), 1U);
-    EXPECT_EQ(events[0].priority, 1);
+    EXPECT_EQ(events[0].priority,
+              static_cast<int>(clover2_notification::data::priority::warning));
     EXPECT_EQ(events[0].source, "system");
     EXPECT_EQ(events[0].name, "network");
     EXPECT_EQ(events[0].message, "wlan0 192.168.1.10");
@@ -169,15 +174,17 @@ TEST_F(system_provider_test, emits_best_available_network_interface) {
     std::vector<clover2_notification::data::event> events;
 
     clover2_notification::provider::system provider;
-    provider.initialize(make_context(*node),
-                        [&events](const clover2_notification::data::event& event) {
-                            events.push_back(event);
-                        });
+    provider.initialize(
+        make_context(*node),
+        [&events](const clover2_notification::data::event& event) {
+            events.push_back(event);
+        });
 
     rclcpp::spin_some(node->get_node_base_interface());
 
     ASSERT_EQ(events.size(), 1U);
-    EXPECT_EQ(events[0].priority, 0);
+    EXPECT_EQ(events[0].priority,
+              static_cast<int>(clover2_notification::data::priority::ok));
     EXPECT_EQ(events[0].source, "system");
     EXPECT_EQ(events[0].name, "network");
     EXPECT_EQ(events[0].message, "eth0 10.0.0.2");
@@ -199,15 +206,17 @@ TEST_F(system_provider_test, emits_cpu_usage_status_from_fake_proc_stat) {
     std::vector<clover2_notification::data::event> events;
 
     clover2_notification::provider::system provider;
-    provider.initialize(make_context(*node),
-                        [&events](const clover2_notification::data::event& event) {
-                            events.push_back(event);
-                        });
+    provider.initialize(
+        make_context(*node),
+        [&events](const clover2_notification::data::event& event) {
+            events.push_back(event);
+        });
 
     rclcpp::spin_some(node->get_node_base_interface());
 
     ASSERT_EQ(events.size(), 1U);
-    EXPECT_EQ(events[0].priority, 0);
+    EXPECT_EQ(events[0].priority,
+              static_cast<int>(clover2_notification::data::priority::ok));
     EXPECT_EQ(events[0].source, "system");
     EXPECT_EQ(events[0].name, "cpu");
     EXPECT_EQ(events[0].message, "0.0");

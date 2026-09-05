@@ -76,8 +76,7 @@ private:
      */
     std::optional<double> read_cpu_usage();
 
-    /** @brief Read temperature from configured or first available thermal zone.
-     */
+    /** @brief Read temperature from thermal_zone0/temp. */
     std::optional<double> read_temperature_celsius() const;
 
     /** @brief Read configured interface operstate. */
@@ -106,7 +105,6 @@ private:
     bool m_temperature_enabled{true};
     double m_temperature_warn_celsius{70.0};
     double m_temperature_error_celsius{85.0};
-    std::string m_temperature_zone;
 
     bool m_network_enabled{true};
     std::vector<std::string> m_interfaces;

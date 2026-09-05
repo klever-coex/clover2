@@ -1,5 +1,6 @@
 #include <clover2_common/node_context.hpp>
 #include <clover2_display/client.hpp>
+#include <clover2_notification/data/priority.hpp>
 #include <clover2_notification/output.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -26,22 +27,6 @@ namespace {
 
 constexpr int k_default_width = 128;
 constexpr int k_default_height = 64;
-constexpr int k_margin = 2;
-constexpr int k_line_height = 10;
-constexpr uint8_t k_on = 255;
-constexpr uint8_t k_off = 0;
-
-std::string trim_to_width(const std::string& text, int max_chars) {
-    if (max_chars <= 0 || static_cast<int>(text.size()) <= max_chars) {
-        return text;
-    }
-
-    if (max_chars <= 3) {
-        return text.substr(0, static_cast<size_t>(max_chars));
-    }
-
-    return text.substr(0, static_cast<size_t>(max_chars - 3)) + "...";
-}
 
 std::string get_hostname() {
     char hostname[256]{};
@@ -93,6 +78,33 @@ public:
     }
 
 private:
+    /** @brief Text style used by all fields in the display layout. */
+    struct text_style {
+        /** @brief OpenCV Hershey font scale. */
+        double scale{0.30};
+
+        /** @brief OpenCV text stroke thickness in pixels. */
+        int thickness{1};
+    };
+
+    /** @brief Configurable geometry and style of the status screen. */
+    struct layout_config {
+        /** @brief Left and right screen margins in pixels. */
+        int margin_left{2};
+        int margin_right{2};
+
+        /** @brief Shared style of title and status text. */
+        text_style font;
+
+        /** @brief Title text and its baseline position in pixels. */
+        std::string title{"Clover2"};
+        int title_baseline_y{9};
+
+        /** @brief Geometry of the vertically stacked status rows. */
+        int statuses_first_baseline_y{20};
+        int statuses_line_height{10};
+    };
+
     /** @brief Configuration of one rendered status row. */
     struct status_config {
         /** @brief Row type. "event" rows are updated by notification events. */
@@ -138,10 +150,10 @@ private:
             declare_output_parameter<std::string>("base_path", m_base_path);
         m_refresh_period = declare_output_parameter<double>("refresh_period",
                                                             m_refresh_period);
-        m_layout = declare_output_parameter<std::string>("layout", m_layout);
+        load_layout_config();
         load_status_configs();
-        m_alert_enabled = declare_output_parameter<bool>("alert.enabled",
-                                                         m_alert_enabled);
+        m_alert_enabled =
+            declare_output_parameter<bool>("alert.enabled", m_alert_enabled);
         m_alert_invert_period = declare_output_parameter<double>(
             "alert.invert_period", m_alert_invert_period);
 
@@ -163,16 +175,45 @@ private:
         m_refresh_timer =
             create_timer(refresh_period, [this]() { render_and_send(); });
 
-        RCLCPP_INFO(
-            m_logger,
-            "Display output initialized: base_path='%s' "
-            "refresh_period=%.2fs layout='%s' statuses=%zu alert=%s "
-            "invert_period=%.2fs",
-            m_base_path.c_str(), m_refresh_period, m_layout.c_str(),
-            m_status_names.size(), m_alert_enabled ? "enabled" : "disabled",
-            m_alert_invert_period);
+        RCLCPP_INFO(m_logger,
+                    "Display output initialized: base_path='%s' "
+                    "refresh_period=%.2fs title='%s' statuses=%zu alert=%s "
+                    "invert_period=%.2fs",
+                    m_base_path.c_str(), m_refresh_period,
+                    m_layout.title.c_str(), m_status_names.size(),
+                    m_alert_enabled ? "enabled" : "disabled",
+                    m_alert_invert_period);
 
         render_and_send();
+    }
+
+    /** @brief Load and validate the configurable status-screen layout. */
+    void load_layout_config() {
+        m_layout.margin_left = declare_output_parameter<int>(
+            "layout.margin.left", m_layout.margin_left);
+        m_layout.margin_right = declare_output_parameter<int>(
+            "layout.margin.right", m_layout.margin_right);
+        m_layout.font.scale = declare_output_parameter<double>(
+            "layout.font.scale", m_layout.font.scale);
+        m_layout.font.thickness = declare_output_parameter<int>(
+            "layout.font.thickness", m_layout.font.thickness);
+        m_layout.title = declare_output_parameter<std::string>(
+            "layout.title.text", m_layout.title);
+        m_layout.title_baseline_y = declare_output_parameter<int>(
+            "layout.title.baseline_y", m_layout.title_baseline_y);
+        m_layout.statuses_first_baseline_y =
+            declare_output_parameter<int>("layout.statuses.first_baseline_y",
+                                          m_layout.statuses_first_baseline_y);
+        m_layout.statuses_line_height = declare_output_parameter<int>(
+            "layout.statuses.line_height", m_layout.statuses_line_height);
+
+        if (m_layout.margin_left < 0 || m_layout.margin_right < 0 ||
+            m_layout.font.scale <= 0.0 || m_layout.font.thickness <= 0 ||
+            m_layout.title_baseline_y < 0 ||
+            m_layout.statuses_first_baseline_y < 0 ||
+            m_layout.statuses_line_height <= 0) {
+            throw std::invalid_argument("Invalid display layout configuration");
+        }
     }
 
     /** @brief Load configured status rows and event mappings. */
@@ -208,10 +249,10 @@ private:
         status_config config;
         config.event_name = status_name;
         config.label = status_name;
-        config.type =
-            declare_output_parameter<std::string>(prefix + ".type", config.type);
+        config.type = declare_output_parameter<std::string>(prefix + ".type",
+                                                            config.type);
         config.label = declare_output_parameter<std::string>(prefix + ".label",
-                                                            config.label);
+                                                             config.label);
 
         if (config.type == "event") {
             config.source = declare_output_parameter<std::string>(
@@ -226,8 +267,8 @@ private:
                     status_name);
             }
 
-            m_event_to_status[make_event_key(config.source, config.event_name)] =
-                status_name;
+            m_event_to_status[make_event_key(config.source,
+                                             config.event_name)] = status_name;
             m_status_states.emplace(status_name, status_state{});
         } else if (config.type == "group") {
             config.items = declare_output_parameter<std::vector<std::string>>(
@@ -296,11 +337,13 @@ private:
         bool active{};
         {
             std::lock_guard<std::mutex> lock(m_status_mutex);
-            active = m_alert_enabled &&
-                     std::any_of(m_status_states.begin(), m_status_states.end(),
-                                 [](const auto& entry) {
-                                     return entry.second.priority != 0;
-                                 });
+            active =
+                m_alert_enabled &&
+                std::any_of(m_status_states.begin(), m_status_states.end(),
+                            [](const auto& entry) {
+                                return entry.second.priority !=
+                                       static_cast<int>(data::priority::ok);
+                            });
             if (active == m_alert_active) {
                 return;
             }
@@ -317,8 +360,9 @@ private:
             return;
         }
 
-        const auto period = std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::duration<double>(m_alert_invert_period));
+        const auto period =
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::duration<double>(m_alert_invert_period));
         m_alert_timer = create_timer(period, [this]() {
             {
                 std::lock_guard<std::mutex> lock(m_status_mutex);
@@ -343,7 +387,7 @@ private:
                                ? static_cast<int>(m_client->get_height())
                                : k_default_height;
 
-        cv::Mat image(height, width, CV_8UC1, cv::Scalar(k_off));
+        cv::Mat image(height, width, CV_8UC1, cv::Scalar(0));
 
         render_status(image);
 
@@ -379,31 +423,127 @@ private:
         }
     }
 
-    /** @brief Render configured status fields in compact layout. */
+    /** @brief Render configured status fields using the configured layout. */
     void render_status(cv::Mat& image) const {
-        draw_text(image, "Clover2", k_margin, 9);
+        draw_text(image, m_layout.title, m_layout.margin_left,
+                  m_layout.title_baseline_y, 1);
 
-        int y = 20;
+        int y = m_layout.statuses_first_baseline_y;
         for (const auto& status_name : m_status_names) {
             if (y >= image.rows - 1) {
                 break;
             }
 
-            draw_text(image, format_status(status_name), k_margin, y);
-            y += k_line_height;
+            const int lines_drawn = draw_text(image, format_status(status_name),
+                                              m_layout.margin_left, y);
+            y += lines_drawn * m_layout.statuses_line_height;
         }
     }
 
-    /** @brief Draw clipped non-antialiased text for a monochrome display. */
-    void draw_text(cv::Mat& image, const std::string& text, int x, int y,
-                   uint8_t value = k_on) const {
-        constexpr double font_scale = 0.30;
-        constexpr int thickness = 1;
-        const int max_chars = std::max(1, (image.cols - x) / 6);
+    /**
+     * @brief Draw word-wrapped non-antialiased text for a monochrome display.
+     *
+     * @return Number of rendered lines.
+     */
+    int draw_text(cv::Mat& image, const std::string& text, int x, int y,
+                  int max_lines = -1) const {
+        const int max_width = image.cols - x - m_layout.margin_right;
+        const auto lines = wrap_text(text, max_width);
+        int lines_drawn{};
+        for (const auto& line : lines) {
+            if ((max_lines >= 0 && lines_drawn >= max_lines) ||
+                y >= image.rows - 1) {
+                break;
+            }
 
-        cv::putText(image, trim_to_width(text, max_chars), cv::Point(x, y),
-                    cv::FONT_HERSHEY_SIMPLEX, font_scale, cv::Scalar(value),
-                    thickness, cv::LINE_8);
+            cv::putText(image, line, cv::Point(x, y), cv::FONT_HERSHEY_SIMPLEX,
+                        m_layout.font.scale, cv::Scalar(255),
+                        m_layout.font.thickness, cv::LINE_8);
+            ++lines_drawn;
+            y += m_layout.statuses_line_height;
+        }
+
+        return lines_drawn;
+    }
+
+    /** @brief Wrap text to lines whose rendered width fits @p max_width. */
+    std::vector<std::string> wrap_text(const std::string& text,
+                                       int max_width) const {
+        std::vector<std::string> lines;
+        if (max_width <= 0) {
+            return lines;
+        }
+
+        const auto fits = [this, max_width](const std::string& candidate) {
+            return cv::getTextSize(candidate, cv::FONT_HERSHEY_SIMPLEX,
+                                   m_layout.font.scale, m_layout.font.thickness,
+                                   nullptr)
+                       .width <= max_width;
+        };
+
+        std::string line;
+        size_t word_start{};
+        while (word_start < text.size()) {
+            const auto word_end = text.find(' ', word_start);
+            const auto word = text.substr(word_start, word_end - word_start);
+            word_start =
+                word_end == std::string::npos ? text.size() : word_end + 1;
+            if (word.empty()) {
+                continue;
+            }
+
+            const auto candidate = line.empty() ? word : line + " " + word;
+            if (fits(candidate)) {
+                line = candidate;
+                continue;
+            }
+
+            if (!line.empty()) {
+                lines.push_back(std::move(line));
+                line.clear();
+            }
+
+            const auto parts = split_word(word, max_width);
+            for (size_t index{}; index < parts.size(); ++index) {
+                if (index + 1 == parts.size() && fits(parts[index])) {
+                    line = parts[index];
+                } else {
+                    lines.push_back(parts[index]);
+                }
+            }
+        }
+
+        if (!line.empty()) {
+            lines.push_back(std::move(line));
+        }
+
+        return lines;
+    }
+
+    /** @brief Split an overlong word into rendered-width-limited parts. */
+    std::vector<std::string> split_word(const std::string& word,
+                                        int max_width) const {
+        std::vector<std::string> parts;
+        std::string part;
+        for (const char character : word) {
+            const auto candidate = part + character;
+            if (!part.empty() &&
+                cv::getTextSize(candidate, cv::FONT_HERSHEY_SIMPLEX,
+                                m_layout.font.scale, m_layout.font.thickness,
+                                nullptr)
+                        .width > max_width) {
+                parts.push_back(std::move(part));
+                part = character;
+            } else {
+                part = candidate;
+            }
+        }
+
+        if (!part.empty()) {
+            parts.push_back(std::move(part));
+        }
+
+        return parts;
     }
 
     /** @brief Format one configured status row. */
@@ -449,7 +589,7 @@ private:
 
     std::string m_base_path{"display"};
     double m_refresh_period{1.0};
-    std::string m_layout{"compact"};
+    layout_config m_layout;
     std::vector<std::string> m_status_names{"hostname", "network", "cpu",
                                             "temperature"};
     std::unordered_map<std::string, status_config> m_status_configs;

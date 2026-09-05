@@ -15,6 +15,7 @@
 
     <arg name="indication.led_strip" default="false" />
     <arg name="notification.led_strip" default="true" />
+    <arg name="notification.display" default="true" />
     <arg name="notification.start_delay" default="5.0" />
     <arg name="2d_lidar.enable" default="false" />
 
@@ -114,6 +115,7 @@
         <arg name="ns" value="$(var root_ns)" />
 
         <arg name="led_strip" value="$(var notification.led_strip)" />
+        <arg name="display" value="$(var notification.display)" />
         <arg name="start_delay" value="$(var notification.start_delay)" />
     </include>
 
