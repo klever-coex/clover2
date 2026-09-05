@@ -11,8 +11,8 @@ controller::controller(const rclcpp::NodeOptions& options)
     : clover2_common::lifecycle_node("notification", options) {
     m_provider_names = declare_parameter<std::vector<std::string>>(
         "providers_list", {"diagnostics"});
-    m_output_ids = declare_parameter<std::vector<std::string>>(
-        "output_plugins", {"led_strip"});
+    m_output_ids = declare_parameter<std::vector<std::string>>("output_plugins",
+                                                               {"led_strip"});
     declare_parameter<std::string>("led_strip.plugin", "led");
 
     register_on_configure(
@@ -33,7 +33,6 @@ controller::CallbackReturn controller::on_configure(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
     try {
         m_node_context = std::make_shared<clover2_common::node_context>(*this);
-        auto node = shared_from_this();
 
         for (const auto& provider_name : m_provider_names) {
             auto provider = provider::factory::instance().create(provider_name);
@@ -70,13 +69,14 @@ controller::CallbackReturn controller::on_configure(
             }
 
             std::string plugin_name;
-            if (!get_parameter(plugin_param, plugin_name) || plugin_name.empty()) {
-                throw std::runtime_error("Notification output plugin is not set: " +
-                                         plugin_param);
+            if (!get_parameter(plugin_param, plugin_name) ||
+                plugin_name.empty()) {
+                throw std::runtime_error(
+                    "Notification output plugin is not set: " + plugin_param);
             }
 
             auto plugin = m_output_loader.createSharedInstance(plugin_name);
-            plugin->initialize(node, output_id);
+            plugin->initialize(m_node_context, output_id);
             m_outputs.emplace_back(std::move(plugin));
             RCLCPP_INFO(get_logger(),
                         "Loaded notification output: id='%s' plugin='%s'",

@@ -1,29 +1,25 @@
+#include <clover2_common/node_context.hpp>
 #include <clover2_display/client.hpp>
 #include <clover2_notification/output.hpp>
-#include <pluginlib/class_list_macros.hpp>
-
-#include <diagnostic_msgs/msg/diagnostic_array.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
+#include <pluginlib/class_list_macros.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/msg/image.hpp>
-#include <sensor_msgs/msg/temperature.hpp>
-#include <std_msgs/msg/float64.hpp>
 
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
-#include <cmath>
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <unistd.h>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace clover2_notification::outputs {
@@ -36,11 +32,6 @@ constexpr int k_margin = 2;
 constexpr int k_line_height = 10;
 constexpr uint8_t k_on = 255;
 constexpr uint8_t k_off = 0;
-
-struct network_status {
-    std::string state;
-    std::string ipv4;
-};
 
 std::string trim_to_width(const std::string& text, int max_chars) {
     if (max_chars <= 0 || static_cast<int>(text.size()) <= max_chars) {
@@ -88,6 +79,10 @@ std::string get_hostname() {
     return hostname;
 }
 
+std::string make_event_key(const std::string& source, const std::string& name) {
+    return source + "\n" + name;
+}
+
 }  // namespace
 
 /**
@@ -113,45 +108,71 @@ public:
             m_overlay_timer->cancel();
             m_overlay_timer.reset();
         }
+        if (m_alert_timer) {
+            m_alert_timer->cancel();
+            m_alert_timer.reset();
+        }
 
+        {
+            std::lock_guard<std::mutex> lock(m_status_mutex);
+            m_alert_active = false;
+            m_invert_screen = false;
+        }
         m_active_event.reset();
         output::clear();
         render_and_send();
     }
 
 private:
+    /** @brief Configuration of one rendered status row. */
+    struct status_config {
+        /** @brief Row type. "event" rows are updated by notification events. */
+        std::string type{"event"};
+
+        /** @brief Event source matched by event rows. */
+        std::string source{"system"};
+
+        /** @brief Event name matched by event rows. */
+        std::string event_name;
+
+        /** @brief Display label rendered before the status message. */
+        std::string label;
+    };
+
+    /** @brief Runtime state of one event-backed status row. */
+    struct status_state {
+        /** @brief Last received event priority. */
+        int priority{};
+
+        /** @brief Last received event message. */
+        std::string message{"n/a"};
+    };
+
     /**
      * @brief Initialize display client, read local parameters and start status
      * refresh timer.
      *
-     * @param node Lifecycle node that owns the output plugin.
      */
-    void on_initialize(
-        const rclcpp_lifecycle::LifecycleNode::SharedPtr& node) override {
-        m_node = node;
-        m_logger =
-            node->get_logger().get_child("display_output").get_child(id());
+    void on_initialize() override {
+        m_logger = node_context()
+                       ->get_logger()
+                       .get_child("display_output")
+                       .get_child(id());
 
-        m_base_path = node->declare_parameter<std::string>(
-            id() + ".base_path", m_base_path);
-        m_refresh_period = node->declare_parameter<double>(
-            id() + ".refresh_period", m_refresh_period);
-        m_layout = node->declare_parameter<std::string>(id() + ".layout",
-                                                        m_layout);
-        m_fields = node->declare_parameter<std::vector<std::string>>(
-            id() + ".fields", m_fields);
-        m_interfaces = node->declare_parameter<std::vector<std::string>>(
-            id() + ".interfaces", m_interfaces);
-        m_cpu_topic = node->declare_parameter<std::string>(
-            id() + ".system_topics.cpu", m_cpu_topic);
-        m_temperature_topic = node->declare_parameter<std::string>(
-            id() + ".system_topics.temperature", m_temperature_topic);
-        m_network_topic = node->declare_parameter<std::string>(
-            id() + ".system_topics.network", m_network_topic);
-        m_overlay_enabled = node->declare_parameter<bool>(
-            id() + ".notification_overlay.enabled", m_overlay_enabled);
-        m_overlay_duration = node->declare_parameter<double>(
-            id() + ".notification_overlay.duration", m_overlay_duration);
+        m_base_path =
+            declare_output_parameter<std::string>("base_path", m_base_path);
+        m_refresh_period = declare_output_parameter<double>("refresh_period",
+                                                            m_refresh_period);
+        m_layout = declare_output_parameter<std::string>("layout", m_layout);
+        load_status_configs();
+        m_alert_enabled = declare_output_parameter<bool>("alert.enabled",
+                                                         m_alert_enabled);
+        m_alert_invert_period = declare_output_parameter<double>(
+            "alert.invert_period", m_alert_invert_period);
+        m_overlay_enabled = declare_output_parameter<bool>(
+            "notification_overlay.enabled", m_overlay_enabled);
+        m_overlay_duration = declare_output_parameter<double>(
+            "notification_overlay.duration", m_overlay_duration);
 
         if (m_refresh_period <= 0.0) {
             throw std::invalid_argument(
@@ -161,71 +182,77 @@ private:
             throw std::invalid_argument(
                 "Display notification_overlay.duration should be positive");
         }
+        if (m_alert_invert_period <= 0.0) {
+            throw std::invalid_argument(
+                "Display alert.invert_period should be positive");
+        }
 
-        m_client = std::make_shared<clover2_display::client>(node, m_base_path);
-
-        const auto status_qos =
-            rclcpp::QoS(rclcpp::KeepLast(1)).reliable().transient_local();
-        m_cpu_subscription = node->create_subscription<std_msgs::msg::Float64>(
-            m_cpu_topic, status_qos,
-            [this](const std_msgs::msg::Float64& message) {
-                {
-                    std::lock_guard<std::mutex> lock(m_status_mutex);
-                    m_cpu_usage = message.data;
-                }
-                render_and_send();
-            });
-        m_temperature_subscription =
-            node->create_subscription<sensor_msgs::msg::Temperature>(
-                m_temperature_topic, status_qos,
-                [this](const sensor_msgs::msg::Temperature& message) {
-                    {
-                        std::lock_guard<std::mutex> lock(m_status_mutex);
-                        m_temperature_celsius = message.temperature;
-                    }
-                    render_and_send();
-                });
-        m_network_subscription =
-            node->create_subscription<diagnostic_msgs::msg::DiagnosticArray>(
-                m_network_topic, status_qos,
-                [this](const diagnostic_msgs::msg::DiagnosticArray& message) {
-                    std::unordered_map<std::string, network_status> statuses;
-                    for (const auto& status : message.status) {
-                        std::string interface = status.hardware_id;
-                        std::string ipv4;
-                        for (const auto& value : status.values) {
-                            if (value.key == "interface") {
-                                interface = value.value;
-                            } else if (value.key == "ipv4") {
-                                ipv4 = value.value;
-                            }
-                        }
-                        if (!interface.empty()) {
-                            statuses.insert_or_assign(
-                                interface, network_status{status.message, ipv4});
-                        }
-                    }
-                    {
-                        std::lock_guard<std::mutex> lock(m_status_mutex);
-                        m_network_statuses = std::move(statuses);
-                    }
-                    render_and_send();
-                });
+        m_client = std::make_shared<clover2_display::client>(node_context(),
+                                                             m_base_path);
 
         const auto refresh_period =
             std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::duration<double>(m_refresh_period));
-        m_refresh_timer = m_node->create_wall_timer(
-            refresh_period, [this]() { render_and_send(); });
+        m_refresh_timer =
+            create_timer(refresh_period, [this]() { render_and_send(); });
 
-        RCLCPP_INFO(m_logger,
-                    "Display output initialized: base_path='%s' "
-                    "refresh_period=%.2fs layout='%s' overlay=%s duration=%.2fs",
-                    m_base_path.c_str(), m_refresh_period, m_layout.c_str(),
-                    m_overlay_enabled ? "enabled" : "disabled",
-                    m_overlay_duration);
+        RCLCPP_INFO(
+            m_logger,
+            "Display output initialized: base_path='%s' "
+            "refresh_period=%.2fs layout='%s' statuses=%zu alert=%s "
+            "invert_period=%.2fs overlay=%s duration=%.2fs",
+            m_base_path.c_str(), m_refresh_period, m_layout.c_str(),
+            m_status_names.size(), m_alert_enabled ? "enabled" : "disabled",
+            m_alert_invert_period, m_overlay_enabled ? "enabled" : "disabled",
+            m_overlay_duration);
 
         render_and_send();
+    }
+
+    /** @brief Load configured status rows and event mappings. */
+    void load_status_configs() {
+        m_status_names = declare_output_parameter<std::vector<std::string>>(
+            "status_names", m_status_names);
+
+        m_status_configs.clear();
+        m_status_states.clear();
+        m_event_to_status.clear();
+
+        for (const auto& status_name : m_status_names) {
+            const auto prefix = "statuses." + status_name;
+
+            status_config config;
+            config.event_name = status_name;
+            config.label = status_name;
+            config.type = declare_output_parameter<std::string>(prefix + ".type",
+                                                                config.type);
+            config.label = declare_output_parameter<std::string>(
+                prefix + ".label", config.label);
+
+            if (config.type == "event") {
+                config.source = declare_output_parameter<std::string>(
+                    prefix + ".source", config.source);
+                config.event_name = declare_output_parameter<std::string>(
+                    prefix + ".event_name", config.event_name);
+
+                if (config.source.empty() || config.event_name.empty()) {
+                    throw std::invalid_argument(
+                        "Display event status should define non-empty source "
+                        "and event_name: " +
+                        status_name);
+                }
+
+                m_event_to_status[make_event_key(config.source,
+                                                 config.event_name)] =
+                    status_name;
+                m_status_states.emplace(status_name, status_state{});
+            } else if (config.type != "hostname") {
+                throw std::invalid_argument("Unsupported display status type: " +
+                                            config.type);
+            }
+
+            m_status_configs.emplace(status_name, std::move(config));
+        }
     }
 
     /**
@@ -237,6 +264,12 @@ private:
     void process_event(const data::event& event, done_callback done) override {
         if (!m_client) {
             RCLCPP_WARN(m_logger, "Display client is not initialized");
+            done();
+            return;
+        }
+
+        if (update_status_event(event)) {
+            render_and_send();
             done();
             return;
         }
@@ -260,7 +293,7 @@ private:
         const auto duration =
             std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::duration<double>(m_overlay_duration));
-        m_overlay_timer = m_node->create_wall_timer(duration, [this, done]() {
+        m_overlay_timer = create_timer(duration, [this, done]() {
             if (m_overlay_timer) {
                 m_overlay_timer->cancel();
                 m_overlay_timer.reset();
@@ -269,6 +302,62 @@ private:
             m_active_event.reset();
             render_and_send();
             done();
+        });
+    }
+
+    /** @brief Update configured status row from matching event. */
+    bool update_status_event(const data::event& event) {
+        const auto status_it =
+            m_event_to_status.find(make_event_key(event.source, event.name));
+        if (status_it == m_event_to_status.end()) {
+            return false;
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(m_status_mutex);
+            auto& state = m_status_states[status_it->second];
+            state.priority = event.priority;
+            state.message = event.message;
+        }
+
+        update_alert_state();
+        return true;
+    }
+
+    /** @brief Start or stop screen inversion according to status priorities. */
+    void update_alert_state() {
+        bool active{};
+        {
+            std::lock_guard<std::mutex> lock(m_status_mutex);
+            active = m_alert_enabled &&
+                     std::any_of(m_status_states.begin(), m_status_states.end(),
+                                 [](const auto& entry) {
+                                     return entry.second.priority != 0;
+                                 });
+            if (active == m_alert_active) {
+                return;
+            }
+
+            m_alert_active = active;
+            m_invert_screen = false;
+        }
+
+        if (!active) {
+            if (m_alert_timer) {
+                m_alert_timer->cancel();
+                m_alert_timer.reset();
+            }
+            return;
+        }
+
+        const auto period = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::duration<double>(m_alert_invert_period));
+        m_alert_timer = create_timer(period, [this]() {
+            {
+                std::lock_guard<std::mutex> lock(m_status_mutex);
+                m_invert_screen = !m_invert_screen;
+            }
+            render_and_send();
         });
     }
 
@@ -296,9 +385,21 @@ private:
         }
 
         cv::threshold(image, image, 127, 255, cv::THRESH_BINARY);
+        bool invert_screen{};
+        {
+            std::lock_guard<std::mutex> lock(m_status_mutex);
+            invert_screen = m_alert_active && m_invert_screen;
+        }
+
+        if (invert_screen) {
+            cv::bitwise_not(image, image);
+        }
 
         sensor_msgs::msg::Image msg;
-        msg.header.stamp = m_node ? m_node->now() : rclcpp::Clock().now();
+        msg.header.stamp =
+            node_context()
+                ? node_context()->get_node_clock_interface()->get_clock()->now()
+                : rclcpp::Clock().now();
         msg.header.frame_id = "display";
         msg.height = static_cast<uint32_t>(image.rows);
         msg.width = static_cast<uint32_t>(image.cols);
@@ -310,7 +411,8 @@ private:
         try {
             m_client->send_image(msg);
         } catch (const std::exception& e) {
-            RCLCPP_ERROR(m_logger, "Failed to send display image: %s", e.what());
+            RCLCPP_ERROR(m_logger, "Failed to send display image: %s",
+                         e.what());
         }
     }
 
@@ -319,12 +421,12 @@ private:
         draw_text(image, "Clover2", k_margin, 9);
 
         int y = 20;
-        for (const auto& field : m_fields) {
+        for (const auto& status_name : m_status_names) {
             if (y >= image.rows - 1) {
                 break;
             }
 
-            draw_text(image, format_field(field), k_margin, y);
+            draw_text(image, format_status(status_name), k_margin, y);
             y += k_line_height;
         }
     }
@@ -333,10 +435,10 @@ private:
     void render_overlay(cv::Mat& image, const data::event& event) const {
         image.setTo(cv::Scalar(k_on));
 
-        draw_text(image,
-                  source_label(event.source) + " " +
-                      priority_label(event.priority),
-                  k_margin, 10, k_off);
+        draw_text(
+            image,
+            source_label(event.source) + " " + priority_label(event.priority),
+            k_margin, 10, k_off);
         draw_text(image, event.name, k_margin, 22, k_off);
         draw_text(image, event.message, k_margin, 36, k_off);
     }
@@ -353,79 +455,49 @@ private:
                     thickness, cv::LINE_8);
     }
 
-    /** @brief Format one configured status field for the MVP status screen. */
-    std::string format_field(const std::string& field) const {
-        if (field == "hostname") {
-            return "host: " + get_hostname();
-        }
-        if (field == "network") {
-            if (m_interfaces.empty()) {
-                return "net: n/a";
-            }
-
-            std::lock_guard<std::mutex> lock(m_status_mutex);
-            std::ostringstream stream;
-            stream << "net:";
-            for (const auto& interface : m_interfaces) {
-                const auto status = m_network_statuses.find(interface);
-                if (status == m_network_statuses.end()) {
-                    stream << " " << interface << "?";
-                } else {
-                    stream << " " << interface
-                           << (status->second.state == "up" ? "+" : "-");
-                }
-            }
-            return stream.str();
-        }
-        if (field == "cpu") {
-            std::lock_guard<std::mutex> lock(m_status_mutex);
-            if (!m_cpu_usage) {
-                return "cpu: n/a";
-            }
-            return "cpu: " +
-                   std::to_string(static_cast<int>(std::lround(*m_cpu_usage))) +
-                   "%";
-        }
-        if (field == "temperature") {
-            std::lock_guard<std::mutex> lock(m_status_mutex);
-            if (!m_temperature_celsius) {
-                return "temp: n/a";
-            }
-            return "temp: " + std::to_string(
-                                 static_cast<int>(std::lround(*m_temperature_celsius))) +
-                   "C";
+    /** @brief Format one configured status row. */
+    std::string format_status(const std::string& status_name) const {
+        const auto config_it = m_status_configs.find(status_name);
+        if (config_it == m_status_configs.end()) {
+            return status_name + ": n/a";
         }
 
-        return field + ": n/a";
+        const auto& config = config_it->second;
+        if (config.type == "hostname") {
+            return config.label + ": " + get_hostname();
+        }
+
+        std::lock_guard<std::mutex> lock(m_status_mutex);
+        const auto state_it = m_status_states.find(status_name);
+        if (state_it == m_status_states.end()) {
+            return config.label + ": n/a";
+        }
+
+        return config.label + ": " + state_it->second.message;
     }
 
     std::string m_base_path{"display"};
     double m_refresh_period{1.0};
     std::string m_layout{"compact"};
-    std::vector<std::string> m_fields{"hostname", "network", "cpu",
-                                      "temperature"};
-    std::vector<std::string> m_interfaces;
-    std::string m_cpu_topic{"system/cpu"};
-    std::string m_temperature_topic{"system/temperature"};
-    std::string m_network_topic{"system/network"};
+    std::vector<std::string> m_status_names{"hostname", "network", "cpu",
+                                            "temperature"};
+    std::unordered_map<std::string, status_config> m_status_configs;
+    std::unordered_map<std::string, status_state> m_status_states;
+    std::unordered_map<std::string, std::string> m_event_to_status;
+    bool m_alert_enabled{true};
+    double m_alert_invert_period{0.5};
+    bool m_alert_active{false};
+    bool m_invert_screen{false};
     bool m_overlay_enabled{true};
     double m_overlay_duration{3.0};
 
-    rclcpp_lifecycle::LifecycleNode::SharedPtr m_node;
     std::shared_ptr<clover2_display::client> m_client;
     rclcpp::TimerBase::SharedPtr m_refresh_timer;
     rclcpp::TimerBase::SharedPtr m_overlay_timer;
-    rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr m_cpu_subscription;
-    rclcpp::Subscription<sensor_msgs::msg::Temperature>::SharedPtr
-        m_temperature_subscription;
-    rclcpp::Subscription<diagnostic_msgs::msg::DiagnosticArray>::SharedPtr
-        m_network_subscription;
+    rclcpp::TimerBase::SharedPtr m_alert_timer;
     std::optional<data::event> m_active_event;
     std::mutex m_render_mutex;
     mutable std::mutex m_status_mutex;
-    std::optional<double> m_cpu_usage;
-    std::optional<double> m_temperature_celsius;
-    std::unordered_map<std::string, network_status> m_network_statuses;
     rclcpp::Logger m_logger{rclcpp::get_logger("notification_display_output")};
 };
 

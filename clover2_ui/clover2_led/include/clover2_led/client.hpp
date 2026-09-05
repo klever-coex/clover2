@@ -32,23 +32,36 @@ public:
         rclcpp::PublisherOptions pub_options;
         pub_options.callback_group = cb_group;
 
-        m_frame_pub =
-            node->template create_publisher<clover2_led_msgs::msg::LedFrame>(
-                make_topic("led_frame"), rclcpp::SystemDefaultsQoS(),
-                pub_options);
+        auto node_parameters = node->get_node_parameters_interface();
+        auto node_topics = node->get_node_topics_interface();
+
+        m_frame_pub = rclcpp::create_publisher<clover2_led_msgs::msg::LedFrame>(
+            node_parameters, node_topics, make_topic("led_frame"),
+            rclcpp::SystemDefaultsQoS(), pub_options);
 
         m_get_info_client =
-            node->template create_client<clover2_led_msgs::srv::GetDriverInfo>(
+            rclcpp::create_client<clover2_led_msgs::srv::GetDriverInfo>(
+                node->get_node_base_interface(),
+                node->get_node_graph_interface(),
+                node->get_node_services_interface(),
                 make_service("get_driver_info"), rclcpp::ServicesQoS(),
                 cb_group);
 
-        m_get_frame_client = node->template create_client<
-            clover2_led_msgs::srv::GetCurrentFrame>(
-            make_service("get_current_frame"), rclcpp::ServicesQoS(), cb_group);
+        m_get_frame_client =
+            rclcpp::create_client<clover2_led_msgs::srv::GetCurrentFrame>(
+                node->get_node_base_interface(),
+                node->get_node_graph_interface(),
+                node->get_node_services_interface(),
+                make_service("get_current_frame"), rclcpp::ServicesQoS(),
+                cb_group);
 
-        m_start_animation_client = node->template create_client<
-            clover2_led_msgs::srv::StartAnimation>(
-            make_service("start_animation"), rclcpp::ServicesQoS(), cb_group);
+        m_start_animation_client =
+            rclcpp::create_client<clover2_led_msgs::srv::StartAnimation>(
+                node->get_node_base_interface(),
+                node->get_node_graph_interface(),
+                node->get_node_services_interface(),
+                make_service("start_animation"), rclcpp::ServicesQoS(),
+                cb_group);
 
         update_driver_info();
     }
@@ -110,8 +123,8 @@ public:
 
     void solid_color(const data::color& color, float brightness = 1.0F,
                      float duration = 0.0F) {
-        auto req = std::make_shared<
-            clover2_led_msgs::srv::StartAnimation::Request>();
+        auto req =
+            std::make_shared<clover2_led_msgs::srv::StartAnimation::Request>();
         req->animation_name = "solid_color";
         req->brightness = brightness;
         req->duration = duration;
@@ -121,8 +134,8 @@ public:
 
     void blink(const data::color& color, float period = 1.0F,
                float brightness = 1.0F, float duration = 0.0F) {
-        auto req = std::make_shared<
-            clover2_led_msgs::srv::StartAnimation::Request>();
+        auto req =
+            std::make_shared<clover2_led_msgs::srv::StartAnimation::Request>();
         req->animation_name = "blink";
         req->brightness = brightness;
         req->period = period;
@@ -133,8 +146,8 @@ public:
 
     void rainbow(float period = 2.0F, float brightness = 1.0F,
                  float duration = 0.0F) {
-        auto req = std::make_shared<
-            clover2_led_msgs::srv::StartAnimation::Request>();
+        auto req =
+            std::make_shared<clover2_led_msgs::srv::StartAnimation::Request>();
         req->animation_name = "rainbow";
         req->brightness = brightness;
         req->period = period;

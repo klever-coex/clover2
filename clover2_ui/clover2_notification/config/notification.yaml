@@ -29,21 +29,18 @@
           enabled: true
           warn_usage: 85.0
           error_usage: 95.0
-          topic: system/cpu
 
         temperature:
           enabled: true
           warn_celsius: 70.0
           error_celsius: 85.0
           thermal_zone: ""
-          topic: system/temperature
 
         network:
           enabled: true
           interfaces:
             - wlan0
             - eth0
-          topic: system/network
 
         proc_stat_path: /proc/stat
         thermal_base_path: /sys/class/thermal
@@ -55,42 +52,12 @@
       base_path: led_strip
 
       reaction_names:
-        - warn
-        - error
-        - stale
-
-      reactions:
-        warn:
-          priority: 1
-          animation: blink
-          color: [255, 255, 0]
-          brightness: 0.7
-          period: 1.0
-          duration: 3.0
-
-        error:
-          priority: 2
-          animation: blink
-          color: [255, 0, 0]
-          brightness: 1.0
-          period: 0.3
-          duration: 3.0
-
-        stale:
-          priority: 3
-          animation: blink
-          color: [0, 0, 255]
-          brightness: 0.7
-          period: 1.5
-          duration: 3.0
-
-      override_names:
         - power
         - fcu_backend
 
-      overrides:
+      reactions:
         power:
-          diagnostic_name: "Power"
+          event_name: "Power"
           animation: blink
           color: [255, 128, 0]
           brightness: 0.8
@@ -98,7 +65,7 @@
           duration: 3.0
 
         fcu_backend:
-          diagnostic_name: "FCU backend"
+          event_name: "FCU backend"
           animation: blink
           color: [255, 0, 0]
           brightness: 1.0
@@ -111,19 +78,37 @@
       base_path: display
       refresh_period: 1.0
       layout: compact
-      fields:
+
+      status_names:
         - hostname
         - network
         - cpu
         - temperature
-      interfaces:
-        - wlan0
-        - eth0
-      system_topics:
-        cpu: system/cpu
-        temperature: system/temperature
-        network: system/network
+
+      statuses:
+        hostname:
+          type: hostname
+          label: host
+
+        network:
+          source: system
+          event_name: network
+          label: net
+
+        cpu:
+          source: system
+          event_name: cpu
+          label: cpu
+
+        temperature:
+          source: system
+          event_name: temperature
+          label: temp
+
+      alert:
+        enabled: true
+        invert_period: 0.5
+
       notification_overlay:
         enabled: true
         duration: 3.0
-

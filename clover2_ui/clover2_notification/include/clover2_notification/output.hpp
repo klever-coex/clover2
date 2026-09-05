@@ -7,10 +7,11 @@
 #pragma once
 
 // clover2
+#include <clover2_common/node_context.hpp>
 #include <clover2_notification/data/event.hpp>
 
 // ROS2
-#include <rclcpp_lifecycle/lifecycle_node.hpp>
+#include <rclcpp/create_timer.hpp>
 
 // STL
 #include <functional>
@@ -20,6 +21,7 @@
 #include <queue>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace clover2_notification {
@@ -44,16 +46,17 @@ public:
     /**
      * @brief Initialize the output plugin.
      *
-     * @param node Lifecycle node that owns the plugin.
+     * @param node_context Shared node context used to access ROS 2 interfaces.
      * @param id Output instance identifier used as a parameter namespace.
      *
-     * @throws std::invalid_argument if @p node is null or @p id is empty.
+     * @throws std::invalid_argument if @p node_context is null or @p id is
+     * empty.
      */
-    void initialize(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
+    void initialize(std::shared_ptr<clover2_common::node_context> node_context,
                     const std::string& id) {
-        if (!node) {
+        if (!node_context) {
             throw std::invalid_argument(
-                "Notification output received a null node");
+                "Notification output received a null node context");
         }
 
         if (id.empty()) {
@@ -62,7 +65,8 @@ public:
         }
 
         m_id = id;
-        on_initialize(node);
+        m_node_context = std::move(node_context);
+        on_initialize();
     }
 
     /**
@@ -98,15 +102,67 @@ protected:
     const std::string& id() const { return m_id; }
 
     /**
+     * @brief Get shared node context used by the output plugin.
+     *
+     * @return Shared node context used to access ROS 2 interfaces.
+     */
+    const std::shared_ptr<clover2_common::node_context>& node_context() const {
+        return m_node_context;
+    }
+
+    /**
+     * @brief Declare and read a parameter through node context.
+     *
+     * @param name Fully-qualified parameter name.
+     * @param default_value Parameter default value.
+     * @return Declared parameter value.
+     */
+    template <typename T>
+    T declare_parameter(const std::string& name, const T& default_value) const {
+        return rclcpp::node_interfaces::get_node_parameters_interface(
+                   m_node_context)
+            ->declare_parameter(name, rclcpp::ParameterValue(default_value))
+            .get<T>();
+    }
+
+    /**
+     * @brief Declare and read an output-local parameter.
+     *
+     * @param name Parameter name relative to the output id namespace.
+     * @param default_value Parameter default value.
+     * @return Declared parameter value.
+     */
+    template <typename T>
+    T declare_output_parameter(const std::string& name,
+                               const T& default_value) const {
+        return declare_parameter<T>(id() + "." + name, default_value);
+    }
+
+    /**
+     * @brief Create a wall timer using the output node context.
+     *
+     * @param period Timer period.
+     * @param callback Timer callback.
+     * @return Created timer.
+     */
+    template <typename DurationT, typename CallbackT>
+    rclcpp::TimerBase::SharedPtr create_timer(DurationT period,
+                                              CallbackT&& callback) const {
+        return rclcpp::create_timer(
+            m_node_context->get_node_base_interface(),
+            m_node_context->get_node_timers_interface(),
+            m_node_context->get_node_clock_interface()->get_clock(), period,
+            std::forward<CallbackT>(callback));
+    }
+
+    /**
      * @brief Perform implementation-specific initialization.
      *
      * This method is called by initialize() after common validation and id
      * storage are complete.
      *
-     * @param node Lifecycle node that owns the plugin.
      */
-    virtual void on_initialize(
-        const rclcpp_lifecycle::LifecycleNode::SharedPtr& node) = 0;
+    virtual void on_initialize() = 0;
 
     /**
      * @brief Process a single notification event.
@@ -160,6 +216,7 @@ private:
     }
 
     std::string m_id;
+    std::shared_ptr<clover2_common::node_context> m_node_context;
     std::priority_queue<data::event> m_queue;
     std::optional<data::event> m_current_event;
     mutable std::mutex m_queue_mutex;

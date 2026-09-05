@@ -10,17 +10,12 @@ using clover2_notification::data::event;
 
 class fake_output final : public clover2_notification::output {
 public:
-    void finish_current() {
-        m_done();
-    }
+    void finish_current() { m_done(); }
 
-    const std::vector<event>& processed() const {
-        return m_processed;
-    }
+    const std::vector<event>& processed() const { return m_processed; }
 
 protected:
-    void on_initialize(
-        const rclcpp_lifecycle::LifecycleNode::SharedPtr&) override {}
+    void on_initialize() override {}
 
     void process_event(const event& value, done_callback done) override {
         m_processed.push_back(value);
