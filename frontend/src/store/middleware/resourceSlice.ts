@@ -1,7 +1,7 @@
 import type { StateCreator } from 'zustand';
 
-import { toApiError } from '../../types/errors.ts';
-import type { ApiError } from '../../types/errors.ts';
+import { toApiError } from '@/types/errors';
+import type { ApiError } from '@/types/errors';
 
 export type ResourceSlice<
   Name extends string,

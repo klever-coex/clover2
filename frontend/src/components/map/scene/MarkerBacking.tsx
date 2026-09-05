@@ -1,4 +1,4 @@
-import { PLACEHOLDER_GRAY } from '../../../constants/scene.ts';
+import { PLACEHOLDER_GRAY } from '@/constants/scene';
 
 interface Props {
   sizeM: number;

@@ -32,7 +32,6 @@
     "timeout": "Backend is not responding — the request timed out"
   },
   "video": {
-    "title": "Video Streams",
     "noCapability": "ROS topics plugin is not available",
     "searchPlaceholder": "Search video topics...",
     "noTopics": "No video topics found",
@@ -47,7 +46,6 @@
     "frame": "Frame",
     "dictionary": "Dictionary",
     "markers": "Markers",
-    "export": "Export",
     "save": "Save",
     "saving": "Saving...",
     "addMarker": "Add marker",
@@ -67,7 +65,6 @@
     "rotationExpr": "Rotation (°) — Euler YXZ — expression f(id)",
     "delete": "Delete marker",
     "deleteMany": "Delete {{count}} markers",
-    "type": "Type",
     "typeFixed": "Fixed",
     "typeStatic": "Static",
     "typeDynamic": "Dynamic",
@@ -77,7 +74,6 @@
     "sizeMin": "Size must be at least 0.01 m (10 mm)"
   },
   "topics": {
-    "title": "ROS Topics",
     "searchPlaceholder": "Search by name or type...",
     "sortName": "Name",
     "sortType": "Type",
@@ -85,7 +81,6 @@
     "noCapability": "ROS backend plugin is not available"
   },
   "logs": {
-    "title": "ROS Logs",
     "noCapability": "ROS topics plugin is not available",
     "searchPlaceholder": "Search by message, node or file...",
     "minLevel": "Minimum level",
@@ -103,7 +98,6 @@
     "received": "received"
   },
   "settings": {
-    "title": "Settings",
     "noCapability": "Clover2 settings plugin is not available",
     "save": "Save",
     "saving": "Saving...",
@@ -123,12 +117,10 @@
     "noMessages": "Waiting for messages...",
     "clear": "Clear",
     "received": "received",
-    "backToTopics": "Back to topics",
     "object": "object",
     "messageActivity": "Received {{count}} messages"
   },
   "nodes": {
-    "title": "ROS Nodes",
     "searchPlaceholder": "Search by name...",
     "sortName": "Name",
     "sortLifecycle": "Lifecycle first",
@@ -152,7 +144,6 @@
     "noPublishers": "No publishers",
     "noSubscribers": "No subscribers",
     "noServers": "No servers",
-    "noClients": "No clients",
-    "backToNodes": "Back to nodes"
+    "noClients": "No clients"
   }
 }

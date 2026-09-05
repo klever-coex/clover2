@@ -2,12 +2,12 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 
-import { cn } from '../../lib/cn.ts';
-import { useRosStore } from '../../store/useRosStore.ts';
+import { cn } from '@/lib/utils';
+import { useRosStore } from '@/store/useRosStore';
 import { isVideoTopic } from '../../utils/videoStream.ts';
-import { ListToolbar } from '../ros2/ListToolbar.tsx';
-import { TypeBadge } from '../ros2/TypeBadge.tsx';
-import { EmptyState } from '../ui/EmptyState.tsx';
+import { ListToolbar } from '../common/ListToolbar.tsx';
+import { TypeBadge } from '../common/TypeBadge.tsx';
+import { EmptyState } from '../common/EmptyState.tsx';
 
 export function VideoTopicList() {
   const { t } = useTranslation();
@@ -31,7 +31,7 @@ export function VideoTopicList() {
         onChange={setSearch}
         placeholder={t('video.searchPlaceholder')}
       />
-      <div className="min-h-0 overflow-y-auto space-y-0.5">
+      <div className="min-h-0 overflow-y-auto flex flex-col gap-0.5">
         {videoTopics.map((topic) => {
           const active = topic.name === activeTopic;
           return (
@@ -42,8 +42,8 @@ export function VideoTopicList() {
               className={cn(
                 'w-full flex items-center justify-between gap-2 px-2 py-1 rounded-row text-left text-xs transition-colors duration-fast cursor-pointer',
                 active
-                  ? 'bg-surface-3 text-ink'
-                  : 'text-ink-muted hover:bg-surface-2 hover:text-ink',
+                  ? 'bg-secondary text-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
               )}
             >
               <span className="font-mono break-all">{topic.name}</span>

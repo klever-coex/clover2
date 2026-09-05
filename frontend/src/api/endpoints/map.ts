@@ -1,5 +1,5 @@
 import { MUTATION_TIMEOUT_MS } from '../../constants/ros.ts';
-import type { MapInfo, MarkerInfo, ModifyResult } from '../../types/map.ts';
+import type { MapInfo, MarkerInfo, ModifyResult } from '@/types/map';
 import type { HttpCall } from '../core.ts';
 
 export interface MapEndpoints {

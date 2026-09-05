@@ -1,12 +1,18 @@
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { saveMap } from '../../../store/mapMutations.ts';
 import { mapDirtyIds } from '../../../store/slices/mapSlice.ts';
-import { useMapStore } from '../../../store/useMapStore.ts';
-import { Badge } from '../../ui/Badge.tsx';
-import { Button } from '../../ui/Button.tsx';
+import { useMapStore } from '@/store/useMapStore';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export function ProjectBar() {
+interface ProjectBarProps {
+  action?: ReactNode;
+}
+
+export function ProjectBar({ action }: ProjectBarProps) {
   const { t } = useTranslation();
   const mapMeta = useMapStore((s) => s.mapMeta);
   const markerCount = useMapStore((s) => Object.keys(s.markers).length);
@@ -15,38 +21,42 @@ export function ProjectBar() {
   const mutationError = useMapStore((s) => s.mutationError);
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-md font-semibold text-ink truncate">
+    <Card size="sm">
+      <CardHeader>
+        <CardTitle className="truncate">
           {mapMeta?.name || t('map.title')}
-        </span>
-        <div className="flex items-center gap-2 shrink-0">
+        </CardTitle>
+        <CardAction className="flex items-center gap-1">
+          {/* Secondary: the panel's accent action is "add marker"; keep one accent per view. */}
           <Button
-            variant="primary"
-            size="md"
+            variant="secondary"
+            size="sm"
             disabled={!dirty || saving}
             onClick={() => void saveMap()}
           >
             {saving ? t('map.saving') : t('map.save')}
           </Button>
+          {action}
+        </CardAction>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2">
+        {mutationError !== null && <p className="text-xs text-destructive">{mutationError}</p>}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {mapMeta !== null && mapMeta.frameId !== '' && (
+            <Badge variant="secondary" className="font-mono">
+              {t('map.frame')}: {mapMeta.frameId}
+            </Badge>
+          )}
+          {mapMeta !== null && (
+            <Badge variant="secondary" className="font-mono">
+              {t('map.dictionary')}: {mapMeta.dictionary}
+            </Badge>
+          )}
+          <Badge variant="secondary">
+            {t('map.markers')}: {markerCount}
+          </Badge>
         </div>
-      </div>
-      {mutationError !== null && <p className="text-xs text-error">{mutationError}</p>}
-      <div className="flex items-center gap-2 flex-wrap">
-        {mapMeta !== null && mapMeta.frameId !== '' && (
-          <Badge tone="neutral" className="font-mono">
-            {t('map.frame')}: {mapMeta.frameId}
-          </Badge>
-        )}
-        {mapMeta !== null && (
-          <Badge tone="neutral" className="font-mono">
-            {t('map.dictionary')}: {mapMeta.dictionary}
-          </Badge>
-        )}
-        <Badge tone="neutral">
-          {t('map.markers')}: {markerCount}
-        </Badge>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

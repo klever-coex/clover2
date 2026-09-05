@@ -1,19 +1,17 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 
-import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
-import { useCapabilityFetch } from '../../hooks/useCapabilityFetch.ts';
-import type { RosCapability } from '../../hooks/useRosCapability.ts';
-import type { ApiError } from '../../types/errors.ts';
-import { EmptyState } from '../ui/EmptyState.tsx';
-import { ErrorState } from '../ui/ErrorState.tsx';
-import { LoadingState } from '../ui/LoadingState.tsx';
-import { PageHeader } from '../ui/PageHeader.tsx';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
+import { useCapabilityFetch } from '@/hooks/useCapabilityFetch';
+import type { RosCapability } from '@/hooks/useRosCapability';
+import type { ApiError } from '@/types/errors';
+import { EmptyState } from '../common/EmptyState.tsx';
+import { ErrorState } from '../common/ErrorState.tsx';
+import { Skeleton } from '@/components/ui/skeleton';
 import { CapabilityGate } from './CapabilityGate.tsx';
-import { ListToolbar } from './ListToolbar.tsx';
+import { ListToolbar } from '../common/ListToolbar.tsx';
 
 interface ListPageProps<T> {
-  title: string;
   capability: RosCapability;
   noCapability: string;
   searchPlaceholder: string;
@@ -22,18 +20,15 @@ interface ListPageProps<T> {
   loading: boolean;
   error: ApiError | null;
   onReload: () => void | Promise<void>;
-  /** Query is already trimmed and lowercased. */
   filter: (item: T, query: string) => boolean;
   keyOf: (item: T) => string;
   renderItem: (item: T) => ReactNode;
   toolbarExtra?: ReactNode;
   sortItems?: (items: readonly T[]) => readonly T[];
-  /** Classes of the items container; defaults to a vertical list. */
   itemsClassName?: string;
 }
 
 export function ListPage<T>({
-  title,
   capability,
   noCapability,
   searchPlaceholder,
@@ -47,7 +42,7 @@ export function ListPage<T>({
   renderItem,
   toolbarExtra,
   sortItems,
-  itemsClassName = 'mt-4 space-y-1',
+  itemsClassName = 'mt-4 flex flex-col gap-2',
 }: ListPageProps<T>) {
   const [query, setQuery] = useState('');
   const errorMessage = useApiErrorMessage();
@@ -60,9 +55,7 @@ export function ListPage<T>({
 
   return (
     <div className="p-6">
-      <PageHeader title={title} />
-
-      <div className="mt-4">
+      <div>
         <CapabilityGate capability={capability} noCapability={noCapability}>
           <ListToolbar
             value={query}
@@ -71,7 +64,13 @@ export function ListPage<T>({
             extra={toolbarExtra}
           />
 
-          {loading && items.length === 0 && <LoadingState />}
+          {loading && items.length === 0 && (
+            <div className="mt-4 flex flex-col gap-2" aria-hidden>
+              {Array.from({ length: 6 }, (_, index) => (
+                <Skeleton key={index} className="h-11 w-full rounded-row" />
+              ))}
+            </div>
+          )}
 
           {error !== null && (
             <ErrorState message={errorMessage(error)} onRetry={onReload} />

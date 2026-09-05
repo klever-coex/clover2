@@ -1,4 +1,4 @@
-import type { Capability } from '../../types/manifest.ts';
+import type { Capability } from '@/types/manifest';
 import type { HttpMiddleware } from '../core.ts';
 
 export type CapabilityGate = (capability: Capability) => Promise<void>;

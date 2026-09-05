@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
-import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
-import type { AsyncResource } from '../../hooks/useAsyncResource.ts';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
+import type { AsyncResource } from '@/hooks/useAsyncResource';
 import { EmptyState } from './EmptyState.tsx';
 import { ErrorState } from './ErrorState.tsx';
 import { LoadingState } from './LoadingState.tsx';
@@ -26,7 +26,7 @@ export function ResourceState<T>({
   const errorMessage = useApiErrorMessage();
 
   if (resource.loading && resource.data === null) {
-    return <LoadingState size={24} />;
+    return <LoadingState className="size-6" />;
   }
 
   if (resource.error !== null) {

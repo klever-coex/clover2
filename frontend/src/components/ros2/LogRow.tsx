@@ -1,13 +1,13 @@
-import { cn } from '../../lib/cn';
-import type { RosLogEntry, RosLogLevelName } from '../../types/rosout.ts';
+import { cn } from '@/lib/utils';
+import type { RosLogEntry, RosLogLevelName } from '@/types/rosout';
 
 const LEVEL_CLASSES: Record<RosLogLevelName, string> = {
-  debug: 'text-ink-faint',
-  info: 'text-ink',
+  debug: 'text-muted-foreground/80',
+  info: 'text-foreground',
   warn: 'text-warning',
-  error: 'text-error',
-  fatal: 'text-error font-bold',
-  unknown: 'text-ink-muted',
+  error: 'text-destructive',
+  fatal: 'text-destructive font-bold',
+  unknown: 'text-muted-foreground',
 };
 
 const LEVEL_LABELS: Record<Exclude<RosLogLevelName, 'unknown'>, string> = {
@@ -39,17 +39,17 @@ export function LogRow({ entry }: { entry: RosLogEntry }) {
       : null;
 
   return (
-    <div className="flex items-baseline gap-3 px-3 py-1 border-b border-border-soft text-xs">
-      <span className="text-ink-faint shrink-0 tabular-nums">{formatTime(entry)}</span>
+    <div className="flex items-baseline gap-3 px-3 py-1 border-b border-border text-xs">
+      <span className="text-muted-foreground/80 shrink-0 tabular-nums">{formatTime(entry)}</span>
       <span className={cn('w-14 shrink-0 font-semibold', LEVEL_CLASSES[entry.level])}>
         {levelLabel(entry)}
       </span>
-      <span className="text-ink-muted shrink-0 max-w-48 truncate" title={entry.name}>
+      <span className="text-muted-foreground shrink-0 max-w-48 truncate" title={entry.name}>
         {entry.name}
       </span>
-      <span className="text-ink break-all flex-1">{entry.msg}</span>
+      <span className="text-foreground break-all flex-1">{entry.msg}</span>
       {source !== null && (
-        <span className="text-ink-faint shrink-0" title={entry.file}>
+        <span className="text-muted-foreground/80 shrink-0" title={entry.file}>
           {source}
         </span>
       )}

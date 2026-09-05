@@ -1,9 +1,9 @@
-import type { Manifest } from '../types/manifest.ts';
-import type { MapInfo, MarkerInfo, ModifyResult } from '../types/map.ts';
-import type { NodeInfo } from '../types/node.ts';
-import type { ServiceEndpoint } from '../types/service.ts';
-import type { SettingsModifyResult, SettingsSchemaResponse } from '../types/settings.ts';
-import type { TopicEndpoint, TopicInfo } from '../types/topic.ts';
+import type { Manifest } from '@/types/manifest';
+import type { MapInfo, MarkerInfo, ModifyResult } from '@/types/map';
+import type { NodeInfo } from '@/types/node';
+import type { ServiceEndpoint } from '@/types/service';
+import type { SettingsModifyResult, SettingsSchemaResponse } from '@/types/settings';
+import type { TopicEndpoint, TopicInfo } from '@/types/topic';
 
 import { createClient } from './client.ts';
 import type {

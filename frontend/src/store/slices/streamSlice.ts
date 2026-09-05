@@ -2,8 +2,8 @@ import type { StateCreator } from 'zustand';
 import { clover2Api } from '../../api/clover2.ts';
 import type { TopicSubscription } from '../../api/clover2.ts';
 import { STREAM_BUFFER_CAP } from '../../constants/ros.ts';
-import type { ApiError } from '../../types/errors.ts';
-import type { RosJsonValue } from '../../types/stream.ts';
+import type { ApiError } from '@/types/errors';
+import type { RosJsonValue } from '@/types/stream';
 import type { RosStore } from '../useRosStore.ts';
 
 export type StreamState = 'idle' | 'connecting' | 'connected' | 'closed' | 'error';
@@ -73,7 +73,7 @@ export const createStreamSlice: StateCreator<RosStore, [], [], StreamSlice> = (s
   },
 
   clearMessages: () => {
-    set({ streamMessages: [] });
+    set({ streamMessages: [], streamReceived: 0 });
   },
 
   retryStream: () => {

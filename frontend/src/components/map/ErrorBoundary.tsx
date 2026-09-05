@@ -1,8 +1,8 @@
 import { Component } from 'react';
 import type { ReactNode } from 'react';
 
-import i18n from '../../i18n/index.ts';
-import { ErrorState } from '../ui/ErrorState.tsx';
+import i18n from '@/i18n/index.ts';
+import { ErrorState } from '../common/ErrorState.tsx';
 
 interface Props {
   children: ReactNode;
@@ -14,7 +14,6 @@ interface State {
   error: Error | null;
 }
 
-/** Guards the 3D scene: a WebGL/render crash must not take down the whole page. */
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);

@@ -1,7 +1,7 @@
 import { WS_CONNECT_TIMEOUT_MS } from '../../constants/ros.ts';
-import { ApiError, isErrorFrame, toApiError } from '../../types/errors.ts';
-import type { Capability } from '../../types/manifest.ts';
-import type { RosJsonValue } from '../../types/stream.ts';
+import { ApiError, isErrorFrame, toApiError } from '@/types/errors';
+import type { Capability } from '@/types/manifest';
+import type { RosJsonValue } from '@/types/stream';
 import { encodeRosPath } from '../url.ts';
 
 export interface TopicSubscriptionOptions {

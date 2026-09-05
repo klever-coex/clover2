@@ -28,18 +28,27 @@ export function useMseStream(
     let sourceBuffer: SourceBuffer | null = null;
     let reader: ReadableStreamDefaultReader<Uint8Array<ArrayBuffer>> | null = null;
     let watchdog: number | null = null;
+    let abortController: AbortController | null = null;
     const mediaSource = new MediaSource();
 
     const fail = () => {
-      if (watchdog !== null) window.clearTimeout(watchdog);
+      stopStreaming();
       if (!aborted) setStatus('error');
     };
 
     const resetWatchdog = () => {
       if (watchdog !== null) window.clearTimeout(watchdog);
       watchdog = window.setTimeout(() => {
-        if (!aborted) setStatus('error');
+        if (!aborted) fail();
       }, STALL_TIMEOUT_MS);
+    };
+
+    /** Cancels the in-flight fetch/reader so no work continues in background. */
+    const stopStreaming = () => {
+      if (watchdog !== null) window.clearTimeout(watchdog);
+      abortController?.abort();
+      void reader?.cancel().catch(() => {});
+      reader = null;
     };
 
     const waitForUpdateEnd = (sb: SourceBuffer) =>
@@ -69,7 +78,11 @@ export function useMseStream(
     };
 
     const pump = async (sb: SourceBuffer) => {
-      const response = await fetch(videoStreamUrl(topicName, 'vp8'));
+      resetWatchdog();
+      abortController = new AbortController();
+      const response = await fetch(videoStreamUrl(topicName, 'vp8'), {
+        signal: abortController.signal,
+      });
       if (!response.ok || response.body === null) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -117,6 +130,7 @@ export function useMseStream(
 
     return () => {
       aborted = true;
+      abortController?.abort();
       if (watchdog !== null) window.clearTimeout(watchdog);
       mediaSource.removeEventListener('sourceopen', onSourceOpen);
       void reader?.cancel().catch(() => {});

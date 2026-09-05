@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import type { ApiError } from '../types/errors.ts';
+import type { ApiError } from '@/types/errors';
 
 export function useApiErrorMessage(): (error: ApiError) => string {
   const { t } = useTranslation();

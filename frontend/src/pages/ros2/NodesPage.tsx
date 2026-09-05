@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import { ListPage } from '../../components/ros2/ListPage.tsx';
 import { NodeCard } from '../../components/ros2/NodeCard.tsx';
-import { SortSelect } from '../../components/ros2/SortSelect.tsx';
-import { useNodeInfos } from '../../hooks/useNodeInfos.ts';
-import { useRosCapability } from '../../hooks/useRosCapability.ts';
-import { useRosStore } from '../../store/useRosStore.ts';
+import { SortSelect } from '../../components/common/SortSelect.tsx';
+import { useNodeInfos } from '@/hooks/useNodeInfos';
+import { useRosCapability } from '@/hooks/useRosCapability';
+import { useRosStore } from '@/store/useRosStore';
 
 export function NodesPage() {
   const { t } = useTranslation();
@@ -20,7 +20,6 @@ export function NodesPage() {
 
   return (
     <ListPage<string>
-      title={t('nodes.title')}
       capability={capability}
       noCapability={t('nodes.noCapability')}
       searchPlaceholder={t('nodes.searchPlaceholder')}
@@ -32,7 +31,7 @@ export function NodesPage() {
       filter={(name, q) => name.toLowerCase().includes(q)}
       keyOf={(name) => name}
       renderItem={(name) => <NodeCard name={name} info={infos.data?.get(name)} />}
-      itemsClassName="mt-4 grid gap-3 grid-cols-[repeat(auto-fill,minmax(240px,1fr))]"
+      itemsClassName="mt-4 grid gap-2 grid-cols-[repeat(auto-fill,minmax(240px,1fr))]"
       toolbarExtra={
         <SortSelect
           ariaLabel={t('common.sortBy')}

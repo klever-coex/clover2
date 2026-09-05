@@ -4,16 +4,17 @@ import { useSearchParams } from 'react-router';
 import { CapabilityGate } from '../../components/ros2/CapabilityGate.tsx';
 import { MseVideoStream } from '../../components/video/MseVideoStream.tsx';
 import { VideoTopicList } from '../../components/video/VideoTopicList.tsx';
-import { EmptyState } from '../../components/ui/EmptyState.tsx';
-import { ErrorState } from '../../components/ui/ErrorState.tsx';
-import { LoadingState } from '../../components/ui/LoadingState.tsx';
-import { PageHeader } from '../../components/ui/PageHeader.tsx';
-import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
-import { useCapabilityFetch } from '../../hooks/useCapabilityFetch.ts';
-import { useRosCapability } from '../../hooks/useRosCapability.ts';
-import { useRosStore } from '../../store/useRosStore.ts';
-import { cn } from '../../lib/cn.ts';
-import { pageGrid, panelFill } from '../../lib/uiStyles.ts';
+import { EmptyState } from '../../components/common/EmptyState.tsx';
+import { ErrorState } from '../../components/common/ErrorState.tsx';
+import { LoadingState } from '../../components/common/LoadingState.tsx';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
+import { useCapabilityFetch } from '@/hooks/useCapabilityFetch';
+import { useRosCapability } from '@/hooks/useRosCapability';
+import { useRosStore } from '@/store/useRosStore';
+import { usePageHeader } from '@/store/usePageHeader';
+import { route } from '@/routes/navigation.ts';
+import { cn } from '@/lib/utils';
+import { pageGrid, panelFill } from '@/lib/uiStyles';
 
 export function VideoPage() {
   const { t } = useTranslation();
@@ -28,19 +29,18 @@ export function VideoPage() {
 
   useCapabilityFetch(capability, reloadTopics);
 
+  usePageHeader(
+    topicName !== null
+      ? [
+          { label: t(route('/video').labelKey), to: '/video' },
+          { label: topicName, mono: true },
+        ]
+      : [],
+  );
+
   return (
     <div className="p-6 h-full flex flex-col">
-      <PageHeader
-        title={
-          topicName !== null ? (
-            <span className="font-mono">{topicName}</span>
-          ) : (
-            t('video.title')
-          )
-        }
-      />
-
-      <div className="mt-4 flex-1 min-h-0">
+      <div className="flex-1 min-h-0">
         <CapabilityGate capability={capability} noCapability={t('video.noCapability')}>
           {topicsLoading && topics.length === 0 ? (
             <LoadingState variant="centered" />
@@ -51,10 +51,10 @@ export function VideoPage() {
             />
           ) : (
             <div className={cn(pageGrid, 'grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)]')}>
-              <div className="min-h-0 overflow-y-auto rounded-panel border border-line bg-surface-1 p-2 h-[30vh] xl:h-full">
+              <div className="min-h-0 overflow-y-auto rounded-panel border border-border bg-card p-2 h-[30vh] xl:h-full">
                 <VideoTopicList />
               </div>
-              <div className={cn(panelFill, 'relative rounded-panel border border-line overflow-hidden bg-surface-1')}>
+              <div className={cn(panelFill, 'relative rounded-panel border border-border overflow-hidden bg-card')}>
                 {topicName === null ? (
                   <div className="h-full flex items-center justify-center">
                     <EmptyState message={t('video.selectHint')} />

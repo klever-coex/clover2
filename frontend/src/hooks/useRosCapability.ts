@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 
-import { useRosStore } from '../store/useRosStore.ts';
-import type { ApiError } from '../types/errors.ts';
-import type { Capability } from '../types/manifest.ts';
+import { useRosStore } from '@/store/useRosStore';
+import type { ApiError } from '@/types/errors';
+import type { Capability } from '@/types/manifest';
 
 export interface RosCapability {
   ready: boolean;

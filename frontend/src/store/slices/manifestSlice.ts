@@ -1,7 +1,7 @@
 import type { StateCreator } from 'zustand';
 
 import { clover2Api } from '../../api/clover2.ts';
-import type { Capability, Manifest } from '../../types/manifest.ts';
+import type { Capability, Manifest } from '@/types/manifest';
 import { createResourceSlice, type ResourceSlice } from '../middleware/resourceSlice.ts';
 import type { RosStore } from '../useRosStore.ts';
 
@@ -19,7 +19,6 @@ export const createManifestSlice: StateCreator<RosStore, [], [], ManifestSlice> 
     initial: null,
     fetch: 'fetchManifest',
     fetcher: () => {
-      // Drop the cached manifest first: after a backend restart the capabilities may change.
       clover2Api.manifest.clearCache();
       return clover2Api.manifest.get();
     },

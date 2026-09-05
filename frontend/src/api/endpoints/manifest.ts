@@ -1,5 +1,5 @@
-import { ApiError } from '../../types/errors.ts';
-import type { Capability, Manifest } from '../../types/manifest.ts';
+import { ApiError } from '@/types/errors';
+import type { Capability, Manifest } from '@/types/manifest';
 import type { HttpCall } from '../core.ts';
 
 export interface ManifestEndpoints {

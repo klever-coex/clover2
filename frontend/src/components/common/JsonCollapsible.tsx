@@ -2,26 +2,34 @@ import { useId, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ChevronRight } from 'lucide-react';
 
-import { cn } from '../../lib/cn.ts';
+import { cn } from '@/lib/utils';
 
 interface CollapsibleProps {
   label: ReactNode;
   children: ReactNode;
   defaultOpen?: boolean;
+  open?: boolean;
+  onToggle?: () => void;
 }
 
-export function Collapsible({ label, children, defaultOpen = true }: CollapsibleProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+export function JsonCollapsible({ label, children, defaultOpen = true, open, onToggle }: CollapsibleProps) {
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const isOpen = open ?? internalOpen;
   const contentId = useId();
+
+  const toggle = () => {
+    onToggle?.();
+    setInternalOpen(!internalOpen);
+  };
 
   return (
     <div className="ml-4">
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggle}
         aria-expanded={isOpen}
         aria-controls={contentId}
-        className="flex items-center gap-1 font-semibold text-json-key hover:text-ink rounded transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus/60"
+        className="flex items-center gap-1 rounded-row font-semibold text-json-key transition-colors duration-fast hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:outline-none"
       >
         <ChevronRight
           size={14}
@@ -29,7 +37,7 @@ export function Collapsible({ label, children, defaultOpen = true }: Collapsible
         />
         <span className="mr-1">{label}:</span>
       </button>
-      {/* Children stay mounted so aria-controls always references a live node. */}
+      {/* Children may be rendered lazily by the caller; the node stays live for aria-controls. */}
       <div id={contentId} className="ml-4" hidden={!isOpen}>
         {children}
       </div>

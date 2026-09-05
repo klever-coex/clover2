@@ -1,15 +1,14 @@
 import type { StateCreator } from 'zustand';
 
 import { clover2Api } from '../../api/clover2.ts';
-import { DEFAULT_DICTIONARY } from '../../constants/defaults.ts';
+import { DEFAULT_DICTIONARY } from '@/constants/defaults';
 import { isDictionaryName } from '../../data/dictionaries/index.ts';
-import { toApiError } from '../../types/errors.ts';
-import type { ApiError } from '../../types/errors.ts';
-import type { MarkerInfo, MarkerPose } from '../../types/map.ts';
-import type { ArUcoDictionary, MapMarker, MarkerType } from '../../types/marker.ts';
+import { toApiError } from '@/types/errors';
+import type { ApiError } from '@/types/errors';
+import type { MarkerInfo } from '@/types/map';
+import type { ArUcoDictionary, MapMarker, MarkerType } from '@/types/marker';
 import type { MapStore } from '../useMapStore.ts';
 
-/** Marker fields as of the last load/save — the diff target for unsaved changes. */
 export interface MapBaselineEntry {
   markerFrameId: string;
   sizeM: number;
@@ -27,17 +26,14 @@ export interface MapSlice {
   saving: boolean;
   setMutationError: (message: string | null) => void;
   setSaving: (saving: boolean) => void;
-  /** Snapshots the current markers/exprs as the saved baseline. */
   captureBaseline: () => void;
   reloadMap: () => Promise<void>;
-  setMarkerPoseLocal: (id: string, pose: MarkerPose) => void;
   setMarkerInfoLocal: (id: string, patch: Partial<Pick<MapMarker, 'sizeM' | 'markerFrameId'>>) => void;
   addMarkerLocal: (info: MarkerInfo) => void;
   removeMarkerLocal: (id: string) => void;
   pruneSelection: () => void;
 }
 
-/** Ids whose current state deviates from the baseline: edits, local adds and local deletes. */
 export function mapDirtyIds(state: MapStore): string[] {
   const dirty: string[] = [];
 
@@ -65,7 +61,6 @@ export function mapDirtyIds(state: MapStore): string[] {
     }
   }
 
-  // Locally deleted markers are still in the baseline and need a server delete.
   for (const id of Object.keys(state.baseline)) {
     if (!(id in state.markers)) dirty.push(id);
   }
@@ -134,13 +129,6 @@ export const createMapSlice: StateCreator<MapStore, [], [], MapSlice> = (set, ge
       set({ mapLoading: false, mapError: toApiError(error) });
     }
   },
-
-  setMarkerPoseLocal: (id, pose) =>
-    set((s) => {
-      const m = s.markers[id];
-      if (!m || m.pose === null) return s;
-      return { markers: { ...s.markers, [id]: { ...m, pose } } };
-    }),
 
   setMarkerInfoLocal: (id, patch) =>
     set((s) => {

@@ -1,9 +1,9 @@
-import i18n from '../i18n/index.ts';
+import i18n from '@/i18n/index.ts';
 import { clover2Api } from '../api/clover2.ts';
-import { ApiError } from '../types/errors.ts';
-import { DEFAULT_MARKER_SIZE_M } from '../constants/defaults.ts';
-import type { MarkerInfo, ModifyResult } from '../types/map.ts';
-import type { MapMarker } from '../types/marker.ts';
+import { ApiError } from '@/types/errors';
+import { DEFAULT_MARKER_SIZE_M } from '@/constants/defaults';
+import type { MarkerInfo, ModifyResult } from '@/types/map';
+import type { MapMarker } from '@/types/marker';
 import { resolvePose } from '../utils/transformUtils.ts';
 import { mapDirtyIds } from './slices/mapSlice.ts';
 import { useMapStore } from './useMapStore.ts';

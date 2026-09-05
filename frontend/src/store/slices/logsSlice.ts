@@ -9,10 +9,10 @@ import {
   ROSOUT_TOPIC,
   WS_KEEPALIVE_INTERVAL_MS,
 } from '../../constants/ros.ts';
-import type { ApiError } from '../../types/errors.ts';
-import { parseRosLogEntry } from '../../types/rosout.ts';
-import type { RosLogEntry } from '../../types/rosout.ts';
-import type { RosJsonValue } from '../../types/stream.ts';
+import type { ApiError } from '@/types/errors';
+import { parseRosLogEntry } from '@/types/rosout';
+import type { RosLogEntry } from '@/types/rosout';
+import type { RosJsonValue } from '@/types/stream';
 import type { RosStore } from '../useRosStore.ts';
 import type { StreamState } from './streamSlice.ts';
 
@@ -22,20 +22,13 @@ export interface LogsSlice {
   logsError: ApiError | null;
   logsReceived: number;
   logsPaused: boolean;
-  /** Messages discarded while paused; resets on resume/clear. */
   logsDropped: number;
   startRosoutStream: () => void;
-  stopRosoutStream: () => void;
   retryRosoutStream: () => void;
   clearLogs: () => void;
   setLogsPaused: (paused: boolean) => void;
 }
 
-/**
- * Background /rosout collector. The subscription survives navigation and
- * reconnects automatically (the server drops idle sockets every 60 s; the
- * keepalive frames usually prevent that, reconnect covers the rest).
- */
 export const createLogsSlice: StateCreator<RosStore, [], [], LogsSlice> = (set) => {
   let subscription: TopicSubscription | null = null;
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
@@ -108,14 +101,6 @@ export const createLogsSlice: StateCreator<RosStore, [], [], LogsSlice> = (set) 
     startRosoutStream: () => {
       if (reconnectTimer !== null) return; // a reconnect is already scheduled
       connect();
-    },
-
-    stopRosoutStream: () => {
-      clearReconnectTimer();
-      failedAttempts = 0;
-      subscription?.close();
-      subscription = null;
-      set({ logsState: 'idle' });
     },
 
     retryRosoutStream: () => {

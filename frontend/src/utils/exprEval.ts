@@ -64,7 +64,9 @@ function tokenize(expr: string): Token[] {
         }
       }
       const val = parseFloat(num);
-      if (isNaN(val)) throw new Error(`Invalid number: "${num}"`);
+      if (isNaN(val) || !/^[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?$/.test(num)) {
+        throw new Error(`Invalid number: "${num}"`);
+      }
       tokens.push({ type: 'NUM', value: val });
       continue;
     }
@@ -128,26 +130,26 @@ class Parser {
   }
 
   private term(vars: Record<string, number>): number {
-    let left = this.power(vars);
+    let left = this.unary(vars);
 
     while (this.peek()?.type === 'OP' && ['*', '/', '//', '%'].includes((this.peek() as { op: string }).op)) {
       const op = (this.consume() as { op: string }).op;
-      const right = this.power(vars);
-      if (right === 0) throw new Error('Division by zero');
+      const right = this.unary(vars);
+      if (op !== '*' && right === 0) throw new Error('Division by zero');
       if (op === '*') left = left * right;
       else if (op === '/') left = left / right;
-      else if (op === '//') left = Math.trunc(left / right);
-      else left = left % right;
+      else if (op === '//') left = Math.floor(left / right);
+      else left = ((left % right) + right) % right;
     }
 
     return left;
   }
 
   private power(vars: Record<string, number>): number {
-    const base = this.unary(vars);
+    const base = this.primary(vars);
     if (this.peek()?.type === 'OP' && (this.peek() as { op: string }).op === '**') {
       this.consume();
-      const exp = this.power(vars);
+      const exp = this.unary(vars);
       return base ** exp;
     }
     return base;
@@ -159,7 +161,7 @@ class Parser {
       const v = this.unary(vars);
       return op === '-' ? -v : v;
     }
-    return this.primary(vars);
+    return this.power(vars);
   }
 
   private primary(vars: Record<string, number>): number {

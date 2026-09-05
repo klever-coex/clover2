@@ -1,4 +1,4 @@
-import type { ArUcoDictionary, DictionaryData, DictionaryMeta } from '../../types/marker.ts';
+import type { ArUcoDictionary, DictionaryData, DictionaryMeta } from '@/types/marker';
 
 export type { DictionaryData, DictionaryMeta };
 

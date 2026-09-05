@@ -1,4 +1,4 @@
-import { ApiError } from '../../types/errors.ts';
+import { ApiError } from '@/types/errors';
 import type { HttpMiddleware } from '../core.ts';
 
 export const jsonMiddleware: HttpMiddleware = async (ctx, next) => {

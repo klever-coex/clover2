@@ -1,4 +1,4 @@
-import type { Capability } from '../types/manifest.ts';
+import type { Capability } from '@/types/manifest';
 
 export interface ApiCallOptions {
   capabilities?: readonly Capability[];

@@ -1,5 +1,5 @@
 import { REQUEST_TIMEOUT_MS } from '../constants/ros.ts';
-import { ApiError } from '../types/errors.ts';
+import { ApiError } from '@/types/errors';
 import type { TransportExecutor } from './core.ts';
 
 export function createFetchExecutor(): TransportExecutor {

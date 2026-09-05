@@ -11,8 +11,6 @@ export function SceneCanvasContextHandler() {
     };
 
     const handleRestored = () => {
-      // SVG textures via useTexture auto-recover on context restore —
-      // Three.js re-uploads from the in-memory Image (data URI).
       invalidate();
     };
 

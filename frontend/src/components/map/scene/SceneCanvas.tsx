@@ -1,23 +1,20 @@
 import { Canvas, useThree } from '@react-three/fiber';
 import { Suspense, useEffect } from 'react';
 
-import { DEFAULT_DICTIONARY } from '../../../constants/defaults.ts';
-import { SCENE_BACKGROUND } from '../../../constants/scene.ts';
+import { DEFAULT_DICTIONARY } from '@/constants/defaults';
+import { SCENE_BACKGROUND } from '@/constants/scene';
 import { loadDictionary } from '../../../data/dictionaries/index.ts';
-import { useMapStore } from '../../../store/useMapStore.ts';
-import { useMapUIStore } from '../../../store/useMapUIStore.ts';
+import { useMapStore } from '@/store/useMapStore';
+import { useMapUIStore } from '@/store/useMapUIStore';
 import { AxesHelper } from './AxesHelper.tsx';
 import { CameraController } from './CameraController.tsx';
 import { GroundGrid } from './GroundGrid.tsx';
 import { MarkerMesh } from './MarkerMesh.tsx';
 import { SceneCanvasContextHandler } from './SceneCanvasContextHandler.tsx';
 import { SceneLighting } from './SceneLighting.tsx';
-import { TransformController } from './TransformController.tsx';
 
-// Preload the default dictionary so markers render without a blank-scene flash
 void loadDictionary(DEFAULT_DICTIONARY);
 
-/** Invalidates the R3F render loop when markers change (since we use frameloop="demand") */
 function StoreInvalidator() {
   const invalidate = useThree((s) => s.invalidate);
   const markers = useMapStore((s) => s.markers);
@@ -37,7 +34,6 @@ export function SceneCanvas() {
   const deselectAll = useMapStore((s) => s.deselectAll);
   const showAxes = useMapUIStore((s) => s.showAxes);
 
-  // Preload the map's dictionary once it is known (usually == DEFAULT_DICTIONARY).
   useEffect(() => {
     if (mapMeta !== null) {
       void loadDictionary(mapMeta.dictionary);
@@ -49,7 +45,7 @@ export function SceneCanvas() {
       frameloop="demand"
       dpr={[1, 1.5]}
       camera={{ position: [2, -5, 3], up: [0, 0, 1], fov: 50, near: 0.01, far: 100 }}
-      shadows={true}
+      shadows="percentage"
       gl={{
         outputColorSpace: 'srgb',
         toneMapping: 0, // NoToneMapping — was 4 (ACES) which crushes colors
@@ -69,7 +65,6 @@ export function SceneCanvas() {
         {Object.keys(markers).map((id) => (
           <MarkerMesh key={id} markerId={id} />
         ))}
-        <TransformController />
         {showAxes && <AxesHelper length={0.5} />}
       </Suspense>
     </Canvas>

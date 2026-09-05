@@ -1,7 +1,7 @@
 import { clover2Api } from '../api/clover2.ts';
-import type { NodeInfo } from '../types/node.ts';
-import type { ServiceEndpoint } from '../types/service.ts';
-import type { TopicEndpoint } from '../types/topic.ts';
+import type { NodeInfo } from '@/types/node';
+import type { ServiceEndpoint } from '@/types/service';
+import type { TopicEndpoint } from '@/types/topic';
 import { useAsyncResource } from './useAsyncResource.ts';
 import type { AsyncResource } from './useAsyncResource.ts';
 

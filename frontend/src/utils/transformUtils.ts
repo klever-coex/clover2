@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import type { Quat4, Vec3 } from '../types/marker.ts';
-import type { MarkerPose } from '../types/map.ts';
-import { radToDeg, degToRad, mmToM, mToMm } from '../constants/units.ts';
+import type { Quat4, Vec3 } from '@/types/marker';
+import type { MarkerPose } from '@/types/map';
+import { radToDeg, degToRad, mmToM, mToMm } from '@/constants/units';
 import { evaluateExpr } from './exprEval.ts';
 
 const _euler = new THREE.Euler();
@@ -80,9 +80,6 @@ export function vec3ToPositionExpr(v: Vec3): [string, string, string] {
   return [mToMm(v[0]).toString(), mToMm(v[1]).toString(), mToMm(v[2]).toString()];
 }
 
-export function eulerDegToRotationExpr(v: Vec3): [string, string, string] {
-  return [v[0].toString(), v[1].toString(), v[2].toString()];
-}
 
 export function sanitizeVec3(v: Vec3): Vec3 {
   return [

@@ -4,8 +4,8 @@ import { useTexture } from '@react-three/drei';
 
 import type { DictionaryData } from '../../../data/dictionaries/index.ts';
 import { loadDictionary } from '../../../data/dictionaries/index.ts';
-import { PLACEHOLDER_GRAY } from '../../../constants/scene.ts';
-import type { ArUcoDictionary } from '../../../types/marker.ts';
+import { PLACEHOLDER_GRAY } from '@/constants/scene';
+import type { ArUcoDictionary } from '@/types/marker';
 
 const CELL_PX = 64;
 
@@ -86,7 +86,6 @@ function ArUcoPlane({
 }) {
   const url = useMemo<string>(() => getSvgUrl(dict, dictData, markerId), [dict, dictData, markerId]);
   const loaded = useTexture(url);
-  // Clone before tweaking filters — never mutate the cached texture instance.
   const texture = useMemo(() => {
     const tex = loaded.clone();
     tex.colorSpace = THREE.SRGBColorSpace;

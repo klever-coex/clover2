@@ -1,9 +1,9 @@
 import type { StateCreator } from 'zustand';
 
-import { DEFAULT_POSITION_EXPR, DEFAULT_ROTATION_EXPR } from '../../constants/defaults.ts';
-import { mToMm } from '../../constants/units.ts';
+import { DEFAULT_POSITION_EXPR, DEFAULT_ROTATION_EXPR } from '@/constants/defaults';
+import { mToMm } from '@/constants/units';
 import { rpyToEulerYxzDeg } from '../../utils/transformUtils.ts';
-import type { MapMarker, MarkerUi } from '../../types/marker.ts';
+import type { MapMarker, MarkerUi } from '@/types/marker';
 import type { MapStore } from '../useMapStore.ts';
 
 export interface MarkerUiSlice {

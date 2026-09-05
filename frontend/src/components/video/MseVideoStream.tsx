@@ -1,9 +1,9 @@
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useMseStream } from '../../hooks/useMseStream.ts';
-import { ErrorState } from '../ui/ErrorState.tsx';
-import { Spinner } from '../ui/Spinner.tsx';
+import { useMseStream } from '@/hooks/useMseStream';
+import { ErrorState } from '../common/ErrorState.tsx';
+import { Spinner } from '@/components/ui/spinner';
 
 interface MseVideoStreamProps {
   topicName: string;
@@ -23,17 +23,17 @@ export function MseVideoStream({ topicName }: MseVideoStreamProps) {
   }
 
   return (
-    <div className="relative w-full h-full bg-surface-0">
+    <div className="relative size-full bg-background">
       <video
         ref={videoRef}
         autoPlay
         muted
         playsInline
-        className="absolute inset-0 w-full h-full object-contain"
+        className="absolute inset-0 size-full object-contain"
       />
       {status === 'loading' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-surface-0/60">
-          <Spinner size={32} />
+        <div className="absolute inset-0 flex items-center justify-center bg-background/60">
+          <Spinner className="size-8 text-primary" />
         </div>
       )}
     </div>

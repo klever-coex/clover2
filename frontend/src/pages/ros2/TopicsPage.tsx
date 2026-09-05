@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ListPage } from '../../components/ros2/ListPage.tsx';
-import { SortSelect } from '../../components/ros2/SortSelect.tsx';
+import { SortSelect } from '../../components/common/SortSelect.tsx';
 import { TopicRow } from '../../components/ros2/TopicRow.tsx';
-import { useRosCapability } from '../../hooks/useRosCapability.ts';
-import { useRosStore } from '../../store/useRosStore.ts';
-import type { TopicInfo } from '../../types/topic.ts';
+import { useRosCapability } from '@/hooks/useRosCapability';
+import { useRosStore } from '@/store/useRosStore';
+import type { TopicInfo } from '@/types/topic';
 
 export function TopicsPage() {
   const { t } = useTranslation();
@@ -18,7 +18,6 @@ export function TopicsPage() {
 
   return (
     <ListPage<TopicInfo>
-      title={t('topics.title')}
       capability={capability}
       noCapability={t('topics.noCapability')}
       searchPlaceholder={t('topics.searchPlaceholder')}

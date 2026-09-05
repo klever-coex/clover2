@@ -3,7 +3,7 @@
     "dashboard": "Главная",
     "map": "Карта",
     "ros2": "ROS2",
-    "nodes": "Узлы",
+    "nodes": "Ноды",
     "topics": "Топики",
     "logs": "Логи",
     "settings": "Настройки",
@@ -32,7 +32,6 @@
     "timeout": "Бэкенд не отвечает — превышено время ожидания"
   },
   "video": {
-    "title": "Видеопотоки",
     "noCapability": "Плагин топиков ROS недоступен",
     "searchPlaceholder": "Поиск видео-топиков...",
     "noTopics": "Видео-топики не найдены",
@@ -47,7 +46,6 @@
     "frame": "Система координат",
     "dictionary": "Словарь",
     "markers": "Маркеры",
-    "export": "Экспорт",
     "save": "Сохранить",
     "saving": "Сохранение...",
     "addMarker": "Добавить маркер",
@@ -67,7 +65,6 @@
     "rotationExpr": "Поворот (°) — Euler YXZ — выражение f(id)",
     "delete": "Удалить маркер",
     "deleteMany": "Удалить маркеров: {{count}}",
-    "type": "Тип",
     "typeFixed": "Фиксированный",
     "typeStatic": "Статичный",
     "typeDynamic": "Динамический",
@@ -77,7 +74,6 @@
     "sizeMin": "Размер должен быть не меньше 0,01 м (10 мм)"
   },
   "topics": {
-    "title": "Топики ROS",
     "searchPlaceholder": "Поиск по имени или типу...",
     "sortName": "По имени",
     "sortType": "По типу",
@@ -85,7 +81,6 @@
     "noCapability": "Плагин бэкенда ROS недоступен"
   },
   "logs": {
-    "title": "Логи ROS",
     "noCapability": "Плагин топиков ROS недоступен",
     "searchPlaceholder": "Поиск по сообщению, узлу или файлу...",
     "minLevel": "Минимальный уровень",
@@ -103,7 +98,6 @@
     "received": "получено"
   },
   "settings": {
-    "title": "Настройки",
     "noCapability": "Плагин настроек Clover2 недоступен",
     "save": "Сохранить",
     "saving": "Сохранение...",
@@ -123,12 +117,10 @@
     "noMessages": "Ожидание сообщений...",
     "clear": "Очистить",
     "received": "получено",
-    "backToTopics": "Назад к топикам",
     "object": "объект",
     "messageActivity": "Получено сообщений: {{count}}"
   },
   "nodes": {
-    "title": "Ноды ROS",
     "searchPlaceholder": "Поиск по имени...",
     "sortName": "По имени",
     "sortLifecycle": "Сначала Lifecycle",
@@ -152,7 +144,6 @@
     "noPublishers": "Нет издателей",
     "noSubscribers": "Нет подписчиков",
     "noServers": "Нет серверов",
-    "noClients": "Нет клиентов",
-    "backToNodes": "К списку нод"
+    "noClients": "Нет клиентов"
   }
 }

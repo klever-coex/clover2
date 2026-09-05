@@ -1,8 +1,8 @@
 import { useEffect, useEffectEvent, useState } from 'react';
 import type { DependencyList } from 'react';
 
-import { toApiError } from '../types/errors.ts';
-import type { ApiError } from '../types/errors.ts';
+import { toApiError } from '@/types/errors';
+import type { ApiError } from '@/types/errors';
 
 export interface AsyncResource<T> {
   data: T | null;

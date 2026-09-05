@@ -8,15 +8,7 @@ interface Props {
 export function MarkerLabel({ text, yOffset }: Props) {
   return (
     <Html position={[0, 0, yOffset]} center style={{ pointerEvents: 'none' }}>
-      <span style={{
-        background: 'rgba(0, 0, 0, 0.7)',
-        color: '#fff',
-        padding: '2px 6px',
-        borderRadius: 4,
-        fontSize: 11,
-        fontFamily: 'monospace',
-        whiteSpace: 'nowrap',
-      }}>
+      <span className="rounded px-1.5 py-0.5 font-mono text-[11px] whitespace-nowrap bg-foreground/70 text-background">
         {text}
       </span>
     </Html>

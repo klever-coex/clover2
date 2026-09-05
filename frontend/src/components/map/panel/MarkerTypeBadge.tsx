@@ -1,14 +1,15 @@
-import { useTranslation } from 'react-i18next';
+import type { MarkerType } from '@/types/marker';
+import type { TranslationKey } from '@/i18n/index.ts';
+import { StateBadge } from '../../common/StateBadge.tsx';
+import type { badgeVariants } from '@/components/ui/badge';
+import type { VariantProps } from 'class-variance-authority';
 
-import type { TranslationKey } from '../../../i18n/index.ts';
-import type { MarkerType } from '../../../types/marker.ts';
-import { Badge } from '../../ui/Badge.tsx';
-import type { BadgeTone } from '../../ui/Badge.tsx';
+type BadgeVariant = NonNullable<VariantProps<typeof badgeVariants>['variant']>;
 
-const TYPE_TONES: Record<MarkerType, BadgeTone> = {
+const TYPE_VARIANTS: Record<MarkerType, BadgeVariant> = {
   fixed: 'success',
   static: 'warning',
-  dynamic: 'neutral',
+  dynamic: 'secondary',
 };
 
 const TYPE_KEYS: Record<MarkerType, TranslationKey> = {
@@ -18,7 +19,7 @@ const TYPE_KEYS: Record<MarkerType, TranslationKey> = {
 };
 
 export function MarkerTypeBadge({ type }: { type: MarkerType }) {
-  const { t } = useTranslation();
-
-  return <Badge tone={TYPE_TONES[type]}>{t(TYPE_KEYS[type])}</Badge>;
+  return (
+    <StateBadge value={type} variantByValue={TYPE_VARIANTS} labelKeyByValue={TYPE_KEYS} />
+  );
 }

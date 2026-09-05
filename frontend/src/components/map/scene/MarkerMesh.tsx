@@ -2,8 +2,8 @@ import { memo, useRef, useCallback, useMemo } from 'react';
 import * as THREE from 'three';
 import type { ThreeEvent } from '@react-three/fiber';
 
-import { DEFAULT_DICTIONARY } from '../../../constants/defaults.ts';
-import { useMapStore } from '../../../store/useMapStore.ts';
+import { DEFAULT_DICTIONARY } from '@/constants/defaults';
+import { useMapStore } from '@/store/useMapStore';
 import { resolvePosition, resolveRotation } from '../../../utils/transformUtils.ts';
 import { MarkerBacking } from './MarkerBacking.tsx';
 import { MarkerLabel } from './MarkerLabel.tsx';
@@ -23,13 +23,11 @@ export const MarkerMesh = memo(function MarkerMesh({ markerId }: Props) {
 
   const groupRef = useRef<THREE.Group>(null);
 
-  // Compute position from expression at render time
   const positionM = useMemo(() => {
     if (!marker || !ui) return [0, 0, 0] as const;
     return resolvePosition(ui.positionExpr, marker.id);
   }, [marker, ui]);
 
-  // Compute rotation from expression at render time
   const rotationEuler = useMemo(() => {
     if (!marker || !ui) return new THREE.Euler();
     const q = resolveRotation(ui.rotationExpr, marker.id);
@@ -45,7 +43,6 @@ export const MarkerMesh = memo(function MarkerMesh({ markerId }: Props) {
     [marker, markerId, selectMarker],
   );
 
-  // Only fixed markers with a known pose are rendered in 3D.
   if (!marker || !ui || marker.type !== 'fixed' || marker.pose === null) return null;
 
   return (

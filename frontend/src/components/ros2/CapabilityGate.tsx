@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 
-import { useApiErrorMessage } from '../../hooks/useApiErrorMessage.ts';
-import type { RosCapability } from '../../hooks/useRosCapability.ts';
-import { ErrorState } from '../ui/ErrorState.tsx';
-import { LoadingState } from '../ui/LoadingState.tsx';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
+import type { RosCapability } from '@/hooks/useRosCapability';
+import { ErrorState } from '../common/ErrorState.tsx';
+import { LoadingState } from '../common/LoadingState.tsx';
 
 interface CapabilityGateProps {
   capability: RosCapability;
@@ -29,7 +29,7 @@ export function CapabilityGate({
   }
 
   if (!capability.allowed) {
-    return <p className="text-ink-muted">{noCapability}</p>;
+    return <p className="text-muted-foreground">{noCapability}</p>;
   }
 
   return children;

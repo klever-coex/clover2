@@ -28,9 +28,7 @@ export interface DictionaryData {
 
 export type MarkerType = 'fixed' | 'static' | 'dynamic';
 
-/** Backend truth (one per GET /api/map marker). Store key is String(id). */
 export interface MapMarker {
-  /** Backend marker id — also the expression variable `id`. */
   id: number;
   type: MarkerType;
   sizeM: number;
@@ -39,7 +37,6 @@ export interface MapMarker {
   pose: MarkerPose | null;
 }
 
-/** Session-only editing layer; seeded from pose on first sight, never refetched. */
 export interface MarkerUi {
   /** mm, constants or expressions f(id). */
   positionExpr: [string, string, string];
@@ -47,29 +44,3 @@ export interface MarkerUi {
   rotationExpr: [string, string, string];
 }
 
-export interface ProjectMeta {
-  name: string;
-  description: string;
-  createdAt: string;
-  gridStepMm: number;
-  angleSnapDeg: number;
-}
-
-/** web3d ProjectFile v1 marker shape, kept for the Export snapshot only. */
-export interface MarkerSnapshot {
-  id: string;
-  markerId: number;
-  dictionary: ArUcoDictionary;
-  label: string;
-  sizeM: number;
-  positionExpr: [string, string, string];
-  rotationExpr: [string, string, string];
-  visible: boolean;
-}
-
-export interface ProjectFile {
-  version: 1;
-  meta: ProjectMeta;
-  markers: MarkerSnapshot[];
-  dictionaryName: ArUcoDictionary;
-}

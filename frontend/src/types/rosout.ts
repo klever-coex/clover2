@@ -1,30 +1,14 @@
 import type { RosJsonValue } from './stream.ts';
 
-/** Wire shape of rcl_interfaces/msg/Log frames from /ws/topic/json/-/rosout (snake_case). */
 export interface RosLogStamp {
   sec: number;
   nanosec: number;
 }
 
-export interface RosLogMessage {
-  stamp?: RosLogStamp;
-  /** 10=DEBUG, 20=INFO, 30=WARN, 40=ERROR, 50=FATAL. */
-  level: number;
-  name: string;
-  msg: string;
-  file?: string;
-  function?: string;
-  line?: number;
-  topics?: string[];
-}
-
 export type RosLogLevelName = 'debug' | 'info' | 'warn' | 'error' | 'fatal' | 'unknown';
 
-/** One parsed log record ready for display. */
 export interface RosLogEntry {
-  /** Monotonic sequence — stable React key across reconnects. */
   seq: number;
-  /** Client receive time; used when the message carries no stamp. */
   receivedAt: number;
   level: RosLogLevelName;
   levelValue: number;
@@ -56,7 +40,6 @@ function asNumber(value: RosJsonValue | undefined): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
-/** Defensive parse: anything that is not a plausible Log message yields null and is skipped. */
 export function parseRosLogEntry(value: RosJsonValue, seq: number): RosLogEntry | null {
   const record = asRecord(value);
   if (record === null) return null;

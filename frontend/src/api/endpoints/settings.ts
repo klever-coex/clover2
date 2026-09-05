@@ -1,5 +1,5 @@
 import { MUTATION_TIMEOUT_MS } from '../../constants/ros.ts';
-import type { SettingsModifyResult, SettingsSchemaResponse } from '../../types/settings.ts';
+import type { SettingsModifyResult, SettingsSchemaResponse } from '@/types/settings';
 import type { HttpCall } from '../core.ts';
 
 export interface SettingsEndpoints {

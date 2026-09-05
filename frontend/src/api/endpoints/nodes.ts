@@ -1,5 +1,5 @@
-import type { NodeInfo } from '../../types/node.ts';
-import type { TopicEndpoint } from '../../types/topic.ts';
+import type { NodeInfo } from '@/types/node';
+import type { TopicEndpoint } from '@/types/topic';
 import type { HttpCall } from '../core.ts';
 import { encodeRosPath } from '../url.ts';
 

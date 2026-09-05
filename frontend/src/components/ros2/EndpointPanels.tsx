@@ -1,10 +1,22 @@
 import type { ReactNode } from 'react';
+import { ChevronDown } from 'lucide-react';
 
-import type { AsyncResource } from '../../hooks/useAsyncResource.ts';
-import type { ServiceEndpoint } from '../../types/service.ts';
-import type { TopicEndpoint } from '../../types/topic.ts';
-import { Panel } from '../ui/Panel.tsx';
-import { ResourceState } from '../ui/ResourceState.tsx';
+import type { AsyncResource } from '@/hooks/useAsyncResource';
+import type { ServiceEndpoint } from '@/types/service';
+import type { TopicEndpoint } from '@/types/topic';
+import { Badge } from '@/components/ui/badge';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { ResourceState } from '../common/ResourceState.tsx';
 import { ServiceEndpointRow, TopicEndpointRow } from './EndpointRow.tsx';
 
 interface EndpointPanelProps<T> {
@@ -22,12 +34,27 @@ function EndpointPanel<T>({
   defaultOpen,
   children,
 }: EndpointPanelProps<T>) {
+  const count = resource.data?.length;
+
   return (
-    <Panel title={title} count={resource.data?.length} collapsible defaultOpen={defaultOpen}>
-      <ResourceState resource={resource} emptyMessage={empty}>
-        {(data) => <div className="space-y-1">{children(data)}</div>}
-      </ResourceState>
-    </Panel>
+    <Collapsible defaultOpen={defaultOpen}>
+      <Card>
+        <CardHeader>
+          <CollapsibleTrigger className="group/collapsible-trigger flex w-full items-center gap-2 text-left">
+            <CardTitle>{title}</CardTitle>
+            {count !== undefined && <Badge variant="secondary">{count}</Badge>}
+            <ChevronDown className="ml-auto size-4 shrink-0 text-muted-foreground transition-transform duration-fast group-data-[state=open]/collapsible-trigger:rotate-180" />
+          </CollapsibleTrigger>
+        </CardHeader>
+        <CollapsibleContent>
+          <CardContent>
+            <ResourceState resource={resource} emptyMessage={empty}>
+              {(data) => <div className="flex flex-col gap-1">{children(data)}</div>}
+            </ResourceState>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 }
 

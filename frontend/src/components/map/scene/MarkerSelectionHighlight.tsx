@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 
+import { SCENE_COLORS } from '@/constants/scene';
+
 interface Props {
   sizeM: number;
 }
@@ -11,7 +13,7 @@ export function MarkerSelectionHighlight({ sizeM }: Props) {
     <mesh position={[0, 0, 0.001]} renderOrder={3}>
       <planeGeometry args={[highlightSize, highlightSize]} />
       <meshBasicMaterial
-        color="#ffaa00"
+        color={SCENE_COLORS.selection}
         side={THREE.DoubleSide}
         transparent
         opacity={0.25}

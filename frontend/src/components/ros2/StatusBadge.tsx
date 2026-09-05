@@ -1,15 +1,17 @@
-import { useTranslation } from 'react-i18next';
-import type { TranslationKey } from '../../i18n/index.ts';
 import type { StreamState } from '../../store/slices/streamSlice.ts';
-import { Badge } from '../ui/Badge.tsx';
-import type { BadgeTone } from '../ui/Badge.tsx';
+import type { TranslationKey } from '@/i18n/index.ts';
+import { StateBadge } from '../common/StateBadge.tsx';
+import type { badgeVariants } from '@/components/ui/badge';
+import type { VariantProps } from 'class-variance-authority';
 
-const STATE_TONES: Record<StreamState, BadgeTone> = {
-  idle: 'neutral',
+type BadgeVariant = NonNullable<VariantProps<typeof badgeVariants>['variant']>;
+
+const STATE_VARIANTS: Record<StreamState, BadgeVariant> = {
+  idle: 'secondary',
   connecting: 'warning',
   connected: 'success',
-  closed: 'neutral',
-  error: 'error',
+  closed: 'secondary',
+  error: 'destructive',
 };
 
 const STATE_LABEL_KEYS: Record<StreamState, TranslationKey> = {
@@ -21,7 +23,11 @@ const STATE_LABEL_KEYS: Record<StreamState, TranslationKey> = {
 };
 
 export function StatusBadge({ state }: { state: StreamState }) {
-  const { t } = useTranslation();
-
-  return <Badge tone={STATE_TONES[state]}>{t(STATE_LABEL_KEYS[state])}</Badge>;
+  return (
+    <StateBadge
+      value={state}
+      variantByValue={STATE_VARIANTS}
+      labelKeyByValue={STATE_LABEL_KEYS}
+    />
+  );
 }

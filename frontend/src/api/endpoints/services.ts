@@ -1,4 +1,4 @@
-import type { ServiceEndpoint } from '../../types/service.ts';
+import type { ServiceEndpoint } from '@/types/service';
 import type { HttpCall } from '../core.ts';
 import { encodeRosPath } from '../url.ts';
 

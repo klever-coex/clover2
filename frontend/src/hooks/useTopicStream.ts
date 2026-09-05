@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useRosStore } from '../store/useRosStore.ts';
+import { useRosStore } from '@/store/useRosStore';
 
 export function useTopicStream(topicName: string | null) {
   const streamState = useRosStore((s) => s.streamState);

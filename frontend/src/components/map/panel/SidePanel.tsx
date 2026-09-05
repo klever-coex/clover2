@@ -1,15 +1,15 @@
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { cn } from '../../../lib/cn';
-import { useMapStore } from '../../../store/useMapStore.ts';
-import { useMapUIStore } from '../../../store/useMapUIStore.ts';
-import { IconButton } from '../../ui/IconButton.tsx';
-import { Panel } from '../../ui/Panel.tsx';
+import { cn } from '@/lib/utils';
+import { useMapStore } from '@/store/useMapStore';
+import { useMapUIStore } from '@/store/useMapUIStore';
 import { AddMarkerButton } from './AddMarkerButton.tsx';
+import { EmptyState } from '../../common/EmptyState.tsx';
 import { MarkerEditor } from './MarkerEditor.tsx';
 import { MarkerList } from './MarkerList.tsx';
 import { ProjectBar } from './ProjectBar.tsx';
+import { TooltipButton } from '../../common/TooltipButton.tsx';
 
 interface SidePanelProps {
   className?: string;
@@ -27,28 +27,34 @@ export function SidePanel({ className }: SidePanelProps) {
   if (!sidePanelOpen) {
     return (
       <div className={className}>
-        <IconButton
-          icon={ChevronRight}
+        <TooltipButton
+          variant="ghost"
+          size="icon"
           label={t('map.togglePanel')}
-          expanded={false}
+          aria-expanded={false}
           onClick={togglePanel}
-        />
+        >
+          <ChevronRight />
+        </TooltipButton>
       </div>
     );
   }
 
   return (
-    <div className={cn('flex flex-col gap-3', className)}>
-      <div className="flex items-start gap-2">
-        <div className="flex-1 min-w-0">
-          <ProjectBar />
-        </div>
-        <IconButton
-          icon={ChevronRight}
-          label={t('map.togglePanel')}
-          onClick={togglePanel}
-        />
-      </div>
+    <div className={cn('flex min-h-0 flex-col gap-3 overflow-y-auto', className)}>
+      <ProjectBar
+        action={
+          <TooltipButton
+            variant="ghost"
+            size="icon-sm"
+            label={t('map.togglePanel')}
+            aria-expanded
+            onClick={togglePanel}
+          >
+            <ChevronRight />
+          </TooltipButton>
+        }
+      />
       <AddMarkerButton />
       <MarkerList />
       {primaryMarker !== undefined ? (
@@ -58,9 +64,7 @@ export function SidePanel({ className }: SidePanelProps) {
           selectedIds={selectedIds}
         />
       ) : (
-        <Panel padded>
-          <p className="text-sm text-ink-faint">{t('map.selectHint')}</p>
-        </Panel>
+        <EmptyState message={t('map.selectHint')} />
       )}
     </div>
   );

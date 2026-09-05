@@ -1,4 +1,4 @@
-import type { TopicInfo } from '../../types/topic.ts';
+import type { TopicInfo } from '@/types/topic';
 import type { HttpCall } from '../core.ts';
 
 export interface TopicsEndpoints {

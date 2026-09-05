@@ -1,7 +1,7 @@
 import type { StateCreator } from 'zustand';
 
 import { clover2Api } from '../../api/clover2.ts';
-import type { TopicInfo } from '../../types/topic.ts';
+import type { TopicInfo } from '@/types/topic';
 import { createResourceSlice, type ResourceSlice } from '../middleware/resourceSlice.ts';
 import type { RosStore } from '../useRosStore.ts';
 

@@ -1,5 +1,7 @@
 import { Grid } from '@react-three/drei';
 
+import { SCENE_COLORS } from '@/constants/scene';
+
 export function GroundGrid() {
   return (
     <Grid
@@ -11,8 +13,8 @@ export function GroundGrid() {
       sectionSize={5}
       sectionThickness={1}
       fadeDistance={30}
-      cellColor="#444444"
-      sectionColor="#666666"
+      cellColor={SCENE_COLORS.gridCell}
+      sectionColor={SCENE_COLORS.gridSection}
       renderOrder={0}
     />
   );

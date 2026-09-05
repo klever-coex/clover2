@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react';
 
 import { clover2Api } from '../api/clover2.ts';
-import { toApiError } from '../types/errors.ts';
-import type { ApiError } from '../types/errors.ts';
-import type { SettingsScalar, SettingsSchemaNode, SettingsSchemaResponse } from '../types/settings.ts';
-import { toValuesTree, updateLeaf, valuesProjection } from '../types/settings.ts';
+import { toApiError } from '@/types/errors';
+import type { ApiError } from '@/types/errors';
+import type { SettingsScalar, SettingsSchemaNode, SettingsSchemaResponse } from '@/types/settings';
+import { toValuesTree, updateLeaf, valuesProjection } from '@/types/settings';
 import { useAsyncResource } from './useAsyncResource.ts';
 
 export interface SettingsConfig {

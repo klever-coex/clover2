@@ -2,21 +2,19 @@ import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import { Line, Html } from '@react-three/drei';
 
+import { SCENE_COLORS } from '@/constants/scene';
+
 interface Props {
-  /** Total length of each axis arm in meters (default 1) */
   length?: number;
-  /** Position of the axes origin in world space */
   position?: [number, number, number];
-  /** Show axis labels (X, Y, Z) at tips */
   showLabels?: boolean;
-  /** Opacity of the axis lines (0–1, default 1) */
   opacity?: number;
 }
 
 const COLORS = {
-  x: '#ff4444', // red
-  y: '#44ff44', // green
-  z: '#4444ff', // blue
+  x: SCENE_COLORS.axisX,
+  y: SCENE_COLORS.axisY,
+  z: SCENE_COLORS.axisZ,
 };
 
 const AXES: { axis: 'x' | 'y' | 'z'; dir: [number, number, number]; color: string }[] = [

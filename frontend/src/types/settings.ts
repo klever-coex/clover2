@@ -71,14 +71,3 @@ export function valuesProjection(node: SettingsSchemaNode): string {
   return `{${parts.join(',')}}`;
 }
 
-export function findNode(
-  node: SettingsSchemaNode,
-  path: readonly string[],
-): SettingsSchemaNode | null {
-  if (path.length === 0) return node;
-  if (node.type !== 'object') return null;
-
-  const [head, ...rest] = path;
-  const child = (node.children ?? []).find((c) => c.name === head);
-  return child !== undefined ? findNode(child, rest) : null;
-}

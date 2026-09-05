@@ -1,9 +1,10 @@
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Sidebar } from './components/layout/Sidebar.tsx';
-import { ConfirmDialog } from './components/ui/ConfirmDialog.tsx';
-import { LoadingState } from './components/ui/LoadingState.tsx';
+import { SidebarShell } from './components/layout/Sidebar.tsx';
+import { ConfirmDialog } from './components/common/ConfirmDialog.tsx';
+import { LoadingState } from './components/common/LoadingState.tsx';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { useRosoutCollector } from './hooks/useRosoutCollector.ts';
 import { Dashboard } from './pages/Dashboard.tsx';
 import { Settings } from './pages/Settings.tsx';
@@ -21,15 +22,14 @@ export default function App() {
   const { t } = useTranslation();
 
   return (
-    <div className="flex h-screen bg-surface-0 text-ink">
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-row focus:bg-surface-2 focus:px-3 focus:py-2 focus:text-sm focus:text-ink"
-      >
-        {t('common.skipToContent')}
-      </a>
-      <Sidebar />
-      <main id="main-content" className="flex-1 overflow-y-auto">
+    <TooltipProvider>
+      <SidebarShell>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-row focus:bg-muted focus:px-3 focus:py-2 focus:text-sm focus:text-foreground"
+        >
+          {t('common.skipToContent')}
+        </a>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route
@@ -48,8 +48,8 @@ export default function App() {
           <Route path="/ros2/logs" element={<LogsPage />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
-      </main>
+      </SidebarShell>
       <ConfirmDialog />
-    </div>
+    </TooltipProvider>
   );
 }

@@ -1,5 +1,5 @@
 import { clover2Api } from '../api/clover2.ts';
-import type { NodeInfo } from '../types/node.ts';
+import type { NodeInfo } from '@/types/node';
 import { useAsyncResource } from './useAsyncResource.ts';
 import type { AsyncResource } from './useAsyncResource.ts';
 
