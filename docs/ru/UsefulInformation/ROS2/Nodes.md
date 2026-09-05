@@ -304,7 +304,8 @@ ros2 run my_package frequency_talker --ros-args \
 ros2 run my_package frequency_talker --ros-args --params-file my_params.yaml
 ```
 
-## `Lifecycle`
+(lifecycle-node)=
+## Lifecycle
 
 `ROS2` позиционируется как production-ready система, поэтому важно не уметь не только запустить программу, но и уметь контроллировать ее состояние и работоспособность. Для этого кроме обычных `rclcpp::Node` и `rclpy.Node` существуют [`Lifecycle`](https://design.ros2.org/articles/node_lifecycle.html) ноды. Lifecycle - жизненный цикл, они работают по жесткой машине состояний.
 
