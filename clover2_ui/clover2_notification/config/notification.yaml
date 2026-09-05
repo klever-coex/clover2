@@ -92,7 +92,7 @@
         network:
           source: system
           event_name: network
-          label: net
+          label: ""
 
         system:
           type: group

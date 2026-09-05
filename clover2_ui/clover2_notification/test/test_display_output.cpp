@@ -127,7 +127,7 @@ protected:
         options.append_parameter_override("display.statuses.network.event_name",
                                           "network");
         options.append_parameter_override("display.statuses.network.label",
-                                          "net");
+                                          "");
         options.append_parameter_override("display.alert.enabled", true);
         options.append_parameter_override("display.alert.invert_period", 0.1);
         return options;

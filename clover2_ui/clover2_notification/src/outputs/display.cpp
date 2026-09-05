@@ -415,7 +415,7 @@ private:
 
         const auto& config = config_it->second;
         if (config.type == "hostname") {
-            return config.label + ": " + get_hostname();
+            return format_labeled_message(config.label, get_hostname());
         }
         if (config.type == "group") {
             std::string result;
@@ -431,10 +431,20 @@ private:
         std::lock_guard<std::mutex> lock(m_status_mutex);
         const auto state_it = m_status_states.find(status_name);
         if (state_it == m_status_states.end()) {
-            return config.label + ": n/a";
+            return format_labeled_message(config.label, "n/a");
         }
 
-        return config.label + ": " + state_it->second.message;
+        return format_labeled_message(config.label, state_it->second.message);
+    }
+
+    /** @brief Format status message with optional label prefix. */
+    static std::string format_labeled_message(const std::string& label,
+                                              const std::string& message) {
+        if (label.empty()) {
+            return message;
+        }
+
+        return label + ": " + message;
     }
 
     std::string m_base_path{"display"};
