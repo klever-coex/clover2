@@ -161,9 +161,9 @@ rate: около 25 Гц
 
 Исходные файлы находятся в папке `clover2/examples/thermal_camera`. Их также можно скачать отдельно:
 
-- {download}`subscribe_raw_image.py <../../../clover2/examples/thermal_camera/subscribe_raw_image.py>`
-- {download}`find_temperature_extremes.py <../../../clover2/examples/thermal_camera/find_temperature_extremes.py>`
-- {download}`visualize_raw_thermal.py <../../../clover2/examples/thermal_camera/visualize_raw_thermal.py>`
+- [subscribe_raw_image.py](@assets@/downloads/examples/thermal_camera/subscribe_raw_image.py)
+- [find_temperature_extremes.py](@assets@/downloads/examples/thermal_camera/find_temperature_extremes.py)
+- [visualize_raw_thermal.py](@assets@/downloads/examples/thermal_camera/visualize_raw_thermal.py)
 
 Для запуска установленных примеров перейдите в папку:
 
