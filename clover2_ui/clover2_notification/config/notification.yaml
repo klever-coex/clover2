@@ -1,0 +1,9 @@
+/**/notification:
+  ros__parameters:
+    providers_list:
+      - diagnostics
+      - system
+
+    output_plugins:
+      - led_strip
+      - display

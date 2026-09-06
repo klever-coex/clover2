@@ -1,0 +1,27 @@
+/**/notification:
+  ros__parameters:
+    led_strip:
+      enabled: true
+      plugin: led
+      base_path: led_strip
+
+      reaction_names:
+        - power
+        - fcu_backend
+
+      reactions:
+        power:
+          event_name: "Power"
+          animation: blink
+          color: [255, 128, 0]
+          brightness: 0.8
+          period: 0.8
+          duration: 3.0
+
+        fcu_backend:
+          event_name: "FCU backend"
+          animation: blink
+          color: [255, 0, 0]
+          brightness: 1.0
+          period: 0.15
+          duration: 3.0

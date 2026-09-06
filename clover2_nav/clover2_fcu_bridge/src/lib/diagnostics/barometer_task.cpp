@@ -26,16 +26,18 @@ void barometer_task::reset() { m_backend.reset(); }
 void barometer_task::run(diagnostic_updater::DiagnosticStatusWrapper& stat) {
     const auto backend = m_backend.lock();
     const auto data =
-        backend ? backend->get_barometer() : data::barometer_data{};
-    if (!backend || !data.value) {
+        backend ? backend->get_barometer()
+                : std::optional<sensor_msgs::msg::FluidPressure>{};
+    if (!backend || !data) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      backend ? "Barometer data is not received"
                              : "Backend is not initialized");
         return;
     }
 
-    const double age = m_clock ? (m_clock->now() - data.stamp).seconds()
-                               : m_stale_timeout.count();
+    const double age =
+        m_clock ? (m_clock->now() - rclcpp::Time(data->header.stamp)).seconds()
+                : m_stale_timeout.count();
     if (age > m_stale_timeout.count()) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Barometer data is stale");

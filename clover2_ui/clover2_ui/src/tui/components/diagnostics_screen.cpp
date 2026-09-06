@@ -10,10 +10,12 @@ namespace clover2_ui::tui::components {
 namespace diagnostics_api = clover2_ui::api::diagnostics;
 
 diagnostics_screen::diagnostics_screen(
-    std::shared_ptr<diagnostics_api::monitor> monitor,
+    snapshot_provider snapshots,
+    std::string topic,
     std::shared_ptr<core::navigator> nav)
     : core::screen("Diagnostics", std::move(nav))
-    , m_monitor(std::move(monitor)) {
+    , m_snapshots(std::move(snapshots))
+    , m_topic(std::move(topic)) {
     set_can_go_back(false);
 
     m_summary_label =
@@ -51,7 +53,7 @@ diagnostics_screen::diagnostics_screen(
 }
 
 void diagnostics_screen::on_enter() {
-    refresh_from_monitor();
+    refresh();
 
     if (!m_filters->has_focus_within() && !m_buttons.empty()) {
         m_buttons[m_selected]->set_focus(true);
@@ -106,10 +108,10 @@ std::vector<std::pair<std::string, std::string>> diagnostics_screen::shortcuts()
             {"mouse", "Toggle filters"}};
 }
 
-void diagnostics_screen::refresh_from_monitor() {
-    if (!m_monitor) return;
+void diagnostics_screen::refresh() {
+    if (!m_snapshots) return;
 
-    m_snapshot = m_monitor->get_snapshot();
+    m_snapshot = m_snapshots();
     rebuild_view();
 }
 
@@ -134,14 +136,14 @@ bool diagnostics_screen::is_group(const diagnostics_api::tree_node& node) {
 void diagnostics_screen::rebuild_view() {
     std::ostringstream summary;
     if (!m_snapshot.received) {
-        summary << "STALE | waiting for " << m_monitor->topic();
+        summary << "STALE | waiting for " << m_topic;
     } else {
         summary << diagnostics_api::level_name(m_snapshot.worst_level)
                 << " | OK " << m_snapshot.counts[0] << " WARN "
                 << m_snapshot.counts[1] << " ERROR " << m_snapshot.counts[2]
                 << " STALE " << m_snapshot.counts[3] << " | last update "
                 << std::fixed << std::setprecision(1) << m_snapshot.age_sec
-                << "s ago | " << m_monitor->topic();
+                << "s ago | " << m_topic;
     }
 
     m_summary_label->set_text(cpptui::StyledText().colored(

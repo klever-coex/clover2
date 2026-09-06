@@ -32,20 +32,19 @@ void power_task::run(diagnostic_updater::DiagnosticStatusWrapper& stat) {
     }
 
     const auto power = backend->get_power();
-    if (!power.value) {
+    if (!power) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Battery data is not received");
         return;
     }
 
-    const auto& value = *power.value;
-    if (!std::isfinite(value.percentage)) {
+    if (!std::isfinite(power->percentage)) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Battery percentage is not available");
-    } else if (value.percentage <= m_error_percentage) {
+    } else if (power->percentage <= m_error_percentage) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::ERROR,
                      "Battery charge is critically low");
-    } else if (value.percentage <= m_warn_percentage) {
+    } else if (power->percentage <= m_warn_percentage) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "Battery charge is low");
     } else {
@@ -53,8 +52,8 @@ void power_task::run(diagnostic_updater::DiagnosticStatusWrapper& stat) {
                      "Battery charge is normal");
     }
 
-    stat.add("Voltage", value.voltage);
-    stat.add("Percentage", value.percentage);
+    stat.add("Voltage", power->voltage);
+    stat.add("Percentage", power->percentage);
 }
 
 }  // namespace clover2_fcu_bridge::diagnostics

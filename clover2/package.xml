@@ -27,6 +27,7 @@
   <depend>clover2_map</depend>
   <depend>clover2_mavros</depend>
   <depend>clover2_nav_msgs</depend>
+  <depend>clover2_notification</depend>
   <depend>clover2_optical_flow</depend>
   <depend>clover2_pose_msgs</depend>
   <depend>clover2_ui</depend>

@@ -1,0 +1,26 @@
+/**/notification:
+  ros__parameters:
+    providers:
+      system:
+        enabled: true
+        period: 1.0
+
+        cpu:
+          enabled: true
+          warn_usage: 85.0
+          error_usage: 95.0
+
+        temperature:
+          enabled: true
+          warn_celsius: 70.0
+          error_celsius: 85.0
+
+        network:
+          enabled: true
+          interfaces:
+            - wlan0
+            - eth0
+
+        proc_stat_path: /proc/stat
+        thermal_base_path: /sys/class/thermal
+        net_base_path: /sys/class/net

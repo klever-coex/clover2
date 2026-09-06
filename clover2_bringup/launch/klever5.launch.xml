@@ -14,6 +14,9 @@
     <arg name="front_camera.enable" default="false" />
 
     <arg name="indication.led_strip" default="false" />
+    <arg name="notification.led_strip" default="true" />
+    <arg name="notification.display" default="true" />
+    <arg name="notification.start_delay" default="5.0" />
     <arg name="2d_lidar.enable" default="false" />
 
     <arg name="display.display" default="false" />
@@ -105,6 +108,15 @@
 
     <include file="$(find-pkg-share clover2_ui)/launch/diagnostics.launch.xml">
         <arg name="use_sim_time" value="$(var use_sim_time)" />
+    </include>
+
+    <include file="$(find-pkg-share clover2_bringup)/launch/snippets/notification.launch.xml">
+        <arg name="use_sim_time" value="$(var use_sim_time)" />
+        <arg name="ns" value="$(var root_ns)" />
+
+        <arg name="led_strip" value="$(var notification.led_strip)" />
+        <arg name="display" value="$(var notification.display)" />
+        <arg name="start_delay" value="$(var notification.start_delay)" />
     </include>
 
     <include file="$(find-pkg-share $(var sensing_pkg))/launch/sensing/2d_lidar.launch.xml" if="$(var 2d_lidar.enable)">

@@ -73,6 +73,23 @@ indication:
       default: true
       description: "Enable LED Strip driver"
 
+notification:
+  type: object
+  description: "Notification settings"
+  fields:
+    led_strip:
+      type: bool
+      default: true
+      description: "Enable LED Strip notification output"
+    display:
+      type: bool
+      default: true
+      description: "Enable display notification output"
+    start_delay:
+      type: float
+      default: 5.0
+      description: "Delay before starting notification node, seconds"
+
 display:
   type: object
   description: "Display settings"
