@@ -73,36 +73,55 @@ Mileseey TR256i — это портативный инфракрасный те�
 
 ## Настройка
 
-### Запуск через v4l2_camera
+### Запуск через `clover2-settings`
 
-Рекомендуемый способ запуска — пакет `v4l2_camera`, так как он может публиковать кадр без преобразования в RGB. Для тепловизора важно сохранить исходный формат `yuv422_yuy2`, потому что нижняя половина кадра содержит матрицу температур.
+Чтобы включить тепловизионную камеру в Клевер необходимо открыть настройки:
 
 ```bash
-ros2 run v4l2_camera v4l2_camera_node --ros-args \
-  -p video_device:=/dev/thermal_camera \
-  -p image_size:="[256, 384]" \
-  -p pixel_format:=YUYV \
-  -p output_encoding:=yuv422_yuy2 \
-  -p camera_frame_id:=thermal_camera \
-  -r /image_raw:=/thermal_camera/image_raw \
-  -r /camera_info:=/thermal_camera/camera_info
+clover2-settings
 ```
 
-### Описание параметров
+Выберите группу `additional_sensors`, как показано на рисунке 5.
 
-| Параметр | Значение | Пояснение |
-|---|---|---|
-| `video_device` | `/dev/thermal_camera` | Стабильная udev-ссылка на video4linux-устройство тепловизора. |
-| `image_size` | `[256, 384]` | Размер полного raw-кадра. Верхние 192 строки — ИК-изображение, нижние 192 строки — матрица температур. |
-| `pixel_format` | `YUYV` | Формат пикселей, который отдает USB-камера. |
-| `output_encoding` | `yuv422_yuy2` | ROS encoding без преобразования в RGB. Нужен для корректного чтения температурной матрицы. |
-| `camera_frame_id` | `thermal_camera` | Имя frame_id в заголовке сообщения `sensor_msgs/msg/Image`. |
-| `-r /image_raw:=...` | `/thermal_camera/image_raw` | Переименование (remap) топика изображения. |
-| `-r /camera_info:=...` | `/thermal_camera/camera_info` | Переименование топика калибровочных данных. |
+```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings.webp
+:alt: Выбор группы additional_sensors в clover2-settings
+:width: 700px
+:align: center
+
+Рисунок 5 — Выбор группы additional_sensors в clover2-settings
+```
+
+В группе `additional_sensors` выберите настройку `thermal_camera` (см. рисунок 6) и включите её, установив значение `true`.
+
+```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings-thermal-camera.webp
+:alt: Выбор настройки thermal_camera
+:width: 700px
+:align: center
+
+Рисунок 6 — Выбор пункта thermal_camera
+```
+
+Для сохранения изменений нажмите ctrl+S. Появится уведомление о сохранении, как показано на рисунке 7.
+
+```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings-save.webp
+:alt: Сохранение настройки тепловизионной камеры
+:width: 700px
+:align: center
+
+Рисунок 7 — Сохранение настройки тепловизионной камеры
+```
+
+Затем несколько раз нажмите esc чтоб выйти из приложения. Перезапустите сервис clover2:
+
+```bash
+sudo systemctl restart clover2
+```
+
+После успешного запуска драйвер будет публиковать кадры в топик `/thermal_camera/image_raw`. Размер полного raw-кадра — `256x384`, encoding — `yuv422_yuy2`. Верхние 192 строки содержат ИК-изображение, нижние 192 строки — матрицу температур.
 
 ## Проверка работоспособности
 
-В другом терминале проверьте, что топик появился:
+Проверьте, что топик появился:
 
 ```bash
 ros2 topic list | grep thermal_camera
@@ -140,11 +159,26 @@ rate: около 25 Гц
 
 Примеры подписываются на `/thermal_camera/image_raw` и не используют ROS-параметры для смены топиков.
 
+Исходные файлы находятся в папке `clover2/examples/thermal_camera`. Их также можно скачать отдельно:
+
+- {download}`subscribe_raw_image.py <../../../clover2/examples/thermal_camera/subscribe_raw_image.py>`
+- {download}`find_temperature_extremes.py <../../../clover2/examples/thermal_camera/find_temperature_extremes.py>`
+- {download}`visualize_raw_thermal.py <../../../clover2/examples/thermal_camera/visualize_raw_thermal.py>`
+
+Для запуска установленных примеров перейдите в папку:
+
+```bash
+cd examples/thermal_camera
+```
+Запустите нужный пример:
+
 ```bash
 python3 subscribe_raw_image.py
 python3 find_temperature_extremes.py
 python3 visualize_raw_thermal.py
 ```
+
+Каждый пример работает до нажатия ctrl+C. Для одновременного запуска используйте отдельные терминалы.
 
 Назначение примеров:
 
