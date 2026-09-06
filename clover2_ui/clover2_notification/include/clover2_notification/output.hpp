@@ -10,9 +10,6 @@
 #include <clover2_common/node_context.hpp>
 #include <clover2_notification/data/event.hpp>
 
-// ROS2
-#include <rclcpp/create_timer.hpp>
-
 // STL
 #include <functional>
 #include <memory>
@@ -136,23 +133,6 @@ protected:
     T declare_output_parameter(const std::string& name,
                                const T& default_value) const {
         return declare_parameter<T>(id() + "." + name, default_value);
-    }
-
-    /**
-     * @brief Create a wall timer using the output node context.
-     *
-     * @param period Timer period.
-     * @param callback Timer callback.
-     * @return Created timer.
-     */
-    template <typename DurationT, typename CallbackT>
-    rclcpp::TimerBase::SharedPtr create_timer(DurationT period,
-                                              CallbackT&& callback) const {
-        return rclcpp::create_timer(
-            m_node_context->get_node_base_interface(),
-            m_node_context->get_node_timers_interface(),
-            m_node_context->get_node_clock_interface()->get_clock(), period,
-            std::forward<CallbackT>(callback));
     }
 
     /**

@@ -1,4 +1,5 @@
 #include <clover2_common/node_context.hpp>
+#include <clover2_common/util/timer.hpp>
 #include <clover2_led/client.hpp>
 #include <clover2_notification/output.hpp>
 #include <pluginlib/class_list_macros.hpp>
@@ -237,13 +238,14 @@ private:
         const auto duration =
             std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::duration<double>(config.duration));
-        m_timer = create_timer(duration, [this, done]() {
-            if (m_timer) {
-                m_timer->cancel();
-                m_timer.reset();
-            }
-            done();
-        });
+        m_timer = clover2_common::util::create_timer(
+            node_context(), duration, [this, done]() {
+                if (m_timer) {
+                    m_timer->cancel();
+                    m_timer.reset();
+                }
+                done();
+            });
     }
 
     std::string m_base_path{"led_strip"};

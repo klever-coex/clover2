@@ -1,4 +1,5 @@
 #include <clover2_common/node_context.hpp>
+#include <clover2_common/util/timer.hpp>
 #include <clover2_display/client.hpp>
 #include <clover2_notification/data/priority.hpp>
 #include <clover2_notification/output.hpp>
@@ -172,8 +173,8 @@ private:
         const auto refresh_period =
             std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::duration<double>(m_refresh_period));
-        m_refresh_timer =
-            create_timer(refresh_period, [this]() { render_and_send(); });
+        m_refresh_timer = clover2_common::util::create_timer(
+            node_context(), refresh_period, [this]() { render_and_send(); });
 
         RCLCPP_INFO(m_logger,
                     "Display output initialized: base_path='%s' "
@@ -363,13 +364,14 @@ private:
         const auto period =
             std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::duration<double>(m_alert_invert_period));
-        m_alert_timer = create_timer(period, [this]() {
-            {
-                std::lock_guard<std::mutex> lock(m_status_mutex);
-                m_invert_screen = !m_invert_screen;
-            }
-            render_and_send();
-        });
+        m_alert_timer = clover2_common::util::create_timer(
+            node_context(), period, [this]() {
+                {
+                    std::lock_guard<std::mutex> lock(m_status_mutex);
+                    m_invert_screen = !m_invert_screen;
+                }
+                render_and_send();
+            });
     }
 
     /** @brief Render the current screen state and publish it to display. */

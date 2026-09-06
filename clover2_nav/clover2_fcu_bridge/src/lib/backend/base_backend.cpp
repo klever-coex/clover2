@@ -29,16 +29,16 @@ std::optional<data::fcu_state> base_backend::get_fcu_state() const {
 }
 
 std::optional<sensor_msgs::msg::BatteryState> base_backend::get_power() const {
-    return {};
+    return std::nullopt;
 }
 
 std::optional<sensor_msgs::msg::Imu> base_backend::get_imu() const {
-    return {};
+    return std::nullopt;
 }
 
 std::optional<sensor_msgs::msg::FluidPressure> base_backend::get_barometer()
     const {
-    return {};
+    return std::nullopt;
 }
 
 }  // namespace clover2_fcu_bridge::backend

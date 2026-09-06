@@ -1,8 +1,9 @@
 #include <arpa/inet.h>
+#include <clover2_common/util/parameter.hpp>
+#include <clover2_common/util/timer.hpp>
 #include <clover2_notification/data/priority.hpp>
 #include <clover2_notification/provider/system.hpp>
 #include <netinet/in.h>
-#include <rclcpp/create_timer.hpp>
 
 #include <algorithm>
 #include <cctype>
@@ -49,76 +50,87 @@ void system::initialize(
     m_previous_cpu_sample.reset();
     m_logger = m_node_context->get_logger().get_child("system_provider");
 
-    m_enabled =
-        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
-            ->declare_parameter("providers.system.enabled",
-                                rclcpp::ParameterValue(m_enabled))
-            .get<bool>();
-    m_period =
-        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
-            ->declare_parameter("providers.system.period",
-                                rclcpp::ParameterValue(m_period))
-            .get<double>();
+    auto parameters_interface = m_node_context->get_node_parameters_interface();
+    clover2_common::util::declare_parameter_if_not_declared(
+        parameters_interface, "providers.system.enabled", m_enabled);
+    clover2_common::util::declare_parameter_if_not_declared(
+        parameters_interface, "providers.system.period", m_period);
 
-    m_cpu_enabled =
-        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
-            ->declare_parameter("providers.system.cpu.enabled",
-                                rclcpp::ParameterValue(m_cpu_enabled))
-            .get<bool>();
-    m_cpu_warn_usage =
-        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
-            ->declare_parameter("providers.system.cpu.warn_usage",
-                                rclcpp::ParameterValue(m_cpu_warn_usage))
-            .get<double>();
-    m_cpu_error_usage =
-        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
-            ->declare_parameter("providers.system.cpu.error_usage",
-                                rclcpp::ParameterValue(m_cpu_error_usage))
-            .get<double>();
+    clover2_common::util::declare_parameter_if_not_declared(
+        parameters_interface, "providers.system.cpu.enabled", m_cpu_enabled);
+    clover2_common::util::declare_parameter_if_not_declared(
+        parameters_interface, "providers.system.cpu.warn_usage",
+        m_cpu_warn_usage);
+    clover2_common::util::declare_parameter_if_not_declared(
+        parameters_interface, "providers.system.cpu.error_usage",
+        m_cpu_error_usage);
 
-    m_temperature_enabled =
-        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
-            ->declare_parameter("providers.system.temperature.enabled",
-                                rclcpp::ParameterValue(m_temperature_enabled))
-            .get<bool>();
-    m_temperature_warn_celsius =
-        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
-            ->declare_parameter(
-                "providers.system.temperature.warn_celsius",
-                rclcpp::ParameterValue(m_temperature_warn_celsius))
-            .get<double>();
-    m_temperature_error_celsius =
-        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
-            ->declare_parameter(
-                "providers.system.temperature.error_celsius",
-                rclcpp::ParameterValue(m_temperature_error_celsius))
-            .get<double>();
-    m_network_enabled =
-        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
-            ->declare_parameter("providers.system.network.enabled",
-                                rclcpp::ParameterValue(m_network_enabled))
-            .get<bool>();
-    m_interfaces =
-        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
-            ->declare_parameter("providers.system.network.interfaces",
-                                rclcpp::ParameterValue(m_interfaces))
-            .get<std::vector<std::string>>();
+    clover2_common::util::declare_parameter_if_not_declared(
+        parameters_interface, "providers.system.temperature.enabled",
+        m_temperature_enabled);
+    clover2_common::util::declare_parameter_if_not_declared(
+        parameters_interface, "providers.system.temperature.warn_celsius",
+        m_temperature_warn_celsius);
+    clover2_common::util::declare_parameter_if_not_declared(
+        parameters_interface, "providers.system.temperature.error_celsius",
+        m_temperature_error_celsius);
+    clover2_common::util::declare_parameter_if_not_declared(
+        parameters_interface, "providers.system.network.enabled",
+        m_network_enabled);
+    clover2_common::util::declare_parameter_if_not_declared(
+        parameters_interface, "providers.system.network.interfaces",
+        m_interfaces);
 
-    m_proc_stat_path =
-        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
-            ->declare_parameter("providers.system.proc_stat_path",
-                                rclcpp::ParameterValue(m_proc_stat_path))
-            .get<std::string>();
-    m_thermal_base_path =
-        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
-            ->declare_parameter("providers.system.thermal_base_path",
-                                rclcpp::ParameterValue(m_thermal_base_path))
-            .get<std::string>();
-    m_net_base_path =
-        rclcpp::node_interfaces::get_node_parameters_interface(m_node_context)
-            ->declare_parameter("providers.system.net_base_path",
-                                rclcpp::ParameterValue(m_net_base_path))
-            .get<std::string>();
+    clover2_common::util::declare_parameter_if_not_declared(
+        parameters_interface, "providers.system.proc_stat_path",
+        m_proc_stat_path);
+    clover2_common::util::declare_parameter_if_not_declared(
+        parameters_interface, "providers.system.thermal_base_path",
+        m_thermal_base_path);
+    clover2_common::util::declare_parameter_if_not_declared(
+        parameters_interface, "providers.system.net_base_path", m_net_base_path);
+
+    rclcpp::Parameter parameter;
+    parameters_interface->get_parameter("providers.system.enabled", parameter);
+    m_enabled = parameter.as_bool();
+    parameters_interface->get_parameter("providers.system.period", parameter);
+    m_period = parameter.as_double();
+
+    parameters_interface->get_parameter("providers.system.cpu.enabled",
+                                        parameter);
+    m_cpu_enabled = parameter.as_bool();
+    parameters_interface->get_parameter("providers.system.cpu.warn_usage",
+                                        parameter);
+    m_cpu_warn_usage = parameter.as_double();
+    parameters_interface->get_parameter("providers.system.cpu.error_usage",
+                                        parameter);
+    m_cpu_error_usage = parameter.as_double();
+
+    parameters_interface->get_parameter(
+        "providers.system.temperature.enabled", parameter);
+    m_temperature_enabled = parameter.as_bool();
+    parameters_interface->get_parameter(
+        "providers.system.temperature.warn_celsius", parameter);
+    m_temperature_warn_celsius = parameter.as_double();
+    parameters_interface->get_parameter(
+        "providers.system.temperature.error_celsius", parameter);
+    m_temperature_error_celsius = parameter.as_double();
+    parameters_interface->get_parameter("providers.system.network.enabled",
+                                        parameter);
+    m_network_enabled = parameter.as_bool();
+    parameters_interface->get_parameter("providers.system.network.interfaces",
+                                        parameter);
+    m_interfaces = parameter.as_string_array();
+
+    parameters_interface->get_parameter("providers.system.proc_stat_path",
+                                        parameter);
+    m_proc_stat_path = parameter.as_string();
+    parameters_interface->get_parameter("providers.system.thermal_base_path",
+                                        parameter);
+    m_thermal_base_path = parameter.as_string();
+    parameters_interface->get_parameter("providers.system.net_base_path",
+                                        parameter);
+    m_net_base_path = parameter.as_string();
 
     if (m_period <= 0.0) {
         throw std::invalid_argument(
@@ -141,11 +153,8 @@ void system::initialize(
 
     const auto period = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::duration<double>(m_period));
-    m_timer = rclcpp::create_timer(
-        m_node_context->get_node_base_interface(),
-        m_node_context->get_node_timers_interface(),
-        m_node_context->get_node_clock_interface()->get_clock(), period,
-        [this]() { timer_callback(); });
+    m_timer = clover2_common::util::create_timer(
+        m_node_context, period, [this]() { timer_callback(); });
 
     RCLCPP_INFO(*m_logger,
                 "System provider enabled: period=%.2fs cpu=%s temperature=%s "
