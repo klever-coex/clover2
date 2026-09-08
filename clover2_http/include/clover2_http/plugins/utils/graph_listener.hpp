@@ -20,7 +20,7 @@ public:
     using callback = std::function<void()>;
 
     graph_listener(std::shared_ptr<clover2_common::node_context> node_context,
-                   callback&& cb);
+                   callback cb);
     ~graph_listener();
 
     graph_listener(const graph_listener&) = delete;

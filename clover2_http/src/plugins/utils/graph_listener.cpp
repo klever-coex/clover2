@@ -15,7 +15,7 @@ using namespace std::chrono_literals;
 namespace clover2_http::plugins::utils {
 
 graph_listener::graph_listener(
-    std::shared_ptr<clover2_common::node_context> node_context, callback&& cb)
+    std::shared_ptr<clover2_common::node_context> node_context, callback cb)
     : m_node_context(std::move(node_context))
     , m_callback(std::move(cb)) {
     m_event = m_node_context->get_node_graph_interface()->get_graph_event();
@@ -49,6 +49,7 @@ graph_listener::graph_listener(
 
 graph_listener::~graph_listener() {
     m_stop = true;
+    m_timer->cancel();
 
     if (m_thread.joinable()) {
         m_thread.join();
