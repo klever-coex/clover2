@@ -5,7 +5,8 @@ import { DEFAULT_MARKER_SIZE_M } from '@/constants/defaults';
 import type { MarkerInfo, ModifyResult } from '@/types/map';
 import type { MapMarker } from '@/types/marker';
 import { resolvePose } from '../utils/transformUtils.ts';
-import { mapDirtyIds } from './slices/mapSlice.ts';
+import { confirmDialog } from './useConfirmStore.ts';
+import { mapDirtyIds, toMapMarker } from './slices/mapSlice.ts';
 import { useMapStore } from './useMapStore.ts';
 
 export function validateSize(sizeM: number): string | null {
@@ -44,12 +45,11 @@ export function addMarker(): void {
   };
 
   s.addMarkerLocal(info);
-  s.seedUiFor({ [String(id)]: { id, type: 'fixed', sizeM: info.size, markerFrameId: info.marker_frame_id, pose: info.pose ?? null } });
+  s.seedUiFor({ [String(id)]: toMapMarker(info) });
   s.selectMarker(String(id));
 }
 
-/** Local-only: removes markers; committed to the backend by saveMap(). */
-export function deleteMarkers(ids: string[]): void {
+function deleteMarkers(ids: string[]): void {
   const s = useMapStore.getState();
   s.setMutationError(null);
   ids.forEach((id) => s.removeMarkerLocal(id));
@@ -59,6 +59,19 @@ export function deleteMarkers(ids: string[]): void {
 export function deleteMarkersAfterDetach(ids: string[]): void {
   useMapStore.getState().deselectAll();
   requestAnimationFrame(() => deleteMarkers(ids));
+}
+
+export async function deleteMarkersWithConfirm(ids: string[]): Promise<void> {
+  const message =
+    ids.length === 1
+      ? i18n.t('map.deleteConfirmOne', { id: ids[0] })
+      : i18n.t('map.deleteConfirmMany', { count: ids.length });
+  const confirmed = await confirmDialog({
+    message,
+    tone: 'danger',
+    confirmLabel: i18n.t('map.delete'),
+  });
+  if (confirmed) deleteMarkersAfterDetach(ids);
 }
 
 export async function saveMap(): Promise<void> {

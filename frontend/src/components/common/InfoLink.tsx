@@ -11,16 +11,15 @@ interface InfoLinkProps {
   className?: string;
 }
 
-/** Small "info" icon linking to a specific paragraph of the documentation. */
 export function InfoLink({ docKey, className }: InfoLinkProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const label = t('common.moreInDocs');
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <a
-          href={docsUrl(docKey, i18n.language)}
+          href={docsUrl(docKey)}
           target="_blank"
           rel="noreferrer"
           aria-label={label}

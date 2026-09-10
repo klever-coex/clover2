@@ -2,8 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trash2 } from 'lucide-react';
 
-import { deleteMarkersAfterDetach } from '../../../store/mapMutations.ts';
-import { confirmDialog } from '@/store/useConfirmStore';
+import { deleteMarkersWithConfirm } from '../../../store/mapMutations.ts';
 import { useMapStore } from '@/store/useMapStore';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,17 +46,6 @@ export function MarkerList() {
     });
     return list;
   }, [markers, search, sortBy]);
-
-  const handleDelete = async (id: string) => {
-    const confirmed = await confirmDialog({
-      message: t('map.deleteConfirmOne', { id }),
-      tone: 'danger',
-      confirmLabel: t('map.delete'),
-    });
-    if (confirmed) {
-      deleteMarkersAfterDetach([id]);
-    }
-  };
 
   return (
     <Card size="sm" className="min-h-40 flex-1">
@@ -105,7 +93,7 @@ export function MarkerList() {
                       variant="ghost"
                       size="icon-sm"
                       label={t('map.delete')}
-                      onClick={() => void handleDelete(key)}
+                      onClick={() => void deleteMarkersWithConfirm([key])}
                     >
                       <Trash2 />
                     </TooltipButton>
@@ -119,7 +107,11 @@ export function MarkerList() {
               </li>
             );
           })}
-          {markerList.length === 0 && <EmptyState message={t('map.noMarkers')} />}
+          {markerList.length === 0 && (
+            <li>
+              <EmptyState message={t('map.noMarkers')} />
+            </li>
+          )}
         </ul>
 
         {mutationError !== null && (

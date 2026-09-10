@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Quat4, Vec3 } from '@/types/marker';
 import type { MarkerPose } from '@/types/map';
-import { radToDeg, degToRad, mmToM, mToMm } from '@/constants/units';
+import { radToDeg, degToRad, mmToM } from '@/constants/units';
 import { evaluateExpr } from './exprEval.ts';
 
 const _euler = new THREE.Euler();
@@ -74,17 +74,4 @@ export function resolvePose(
   const [rd, pd, yd] = resolveRotationDeg(rotationExpr, markerId);
   const [roll, pitch, yaw] = eulerYxzDegToRpy(rd, pd, yd);
   return { x, y, z, roll, pitch, yaw };
-}
-
-export function vec3ToPositionExpr(v: Vec3): [string, string, string] {
-  return [mToMm(v[0]).toString(), mToMm(v[1]).toString(), mToMm(v[2]).toString()];
-}
-
-
-export function sanitizeVec3(v: Vec3): Vec3 {
-  return [
-    Number.isFinite(v[0]) ? v[0] : 0,
-    Number.isFinite(v[1]) ? v[1] : 0,
-    Number.isFinite(v[2]) ? v[2] : 0,
-  ];
 }

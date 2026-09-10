@@ -1,13 +1,7 @@
-import { Empty, EmptyDescription } from '@/components/ui/empty.tsx';
-
 interface EmptyStateProps {
   message: string;
 }
 
 export function EmptyState({ message }: EmptyStateProps) {
-  return (
-    <Empty className="border-none p-8">
-      <EmptyDescription className="text-muted-foreground">{message}</EmptyDescription>
-    </Empty>
-  );
+  return <p className="p-8 text-center text-sm text-muted-foreground">{message}</p>;
 }

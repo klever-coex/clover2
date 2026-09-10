@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import type { DependencyList } from 'react';
 
 import { toApiError } from '@/types/errors';
@@ -24,16 +24,6 @@ export function useAsyncResource<T>(
   const [generation, setGeneration] = useState(0);
 
   const depsKey = JSON.stringify(deps);
-  const requestKey = `${enabled}:${generation}:${depsKey}`;
-  const [prevKey, setPrevKey] = useState(requestKey);
-  if (prevKey !== requestKey) {
-    setPrevKey(requestKey);
-    if (!enabled) {
-      setData(null);
-    }
-    setLoading(enabled);
-    setError(null);
-  }
 
   useEffect(() => {
     if (!enabled) return;
@@ -60,10 +50,12 @@ export function useAsyncResource<T>(
     };
   }, [depsKey, generation, enabled]);
 
+  const reload = useCallback(() => setGeneration((current) => current + 1), []);
+
   return {
     data,
     loading,
     error,
-    reload: () => setGeneration((current) => current + 1),
+    reload,
   };
 }

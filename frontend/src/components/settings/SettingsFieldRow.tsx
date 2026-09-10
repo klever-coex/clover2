@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -22,7 +22,16 @@ interface Props {
 
 const inputClasses = cn(inputSm, 'w-full');
 
-export function SettingsFieldRow({ node, path, onValue, onReset }: Props) {
+export const SettingsFieldRow = memo(
+  SettingsFieldRowImpl,
+  (a, b) =>
+    a.node === b.node &&
+    a.path.join('/') === b.path.join('/') &&
+    a.onValue === b.onValue &&
+    a.onReset === b.onReset,
+);
+
+function SettingsFieldRowImpl({ node, path, onValue, onReset }: Props) {
   const { t } = useTranslation();
   const fieldId = `settings-${path.join('-')}`;
   const isDefault = node.value !== undefined && node.value === node.default;

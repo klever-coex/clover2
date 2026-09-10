@@ -1,6 +1,4 @@
-import type { LifecycleState } from './node.ts';
-
-export type LifecycleStateLabel = LifecycleState | 'unknown' | (string & {});
+export type LifecycleStateLabel = string;
 
 export type TransitionState =
   | 'configuring'

@@ -1,26 +1,18 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Pause, Play, SearchIcon } from 'lucide-react';
+import { Pause, Play } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { CapabilityGate } from '../../components/ros2/CapabilityGate.tsx';
 import { LogRow } from '../../components/ros2/LogRow.tsx';
 import { StatusBadge } from '../../components/ros2/StatusBadge.tsx';
+import { ListToolbar } from '../../components/common/ListToolbar.tsx';
+import { SortSelect } from '../../components/common/SortSelect.tsx';
 import { TooltipButton } from '../../components/common/TooltipButton.tsx';
 import { Button } from '@/components/ui/button';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { EmptyState } from '../../components/common/EmptyState.tsx';
 import { ErrorState } from '../../components/common/ErrorState.tsx';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
-import { useRosCapability } from '@/hooks/useRosCapability';
 import { useRosStore } from '@/store/useRosStore';
 import type { TranslationKey } from '@/i18n/index.ts';
 
@@ -47,7 +39,6 @@ const AUTOSCROLL_TOLERANCE_PX = 40;
 export function LogsPage() {
   const { t } = useTranslation();
   const errorMessage = useApiErrorMessage();
-  const capability = useRosCapability('topics');
 
   const logs = useRosStore((s) => s.logs);
   const logsState = useRosStore((s) => s.logsState);
@@ -87,7 +78,6 @@ export function LogsPage() {
       el.scrollHeight - el.scrollTop - el.clientHeight < AUTOSCROLL_TOLERANCE_PX;
   };
 
-  // Fresh container (first mount or after Clear) always follows new messages.
   useEffect(() => {
     stickToBottomRef.current = true;
   }, [logs.length === 0]);
@@ -114,7 +104,7 @@ export function LogsPage() {
   return (
     <div className="p-6 h-full flex flex-col">
       <div className="flex-1 min-h-0 flex flex-col gap-3">
-        <CapabilityGate capability={capability} noCapability={t('logs.noCapability')}>
+        <CapabilityGate name="topics" noCapability={t('logs.noCapability')}>
           <div className="flex items-center gap-3 flex-wrap">
             <StatusBadge state={logsState} />
             <span className="text-xs text-muted-foreground">
@@ -127,47 +117,32 @@ export function LogsPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap">
-            <InputGroup className="w-full flex-1 min-w-48">
-              <InputGroupAddon align="inline-start">
-                <SearchIcon />
-              </InputGroupAddon>
-              <InputGroupInput
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={t('logs.searchPlaceholder')}
-                aria-label={t('logs.searchPlaceholder')}
-              />
-            </InputGroup>
-            <Select
-              value={minLevel}
-              onValueChange={(value) => setMinLevel(value as LevelFilter)}
-            >
-              <SelectTrigger aria-label={t('logs.minLevel')} className="w-36">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent side="bottom">
-                <SelectGroup>
-                  {levelOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <TooltipButton
-              variant="ghost"
-              size="icon"
-              label={logsPaused ? t('logs.resume') : t('logs.pause')}
-              onClick={() => setLogsPaused(!logsPaused)}
-            >
-              {logsPaused ? <Play /> : <Pause />}
-            </TooltipButton>
-            <Button variant="secondary" size="sm" onClick={clearLogs}>
-              {t('logs.clear')}
-            </Button>
-          </div>
+          <ListToolbar
+            value={query}
+            onChange={setQuery}
+            placeholder={t('logs.searchPlaceholder')}
+            extra={
+              <>
+                <SortSelect
+                  ariaLabel={t('logs.minLevel')}
+                  value={minLevel}
+                  onChange={(value) => setMinLevel(value as LevelFilter)}
+                  options={levelOptions}
+                />
+                <TooltipButton
+                  variant="ghost"
+                  size="icon"
+                  label={logsPaused ? t('logs.resume') : t('logs.pause')}
+                  onClick={() => setLogsPaused(!logsPaused)}
+                >
+                  {logsPaused ? <Play /> : <Pause />}
+                </TooltipButton>
+                <Button variant="secondary" size="sm" onClick={clearLogs}>
+                  {t('logs.clear')}
+                </Button>
+              </>
+            }
+          />
 
           {logs.length === 0 ? (
             <LogsPlaceholder

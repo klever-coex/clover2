@@ -5,12 +5,10 @@ import { ListPage } from '../../components/ros2/ListPage.tsx';
 import { NodeCard } from '../../components/ros2/NodeCard.tsx';
 import { SortSelect } from '../../components/common/SortSelect.tsx';
 import { useNodeInfos } from '@/hooks/useNodeInfos';
-import { useRosCapability } from '@/hooks/useRosCapability';
 import { useRosStore } from '@/store/useRosStore';
 
 export function NodesPage() {
   const { t } = useTranslation();
-  const capability = useRosCapability('nodes');
   const nodes = useRosStore((s) => s.nodes);
   const nodesLoading = useRosStore((s) => s.nodesLoading);
   const nodesError = useRosStore((s) => s.nodesError);
@@ -33,7 +31,7 @@ export function NodesPage() {
 
   return (
     <ListPage<string>
-      capability={capability}
+      capabilityName="nodes"
       noCapability={t('nodes.noCapability')}
       searchPlaceholder={t('nodes.searchPlaceholder')}
       emptyMessage={t('nodes.empty')}

@@ -1,4 +1,4 @@
-import { memo, useRef, useCallback, useMemo } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import * as THREE from 'three';
 import type { ThreeEvent } from '@react-three/fiber';
 
@@ -22,8 +22,6 @@ export const MarkerMesh = memo(function MarkerMesh({ markerId }: Props) {
   const selectMarker = useMapStore((s) => s.selectMarker);
   const dictionary = useMapStore((s) => s.mapMeta?.dictionary ?? DEFAULT_DICTIONARY);
   const confirmOpen = useConfirmStore((s) => s.options !== null);
-
-  const groupRef = useRef<THREE.Group>(null);
 
   const positionM = useMemo(() => {
     if (!marker || !ui) return [0, 0, 0] as const;
@@ -49,7 +47,6 @@ export const MarkerMesh = memo(function MarkerMesh({ markerId }: Props) {
 
   return (
     <group
-      ref={groupRef}
       position={positionM}
       rotation={rotationEuler}
       onClick={handleClick}

@@ -1,3 +1,5 @@
+import { REQUEST_TIMEOUT_MS } from '../constants/ros.ts';
+import { ApiError } from '@/types/errors';
 import type { Capability } from '@/types/manifest';
 
 export interface ApiCallOptions {
@@ -8,60 +10,70 @@ export interface ApiCallOptions {
   signal?: AbortSignal;
 }
 
-export interface ApiRequest extends ApiCallOptions {
-  path: string;
-}
+export type HttpCall = <T>(path: string, options?: ApiCallOptions) => Promise<T>;
 
-export interface ApiContext {
-  readonly request: ApiRequest;
-  readonly httpBase: string;
+export type CapabilityGate = (capability: Capability) => Promise<void>;
 
-  url: string;
-  response: Response | null;
-  body: unknown;
-}
-
-export type HttpMiddleware = (
-  ctx: ApiContext,
-  next: () => Promise<void>,
-) => Promise<void>;
-
-export type TransportExecutor = (ctx: ApiContext) => Promise<void>;
-
-export interface HttpCall {
-  <T>(path: string, options?: ApiCallOptions): Promise<T>;
-}
-
-export function createHttpCall(
-  httpBase: string,
-  middlewares: readonly HttpMiddleware[],
-  executor: TransportExecutor,
-): HttpCall {
+export function createHttpCall(httpBase: string, gate?: CapabilityGate): HttpCall {
   return async <T>(path: string, options?: ApiCallOptions): Promise<T> => {
-    const ctx: ApiContext = {
-      request: {
-        path,
-        capabilities: options?.capabilities,
-        method: options?.method,
-        body: options?.body,
-        timeoutMs: options?.timeoutMs,
-        signal: options?.signal,
-      },
-      httpBase,
-      url: '',
-      response: null,
-      body: null,
-    };
+    const url = httpBase + path;
 
-    const dispatch = (index: number): Promise<void> => {
-      const middleware = middlewares[index];
-      if (middleware === undefined) {
-        return executor(ctx);
+    if (gate !== undefined) {
+      for (const capability of options?.capabilities ?? []) {
+        await gate(capability);
       }
-      return middleware(ctx, () => dispatch(index + 1));
-    };
+    }
 
-    await dispatch(0);
-    return ctx.body as T;
+    const timeoutSignal = AbortSignal.timeout(
+      options?.timeoutMs ?? REQUEST_TIMEOUT_MS,
+    );
+    const signal =
+      options?.signal !== undefined
+        ? AbortSignal.any([options.signal, timeoutSignal])
+        : timeoutSignal;
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: options?.method ?? 'GET',
+        signal,
+        ...(options?.body != null && {
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(options.body),
+        }),
+      });
+    } catch (error) {
+      const name = error instanceof Error ? error.name : '';
+      const timedOut = name === 'TimeoutError';
+      const aborted = timedOut || name === 'AbortError';
+      throw new ApiError(
+        aborted ? `Request to ${url} timed out` : `Cannot reach ${url}`,
+        0,
+        aborted ? 'timeout' : 'network',
+        { cause: error },
+      );
+    }
+
+    if (!response.ok) {
+      throw new ApiError(await readErrorMessage(response), response.status);
+    }
+
+    const text = await response.text();
+    if (text === '') return null as T;
+    try {
+      return JSON.parse(text) as T;
+    } catch {
+      throw new ApiError(`Invalid JSON response from ${path}`, response.status);
+    }
   };
+}
+
+async function readErrorMessage(response: Response): Promise<string> {
+  try {
+    const body = (await response.json()) as { error?: unknown; error_message?: unknown };
+    if (typeof body.error === 'string') return body.error;
+    if (typeof body.error_message === 'string') return body.error_message;
+  } catch {
+  }
+  return `HTTP ${response.status}`;
 }

@@ -1,4 +1,5 @@
 import { Canvas, useThree } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
 import { Suspense, useEffect } from 'react';
 
 import { DEFAULT_DICTIONARY } from '@/constants/defaults';
@@ -7,7 +8,6 @@ import { loadDictionary } from '../../../data/dictionaries/index.ts';
 import { useMapStore } from '@/store/useMapStore';
 import { useMapUIStore } from '@/store/useMapUIStore';
 import { AxesHelper } from './AxesHelper.tsx';
-import { CameraController } from './CameraController.tsx';
 import { GroundGrid } from './GroundGrid.tsx';
 import { MarkerMesh } from './MarkerMesh.tsx';
 import { SceneCanvasContextHandler } from './SceneCanvasContextHandler.tsx';
@@ -61,7 +61,17 @@ export function SceneCanvas() {
       <Suspense fallback={null}>
         <SceneLighting />
         <GroundGrid />
-        <CameraController />
+        {/* drei's OrbitControls invalidates the demand frameloop on its own */}
+        <OrbitControls
+          makeDefault
+          enableDamping
+          dampingFactor={0.1}
+          maxPolarAngle={Math.PI * 0.85}
+          minDistance={0.1}
+          maxDistance={50}
+          zoomSpeed={1.2}
+          panSpeed={0.8}
+        />
         {Object.keys(markers).map((id) => (
           <MarkerMesh key={id} markerId={id} />
         ))}

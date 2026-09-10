@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { clover2Api } from '../api/clover2.ts';
 import { toApiError } from '@/types/errors';
@@ -23,6 +23,7 @@ export interface SettingsConfig {
 
 export function useSettingsConfig(): SettingsConfig {
   const resource = useAsyncResource(() => clover2Api.settings.schema(), []);
+  const { reload } = resource;
 
   const [adopted, setAdopted] = useState<SettingsSchemaResponse | null>(null);
   const [edited, setEdited] = useState<SettingsSchemaNode | null>(null);
@@ -41,8 +42,15 @@ export function useSettingsConfig(): SettingsConfig {
   }
 
   const root = edited;
-  const snapshot = resource.data !== null ? valuesProjection(resource.data.root) : '';
-  const dirty = root !== null && valuesProjection(root) !== snapshot;
+  const rootRef = useRef(root);
+  rootRef.current = root;
+  const dirty = useMemo(
+    () =>
+      resource.data !== null &&
+      root !== null &&
+      valuesProjection(root) !== valuesProjection(resource.data.root),
+    [resource.data, root],
+  );
 
   useEffect(() => {
     if (!dirty) return;
@@ -85,22 +93,22 @@ export function useSettingsConfig(): SettingsConfig {
   }, []);
 
   const save = useCallback(async () => {
-    if (root === null || saving) return;
+    if (rootRef.current === null || saving) return;
     setSaving(true);
     setSaveError(null);
     try {
-      const result = await clover2Api.settings.save(toValuesTree(root));
+      const result = await clover2Api.settings.save(toValuesTree(rootRef.current));
       if (!result.success) {
         setSaveError(result.error_message);
         return;
       }
-      await resource.reload();
+      await reload();
     } catch (err) {
       setSaveError(toApiError(err).message);
     } finally {
       setSaving(false);
     }
-  }, [resource, root, saving]);
+  }, [reload, saving]);
 
   return {
     loading: resource.loading,
@@ -113,6 +121,6 @@ export function useSettingsConfig(): SettingsConfig {
     resetField,
     resetAll,
     save,
-    reload: async () => resource.reload(),
+    reload: async () => reload(),
   };
 }

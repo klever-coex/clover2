@@ -1,12 +1,9 @@
 import { useEffect } from 'react';
 
-import i18n from '@/i18n/index.ts';
-import { mToMm } from '@/constants/units';
-import { deleteMarkersAfterDetach, saveMap } from '../store/mapMutations.ts';
-import { confirmDialog, useConfirmStore } from '@/store/useConfirmStore';
+import { deleteMarkersWithConfirm, saveMap } from '../store/mapMutations.ts';
+import { useConfirmStore } from '@/store/useConfirmStore';
 import { useMapStore } from '@/store/useMapStore';
 import { useMapUIStore } from '@/store/useMapUIStore';
-import { resolvePosition } from '../utils/transformUtils.ts';
 
 const NUMERIC_EXPR = /^-?\d+(\.\d+)?$/;
 
@@ -37,13 +34,7 @@ export function useMapKeyboardShortcuts() {
           e.preventDefault();
           if (selIds.length === 0) break;
 
-          void confirmDialog({
-            message: i18n.t('map.deleteConfirmMany', { count: selIds.length }),
-            tone: 'danger',
-            confirmLabel: i18n.t('map.delete'),
-          }).then((confirmed) => {
-            if (confirmed) deleteMarkersAfterDetach([...selIds]);
-          });
+          void deleteMarkersWithConfirm([...selIds]);
 
           break;
         }
@@ -89,8 +80,7 @@ export function useMapKeyboardShortcuts() {
             if (!marker || !ui || marker.type !== 'fixed' || marker.pose === null) return;
             const expr = ui.positionExpr[axis].trim();
             if (!NUMERIC_EXPR.test(expr)) return;
-            const pos = resolvePosition([expr, expr, expr], marker.id);
-            const newVal = mToMm(pos[axis]) + sign * stepMm;
+            const newVal = parseFloat(expr) + sign * stepMm;
             state.setExpr(id, axis, 'position', newVal.toString());
           });
 

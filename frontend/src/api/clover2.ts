@@ -16,7 +16,6 @@ export type { TopicSubscription, TopicSubscriptionOptions } from './endpoints/st
 
 export interface ManifestApi {
   get(): Promise<Manifest>;
-  clearCache(): void;
 }
 
 export interface TopicsApi {
@@ -45,7 +44,6 @@ export interface ServicesApi {
 
 export interface MapApi {
   get(): Promise<MapInfo>;
-  marker(id: number): Promise<MarkerInfo>;
   add(marker: MarkerInfo): Promise<ModifyResult>;
   edit(id: number, marker: MarkerInfo): Promise<ModifyResult>;
   delete(id: number): Promise<ModifyResult>;
@@ -65,7 +63,7 @@ export interface Clover2Api {
   readonly settings: SettingsApi;
 }
 
-export function createClover2Api(baseUrl?: string): Clover2Api {
+function createClover2Api(baseUrl?: string): Clover2Api {
   return createClient(baseUrl);
 }
 

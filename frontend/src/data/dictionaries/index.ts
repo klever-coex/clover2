@@ -1,6 +1,6 @@
 import type { ArUcoDictionary, DictionaryData, DictionaryMeta } from '@/types/marker';
 
-export type { DictionaryData, DictionaryMeta };
+export type { DictionaryData };
 
 const DICT_META: Record<ArUcoDictionary, DictionaryMeta> = {
   'DICT_4X4_1000': { name: 'DICT_4X4_1000', gridSize: 4, maxMarkerId: 999, totalCells: 6 },

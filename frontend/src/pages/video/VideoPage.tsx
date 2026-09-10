@@ -8,8 +8,6 @@ import { EmptyState } from '../../components/common/EmptyState.tsx';
 import { ErrorState } from '../../components/common/ErrorState.tsx';
 import { LoadingState } from '../../components/common/LoadingState.tsx';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
-import { useCapabilityFetch } from '@/hooks/useCapabilityFetch';
-import { useRosCapability } from '@/hooks/useRosCapability';
 import { useRosStore } from '@/store/useRosStore';
 import { usePageHeader } from '@/store/usePageHeader';
 import { route } from '@/routes/navigation.ts';
@@ -19,15 +17,12 @@ import { pageGrid, panelFill } from '@/lib/uiStyles';
 export function VideoPage() {
   const { t } = useTranslation();
   const apiErrorMessage = useApiErrorMessage();
-  const capability = useRosCapability('topics');
   const topics = useRosStore((s) => s.topics);
   const topicsLoading = useRosStore((s) => s.topicsLoading);
   const topicsError = useRosStore((s) => s.topicsError);
   const reloadTopics = useRosStore((s) => s.reloadTopics);
   const [searchParams] = useSearchParams();
   const topicName = searchParams.get('topic');
-
-  useCapabilityFetch(capability, reloadTopics);
 
   usePageHeader(
     topicName !== null
@@ -41,7 +36,7 @@ export function VideoPage() {
   return (
     <div className="p-6 h-full flex flex-col">
       <div className="flex-1 min-h-0">
-        <CapabilityGate capability={capability} noCapability={t('video.noCapability')}>
+        <CapabilityGate name="topics" onReady={reloadTopics} noCapability={t('video.noCapability')}>
           {topicsLoading && topics.length === 0 ? (
             <LoadingState variant="centered" />
           ) : topicsError !== null ? (

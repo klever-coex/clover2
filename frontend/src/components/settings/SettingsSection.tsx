@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 import type { SettingsScalar, SettingsSchemaNode } from '@/types/settings';
 import { isScalarNode } from '@/types/settings';
 import { CollapsibleCard } from '../common/CollapsibleCard.tsx';
@@ -10,7 +12,16 @@ interface Props {
   onReset: (path: string[]) => void;
 }
 
-export function SettingsSection({ node, path, onValue, onReset }: Props) {
+export const SettingsSection = memo(
+  SettingsSectionImpl,
+  (a, b) =>
+    a.node === b.node &&
+    a.path.join('/') === b.path.join('/') &&
+    a.onValue === b.onValue &&
+    a.onReset === b.onReset,
+);
+
+function SettingsSectionImpl({ node, path, onValue, onReset }: Props) {
   const scalars = (node.children ?? []).filter(isScalarNode);
   const objects = (node.children ?? []).filter((child) => !isScalarNode(child));
 

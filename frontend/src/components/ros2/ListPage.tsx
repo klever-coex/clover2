@@ -2,8 +2,7 @@ import { useSearchParams } from 'react-router';
 import type { ReactNode } from 'react';
 
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
-import { useCapabilityFetch } from '@/hooks/useCapabilityFetch';
-import type { RosCapability } from '@/hooks/useRosCapability';
+import type { Capability } from '@/types/manifest';
 import type { ApiError } from '@/types/errors';
 import { EmptyState } from '../common/EmptyState.tsx';
 import { ErrorState } from '../common/ErrorState.tsx';
@@ -12,7 +11,7 @@ import { CapabilityGate } from './CapabilityGate.tsx';
 import { ListToolbar } from '../common/ListToolbar.tsx';
 
 interface ListPageProps<T> {
-  capability: RosCapability;
+  capabilityName: Capability;
   noCapability: string;
   searchPlaceholder: string;
   emptyMessage: string;
@@ -29,7 +28,7 @@ interface ListPageProps<T> {
 }
 
 export function ListPage<T>({
-  capability,
+  capabilityName,
   noCapability,
   searchPlaceholder,
   emptyMessage,
@@ -61,8 +60,6 @@ export function ListPage<T>({
   };
   const errorMessage = useApiErrorMessage();
 
-  useCapabilityFetch(capability, onReload);
-
   const q = query.trim().toLowerCase();
   const filtered = q === '' ? items : items.filter((item) => filter(item, q));
   const visible = sortItems === undefined ? filtered : sortItems(filtered);
@@ -70,7 +67,7 @@ export function ListPage<T>({
   return (
     <div className="p-6">
       <div>
-        <CapabilityGate capability={capability} noCapability={noCapability}>
+        <CapabilityGate name={capabilityName} onReady={onReload} noCapability={noCapability}>
           <ListToolbar
             value={query}
             onChange={setQuery}

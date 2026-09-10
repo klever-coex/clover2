@@ -5,7 +5,7 @@ import ru from './ru.json';
 
 type DeepString<T> = { [K in keyof T]: T[K] extends string ? string : DeepString<T[K]> };
 
-export type TranslationSchema = DeepString<typeof en>;
+type TranslationSchema = DeepString<typeof en>;
 
 type DotPaths<T, Prefix extends string = ''> = {
   [K in keyof T]: T[K] extends string ? `${Prefix}${string & K}` : DotPaths<T[K], `${Prefix}${string & K}.`>;

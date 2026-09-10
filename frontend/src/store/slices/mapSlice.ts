@@ -9,6 +9,16 @@ import type { MarkerInfo } from '@/types/map';
 import type { ArUcoDictionary, MapMarker, MarkerType } from '@/types/marker';
 import type { MapStore } from '../useMapStore.ts';
 
+export function toMapMarker(info: MarkerInfo): MapMarker & { type: MarkerType } {
+  return {
+    id: info.id,
+    type: info.type as MarkerType,
+    sizeM: info.size,
+    markerFrameId: info.marker_frame_id,
+    pose: info.pose ?? null,
+  };
+}
+
 export interface MapBaselineEntry {
   markerFrameId: string;
   sizeM: number;
@@ -105,13 +115,7 @@ export const createMapSlice: StateCreator<MapStore, [], [], MapSlice> = (set, ge
       const info = await clover2Api.map.get();
       const markers: Record<string, MapMarker> = {};
       for (const m of info.markers ?? []) {
-        markers[String(m.id)] = {
-          id: m.id,
-          type: m.type as MarkerType,
-          sizeM: m.size,
-          markerFrameId: m.marker_frame_id,
-          pose: m.pose ?? null,
-        };
+        markers[String(m.id)] = toMapMarker(m);
       }
       const dictionary = isDictionaryName(info.dictionary)
         ? info.dictionary
@@ -139,16 +143,7 @@ export const createMapSlice: StateCreator<MapStore, [], [], MapSlice> = (set, ge
 
   addMarkerLocal: (info) =>
     set((s) => ({
-      markers: {
-        ...s.markers,
-        [String(info.id)]: {
-          id: info.id,
-          type: info.type as MarkerType,
-          sizeM: info.size,
-          markerFrameId: info.marker_frame_id,
-          pose: info.pose ?? null,
-        },
-      },
+      markers: { ...s.markers, [String(info.id)]: toMapMarker(info) },
     })),
 
   removeMarkerLocal: (id) =>

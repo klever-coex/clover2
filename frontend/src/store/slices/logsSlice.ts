@@ -7,7 +7,6 @@ import {
   LOGS_RECONNECT_MAX_DELAY_MS,
   LOG_BUFFER_CAP,
   ROSOUT_TOPIC,
-  WS_KEEPALIVE_INTERVAL_MS,
 } from '../../constants/ros.ts';
 import type { ApiError } from '@/types/errors';
 import { parseRosLogEntry } from '@/types/rosout';
@@ -47,8 +46,6 @@ export const createLogsSlice: StateCreator<RosStore, [], [], LogsSlice> = (set) 
     set({ logsState: 'connecting' });
 
     subscription = clover2Api.topics.subscribe(ROSOUT_TOPIC, {
-      keepaliveIntervalMs: WS_KEEPALIVE_INTERVAL_MS,
-
       onMessage: (message: RosJsonValue) => {
         const entry = parseRosLogEntry(message, seq++);
         if (entry === null) return;

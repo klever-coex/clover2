@@ -3,13 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { ListPage } from '../../components/ros2/ListPage.tsx';
 import { SortSelect } from '../../components/common/SortSelect.tsx';
 import { TopicRow } from '../../components/ros2/TopicRow.tsx';
-import { useRosCapability } from '@/hooks/useRosCapability';
 import { useRosStore } from '@/store/useRosStore';
 import type { TopicInfo } from '@/types/topic';
 
 export function TopicsPage() {
   const { t } = useTranslation();
-  const capability = useRosCapability('topics');
   const topics = useRosStore((s) => s.topics);
   const topicsLoading = useRosStore((s) => s.topicsLoading);
   const topicsError = useRosStore((s) => s.topicsError);
@@ -18,7 +16,7 @@ export function TopicsPage() {
 
   return (
     <ListPage<TopicInfo>
-      capability={capability}
+      capabilityName="topics"
       noCapability={t('topics.noCapability')}
       searchPlaceholder={t('topics.searchPlaceholder')}
       emptyMessage={t('topics.empty')}

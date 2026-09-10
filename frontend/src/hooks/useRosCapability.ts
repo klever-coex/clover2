@@ -15,21 +15,21 @@ export function useRosCapability(capability: Capability): RosCapability {
   const manifest = useRosStore((s) => s.manifest);
   const manifestLoading = useRosStore((s) => s.manifestLoading);
   const manifestError = useRosStore((s) => s.manifestError);
-  const fetchManifest = useRosStore((s) => s.fetchManifest);
+  const reloadManifest = useRosStore((s) => s.reloadManifest);
   const hasCapability = useRosStore((s) => s.hasCapability);
 
   useEffect(() => {
     if (manifest === null && !manifestLoading && manifestError === null) {
-      void fetchManifest();
+      void reloadManifest();
     }
-  }, [manifest, manifestLoading, manifestError, fetchManifest]);
+  }, [manifest, manifestLoading, manifestError, reloadManifest]);
 
   return {
     ready: manifest !== null,
     allowed: hasCapability(capability),
     error: manifestError,
     retry: () => {
-      void fetchManifest();
+      void reloadManifest();
     },
   };
 }

@@ -1,221 +1,127 @@
-type Token =
-  | { type: 'NUM'; value: number }
-  | { type: 'VAR'; name: string }
-  | { type: 'OP'; op: string }
-  | { type: 'LPAREN' }
-  | { type: 'RPAREN' };
+type Token = number | string;
 
-const OP_CHARS = new Set(['+', '-', '*', '/', '%', '(', ')']);
+const NUMBER_END = /[0-9.]/;
 
-function tokenize(expr: string): Token[] {
+function tokenize(src: string): Token[] {
   const tokens: Token[] = [];
   let i = 0;
 
-  while (i < expr.length) {
-    const ch = expr[i]!;
+  while (i < src.length) {
+    const ch = src[i]!;
 
-    // Whitespace
-    if (ch === ' ') {
+    if (ch === ' ' || ch === '\t') {
       i++;
-      continue;
-    }
-
-    if (ch === '(') {
-      tokens.push({ type: 'LPAREN' });
-      i++;
-      continue;
-    }
-    if (ch === ')') {
-      tokens.push({ type: 'RPAREN' });
-      i++;
-      continue;
-    }
-
-    if (ch === '*' && expr[i + 1] === '*') {
-      tokens.push({ type: 'OP', op: '**' });
+    } else if (NUMBER_END.test(ch)) {
+      let j = i + 1;
+      while (j < src.length && NUMBER_END.test(src[j]!)) j++;
+      if ((src[j] === 'e' || src[j] === 'E') && /[0-9]/.test(src[j + 1] ?? '')) {
+        j += 2;
+        while (j < src.length && /[0-9]/.test(src[j]!)) j++;
+      }
+      const num = Number(src.slice(i, j));
+      if (!Number.isFinite(num)) throw new Error('Invalid expression');
+      tokens.push(num);
+      i = j;
+    } else if (ch === '*' && src[i + 1] === '*') {
+      tokens.push('**');
       i += 2;
-      continue;
-    }
-
-    if (ch === '/' && expr[i + 1] === '/') {
-      tokens.push({ type: 'OP', op: '//' });
+    } else if (ch === '/' && src[i + 1] === '/') {
+      tokens.push('//');
       i += 2;
-      continue;
-    }
-
-    if (OP_CHARS.has(ch)) {
-      tokens.push({ type: 'OP', op: ch });
+    } else if ('+-*/%()'.includes(ch)) {
+      tokens.push(ch);
       i++;
-      continue;
+    } else {
+      throw new Error('Invalid expression');
     }
-
-    if (/[0-9]/.test(ch) || (ch === '.' && i + 1 < expr.length && /[0-9]/.test(expr[i + 1]!))) {
-      let num = '';
-      while (i < expr.length) {
-        const c = expr[i]!;
-        if (/[0-9.eE]/.test(c)) {
-          num += c;
-          i++;
-        } else if ((c === '+' || c === '-') && num.length > 0 && /[eE]/.test(num[num.length - 1]!)) {
-          num += c;
-          i++;
-        } else {
-          break;
-        }
-      }
-      const val = parseFloat(num);
-      if (isNaN(val) || !/^[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?$/.test(num)) {
-        throw new Error(`Invalid number: "${num}"`);
-      }
-      tokens.push({ type: 'NUM', value: val });
-      continue;
-    }
-
-    if (/[a-zA-Z_]/.test(ch)) {
-      let name = '';
-      while (i < expr.length && /[a-zA-Z0-9_]/.test(expr[i]!)) {
-        name += expr[i];
-        i++;
-      }
-      tokens.push({ type: 'VAR', name });
-      continue;
-    }
-
-    throw new Error(`Unexpected character: "${ch}" at position ${i}`);
   }
 
   return tokens;
 }
 
-class Parser {
-  private tokens: Token[];
-  private pos: number;
+export function evaluateExpr(expr: string, vars: { id: number }): number {
+  const substituted = expr.trim().replaceAll(/\bid\b/g, String(vars.id));
+  if (!substituted) throw new Error('Invalid expression');
 
-  constructor(tokens: Token[]) {
-    this.tokens = tokens;
-    this.pos = 0;
-  }
+  const tokens = tokenize(substituted);
+  if (tokens.length === 0) throw new Error('Invalid expression');
 
-  peek(): Token | undefined {
-    return this.tokens[this.pos];
-  }
-
-  consume(): Token {
-    const t = this.tokens[this.pos++];
-    if (!t) throw new Error('Unexpected end of expression');
+  let pos = 0;
+  const peek = (): Token | undefined => tokens[pos];
+  const next = (): Token => {
+    const t = tokens[pos++];
+    if (t === undefined) throw new Error('Invalid expression');
     return t;
-  }
+  };
 
-  expect(type: Token['type'], value?: string): Token {
-    const t = this.consume();
-    if (t.type !== type) {
-      throw new Error(`Expected ${type}, got ${t.type}`);
+  // sum := term (('+' | '-') term)*
+  const sum = (): number => {
+    let left = term();
+    while (peek() === '+' || peek() === '-') {
+      left = next() === '+' ? left + term() : left - term();
     }
-    if (value !== undefined && t.type === 'OP' && (t as { op: string }).op !== value) {
-      throw new Error(`Expected "${value}", got "${(t as { op: string }).op}"`);
-    }
-    return t;
-  }
-
-  expr(vars: Record<string, number>): number {
-    let left = this.term(vars);
-
-    while (this.peek()?.type === 'OP' && ((this.peek() as { op: string }).op === '+' || (this.peek() as { op: string }).op === '-')) {
-      const op = (this.consume() as { op: string }).op;
-      const right = this.term(vars);
-      left = op === '+' ? left + right : left - right;
-    }
-
     return left;
-  }
+  };
 
-  private term(vars: Record<string, number>): number {
-    let left = this.unary(vars);
-
-    while (this.peek()?.type === 'OP' && ['*', '/', '//', '%'].includes((this.peek() as { op: string }).op)) {
-      const op = (this.consume() as { op: string }).op;
-      const right = this.unary(vars);
-      if (op !== '*' && right === 0) throw new Error('Division by zero');
-      if (op === '*') left = left * right;
-      else if (op === '/') left = left / right;
-      else if (op === '//') left = Math.floor(left / right);
-      else left = ((left % right) + right) % right;
+  // term := unary (('*' | '/' | '//' | '%') unary)*  — left-associative
+  const term = (): number => {
+    let left = unary();
+    for (;;) {
+      if (peek() === '*') {
+        next();
+        left *= unary();
+      } else if (peek() === '/') {
+        next();
+        left /= unary();
+      } else if (peek() === '//') {
+        next();
+        left = Math.floor(left / unary());
+      } else if (peek() === '%') {
+        next();
+        const right = unary();
+        left = ((left % right) + right) % right; // python modulo
+      } else {
+        return left;
+      }
     }
+  };
 
-    return left;
-  }
+  // unary := ('-' | '+') unary | power
+  const unary = (): number => {
+    if (peek() === '-') {
+      next();
+      return -unary();
+    }
+    if (peek() === '+') {
+      next();
+      return unary();
+    }
+    return power();
+  };
 
-  private power(vars: Record<string, number>): number {
-    const base = this.primary(vars);
-    if (this.peek()?.type === 'OP' && (this.peek() as { op: string }).op === '**') {
-      this.consume();
-      const exp = this.unary(vars);
-      return base ** exp;
+  // power := primary ('**' unary)?  — right-associative via recursion
+  const power = (): number => {
+    const base = primary();
+    if (peek() === '**') {
+      next();
+      return base ** unary();
     }
     return base;
-  }
+  };
 
-  private unary(vars: Record<string, number>): number {
-    if (this.peek()?.type === 'OP' && ((this.peek() as { op: string }).op === '+' || (this.peek() as { op: string }).op === '-')) {
-      const op = (this.consume() as { op: string }).op;
-      const v = this.unary(vars);
-      return op === '-' ? -v : v;
-    }
-    return this.power(vars);
-  }
-
-  private primary(vars: Record<string, number>): number {
-    const t = this.peek();
-    if (!t) throw new Error('Unexpected end of expression');
-
-    if (t.type === 'NUM') {
-      this.consume();
-      return (t as { value: number }).value;
-    }
-
-    if (t.type === 'VAR') {
-      this.consume();
-      const name = (t as { name: string }).name;
-      if (!(name in vars)) throw new Error(`Unknown variable: "${name}"`);
-      return vars[name]!;
-    }
-
-    if (t.type === 'LPAREN') {
-      this.consume();
-      const v = this.expr(vars);
-      this.expect('RPAREN');
+  const primary = (): number => {
+    const t = next();
+    if (typeof t === 'number') return t;
+    if (t === '(') {
+      const v = sum();
+      if (next() !== ')') throw new Error('Invalid expression');
       return v;
     }
+    throw new Error('Invalid expression');
+  };
 
-    throw new Error(`Unexpected token: ${t.type}`);
-  }
-}
-
-/**
- * Evaluate an arithmetic expression with variable substitution.
- *
- * @param expr  Expression string (e.g. "id * 1500 + 100")
- * @param vars  Variable name value map (e.g. { id: 3 })
- * @returns     Numeric result
- * @throws      On parse or evaluation errors
- */
-export function evaluateExpr(expr: string, vars: Record<string, number>): number {
-  const trimmed = expr.trim();
-  if (!trimmed) throw new Error('Empty expression');
-
-  const tokens = tokenize(trimmed);
-  if (tokens.length === 0) throw new Error('Empty expression');
-
-  const parser = new Parser(tokens);
-  const result = parser.expr(vars);
-
-  if (parser.peek() !== undefined) {
-    throw new Error('Unexpected tokens after expression');
-  }
-
-  if (!Number.isFinite(result)) {
-    throw new Error(`Result is not a finite number: ${result}`);
-  }
-
+  const result = sum();
+  if (pos !== tokens.length) throw new Error('Invalid expression');
+  if (!Number.isFinite(result)) throw new Error('Result is not finite');
   return result;
 }

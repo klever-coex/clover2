@@ -17,7 +17,7 @@ const DOC_ENTRIES: Record<DocKey, DocEntry> = {
   },
 };
 
-export function docsUrl(key: DocKey, _lang?: string): string {
+export function docsUrl(key: DocKey): string {
   const entry = DOC_ENTRIES[key];
   const anchor = entry.anchor !== undefined ? `#${entry.anchor}` : '';
   // TODO: add en documentation

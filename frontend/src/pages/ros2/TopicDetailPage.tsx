@@ -34,29 +34,36 @@ export function TopicDetailPage() {
     [topics, topicName],
   );
 
+  const headerActions = useMemo(
+    () => (
+      <div className="flex gap-2">
+        {topic !== null && isVideoTopic(topic.type) && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => navigate(`/video?topic=${encodeURIComponent(topic.name)}`)}
+          >
+            <Video />
+            {t('video.openVideo')}
+          </Button>
+        )}
+        <Button variant="secondary" size="sm" onClick={stream.clear}>
+          {t('topicDetail.clear')}
+        </Button>
+        <Button size="sm" onClick={stream.retry}>
+          {t('common.retry')}
+        </Button>
+      </div>
+    ),
+    [t, topic, navigate, stream.clear, stream.retry],
+  );
+
   usePageHeader(
     [
       { label: t(route('/ros2/topics').labelKey), to: '/ros2/topics' },
       { label: topicName ?? '', mono: true },
     ],
-    <div className="flex gap-2">
-      {topic !== null && isVideoTopic(topic.type) && (
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => navigate(`/video?topic=${encodeURIComponent(topic.name)}`)}
-        >
-          <Video />
-          {t('video.openVideo')}
-        </Button>
-      )}
-      <Button variant="secondary" size="sm" onClick={stream.clear}>
-        {t('topicDetail.clear')}
-      </Button>
-      <Button size="sm" onClick={stream.retry}>
-        {t('common.retry')}
-      </Button>
-    </div>,
+    headerActions,
   );
 
   useEffect(() => {

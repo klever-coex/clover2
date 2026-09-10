@@ -8,11 +8,6 @@ export interface TopicSubscriptionOptions {
   onMessage: (message: RosJsonValue) => void;
   onError?: (error: ApiError) => void;
   onClose?: (info: { code: number; reason: string }) => void;
-  /**
-   * The backend closes idle connections after 60 s even while streaming;
-   * periodically sending a text frame (ignored by the server) keeps it alive.
-   */
-  keepaliveIntervalMs?: number;
 }
 
 export interface TopicSubscription {
@@ -68,9 +63,6 @@ export function createStreamsEndpoints(
             `${wsBase}/ws/topic/json/-/${encodeRosPath(topicName)}`,
           );
 
-          // A handshake that stalls (host reachable, nothing answering) fires
-          // neither onclose nor onerror, which used to leave the page connecting
-          // forever.
           const pending = socket;
           connectTimer = setTimeout(() => {
             connectTimer = null;
@@ -80,16 +72,12 @@ export function createStreamsEndpoints(
 
           socket.onopen = () => {
             clearConnectTimer();
-            // Keepalive is on by default: the backend drops connections idle
-            // for 60 s even mid-stream. Pass 0 to opt out.
-            const keepaliveIntervalMs =
-              options.keepaliveIntervalMs ?? WS_KEEPALIVE_INTERVAL_MS;
-            if (keepaliveIntervalMs > 0) {
+            if (WS_KEEPALIVE_INTERVAL_MS > 0) {
               keepaliveTimer = setInterval(() => {
                 if (socket?.readyState === WebSocket.OPEN) {
                   socket.send('ping');
                 }
-              }, keepaliveIntervalMs);
+              }, WS_KEEPALIVE_INTERVAL_MS);
             }
           };
 

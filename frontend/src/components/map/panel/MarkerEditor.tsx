@@ -4,8 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { mToMm } from '@/constants/units';
 import { cn } from '@/lib/utils';
 import { inputSm } from '@/lib/uiStyles';
-import { deleteMarkersAfterDetach, validateSize } from '../../../store/mapMutations.ts';
-import { confirmDialog } from '@/store/useConfirmStore';
+import { deleteMarkersWithConfirm, validateSize } from '../../../store/mapMutations.ts';
 import { useMapStore } from '@/store/useMapStore';
 import type { MapMarker } from '@/types/marker';
 import { evaluateExpr } from '../../../utils/exprEval.ts';
@@ -183,22 +182,9 @@ export function MarkerEditor({ marker, selectedIds }: Props) {
     [applyExpr, rotExprLocal],
   );
 
-  const handleDelete = useCallback(async () => {
-    const message = isMulti
-      ? t('map.deleteConfirmMany', { count: selectedIds.length })
-      : t('map.deleteConfirmOne', { id: marker.id });
-
-    const confirmed = await confirmDialog({
-      message,
-      tone: 'danger',
-      confirmLabel: t('map.delete'),
-    });
-
-    if (confirmed) {
-      deleteMarkersAfterDetach([...selectedIds]);
-    }
-
-  }, [selectedIds, marker.id, isMulti, t]);
+  const handleDelete = useCallback(() => {
+    void deleteMarkersWithConfirm([...selectedIds]);
+  }, [selectedIds]);
 
   return (
     <Card size="sm">

@@ -1,13 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { extendTailwindMerge } from 'tailwind-merge';
 
-/**
- * tailwind-merge must know our custom tokens, otherwise it keeps conflicting
- * classes (e.g. `rounded-xl rounded-panel`) or drops siblings from the same
- * namespace (font-size vs text-color) and CSS source order decides the winner.
- * RULE: every new custom token added to @theme in index.css must be registered
- * here in its matching class group.
- */
 const twMerge = extendTailwindMerge({
   extend: {
     classGroups: {
@@ -49,7 +42,7 @@ const twMerge = extendTailwindMerge({
           ],
         },
       ],
-      duration: [{ duration: ['fast', 'normal', 'slow'] }],
+      duration: [{ duration: ['fast', 'normal'] }],
     },
   },
 });
