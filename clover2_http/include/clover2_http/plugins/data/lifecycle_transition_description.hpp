@@ -23,7 +23,7 @@ struct lifecycle_transition_description {
         const lifecycle_msgs::msg::TransitionDescription& msg);
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(lifecycle_transition_description,
-                                   transition, start_state, goal_state)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(lifecycle_transition_description, transition,
+                                   start_state, goal_state)
 
 }  // namespace clover2_http::plugins::data

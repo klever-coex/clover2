@@ -5,8 +5,8 @@
 #include <clover2_http/http/endpoint/reply.hpp>
 
 // STL
-#include <functional>
 #include <concepts>
+#include <functional>
 
 namespace clover2_http::http::middleware {
 
@@ -23,8 +23,7 @@ public:
                         http::endpoint::reply_base& reply, next_t next) = 0;
 };
 
-
-template<typename MiddlewareT>
+template <typename MiddlewareT>
 concept middleware = std::derived_from<MiddlewareT, base_middleware>;
 
 }  // namespace clover2_http::http::middleware

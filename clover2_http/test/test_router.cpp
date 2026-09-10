@@ -1,3 +1,4 @@
+#include "clover2_http/http/core/settings.hpp"
 #include <clover2_http/http/endpoint/interface.hpp>
 #include <clover2_http/http/endpoint/reply.hpp>
 #include <clover2_http/http/middleware/base_middleware.hpp>
@@ -21,6 +22,8 @@ namespace {
 
 namespace http = boost::beast::http;
 using namespace clover2_http::http;
+
+core::settings settings;
 
 boost::urls::url_view make_target(const char* t) {
     auto r = boost::urls::parse_relative_ref(t);
@@ -70,8 +73,6 @@ struct status_endpoint : public endpoint::interface {
     }
 };
 
-// Captures the reply and completes it after invoke() returned, as a
-// deferred reply would be completed from an async callback.
 struct deferred_endpoint : public endpoint::interface {
     void invoke(core::request_context&, endpoint::http_request&,
                 std::shared_ptr<endpoint::reply_base> reply) override {
@@ -123,7 +124,7 @@ struct spy_ws_handler : public transport::ws_handler_interface {
 };
 
 TEST(Tokenize, EmptyPathReturnsNoSegments) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::get, "/", std::move(spy));
@@ -135,7 +136,7 @@ TEST(Tokenize, EmptyPathReturnsNoSegments) {
 }
 
 TEST(Tokenize, SingleSegment) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::get, "/nodes", std::move(spy));
@@ -147,7 +148,7 @@ TEST(Tokenize, SingleSegment) {
 }
 
 TEST(Tokenize, MultipleSegments) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::get, "/a/b/c", std::move(spy));
@@ -159,7 +160,7 @@ TEST(Tokenize, MultipleSegments) {
 }
 
 TEST(Tokenize, NetworkPathReferenceDoesNotMatch) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::get, "/foo/bar", std::move(spy));
@@ -172,7 +173,7 @@ TEST(Tokenize, NetworkPathReferenceDoesNotMatch) {
 }
 
 TEST(Tokenize, TrailingSlashIsSeparateRoute) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy1 = std::make_unique<spy_endpoint>();
     auto spy2 = std::make_unique<spy_endpoint>();
     auto* raw1 = spy1.get();
@@ -199,7 +200,7 @@ TEST(Tokenize, TrailingSlashIsSeparateRoute) {
 }
 
 TEST(QueryString, StrippedBeforeMatching) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::get, "/nodes", std::move(spy));
@@ -214,7 +215,7 @@ TEST(QueryString, StrippedBeforeMatching) {
 }
 
 TEST(MethodMatch, CorrectMethodMatches) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy_get = std::make_unique<spy_endpoint>();
     auto spy_post = std::make_unique<spy_endpoint>();
     auto* raw_get = spy_get.get();
@@ -230,7 +231,7 @@ TEST(MethodMatch, CorrectMethodMatches) {
 }
 
 TEST(MethodMatch, PostMatchesPost) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::post, "/data", std::move(spy));
@@ -242,7 +243,7 @@ TEST(MethodMatch, PostMatchesPost) {
 }
 
 TEST(MethodMatch, GetDoesNotMatchPost) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::post, "/data", std::move(spy));
@@ -254,7 +255,7 @@ TEST(MethodMatch, GetDoesNotMatchPost) {
 }
 
 TEST(PathParams, SingleParamExtracted) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::get, "/users/{id}", std::move(spy));
@@ -267,7 +268,7 @@ TEST(PathParams, SingleParamExtracted) {
 }
 
 TEST(PathParams, MultipleParamsExtracted) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::get, "/users/{user_id}/posts/{post_id}",
@@ -282,7 +283,7 @@ TEST(PathParams, MultipleParamsExtracted) {
 }
 
 TEST(PathParams, ParamWithDash) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::get, "/items/{item-id}", std::move(spy));
@@ -295,7 +296,7 @@ TEST(PathParams, ParamWithDash) {
 }
 
 TEST(PathParams, TwoRoutesSameParamNameDifferentPaths) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy1 = std::make_unique<spy_endpoint>();
     auto spy2 = std::make_unique<spy_endpoint>();
     auto* raw1 = spy1.get();
@@ -312,7 +313,7 @@ TEST(PathParams, TwoRoutesSameParamNameDifferentPaths) {
 }
 
 TEST(PathParams, TypedHelper) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::get, "/users/{id}", std::move(spy));
@@ -326,7 +327,7 @@ TEST(PathParams, TypedHelper) {
 }
 
 TEST(PathParams, PercentDecoded) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::get, "/users/{id}", std::move(spy));
@@ -392,7 +393,7 @@ TEST(QueryParams, UrlMemberHoldsFullTarget) {
 }
 
 TEST(NoMatch, ReturnsFalseAndSends404) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     core::request_context ctx;
     http::response<http::string_body> captured{http::status::unknown, 11};
     bool found = r.dispatch_http(http::verb::get, make_target("/nonexistent"),
@@ -404,7 +405,7 @@ TEST(NoMatch, ReturnsFalseAndSends404) {
 }
 
 TEST(NoMatch, RouteWithDifferentSegmentCount) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::get, "/a/b/c", std::move(spy));
@@ -416,7 +417,7 @@ TEST(NoMatch, RouteWithDifferentSegmentCount) {
 }
 
 TEST(RouteOrder, DuplicatePatternThrows) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     r.add_http_route(http::verb::get, "/dup", std::make_unique<spy_endpoint>());
 
     EXPECT_THROW(
@@ -428,7 +429,7 @@ TEST(RouteOrder, DuplicatePatternThrows) {
 }
 
 TEST(WebSocket, StaticRouteMatches) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto handler = std::make_unique<spy_ws_handler>();
     auto* raw = handler.get();
     r.add_ws_route("/ws/chat", std::move(handler));
@@ -440,7 +441,7 @@ TEST(WebSocket, StaticRouteMatches) {
 }
 
 TEST(WebSocket, ParamRouteExtractsParams) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto handler = std::make_unique<spy_ws_handler>();
     r.add_ws_route("/ws/{room}", std::move(handler));
 
@@ -451,14 +452,14 @@ TEST(WebSocket, ParamRouteExtractsParams) {
 }
 
 TEST(WebSocket, NoMatchReturnsNull) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     std::unordered_map<std::string, std::string> params;
     auto* found = r.match_ws(make_target("/no/such/path"), params);
     EXPECT_EQ(found, nullptr);
 }
 
 TEST(WebSocket, QueryStrippedBeforeMatch) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto handler = std::make_unique<spy_ws_handler>();
     auto* raw = handler.get();
     r.add_ws_route("/ws/chat", std::move(handler));
@@ -469,7 +470,7 @@ TEST(WebSocket, QueryStrippedBeforeMatch) {
 }
 
 TEST(Logger, NullLoggerDoesNotCrash) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     r.add_http_route(http::verb::get, "/test", std::move(spy));
 
@@ -484,7 +485,7 @@ TEST(Logger, NullLoggerDoesNotCrash) {
 }
 
 TEST(ResponseSender, EndpointInvokedWithResponse) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto ep = std::make_unique<spy_endpoint>();
     r.add_http_route(http::verb::get, "/ok", std::move(ep));
 
@@ -496,7 +497,7 @@ TEST(ResponseSender, EndpointInvokedWithResponse) {
 }
 
 TEST(ResponseSender, DeferredReplyAfterInvokeReturns) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto ep = std::make_unique<deferred_endpoint>();
     auto* raw = ep.get();
     r.add_http_route(http::verb::get, "/deferred", std::move(ep));
@@ -518,7 +519,7 @@ TEST(ResponseSender, DeferredReplyAfterInvokeReturns) {
 }
 
 TEST(ResponseSender, DoubleSendSuppressed) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto ep = std::make_unique<deferred_endpoint>();
     auto* raw = ep.get();
     r.add_http_route(http::verb::get, "/deferred", std::move(ep));
@@ -537,7 +538,7 @@ TEST(ResponseSender, DoubleSendSuppressed) {
 }
 
 TEST(ResponseSender, HeldReplyDestroyedWithoutResponseSends500) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto ep = std::make_unique<deferred_endpoint>();
     auto* raw = ep.get();
     r.add_http_route(http::verb::get, "/deferred", std::move(ep));
@@ -553,7 +554,7 @@ TEST(ResponseSender, HeldReplyDestroyedWithoutResponseSends500) {
 }
 
 TEST(SegmentGuard, RoutesWithWrongSegmentCountSkipped) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy3 = std::make_unique<spy_endpoint>();
     auto* raw3 = spy3.get();
     r.add_http_route(http::verb::get, "/a/b/c", std::move(spy3));
@@ -573,7 +574,7 @@ TEST(SegmentGuard, RoutesWithWrongSegmentCountSkipped) {
 }
 
 TEST(ComplexTable, MultipleRoutesWithParams) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto ep_nodes = std::make_unique<spy_endpoint>();
     auto ep_user = std::make_unique<spy_endpoint>();
     auto ep_post = std::make_unique<spy_endpoint>();
@@ -629,7 +630,7 @@ TEST(ComplexTable, MultipleRoutesWithParams) {
 }
 
 TEST(CatchAll, CapturesRemainingSegments) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::get, "/files/{path...}", std::move(spy));
@@ -642,7 +643,7 @@ TEST(CatchAll, CapturesRemainingSegments) {
 }
 
 TEST(CatchAll, AtRoot) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::get, "/{rest...}", std::move(spy));
@@ -655,7 +656,7 @@ TEST(CatchAll, AtRoot) {
 }
 
 TEST(CatchAll, StaticWins) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy_static = std::make_unique<spy_endpoint>();
     auto spy_catch = std::make_unique<spy_endpoint>();
     auto* raw_static = spy_static.get();
@@ -683,7 +684,7 @@ TEST(CatchAll, StaticWins) {
 }
 
 TEST(CatchAll, MatchesTrailingSlash) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::get, "/files/{path...}", std::move(spy));
@@ -696,7 +697,7 @@ TEST(CatchAll, MatchesTrailingSlash) {
 }
 
 TEST(CatchAll, NotLastThrows) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     EXPECT_THROW(
         {
             r.add_http_route(http::verb::get, "/{rest...}/extra",
@@ -706,7 +707,7 @@ TEST(CatchAll, NotLastThrows) {
 }
 
 TEST(CatchAll, NameConflictThrows) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     r.add_http_route(http::verb::get, "/files/{path...}",
                      std::make_unique<spy_endpoint>());
 
@@ -719,7 +720,7 @@ TEST(CatchAll, NameConflictThrows) {
 }
 
 TEST(Conflicts, ParamNameConflictThrows) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     r.add_http_route(http::verb::get, "/items/{id}",
                      std::make_unique<spy_endpoint>());
 
@@ -732,7 +733,7 @@ TEST(Conflicts, ParamNameConflictThrows) {
 }
 
 TEST(Conflicts, InvalidPatternThrows) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     EXPECT_THROW(
         {
             r.add_http_route(http::verb::get, "/x/{bad",
@@ -742,7 +743,7 @@ TEST(Conflicts, InvalidPatternThrows) {
 }
 
 TEST(Precedence, StaticWinsRegardlessOfRegistrationOrder) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy_param = std::make_unique<spy_endpoint>();
     auto spy_static = std::make_unique<spy_endpoint>();
     auto* raw_param = spy_param.get();
@@ -767,7 +768,7 @@ TEST(Precedence, StaticWinsRegardlessOfRegistrationOrder) {
 }
 
 TEST(PathParams, EncodedSlashStaysInOneParam) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
     r.add_http_route(http::verb::get, "/users/{id}", std::move(spy));
@@ -780,7 +781,7 @@ TEST(PathParams, EncodedSlashStaysInOneParam) {
 }
 
 TEST(MethodMatch, ThreeVerbsCoexistOnOnePattern) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto spy_get = std::make_unique<spy_endpoint>();
     auto spy_put = std::make_unique<spy_endpoint>();
     auto spy_patch = std::make_unique<spy_endpoint>();
@@ -812,7 +813,7 @@ TEST(MethodMatch, ThreeVerbsCoexistOnOnePattern) {
 }
 
 TEST(WebSocket, DuplicateRouteThrows) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     r.add_ws_route("/ws/dup", std::make_unique<spy_ws_handler>());
 
     EXPECT_THROW(
@@ -821,7 +822,7 @@ TEST(WebSocket, DuplicateRouteThrows) {
 }
 
 TEST(WebSocket, CatchAllCapturesRemainingSegments) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     auto handler = std::make_unique<spy_ws_handler>();
     r.add_ws_route("/ws/{room...}", std::move(handler));
 
@@ -832,7 +833,7 @@ TEST(WebSocket, CatchAllCapturesRemainingSegments) {
 }
 
 TEST(Middleware, RunsFromGeneralToSpecific) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     std::vector<std::string> order;
     r.add_middleware("/", [&order] {
         return std::make_unique<collect_middleware>(&order, "root");
@@ -854,7 +855,7 @@ TEST(Middleware, RunsFromGeneralToSpecific) {
 }
 
 TEST(Middleware, MultipleOnOnePatternRunInRegistrationOrder) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     std::vector<std::string> order;
     r.add_middleware("/", [&order] {
         return std::make_unique<collect_middleware>(&order, "first");
@@ -876,7 +877,7 @@ TEST(Middleware, MultipleOnOnePatternRunInRegistrationOrder) {
 }
 
 TEST(Middleware, ShortCircuitStopsChainAndHandler) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     std::vector<std::string> order;
     r.add_middleware("/", [&order] {
         return std::make_unique<collect_middleware>(&order, "root");
@@ -906,7 +907,7 @@ TEST(Middleware, ShortCircuitStopsChainAndHandler) {
 }
 
 TEST(Middleware, HeadersSurviveOn404) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     r.add_middleware("/", [] { return std::make_unique<header_middleware>(); });
 
     core::request_context ctx;
@@ -920,7 +921,7 @@ TEST(Middleware, HeadersSurviveOn404) {
 }
 
 TEST(Middleware, CreatorRunsPerRequest) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     int created = 0;
     r.add_middleware(
         "/", [&created]() -> std::unique_ptr<middleware::base_middleware> {
@@ -939,7 +940,7 @@ TEST(Middleware, CreatorRunsPerRequest) {
 }
 
 TEST(Middleware, CatchAllPatternRejected) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     EXPECT_THROW(
         {
             r.add_middleware("/x/{rest...}", []() {
@@ -950,7 +951,7 @@ TEST(Middleware, CatchAllPatternRejected) {
 }
 
 TEST(Middleware, CorsPreflightShortCircuits) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     r.add_middleware("/", [] { return std::make_unique<middleware::cors>(); });
     auto spy = std::make_unique<spy_endpoint>();
     auto* raw = spy.get();
@@ -971,7 +972,7 @@ TEST(Middleware, CorsPreflightShortCircuits) {
 }
 
 TEST(Middleware, CorsHeadersOnHandlerResponse) {
-    routing::router r;
+    routing::router r(nullptr, settings);
     r.add_middleware("/", [] { return std::make_unique<middleware::cors>(); });
     auto spy = std::make_unique<spy_endpoint>();
     r.add_http_route(http::verb::get, "/data", std::move(spy));

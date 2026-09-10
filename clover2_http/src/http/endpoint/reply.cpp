@@ -52,9 +52,7 @@ reply_base::~reply_base() {
     }
 }
 
-void reply_base::error(int status) {
-    send_raw("", "", status);
-}
+void reply_base::error(int status) { send_raw("", "", status); }
 
 void reply_base::error_json(int status, const std::string& message) {
     send_raw(error_body(message), "application/json", status);
@@ -70,7 +68,6 @@ void reply_base::header(std::string_view header, std::string_view value) {
 
 void reply_base::send_raw(std::string body, std::string_view content_type,
                           int status) {
-
     if (m_sent.exchange(true)) return;
 
     m_response.result(status);

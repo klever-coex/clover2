@@ -28,8 +28,7 @@ public:
             std::chrono::duration<double>(now - m_last).count();
         m_last = now;
 
-        m_tokens =
-            std::min(m_burst, m_tokens + elapsed * m_bytes_per_second);
+        m_tokens = std::min(m_burst, m_tokens + elapsed * m_bytes_per_second);
 
         if (static_cast<double>(bytes) > m_burst) {
             if (m_tokens >= m_burst) {

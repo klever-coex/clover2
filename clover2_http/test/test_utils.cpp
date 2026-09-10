@@ -2,18 +2,18 @@
 
 using namespace clover2_http::http::routing;
 
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include <gtest/gtest.h>
-
 TEST(Utils, TokenValidation) {
     EXPECT_TRUE(is_token_valid("test"));
     EXPECT_TRUE(is_token_valid("{test}"));
     EXPECT_TRUE(is_token_valid("{test...}"));
-    
+
     EXPECT_FALSE(is_token_valid("{test"));
     EXPECT_FALSE(is_token_valid("test}"));
     EXPECT_FALSE(is_token_valid("{}"));
@@ -55,8 +55,8 @@ TEST(Utils, SplitPatternStripsLeadingSlash) {
 }
 
 TEST(Utils, SplitPatternPreservesEmptySegments) {
-    EXPECT_EQ(split_pattern("/nodes/"), (std::vector<std::string>{"nodes", ""}));
-    EXPECT_EQ(split_pattern("/a//b"),
-              (std::vector<std::string>{"a", "", "b"}));
+    EXPECT_EQ(split_pattern("/nodes/"),
+              (std::vector<std::string>{"nodes", ""}));
+    EXPECT_EQ(split_pattern("/a//b"), (std::vector<std::string>{"a", "", "b"}));
     EXPECT_EQ(split_pattern("//"), (std::vector<std::string>{"", ""}));
 }

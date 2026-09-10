@@ -7,8 +7,7 @@ namespace clover2_http::plugins::utils {
 
 universal_subscriber::universal_subscriber(
     std::shared_ptr<clover2_common::node_context> node_context,
-    const std::string& topic_name, const std::string& topic_type,
-    callback cb) {
+    const std::string& topic_name, const std::string& topic_type, callback cb) {
     const auto qos = rclcpp::QoS(10).best_effort();
 
     m_subscription = rclcpp::create_generic_subscription(

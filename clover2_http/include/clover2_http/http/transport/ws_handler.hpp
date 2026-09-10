@@ -1,5 +1,6 @@
 #pragma once
 
+#include "clover2_http/http/core/settings.hpp"
 #include <clover2_http/http/core/request_context.hpp>
 #include <clover2_http/http/transport/base_ws_session.hpp>
 #include <clover2_http/http/transport/ws_session.hpp>
@@ -30,8 +31,10 @@ public:
     using handler = std::function<void(std::shared_ptr<ws_session<T>>)>;
 
     explicit ws_handler(handler h, boost::asio::io_context& io,
-                        std::shared_ptr<clover2_http::http::core::logger> log)
-        : m_handler(std::move(h))
+                        std::shared_ptr<clover2_http::http::core::logger> log,
+                        const core::settings& settings)
+        : m_settings(settings)
+        , m_handler(std::move(h))
         , m_io(io)
         , m_logger(std::move(log)) {}
 
@@ -40,12 +43,14 @@ public:
         boost::beast::http::request<boost::beast::http::string_body> request,
         core::request_context ctx) override {
         auto session = std::make_shared<ws_session<T>>(std::move(socket), m_io,
-                                                       m_logger);
+                                                       m_logger, m_settings);
 
         session->start(std::move(request), std::move(ctx), m_handler);
     }
 
 private:
+    const core::settings& m_settings;
+
     handler m_handler;
     boost::asio::io_context& m_io;
     std::shared_ptr<clover2_http::http::core::logger> m_logger;
@@ -55,9 +60,12 @@ class raw_ws_handler : public ws_handler_interface {
 public:
     using handler = std::function<void(std::shared_ptr<base_ws_session>)>;
 
-    explicit raw_ws_handler(handler h, boost::asio::io_context& io,
-                            std::shared_ptr<clover2_http::http::core::logger> log)
-        : m_handler(std::move(h))
+    explicit raw_ws_handler(
+        handler h, boost::asio::io_context& io,
+        std::shared_ptr<clover2_http::http::core::logger> log,
+        const core::settings& settings)
+        : m_settings(settings)
+        , m_handler(std::move(h))
         , m_io(io)
         , m_logger(std::move(log)) {}
 
@@ -65,13 +73,17 @@ public:
         boost::asio::ip::tcp::socket socket,
         boost::beast::http::request<boost::beast::http::string_body> request,
         core::request_context ctx) override {
-        auto session =
-            std::make_shared<base_ws_session>(std::move(socket), m_io, m_logger);
+        auto session = std::make_shared<base_ws_session>(
+            std::move(socket), m_io, m_logger, m_settings);
 
-        session->start(std::move(request), std::move(ctx), m_handler);
+        session->start(std::move(request),  //
+                       std::move(ctx),      //
+                       m_handler);
     }
 
 private:
+    const core::settings& m_settings;
+
     handler m_handler;
     boost::asio::io_context& m_io;
     std::shared_ptr<clover2_http::http::core::logger> m_logger;

@@ -24,8 +24,8 @@ std::vector<std::string> split_pattern(const std::string& pattern) {
 }
 
 bool is_token_valid(const std::string_view token) noexcept {
-    return is_parameter(token) ||                                          //
-           is_catch_all(token) ||                                          //
+    return is_parameter(token) ||  //
+           is_catch_all(token) ||  //
            (!token.empty() && token.front() != '{' && token.back() != '}');
 }
 

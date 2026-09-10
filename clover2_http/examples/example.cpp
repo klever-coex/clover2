@@ -6,6 +6,7 @@
 // websocat ws://0.0.0.0:8080/ws/stream  (binary: websocat --binary ws://...)
 
 #include <clover2_http/http/core/logger.hpp>
+#include <clover2_http/http/core/settings.hpp>
 #include <clover2_http/http/middleware/cors.hpp>
 #include <clover2_http/http/server.hpp>
 
@@ -111,10 +112,10 @@ void handle_raw_ws(std::shared_ptr<c2::transport::base_ws_session> session) {
 int main() {
     boost::asio::io_context io;
 
-    c2::server srv(io, c2::core::simple_logger("example"));
+    c2::core::settings settings;
+    c2::server srv(io, c2::core::simple_logger("example"), settings);
 
-    srv.use("/",
-            [] { return std::make_unique<c2::middleware::cors>(); });
+    srv.use("/", [] { return std::make_unique<c2::middleware::cors>(); });
 
     srv.get<EchoResponse>("/hello", handle_hello);
     srv.get<UserResponse>("/users/{id}", handle_get_user);

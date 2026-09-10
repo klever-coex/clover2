@@ -26,8 +26,7 @@ class node_registry {
         detail::node_client::available_transitions_cb;
 
 public:
-    explicit node_registry(
-        std::shared_ptr<clover2_common::node_context> ctx);
+    explicit node_registry(std::shared_ptr<clover2_common::node_context> ctx);
     ~node_registry() = default;
 
     void update();

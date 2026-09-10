@@ -193,7 +193,8 @@ uint8_t node_client::resolve_transition_id(
 
     switch (m_state.value_or(data::lifecycle_state{}).id()) {
         case lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE:
-            return lifecycle_msgs::msg::Transition::TRANSITION_INACTIVE_SHUTDOWN;
+            return lifecycle_msgs::msg::Transition::
+                TRANSITION_INACTIVE_SHUTDOWN;
         case lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE:
             return lifecycle_msgs::msg::Transition::TRANSITION_ACTIVE_SHUTDOWN;
         default:
@@ -203,7 +204,8 @@ uint8_t node_client::resolve_transition_id(
 }
 
 std::vector<data::topic_endpoint> node_client::endpoints(
-    bool publishers) const {    const auto names_and_types =
+    bool publishers) const {
+    const auto names_and_types =
         publishers
             ? m_node_graph->get_publisher_names_and_types_by_node(m_name, m_ns)
             : m_node_graph->get_subscriber_names_and_types_by_node(m_name,

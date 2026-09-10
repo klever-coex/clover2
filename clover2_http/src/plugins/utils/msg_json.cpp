@@ -3,9 +3,9 @@
 #include <rosidl_typesupport_introspection_cpp/field_types.hpp>
 
 #include <cstdint>
+#include <stack>
 #include <string>
 #include <vector>
-#include <stack>
 
 namespace clover2_http::plugins::utils::msg_json::detail {
 
@@ -352,7 +352,7 @@ nlohmann::json to_json(
                 if (!m.is_array_) {
                     obj[m.name_] = nlohmann::json::object();
                     stack.push({nested_members(m), field(m, frame.msg, 0),
-                                     &obj[m.name_]});
+                                &obj[m.name_]});
                 } else {
                     const size_t n = element_count(m, frame.msg);
                     nlohmann::json arr = nlohmann::json::array();
@@ -361,8 +361,8 @@ nlohmann::json to_json(
                     }
 
                     for (size_t k = 0; k < n; ++k) {
-                        stack.push({nested_members(m),
-                                         field(m, frame.msg, k), &arr[k]});
+                        stack.push({nested_members(m), field(m, frame.msg, k),
+                                    &arr[k]});
                     }
 
                     obj[m.name_] = std::move(arr);
@@ -425,8 +425,8 @@ void from_json(
                     }
 
                     for (size_t k = 0; k < it->size(); ++k) {
-                        stack.push({nested_members(m),
-                                         field(m, frame.msg, k), &(*it)[k]});
+                        stack.push({nested_members(m), field(m, frame.msg, k),
+                                    &(*it)[k]});
                     }
                 }
 

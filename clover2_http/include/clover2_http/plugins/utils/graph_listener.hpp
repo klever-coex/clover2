@@ -34,7 +34,7 @@ private:
     callback m_callback;
 
     rclcpp::TimerBase::SharedPtr m_timer;
-    
+
     std::thread m_thread;
     rclcpp::Event::SharedPtr m_event;
     std::atomic<bool> m_stop{false};

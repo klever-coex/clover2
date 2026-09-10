@@ -1,7 +1,6 @@
 #pragma once
 
 #include <nlohmann/json.hpp>
-
 #include <rosidl_runtime_c/message_type_support_struct.h>
 #include <rosidl_typesupport_introspection_cpp/message_introspection.hpp>
 #include <rosidl_typesupport_introspection_cpp/message_type_support_decl.hpp>
@@ -30,8 +29,7 @@ const rosidl_typesupport_introspection_cpp::MessageMembers* members_of() {
     }
 
     return static_cast<
-        const rosidl_typesupport_introspection_cpp::MessageMembers*>(
-        ts->data);
+        const rosidl_typesupport_introspection_cpp::MessageMembers*>(ts->data);
 }
 
 nlohmann::json to_json(

@@ -1,8 +1,11 @@
 #pragma once
 
+// clover2
 #include <clover2_http/http/core/logger.hpp>
 #include <clover2_http/http/core/request_context.hpp>
+#include <clover2_http/http/core/settings.hpp>
 
+// boost
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio/strand.hpp>
@@ -13,7 +16,9 @@
 #include <boost/beast/http/string_body.hpp>
 #include <boost/url.hpp>
 
+// STL
 #include <memory>
+#include <optional>
 
 namespace clover2_http::http::routing {
 class router;
@@ -23,9 +28,13 @@ namespace clover2_http::http::transport {
 
 class http_session : public std::enable_shared_from_this<http_session> {
 public:
+    using request_t =
+        boost::beast::http::request<boost::beast::http::string_body>;
+
     http_session(boost::asio::ip::tcp::socket socket, routing::router& router,
                  boost::asio::io_context& io,
-                 std::shared_ptr<clover2_http::http::core::logger> log);
+                 std::shared_ptr<clover2_http::http::core::logger> log,
+                 const core::settings& settings);
     ~http_session();
 
     void start();
@@ -39,26 +48,30 @@ private:
     void do_read();
     void on_read(boost::beast::error_code ec, std::size_t bytes,
                  std::shared_ptr<request_parser_t> parser);
-    void handle_request();
+    void handle_request(request_t request, boost::urls::url_view uv);
+    void handle_websocket(request_t request, boost::urls::url_view uv);
     void send_error(int status, const std::string& message);
     void do_write(
         boost::beast::http::response<boost::beast::http::string_body> response);
     void on_write(boost::beast::error_code ec, std::size_t bytes, bool close);
     void do_close();
-    core::request_context make_context(boost::urls::url_view url);
 
-    boost::asio::ip::tcp::socket m_socket;
+    std::optional<boost::urls::url> parse_url(const request_t& request);
+    core::request_context make_context(const request_t& request,
+                                       boost::urls::url_view url);
+
+    const core::settings& m_settings;
 
     using strand_type =
         boost::asio::strand<boost::asio::io_context::executor_type>;
     strand_type m_strand;
+    boost::asio::ip::tcp::socket m_socket;
 
     int m_version = 11;  // HTTP/1.1
     bool m_keep_alive = false;
     bool m_upgraded = false;
 
     boost::beast::flat_buffer m_buffer;
-    boost::beast::http::request<boost::beast::http::string_body> m_request;
     boost::beast::http::response<boost::beast::http::string_body> m_response;
 
     routing::router& m_router;

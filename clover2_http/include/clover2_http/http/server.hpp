@@ -1,9 +1,10 @@
 #pragma once
 
 // clover2
-#include "clover2_http/http/middleware/base_middleware.hpp"
 #include <clover2_http/http/core/logger.hpp>
+#include <clover2_http/http/core/settings.hpp>
 #include <clover2_http/http/endpoint/adapter.hpp>
+#include <clover2_http/http/middleware/base_middleware.hpp>
 #include <clover2_http/http/routing/router.hpp>
 #include <clover2_http/http/transport/listener.hpp>
 #include <clover2_http/http/transport/ws_handler.hpp>
@@ -34,8 +35,9 @@ public:
      *
      * @param io Asio context.
      */
-    explicit server(boost::asio::io_context& io)
-        : server(io, clover2_http::http::core::simple_logger("clover2_http")) {}
+    explicit server(boost::asio::io_context& io, core::settings settings = {})
+        : server(io, clover2_http::http::core::simple_logger("clover2_http"),
+                 settings) {}
 
     /**
      * @brief Constructs the server with a custom logger.
@@ -44,10 +46,12 @@ public:
      * @param log Logger.
      */
     template <typename L>
-    explicit server(boost::asio::io_context& io, L&& log)
+    explicit server(boost::asio::io_context& io, L&& log,
+                    core::settings settings = {})
         : m_io(io)
+        , m_settings(settings)
         , m_logger(std::make_shared<std::decay_t<L>>(std::forward<L>(log)))
-        , m_router(std::make_unique<routing::router>(m_logger)) {}
+        , m_router(std::make_unique<routing::router>(m_logger, m_settings)) {}
 
     /**
      * @brief Registers a GET route.
@@ -151,7 +155,7 @@ public:
     template <typename T, typename HandlerT>
     void ws(const std::string& path, HandlerT handler) {
         auto ws_handler = std::make_unique<transport::ws_handler<T>>(
-            std::move(handler), m_io, m_logger);
+            std::move(handler), m_io, m_logger, m_settings);
         m_router->add_ws_route(path, std::move(ws_handler));
     }
 
@@ -167,7 +171,7 @@ public:
     template <typename HandlerT>
     void raw_ws(const std::string& path, HandlerT handler) {
         auto ws_handler = std::make_unique<transport::raw_ws_handler>(
-            std::move(handler), m_io, m_logger);
+            std::move(handler), m_io, m_logger, m_settings);
         m_router->add_ws_route(path, std::move(ws_handler));
     }
 
@@ -212,8 +216,8 @@ public:
     void listen(const std::string& address, uint16_t port) {
         auto const addr = boost::asio::ip::tcp::endpoint(
             boost::asio::ip::make_address(address), port);
-        m_listener = std::make_shared<transport::listener>(m_io, addr,
-                                                           *m_router, m_logger);
+        m_listener = std::make_shared<transport::listener>(
+            m_io, addr, *m_router, m_logger, m_settings);
 
         m_listener->start();
         m_logger->info("Listening on {}:{}", address, port);
@@ -249,7 +253,8 @@ private:
         m_router->add_http_route(method, path, std::move(ep));
     }
 
-    boost::asio::io_context& m_io;  ///< Asio context of the server.
+    boost::asio::io_context& m_io;    ///< Asio context of the server.
+    const core::settings m_settings;  ///< Server settings
     std::shared_ptr<clover2_http::http::core::logger>
         m_logger;  ///< Logger shared with the router.
     std::unique_ptr<routing::router>

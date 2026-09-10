@@ -1,5 +1,6 @@
 #pragma once
 
+#include "clover2_http/http/core/settings.hpp"
 #include <clover2_http/http/core/request_context.hpp>
 #include <clover2_http/http/transport/base_ws_session.hpp>
 
@@ -25,9 +26,10 @@ public:
 
     explicit ws_session(boost::asio::ip::tcp::socket socket,
                         boost::asio::io_context& io,
-                        std::shared_ptr<clover2_http::http::core::logger> log)
+                        std::shared_ptr<clover2_http::http::core::logger> log,
+                        const core::settings& settings)
         : m_raw(std::make_shared<base_ws_session>(std::move(socket), io,
-                                                  std::move(log))) {}
+                                                  std::move(log), settings)) {}
 
     void start(
         boost::beast::http::request<boost::beast::http::string_body> request,

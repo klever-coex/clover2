@@ -14,7 +14,7 @@ public:
                 http::endpoint::reply_base& reply, next_t next) override {
         reply.header("Access-Control-Allow-Origin", "*");
         reply.header("Access-Control-Allow-Methods",
-                         "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+                     "GET, POST, PUT, DELETE, PATCH, OPTIONS");
         reply.header("Access-Control-Allow-Headers", "Content-Type");
         reply.header("Access-Control-Max-Age", "86400");
 

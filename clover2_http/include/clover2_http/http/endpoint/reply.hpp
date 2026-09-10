@@ -62,8 +62,7 @@ protected:
     response_sender m_sender;
     http_response m_response;
 
-    void send_raw(std::string body, std::string_view content_type,
-                  int status);
+    void send_raw(std::string body, std::string_view content_type, int status);
 };
 
 template <typename T>
@@ -104,9 +103,7 @@ public:
     explicit reply(reply_base&& base)
         : reply_base(std::move(base)) {}
 
-    void done(int status = 200) {
-        send_raw("", "text/plain", status);
-    }
+    void done(int status = 200) { send_raw("", "text/plain", status); }
 };
 
 template <typename T>
@@ -145,9 +142,7 @@ public:
     explicit deferred_reply(std::shared_ptr<reply<void>> inner)
         : m_inner(std::move(inner)) {}
 
-    void done(int status = 200) {
-        m_inner->done(status);
-    }
+    void done(int status = 200) { m_inner->done(status); }
 
     std::string header(std::string_view name) const {
         return m_inner->header(name);

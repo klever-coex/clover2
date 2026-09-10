@@ -1,7 +1,7 @@
 #pragma once
 
 // clover2
-#include "clover2_http/http/core/logger.hpp"
+#include <clover2_http/http/core/logger.hpp>
 #include <clover2_http/http/endpoint/interface.hpp>
 
 // boost

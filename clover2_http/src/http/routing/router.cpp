@@ -116,10 +116,10 @@ bool router::dispatch_http(boost::beast::http::verb method,
 
     auto reply = std::make_shared<endpoint::reply_base>(std::move(sender));
 
-    middleware_terminal terminal = [this, method, target, &segs, &found,
-                                    reply](core::request_context& ctx,
-                                           endpoint::http_request& req,
-                                           endpoint::reply_base& reply_ref) {
+    middleware_terminal terminal = [this, method, target, &segs, &found, reply](
+                                       core::request_context& ctx,
+                                       endpoint::http_request& req,
+                                       endpoint::reply_base& reply_ref) {
         auto it = m_http_tries.find(method);
         if (it == m_http_tries.end()) {
             if (m_logger) {

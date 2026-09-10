@@ -2,6 +2,7 @@
 
 // clover2
 #include <clover2_http/http/core/logger.hpp>
+#include <clover2_http/http/core/settings.hpp>
 #include <clover2_http/http/endpoint/interface.hpp>
 #include <clover2_http/http/middleware/base_middleware.hpp>
 #include <clover2_http/http/routing/trie.hpp>
@@ -26,10 +27,10 @@ public:
     using middleware_creator =
         std::function<std::unique_ptr<middleware::base_middleware>()>;
 
-    router() = default;
-
-    explicit router(std::shared_ptr<clover2_http::http::core::logger> log)
-        : m_logger(std::move(log)) {}
+    explicit router(std::shared_ptr<clover2_http::http::core::logger> log,
+                    const core::settings& settings)
+        : m_settings(settings)
+        , m_logger(std::move(log)) {}
 
     router(const router&) = delete;
     router& operator=(const router&) = delete;
@@ -53,6 +54,8 @@ public:
         std::unordered_map<std::string, std::string>& path_params) const;
 
 private:
+    const core::settings& m_settings{};
+
     std::shared_ptr<clover2_http::http::core::logger> m_logger;
 
     size_t m_max_mw_depth = 0;

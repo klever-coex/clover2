@@ -1,8 +1,11 @@
 #pragma once
 
+// clover2
 #include <clover2_http/http/core/logger.hpp>
 #include <clover2_http/http/core/request_context.hpp>
+#include <clover2_http/http/core/settings.hpp>
 
+// boost
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/steady_timer.hpp>
@@ -12,7 +15,7 @@
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/websocket/stream.hpp>
 
-#include <cstdint>
+// STL
 #include <deque>
 #include <functional>
 #include <memory>
@@ -35,9 +38,10 @@ public:
     using strand_type =
         boost::asio::strand<boost::asio::io_context::executor_type>;
 
-    explicit base_ws_session(boost::asio::ip::tcp::socket socket,
-                             boost::asio::io_context& io,
-                             std::shared_ptr<clover2_http::http::core::logger> log);
+    explicit base_ws_session(
+        boost::asio::ip::tcp::socket socket, boost::asio::io_context& io,
+        std::shared_ptr<clover2_http::http::core::logger> log,
+        const core::settings& settings);
     ~base_ws_session();
 
     void start(
@@ -70,12 +74,15 @@ private:
     void reset_timer();
     void do_read();
     void on_read(boost::system::error_code ec);
-    void dispatch_binary(std::string data);
-    void dispatch_text(std::string data);
+    void dispatch_data(const boost::beast::flat_buffer& buffer, bool is_binary);
     void do_write();
-    void do_close_ws(boost::beast::websocket::close_code code =
-                         boost::beast::websocket::close_code::normal);
 
+    void prepare_close(int handler_code,
+                       boost::beast::websocket::close_reason reason);
+    void fail(int code, boost::beast::websocket::close_code cc =
+                            boost::beast::websocket::close_code::normal);
+
+    const core::settings& m_settings;
     boost::beast::websocket::stream<boost::asio::ip::tcp::socket> m_ws;
     strand_type m_strand;
     boost::asio::steady_timer m_timer;
@@ -86,9 +93,9 @@ private:
     binary_handler m_binary_handler;
     close_handler m_close_handler;
 
+    std::atomic<bool> m_writing = false;
+    std::atomic<bool> m_closed = false;
     std::deque<queued_message> m_write_queue;
-    bool m_writing = false;
-    bool m_closed = false;
     std::shared_ptr<clover2_http::http::core::logger> m_logger;
 };
 

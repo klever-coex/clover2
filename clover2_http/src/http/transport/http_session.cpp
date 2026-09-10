@@ -1,29 +1,29 @@
+// clover2
 #include <clover2_http/http/routing/router.hpp>
 #include <clover2_http/http/transport/http_session.hpp>
 #include <clover2_http/http/transport/ws_handler.hpp>
 
+// boost
 #include <boost/asio/bind_executor.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/write.hpp>
 #include <boost/beast/websocket.hpp>
 
+// STL
 #include <algorithm>
 #include <cctype>
+#include <optional>
+#include <string>
 
 namespace clover2_http::http::transport {
 
-namespace {
-
-constexpr std::size_t k_max_body_size = 10 * 1024 * 1024;  // 10 MiB
-constexpr std::chrono::seconds k_idle_timeout{30};
-
-}  // namespace
-
 http_session::http_session(boost::asio::ip::tcp::socket socket,
                            routing::router& router, boost::asio::io_context& io,
-                           std::shared_ptr<core::logger> log)
-    : m_socket(std::move(socket))
+                           std::shared_ptr<core::logger> log,
+                           const core::settings& settings)
+    : m_settings(settings)
     , m_strand(boost::asio::make_strand(io))
+    , m_socket(std::move(socket))
     , m_router(router)
     , m_timer(m_strand)
     , m_logger(std::move(log)) {
@@ -42,6 +42,8 @@ http_session::~http_session() {
     boost::system::error_code ec;
     m_timer.cancel(ec);
 
+    m_logger->info("Session close");
+
     if (!m_upgraded) {
         m_logger->debug("Session close");
     }
@@ -50,20 +52,19 @@ http_session::~http_session() {
 void http_session::start() { do_read(); }
 
 void http_session::do_read() {
-    m_request = {};
     m_buffer.clear();
 
-    m_timer.expires_after(k_idle_timeout);
+    m_timer.expires_after(m_settings.http_timeout());
     m_timer.async_wait(boost::asio::bind_executor(
         m_strand, [self = shared_from_this()](boost::system::error_code ec) {
             if (!ec) {
-                self->m_logger->debug("Idle timeout, closing session");
+                self->m_logger->warn("Idle timeout, closing session");
                 self->do_close();
             }
         }));
 
     auto parser = std::make_shared<request_parser_t>();
-    parser->body_limit(k_max_body_size);
+    parser->body_limit(m_settings.max_body_size());
 
     boost::beast::http::async_read(
         m_socket, m_buffer, *parser,
@@ -88,8 +89,9 @@ void http_session::on_read(boost::beast::error_code ec, std::size_t,
     }
 
     if (ec == boost::beast::http::error::body_limit) {
+        m_keep_alive = false;
         m_logger->warn("Request body exceeds the {} bytes limit",
-                       k_max_body_size);
+                       m_settings.max_body_size());
         send_error(413, "Payload Too Large");
         return;
     }
@@ -100,61 +102,34 @@ void http_session::on_read(boost::beast::error_code ec, std::size_t,
         return;
     }
 
-    m_request = parser->release();
-    m_keep_alive = m_request.keep_alive();
-    m_version = m_request.version();
+    auto request = parser->release();
+    m_keep_alive = request.keep_alive();
+    m_version = request.version();
 
-    handle_request();
+    auto uv = parse_url(request);
+
+    if (uv.has_value()) {
+        handle_request(std::move(request), uv.value());
+    }
 }
 
-void http_session::handle_request() {
+void http_session::handle_request(request_t request, boost::urls::url_view uv) {
     try {
-        const std::string target_str = m_request.target();
-        auto parsed = boost::urls::parse_relative_ref(target_str);
-
-        if (parsed.has_error()) {
-            parsed = boost::urls::parse_absolute_uri(target_str);
-        }
-
-        if (parsed.has_error()) {
-            m_logger->warn("Malformed request target: {}", target_str);
-            send_error(400, "Malformed request target");
+        if (boost::beast::websocket::is_upgrade(request)) {
+            handle_websocket(std::move(request), uv);
             return;
         }
 
-        boost::urls::url_view uv = *parsed;
-
-        if (boost::beast::websocket::is_upgrade(m_request)) {
-            std::unordered_map<std::string, std::string> path_params;
-            auto* ws_handler = m_router.match_ws(uv, path_params);
-
-            if (ws_handler) {
-                auto ctx = make_context(uv);
-                ctx.path_params = std::move(path_params);
-                m_upgraded = true;
-                m_logger->debug("Session upgraded to WebSocket");
-                ws_handler->on_accept(std::move(m_socket),   //
-                                      std::move(m_request),  //
-                                      std::move(ctx));
-
-                m_logger->info("Open WebSocket: {} from {}", target_str,
-                               ctx.remote_endpoint.address().to_string());
-                return;
-            }
-
-            send_error(404, "WebSocket endpoint not found");
-            return;
-        }
-
-        auto ctx = make_context(uv);
+        auto ctx = make_context(request, uv);
 
         m_logger->info("Handling request: {} {} from {}",
-                       std::string(m_request.method_string()), target_str,
+                       std::string(request.method_string()),
+                       std::string(uv.encoded_target()),
                        ctx.remote_endpoint.address().to_string());
 
-        auto method = m_request.method();
+        auto method = request.method();
         m_router.dispatch_http(
-            method, uv, ctx, std::move(m_request),
+            method, uv, ctx, std::move(request),
             [self = shared_from_this()](
                 boost::beast::http::response<boost::beast::http::string_body>
                     response) {
@@ -172,6 +147,27 @@ void http_session::handle_request() {
     } catch (const std::exception& e) {
         m_logger->error("Exception in request handling: {}", e.what());
         send_error(500, "Fatal Server Error");
+    }
+}
+
+void http_session::handle_websocket(request_t request,
+                                    boost::urls::url_view uv) {
+    std::unordered_map<std::string, std::string> path_params;
+    auto* ws_handler = m_router.match_ws(uv, path_params);
+
+    if (ws_handler) {
+        auto ctx = make_context(request, uv);
+        ctx.path_params = std::move(path_params);
+        m_upgraded = true;
+        m_logger->info("Open WebSocket: {} from {}",
+                       std::string(uv.encoded_target()),
+                       ctx.remote_endpoint.address().to_string());
+
+        ws_handler->on_accept(std::move(m_socket),  //
+                              std::move(request),   //
+                              std::move(ctx));
+    } else {
+        send_error(404, "WebSocket endpoint not found");
     }
 }
 
@@ -223,7 +219,22 @@ void http_session::do_close() {
     ec = m_socket.close(ec);
 }
 
-core::request_context http_session::make_context(boost::urls::url_view url) {
+std::optional<boost::urls::url> http_session::parse_url(
+    const request_t& request) {
+    const std::string target_str = request.target();
+    auto parsed = boost::urls::parse_uri_reference(target_str);
+
+    if (parsed.has_error()) {
+        m_logger->warn("Malformed request target: {}", target_str);
+        send_error(400, "Malformed request target");
+        return std::nullopt;
+    }
+
+    return boost::urls::url(*parsed);
+}
+
+core::request_context http_session::make_context(const request_t& request,
+                                                 boost::urls::url_view url) {
     core::request_context ctx(url);
 
     boost::system::error_code ec;
@@ -232,7 +243,7 @@ core::request_context http_session::make_context(boost::urls::url_view url) {
         m_logger->warn("remote_endpoint unavailable: {}", ec.message());
     }
 
-    for (const auto& f : m_request) {
+    for (const auto& f : request) {
         std::string name(f.name_string());
         std::transform(name.begin(), name.end(), name.begin(),
                        [](unsigned char c) { return std::tolower(c); });

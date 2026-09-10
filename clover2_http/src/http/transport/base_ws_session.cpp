@@ -1,5 +1,7 @@
+// clover2
 #include <clover2_http/http/transport/base_ws_session.hpp>
 
+// boost
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/dispatch.hpp>
@@ -9,16 +11,12 @@
 
 namespace clover2_http::http::transport {
 
-namespace {
-
-constexpr std::chrono::seconds k_idle_timeout{60};
-
-}  // namespace
-
 base_ws_session::base_ws_session(boost::asio::ip::tcp::socket socket,
                                  boost::asio::io_context& io,
-                                 std::shared_ptr<core::logger> log)
-    : m_ws(std::move(socket))
+                                 std::shared_ptr<core::logger> log,
+                                 const core::settings& settings)
+    : m_settings(settings)
+    , m_ws(std::move(socket))
     , m_strand(boost::asio::make_strand(io))
     , m_timer(m_strand)
     , m_logger(std::move(log)) {}
@@ -50,26 +48,6 @@ void base_ws_session::start(
             }));
 }
 
-void base_ws_session::reset_timer() {
-    m_timer.expires_after(k_idle_timeout);
-    m_timer.async_wait(boost::asio::bind_executor(
-        m_strand, [self = shared_from_this()](boost::system::error_code ec) {
-            if (ec) return;
-
-            self->m_logger->debug("WS idle timeout, closing session");
-            if (!self->m_closed) {
-                self->m_closed = true;
-
-                if (self->m_close_handler) {
-                    self->m_close_handler(self, 1001);
-                }
-
-                self->do_close_ws(
-                    boost::beast::websocket::close_code::going_away);
-            }
-        }));
-}
-
 void base_ws_session::on_text(text_handler handler) {
     m_text_handler = std::move(handler);
 }
@@ -85,17 +63,7 @@ void base_ws_session::on_close(close_handler handler) {
 void base_ws_session::start_reading() { do_read(); }
 
 void base_ws_session::write_text(std::string data) {
-    boost::asio::post(m_strand, [self = shared_from_this(),
-                                 data = std::move(data)]() mutable {
-        if (!self->m_ws.is_open()) return;
-
-        self->m_write_queue.push_back(queued_message{std::move(data), false});
-
-        if (!self->m_writing) {
-            self->m_writing = true;
-            self->do_write();
-        }
-    });
+    write_raw(std::move(data), false);
 }
 
 void base_ws_session::write_binary(std::vector<uint8_t> data) {
@@ -109,26 +77,18 @@ void base_ws_session::write_binary(const uint8_t* data, size_t size) {
 }
 
 void base_ws_session::close(int code, const std::string& reason) {
-    boost::asio::dispatch(m_strand,
-                          [self = shared_from_this(), code, reason]() {
-                              if (self->m_closed) return;
-
-                              self->m_closed = true;
-                              boost::system::error_code ec;
-
-                              self->m_ws.close(
-                                  boost::beast::websocket::close_reason{
+    boost::asio::dispatch(m_strand, [self = shared_from_this(), code, reason] {
+        self->prepare_close(code, boost::beast::websocket::close_reason{
                                       boost::beast::websocket::close_code{
                                           static_cast<uint16_t>(code)},
-                                      reason},
-                                  ec);
-                          });
+                                      reason});
+    });
 }
 
 void base_ws_session::ping(std::string payload) {
     boost::asio::post(m_strand, [self = shared_from_this(),
                                  p = std::move(payload)]() mutable {
-        if (!self->m_ws.is_open()) return;
+        if (self->m_closed || !self->is_open()) return;
 
         self->m_ws.async_ping(
             boost::beast::websocket::ping_data{p},
@@ -144,7 +104,7 @@ core::request_context& base_ws_session::context() { return m_ctx; }
 void base_ws_session::write_raw(std::string data, bool binary) {
     boost::asio::post(m_strand, [self = shared_from_this(),
                                  data = std::move(data), binary]() mutable {
-        if (!self->m_ws.is_open()) return;
+        if (self->m_closed || !self->is_open()) return;
 
         self->reset_timer();
         self->m_write_queue.push_back(queued_message{std::move(data), binary});
@@ -156,9 +116,21 @@ void base_ws_session::write_raw(std::string data, bool binary) {
     });
 }
 
+void base_ws_session::reset_timer() {
+    m_timer.expires_after(m_settings.websocket_timeout());
+    m_timer.async_wait(boost::asio::bind_executor(
+        m_strand, [self = shared_from_this()](boost::system::error_code ec) {
+            if (ec) return;
+
+            self->m_logger->debug("WS idle timeout, closing session");
+            self->fail(1001, boost::beast::websocket::close_code::going_away);
+        }));
+}
+
 void base_ws_session::do_read() {
     m_buffer.clear();
     reset_timer();
+
     m_ws.async_read(
         m_buffer, boost::asio::bind_executor(
                       m_strand, [self = shared_from_this()](
@@ -168,88 +140,31 @@ void base_ws_session::do_read() {
 }
 
 void base_ws_session::on_read(boost::system::error_code ec) {
-    if (ec == boost::beast::websocket::error::closed) {
-        if (!m_closed && m_close_handler) {
-            m_closed = true;
-            m_close_handler(shared_from_this(), 1000);
-        }
-
-        return;
-    }
-
     if (ec) {
-        if (!m_closed && m_close_handler) {
-            m_closed = true;
-            m_close_handler(shared_from_this(), 1006);
-        }
-
+        fail(ec == boost::beast::websocket::error::closed ? 1000 : 1006);
         return;
     }
 
-    auto data = boost::beast::buffers_to_string(m_buffer.data());
-    bool is_binary = m_ws.got_binary();
-
-    if (is_binary) {
-        dispatch_binary(std::move(data));
-    } else {
-        dispatch_text(std::move(data));
-    }
+    dispatch_data(m_buffer, m_ws.got_binary());
 }
 
-void base_ws_session::dispatch_binary(std::string data) {
+void base_ws_session::dispatch_data(const boost::beast::flat_buffer& buffer,
+                                    bool is_binary) {
     try {
-        if (m_binary_handler) {
-            std::vector<uint8_t> bytes(data.begin(), data.end());
-            m_binary_handler(shared_from_this(), std::move(bytes));
-        } else {
-            if (!m_closed) {
-                auto ws_code =
-                    boost::beast::websocket::close_code::unknown_data;
-                m_closed = true;
+        if (m_binary_handler && is_binary) {
+            std::vector<uint8_t> vec(buffer.size());
+            boost::asio::buffer_copy(boost::asio::buffer(vec), buffer.data());
 
-                if (m_close_handler) {
-                    m_close_handler(shared_from_this(), ws_code);
-                }
-
-                do_close_ws(ws_code);
-            }
-            return;
-        }
-    } catch (const std::exception&) {
-        if (!m_closed) {
-            auto ws_code = boost::beast::websocket::close_code::unknown_data;
-            m_closed = true;
-
-            if (m_close_handler) {
-                m_close_handler(shared_from_this(), ws_code);
-            }
-
-            do_close_ws(ws_code);
+            m_binary_handler(shared_from_this(), std::move(vec));
         }
 
-        return;
-    }
+        if (m_text_handler && !is_binary) {
+            auto data = boost::beast::buffers_to_string(buffer.data());
 
-    do_read();
-}
-
-void base_ws_session::dispatch_text(std::string data) {
-    try {
-        if (m_text_handler) {
             m_text_handler(shared_from_this(), std::move(data));
         }
-
     } catch (const std::exception&) {
-        if (!m_closed) {
-            m_closed = true;
-
-            if (m_close_handler) {
-                m_close_handler(shared_from_this(), 1003);
-            }
-
-            do_close_ws(boost::beast::websocket::close_code::unknown_data);
-        }
-
+        fail(1003, boost::beast::websocket::close_code::unknown_data);
         return;
     }
 
@@ -266,19 +181,9 @@ void base_ws_session::do_write() {
             m_strand, [self = shared_from_this()](boost::system::error_code ec,
                                                   std::size_t) {
                 if (ec) {
-                    self->m_writing = false;
                     self->m_write_queue.clear();
-
-                    if (!self->m_closed) {
-                        self->m_closed = true;
-
-                        if (self->m_close_handler) {
-                            self->m_close_handler(self, 1006);
-                        }
-
-                        self->do_close_ws();
-                    }
-
+                    self->m_writing = false;
+                    self->fail(1006);
                     return;
                 }
 
@@ -292,10 +197,32 @@ void base_ws_session::do_write() {
             }));
 }
 
-void base_ws_session::do_close_ws(boost::beast::websocket::close_code code) {
+void base_ws_session::prepare_close(
+    int handler_code, boost::beast::websocket::close_reason reason) {
+    if (m_closed) return;
+    m_closed = true;
+
+    m_write_queue.clear();
+    m_writing = false;
+
     boost::system::error_code ec;
     m_timer.cancel(ec);
-    m_ws.close(code, ec);
+    // fd can already be gone (double teardown race) — cancel is best-effort
+    // and must never throw from a strand handler.
+    ec = m_ws.next_layer().cancel(ec);
+
+    m_ws.async_close(reason,
+                     boost::asio::bind_executor(
+                         m_strand, [self = shared_from_this(),
+                                    handler_code](boost::system::error_code) {
+                             if (self->m_close_handler) {
+                                 self->m_close_handler(self, handler_code);
+                             }
+                         }));
+}
+
+void base_ws_session::fail(int code, boost::beast::websocket::close_code cc) {
+    prepare_close(code, boost::beast::websocket::close_reason{cc});
 }
 
 }  // namespace clover2_http::http::transport
