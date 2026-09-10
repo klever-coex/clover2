@@ -148,11 +148,14 @@ export function MarkerEditor({ marker, selectedIds }: Props) {
     const val = parseFloat(sizeLocal);
     if (isNaN(val)) return;
     if (val / 1000 === marker.sizeM) return;
+
     const error = validateSize(val / 1000);
+
     if (error !== null) {
       setMutationError(error);
       return;
     }
+
     commitSelected((id) => setMarkerInfoLocal(id, { sizeM: val / 1000 }));
   }, [commitSelected, sizeLocal, marker.sizeM, setMarkerInfoLocal, setMutationError]);
 
@@ -163,6 +166,7 @@ export function MarkerEditor({ marker, selectedIds }: Props) {
       } catch (error) {
         return (error as Error).message;
       }
+
       commitSelected((id) => setExpr(id, axis, kind, expr));
       return null;
     },
@@ -183,14 +187,17 @@ export function MarkerEditor({ marker, selectedIds }: Props) {
     const message = isMulti
       ? t('map.deleteConfirmMany', { count: selectedIds.length })
       : t('map.deleteConfirmOne', { id: marker.id });
+
     const confirmed = await confirmDialog({
       message,
       tone: 'danger',
       confirmLabel: t('map.delete'),
     });
+
     if (confirmed) {
       deleteMarkersAfterDetach([...selectedIds]);
     }
+
   }, [selectedIds, marker.id, isMulti, t]);
 
   return (

@@ -82,6 +82,7 @@ export async function saveMap(): Promise<void> {
 
   s.setSaving(true);
   s.setMutationError(null);
+
   try {
     for (const op of ops) {
       const result = await op();
@@ -94,6 +95,7 @@ export async function saveMap(): Promise<void> {
     s.setSaving(false);
     return;
   }
+
   s.setSaving(false);
   await s.reloadMap();
 }

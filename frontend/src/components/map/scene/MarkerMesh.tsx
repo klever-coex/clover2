@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import type { ThreeEvent } from '@react-three/fiber';
 
 import { DEFAULT_DICTIONARY } from '@/constants/defaults';
+import { useConfirmStore } from '@/store/useConfirmStore';
 import { useMapStore } from '@/store/useMapStore';
 import { resolvePosition, resolveRotation } from '../../../utils/transformUtils.ts';
 import { MarkerBacking } from './MarkerBacking.tsx';
@@ -20,6 +21,7 @@ export const MarkerMesh = memo(function MarkerMesh({ markerId }: Props) {
   const isSelected = useMapStore((s) => s.selectedMarkerIds.includes(markerId));
   const selectMarker = useMapStore((s) => s.selectMarker);
   const dictionary = useMapStore((s) => s.mapMeta?.dictionary ?? DEFAULT_DICTIONARY);
+  const confirmOpen = useConfirmStore((s) => s.options !== null);
 
   const groupRef = useRef<THREE.Group>(null);
 
@@ -58,7 +60,9 @@ export const MarkerMesh = memo(function MarkerMesh({ markerId }: Props) {
         <MarkerPlane sizeM={marker.sizeM} dict={dictionary} markerId={marker.id} />
       </group>
       <MarkerBacking sizeM={marker.sizeM} />
-      <MarkerLabel text={marker.markerFrameId || `#${marker.id}`} yOffset={marker.sizeM / 2 + 0.02} />
+      {!confirmOpen && (
+        <MarkerLabel text={marker.markerFrameId || `#${marker.id}`} yOffset={marker.sizeM / 2 + 0.02} />
+      )}
     </group>
   );
 });
