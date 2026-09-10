@@ -207,8 +207,6 @@ void base_ws_session::prepare_close(
 
     boost::system::error_code ec;
     m_timer.cancel(ec);
-    // fd can already be gone (double teardown race) — cancel is best-effort
-    // and must never throw from a strand handler.
     ec = m_ws.next_layer().cancel(ec);
 
     m_ws.async_close(reason,

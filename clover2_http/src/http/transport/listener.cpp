@@ -60,8 +60,6 @@ void listener::stop() {
 }
 
 void listener::do_accept() {
-    // A fresh socket per accept: reusing the member after std::move into a
-    // session hands the next accept a moved-from socket.
     auto socket = std::make_shared<boost::asio::ip::tcp::socket>(m_io);
 
     m_acceptor.async_accept(*socket, [self = shared_from_this(),
