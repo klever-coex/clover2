@@ -25,16 +25,18 @@ void imu_task::reset() { m_backend.reset(); }
 
 void imu_task::run(diagnostic_updater::DiagnosticStatusWrapper& stat) {
     const auto backend = m_backend.lock();
-    const auto data = backend ? backend->get_imu() : data::imu_data{};
-    if (!backend || !data.value) {
+    const auto data = backend ? backend->get_imu()
+                              : std::optional<sensor_msgs::msg::Imu>{};
+    if (!backend || !data) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      backend ? "IMU data is not received"
                              : "Backend is not initialized");
         return;
     }
 
-    const double age = m_clock ? (m_clock->now() - data.stamp).seconds()
-                               : m_stale_timeout.count();
+    const double age =
+        m_clock ? (m_clock->now() - rclcpp::Time(data->header.stamp)).seconds()
+                : m_stale_timeout.count();
     if (age > m_stale_timeout.count()) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
                      "IMU data is stale");

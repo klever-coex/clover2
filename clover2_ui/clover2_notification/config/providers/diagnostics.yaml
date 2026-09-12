@@ -1,0 +1,14 @@
+/**/notification:
+  ros__parameters:
+    providers:
+      diagnostics:
+        topic: /diagnostics_agg
+        ignore_names:
+          - "/Aggregation"
+          - "/Aggregation/Other"
+          - "/Aggregation/Other/*"
+          - "/Aggregation/System"
+          - "/Aggregation/System/*"
+          - "/Aggregation/Vision"
+          - "/Aggregation/Localization"
+          - "/Aggregation/FCU"

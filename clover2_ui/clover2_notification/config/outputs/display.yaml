@@ -1,0 +1,52 @@
+/**/notification:
+  ros__parameters:
+    display:
+      enabled: true
+      plugin: display
+      base_path: display
+      refresh_period: 1.0
+      layout:
+        margin:
+          left: 2
+          right: 2
+        font:
+          scale: 0.45
+          thickness: 1
+        title:
+          text: ""
+          baseline_y: 12
+        statuses:
+          first_baseline_y: 12
+          line_height: 15
+
+      status_names:
+        - hostname
+        - network
+        - cpu
+        - temperature
+
+      statuses:
+        hostname:
+          type: hostname
+          label: ""
+
+        network:
+          type: network
+          label: ""
+          interfaces:
+            - wlan0
+            - eth0
+
+        cpu:
+          source: system
+          event_name: cpu
+          label: cpu
+
+        temperature:
+          source: system
+          event_name: temperature
+          label: temp
+
+      alert:
+        enabled: true
+        invert_period: 0.5

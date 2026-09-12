@@ -32,7 +32,8 @@ void safe_declare_and_get(
     const ParameterDescriptor& parameter_descriptor = ParameterDescriptor()) {
     declare_parameter_if_not_declared(node, parameter_name, default_value,
                                       parameter_descriptor);
-    node->template get_parameter<ParameterT>(parameter_name, read_value);
+    read_value =
+        node->get_parameter(parameter_name).template get_value<ParameterT>();
 }
 
 template <typename NodeT, typename ParameterT>

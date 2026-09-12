@@ -1,0 +1,12 @@
+/**/notification:
+  ros__parameters:
+    providers:
+      temperature:
+        # Raspberry Pi CPU temperature, expressed by sysfs in milli-degrees C.
+        paths:
+          - /sys/class/thermal/thermal_zone0/temp
+        period: 1.0
+        scale: 0.001
+        warning_temperature: 75.0
+        error_temperature: 85.0
+        precision: 1

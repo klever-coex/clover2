@@ -1,10 +1,10 @@
 #pragma once
 
 #include <clover2_ui/api/diagnostics/diagnostic_model.hpp>
-#include <clover2_ui/api/diagnostics/diagnostic_monitor.hpp>
 #include <clover2_ui/tui/core/screen.hpp>
 #include <cpptui/cpptui.hpp>
 
+#include <functional>
 #include <memory>
 #include <set>
 #include <string>
@@ -14,15 +14,18 @@ namespace clover2_ui::tui::components {
 
 class diagnostics_screen : public core::screen {
 public:
+    using snapshot_provider = std::function<api::diagnostics::snapshot()>;
+
     explicit diagnostics_screen(
-        std::shared_ptr<api::diagnostics::monitor> monitor,
+        snapshot_provider snapshots,
+        std::string topic,
         std::shared_ptr<core::navigator> nav);
 
     void on_enter() override;
     bool on_event(const cpptui::Event& event) override;
     std::vector<std::pair<std::string, std::string>> shortcuts() const override;
 
-    void refresh_from_monitor();
+    void refresh();
 
 private:
     struct visible_item {
@@ -45,7 +48,8 @@ private:
     void move_selection(int delta);
     void toggle_selected();
 
-    std::shared_ptr<api::diagnostics::monitor> m_monitor;
+    snapshot_provider m_snapshots;
+    std::string m_topic;
     api::diagnostics::snapshot m_snapshot;
 
     std::shared_ptr<cpptui::Label> m_summary_label;

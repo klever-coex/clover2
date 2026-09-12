@@ -16,7 +16,7 @@
         warn_percentage: 0.20
         error_percentage: 0.10
       sensors:
-        stale_timeout_sec: 1.0
+        stale_timeout_sec: 3.0
 
 /**/web_video_server:
   ros__parameters:

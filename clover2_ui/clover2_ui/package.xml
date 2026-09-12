@@ -16,6 +16,7 @@
   <depend>yaml-cpp</depend>
 
   <exec_depend>diagnostic_aggregator</exec_depend>
+  <exec_depend>diagnostic_common_diagnostics</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
