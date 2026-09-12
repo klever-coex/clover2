@@ -5,7 +5,7 @@ import rclpy
 from rclpy.node import Node
 
 from . import utils
-from .clients import CameraClient, LEDClient, OffboardClient
+from .clients import CameraClient, DisplayClient, LEDClient, OffboardClient
 
 
 class Clover2(Node):
@@ -29,10 +29,15 @@ class Clover2(Node):
         except Exception as e:
             self._led = None
             self.get_logger().warning(f"Led strip not found")
+        try:
+            self._display = DisplayClient(self, "/display")
+        except Exception:
+            self._display = None
+            self.get_logger().warning('Display not found')
 
     def __getattr__(self, name: str):
 
-        for client in [self._offboard, self._camera, self._led]:
+        for client in [self._offboard, self._camera, self._led, self._display]:
             ret = getattr(client, name, None)
             if ret:
                 return ret
@@ -50,6 +55,10 @@ class Clover2(Node):
     @property
     def led(self) -> LEDClient | None:
         return self._led
+
+    @property
+    def display(self) -> DisplayClient | None:
+        return self._display
 
     def _ros_worker(self) -> None:
         while rclpy.ok():
