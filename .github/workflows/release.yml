@@ -20,21 +20,13 @@ permissions:
 
 jobs:
   prepare-release:
+    environment: release
     runs-on: ubuntu-latest
     steps:
-      - name: Check actor permission
-        run: |
-          ALLOWED_ACTORS="${{ vars.RELEASE_ACTORS || 'matveylapin' }}"
-          if echo "$ALLOWED_ACTORS" | grep -q "${{ github.actor }}"; then
-            echo "Actor ${{ github.actor }} is allowed"
-          else
-            echo "Actor ${{ github.actor }} is NOT allowed to run releases"
-            exit 1
-          fi
-
       - uses: actions/checkout@v7
         with:
           token: ${{ secrets.GH_PAT }}
+          fetch-depth: 0
 
       - uses: actions/setup-python@v7
         with:
@@ -45,10 +37,12 @@ jobs:
 
       - name: Bump version
         id: bump
+        env:
+          BUMP: ${{ inputs.bump }}
         run: |
           CURRENT=$(python3 tooling/scripts/version_manager.py -d . print --main-only)
           echo "Current version: $CURRENT"
-          python3 tooling/scripts/version_manager.py -vvv -d . bump ${{ inputs.bump }}
+          python3 tooling/scripts/version_manager.py -vvv -d . bump "$BUMP"
           NEW_VERSION=$(python3 tooling/scripts/version_manager.py -d . print --main-only)
           echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$NEW_VERSION" >> "$GITHUB_OUTPUT"
@@ -65,12 +59,14 @@ jobs:
 
       - name: Commit and push
         if: ${{ !inputs.dry_run }}
+        env:
+          TAG: ${{ steps.bump.outputs.tag }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "release: ${{ steps.bump.outputs.tag }}"
-          git tag -a "${{ steps.bump.outputs.tag }}" -m "Release ${{ steps.bump.outputs.tag }}"
+          git commit -m "release: ${TAG}"
+          git tag -a "${TAG}" -m "Release ${TAG}"
           git push origin HEAD:master --follow-tags
 
       - name: Create GitHub Release

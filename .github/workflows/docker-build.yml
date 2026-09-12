@@ -10,8 +10,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
-  actions: write
 
 jobs:
   detect-mode:
@@ -29,6 +27,10 @@ jobs:
   docker:
     needs: detect-mode
     runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+      packages: write
+      actions: write
     strategy:
       fail-fast: false
       matrix:
