@@ -17,18 +17,12 @@ DOCKER_OUTPUT_DIR ?= $(BUILD_EXPTRAS_DIR)/docker
 UID ?= $(shell id -u)
 GID ?= $(shell id -g)
 
-# Calculate CLOVER2_VERSION based on BUILD_MODE
-CLOVER2_BASE_VERSION := $(shell python3 tooling/scripts/version_manager.py -d . print --main-only)
-CLOVER2_GIT_HASH := $(shell git -C $(PROJECT_DIR) rev-parse --short HEAD 2>/dev/null || echo "unknown")
+COMPOSE := python3 tooling/scripts/version_manager -d . compose --mode $(BUILD_MODE)
+CLOVER2_GIT_HASH := $(shell $(COMPOSE) --field git_hash)
+CLOVER2_VERSION := $(shell $(COMPOSE) --field version)
 
-ifeq ($(BUILD_MODE),release)
-	CLOVER2_VERSION := $(CLOVER2_BASE_VERSION)
-else ifeq ($(BUILD_MODE),master)
-	CLOVER2_VERSION := $(CLOVER2_BASE_VERSION)+$(CLOVER2_GIT_HASH)
-else ifeq ($(BUILD_MODE),develop)
-	CLOVER2_VERSION := $(CLOVER2_BASE_VERSION)+$(CLOVER2_GIT_HASH)
-else
-	$(error Unknown BUILD_MODE '$(BUILD_MODE)'. Expected one of: release, master, develop)
+ifeq ($(strip $(CLOVER2_VERSION)),)
+$(error version_manager compose failed (check BUILD_MODE '$(BUILD_MODE)' and python deps))
 endif
 
 export CLOVER2_VERSION
@@ -89,6 +83,10 @@ clover2-docs-doxygen:
 	mkdir -p $(PROJECT_DIR)/docs/build/doxygen
 	doxygen
 
+## clover2-frontend-%: Execute npm run command in frontend folder
+clover2-frontend-%:
+	cd $(PROJECT_DIR)/frontend && npm run $*
+
 ## builder-download: Download base disk image for builder
 builder-download:
 	$(PROJECT_DIR)/tooling/builder/download.py \
@@ -120,6 +118,7 @@ builder-%-in-docker:
 		$(REGISTRY)clover2-builder:$(CLOVER2_GIT_HASH) \
 		sh -c "make builder-$*"
 
+## clover2-devtool-install-repos: install mainline ros2 repos to third party folder
 clover2-devtool-install-repos:
 	vcs import third_party < third_party/clover2.repos
 

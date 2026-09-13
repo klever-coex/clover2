@@ -38,6 +38,10 @@ function "tagged" {
     # Releases have version and stable tags
     equal("release", BUILD_MODE) ? "${REGISTRY}${name}:stable" : null,
     equal("release", BUILD_MODE) ? "${REGISTRY}${name}:${CLOVER2_VERSION}" : null,
+
+    # Pre-releases (e.g. 0.2.0-rc.1) have version and pre-release tags
+    equal("pre-release", BUILD_MODE) ? "${REGISTRY}${name}:pre-release" : null,
+    equal("pre-release", BUILD_MODE) ? "${REGISTRY}${name}:${CLOVER2_VERSION}" : null,
   ])
 }
 

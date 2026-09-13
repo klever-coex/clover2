@@ -6,14 +6,14 @@ inputs:
     description: Bake target name
     required: true
   build-mode:
-    description: Build mode (develop, master, release)
+    description: Build mode (develop, master, release, pre-release)
     required: true
     default: develop
   git-hash:
     description: Short git hash
     required: true
   version:
-    description: Version string for release builds
+    description: Full version string (from version_manager compose)
     required: false
     default: ''
   push:
@@ -45,7 +45,7 @@ runs:
           REGISTRY=ghcr.io/${{ github.repository_owner }}/clover2/
           BUILD_MODE=${{ inputs.build-mode }}
           CLOVER2_GIT_HASH=${{ inputs.git-hash }}
-          CLOVER2_VERSION=${{ inputs.version || inputs.git-hash }}
+          CLOVER2_VERSION=${{ inputs.version }}
 
     - name: Build and push ${{ inputs.target }}
       if: ${{ inputs.push == 'true' }}
@@ -63,4 +63,4 @@ runs:
           REGISTRY=ghcr.io/${{ github.repository_owner }}/clover2/
           BUILD_MODE=${{ inputs.build-mode }}
           CLOVER2_GIT_HASH=${{ inputs.git-hash }}
-          CLOVER2_VERSION=${{ inputs.version || inputs.git-hash }}
+          CLOVER2_VERSION=${{ inputs.version }}

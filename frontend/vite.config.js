@@ -17,5 +17,8 @@ export default defineConfig({
   ],
   define: {
     global: "globalThis",
+    __CLOVER2_VERSION__: JSON.stringify(
+      process.env.CLOVER2_VERSION || process.env.npm_package_version || ""
+    ),
   },
 });
