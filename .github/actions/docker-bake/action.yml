@@ -49,7 +49,7 @@ runs:
         provenance: false
         builder: ${{ steps.setup.outputs.builder-name }}
         set: |
-          *.cache-from=type=gha,scope=clover2-${{ inputs.cache-scope || inputs.target }}-{{ steps.cache-epoch.outputs.CACHE_EPOCH }}
+          *.cache-from=type=gha,scope=clover2-${{ inputs.cache-scope || inputs.target }}-e${{ steps.cache-epoch.outputs.CACHE_EPOCH }}
         vars: |
           REGISTRY=ghcr.io/${{ github.repository_owner }}/clover2/
           BUILD_MODE=${{ inputs.build-mode }}
@@ -66,11 +66,10 @@ runs:
         push: true
         builder: ${{ steps.setup.outputs.builder-name }}
         set: |
-          *.cache-from=type=gha,scope=clover2-${{ inputs.cache-scope || inputs.target }}
-          *.cache-to=type=gha,scope=clover2-${{ inputs.cache-scope || inputs.target }},mode=max
+          *.cache-from=type=gha,scope=clover2-${{ inputs.cache-scope || inputs.target }}-e${{ steps.cache-epoch.outputs.CACHE_EPOCH }}
+          *.cache-to=type=gha,scope=clover2-${{ inputs.cache-scope || inputs.target }}-e${{ steps.cache-epoch.outputs.CACHE_EPOCH }},mode=max
         vars: |
           REGISTRY=ghcr.io/${{ github.repository_owner }}/clover2/
           BUILD_MODE=${{ inputs.build-mode }}
-          CACHE_EPOCH=${{ steps.cache-epoch.outputs.CACHE_EPOCH }}
           CLOVER2_GIT_HASH=${{ inputs.git-hash }}
           CLOVER2_VERSION=${{ inputs.version }}
