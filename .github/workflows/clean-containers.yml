@@ -20,7 +20,7 @@ jobs:
         uses: snok/container-retention-policy@v3.1.0
         with:
           account: klever-coex
-          token: ${{ github.token }}
+          token: ${{ secrets.GHCR_PAT }}
           image-names: "clover2/*"
           cut-off: "3d"
           keep-n-most-recent: 3
