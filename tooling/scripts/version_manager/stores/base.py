@@ -18,6 +18,7 @@ SKIP_DIRS = {"node_modules", ".git", "build", "dist"}
 class VersionStore(abc.ABC):
     FILENAME: str = ""
     STORE_NAME: str = ""
+    CAN_BE_REFERENCE = False
 
     def __init__(self, path: pathlib.Path):
         self.path = path
@@ -77,7 +78,7 @@ def discover_stores(base_path: pathlib.Path, name_filter: re.Pattern) -> list[Ve
 
 def reference_store(stores: list[VersionStore]) -> VersionStore:
     for store in stores:
-        if store.name == REFERENCE_PACKAGE:
+        if store.name == REFERENCE_PACKAGE and store.CAN_BE_REFERENCE:
             return store
 
     logger.error("Reference package '%s' not found", REFERENCE_PACKAGE)

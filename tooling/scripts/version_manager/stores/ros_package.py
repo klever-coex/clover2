@@ -9,6 +9,7 @@ from version_manager.stores.base import VersionStore, bare
 class RosPackageStore(VersionStore):
     FILENAME = "package.xml"
     STORE_NAME: str = "ros_package"
+    CAN_BE_REFERENCE = True
 
     def __init__(self, path: pathlib.Path):
         super().__init__(path)
