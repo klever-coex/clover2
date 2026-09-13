@@ -19,6 +19,11 @@ form_screen::form_screen(std::shared_ptr<api::settings::config_field> object,
     m_title_label->fixed_height = 1;
     add(m_title_label);
 
+    auto description_label = std::make_shared<cpptui::Label>(
+        m_object->description(), cpptui::Color());
+    description_label->fixed_height = 1;
+    add(std::move(description_label));
+
     add(std::make_shared<cpptui::HorizontalSpacer>());
 
     for (size_t i = 0; i < m_object->children().size(); i++) {
