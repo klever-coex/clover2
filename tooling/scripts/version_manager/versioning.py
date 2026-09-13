@@ -98,9 +98,11 @@ def compose(stores, base_path: pathlib.Path, ref: str | None = None,
     if latest_stable:
         tag = _max_tag([n for n in _tag_names(repo)
                         if n.startswith("v") and "-" not in n])
+
         if not tag:
             logger.error("No stable tags found")
             raise SystemExit(1)
+
         return {"tag": tag, "version": tag[1:], "commit": repo.commit(tag).hexsha}
 
     base = reference_store(stores).read()
@@ -108,6 +110,7 @@ def compose(stores, base_path: pathlib.Path, ref: str | None = None,
         if not ref.startswith("v"):
             logger.error("--ref must be a full git ref or a v-prefixed tag")
             raise SystemExit(1)
+
         ref = f"refs/tags/{ref}"
 
     if ref and ref.startswith("refs/tags/"):
@@ -122,7 +125,12 @@ def compose(stores, base_path: pathlib.Path, ref: str | None = None,
         build_mode = "pre-release" if version.prerelease else "release"
         git_hash = tag.commit.hexsha[:7]
     else:
-        git_hash = repo.commit(ref if ref else "HEAD").hexsha[:7]
+        try:
+            commit = repo.commit(ref if ref else "HEAD")
+        except git.BadName:
+            commit = repo.commit("HEAD")
+
+        git_hash = commit.hexsha[:7]
         build_mode = mode
 
         if build_mode is None:
