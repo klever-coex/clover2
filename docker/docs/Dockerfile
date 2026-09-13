@@ -12,7 +12,6 @@ RUN --mount=type=cache,id=apt-docs-${TARGETPLATFORM},target=/var/cache/apt,shari
 
 WORKDIR /app
 COPY Doxyfile /app
-COPY Makefile /app
 COPY --parents ./**/*.hpp /app
 
 RUN mkdir -p /app/docs/build/doxygen && doxygen
