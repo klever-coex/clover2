@@ -23,10 +23,6 @@ variable "PLATFORMS" {
   ]
 }
 
-variable "CACHE_EPOCH" {
-  default = "0"
-}
-
 # Image tags generator
 function "tagged" {
   params = [name]
@@ -120,7 +116,6 @@ target "ros" {
 
   args = {
     ROS_DISTRO = "jazzy"
-    CACHE_EPOCH = CACHE_EPOCH
   }
 
   matrix = {
@@ -140,7 +135,6 @@ target "ros-test" {
 
   args = {
     ROS_DISTRO = "jazzy"
-    CACHE_EPOCH = CACHE_EPOCH
   }
 }
 

@@ -1,5 +1,4 @@
 ARG BASE_IMAGE=ros:jazzy-ros-base
-ARG CACHE_EPOCH="unknown"
 ARG SHORT_NAME="short"
 ARG CLOVER2_VERSION
 ARG ROS_DISTRO=jazzy
@@ -60,7 +59,6 @@ WORKDIR /clover2_ws
 COPY --parents ./clover2*/ /clover2_ws/src/
 
 FROM source AS builder
-ARG CACHE_EPOCH
 ARG ROS_DISTRO
 ARG TARGETPLATFORM
 ARG CLOVER2_VERSION
@@ -77,20 +75,19 @@ RUN --mount=type=cache,id=apt-ros-${TARGETPLATFORM},target=/var/cache/apt,sharin
         ccache \
         ros-${ROS_DISTRO}-ament-cmake-gtest
 
-RUN --mount=type=cache,id=ccache-${CACHE_EPOCH}-${TARGETPLATFORM},target=${CCACHE_DIR} \
+RUN --mount=type=cache,id=ccache-${TARGETPLATFORM},target=${CCACHE_DIR} \
     ccache -M 5G
 
 RUN touch /clover2_ws/src/clover2_common/CMakeLists.txt
 
-RUN --mount=type=cache,id=ccache-${CACHE_EPOCH}-${TARGETPLATFORM},target=${CCACHE_DIR} \
-    --mount=type=cache,id=ros-build-${CACHE_EPOCH}-${TARGETPLATFORM},target=/clover2_ws/build \
+RUN --mount=type=cache,id=ccache-${TARGETPLATFORM},target=${CCACHE_DIR} \
+    --mount=type=cache,id=ros-build-${TARGETPLATFORM},target=/clover2_ws/build \
     /clover2/build_ros.sh ${CCACHE_DIR} /opt/clover2 "--cmake-args -DBUILD_TESTING=1"
 
 FROM builder AS test
-ARG CACHE_EPOCH
 ARG TARGETPLATFORM
 
-RUN --mount=type=cache,id=ros-build-${CACHE_EPOCH}-${TARGETPLATFORM},target=/clover2_ws/build \
+RUN --mount=type=cache,id=ros-build-${TARGETPLATFORM},target=/clover2_ws/build \
     /clover2/test_ros.sh
 
 # from empty image
