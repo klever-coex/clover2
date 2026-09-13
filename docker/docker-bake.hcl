@@ -42,6 +42,10 @@ function "tagged" {
     # Releases have version and stable tags
     equal("release", BUILD_MODE) ? "${REGISTRY}${name}:stable" : null,
     equal("release", BUILD_MODE) ? "${REGISTRY}${name}:${CLOVER2_VERSION}" : null,
+
+    # Pre-releases (e.g. 0.2.0-rc.1) have version and pre-release tags
+    equal("pre-release", BUILD_MODE) ? "${REGISTRY}${name}:pre-release" : null,
+    equal("pre-release", BUILD_MODE) ? "${REGISTRY}${name}:${CLOVER2_VERSION}" : null,
   ])
 }
 
@@ -64,26 +68,32 @@ target "base" {
 #   /_/  \___/_/   /____/\__/ .__/_/\___/\_, /_/_/_/\__/_//_/\__/
 #                          /_/          /___/
 
-target "project-deploy" {
-  dockerfile = item.dockerfile
-  name = item.tgt
-  tags = tagged(item.tgt)
+# Docs HTML is platform-independent: build it once and feed both
+# platform variants of the final image as a build context.
+target "docs-html" {
+  dockerfile = "docker/docs/Dockerfile"
+  target = "builder"
+
+  inherits = ["base"]
+}
+
+target "clover2-docs" {
+  dockerfile = "docker/docs/Dockerfile"
+  tags = tagged("clover2-docs")
 
   inherits = ["base"]
   platforms = PLATFORMS
-
-  matrix = {
-    item = [
-      {
-        dockerfile = "docker/docs/Dockerfile"
-        tgt = "clover2-docs"
-      },
-      {
-        dockerfile = "docker/frontend/Dockerfile"
-        tgt = "clover2-frontend"
-      }
-    ]
+  contexts = {
+    docs-html = "target:docs-html"
   }
+}
+
+target "clover2-frontend" {
+  dockerfile = "docker/frontend/Dockerfile"
+  tags = tagged("clover2-frontend")
+
+  inherits = ["base"]
+  platforms = PLATFORMS
 }
 
 #       ____  ____  _____

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useConfirmStore } from '@/store/useConfirmStore';
@@ -18,13 +18,15 @@ export function ConfirmDialog() {
   const options = useConfirmStore((s) => s.options);
   const settle = useConfirmStore((s) => s.settle);
 
-  const lastOptions = useRef(options);
-  if (options !== null) lastOptions.current = options;
+  const [lastOptions, setLastOptions] = useState(options);
+  if (options !== null && options !== lastOptions) {
+    setLastOptions(options);
+  }
 
   useEffect(() => () => useConfirmStore.getState().settle(false), []);
 
   const isOpen = options !== null;
-  const shown = options ?? lastOptions.current;
+  const shown = options ?? lastOptions;
 
   return (
     <AlertDialog

@@ -3,12 +3,22 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
+      channel:
+        description: '"pre-release" cuts/advances an rc series; "stable" releases a bumped version'
+        required: true
+        type: choice
+        options: [stable, pre-release]
+        default: stable
       bump:
-        description: 'Version bump type'
+        description: 'Version bump (base bump for a fresh rc cut)'
         required: true
         type: choice
         options: [major, minor, patch]
         default: patch
+      promote_from:
+        description: 'Promote this validated rc tag (e.g. v0.2.0-rc.2) to a stable release instead of bumping'
+        type: string
+        default: ''
       dry_run:
         description: 'Dry run (no push, no tag)'
         type: boolean
@@ -18,23 +28,19 @@ permissions:
   contents: write
   pull-requests: read
 
+concurrency:
+  group: release
+
 jobs:
   prepare-release:
+    if: github.ref == 'refs/heads/master' || inputs.dry_run
+    environment: release
     runs-on: ubuntu-latest
     steps:
-      - name: Check actor permission
-        run: |
-          ALLOWED_ACTORS="${{ vars.RELEASE_ACTORS || 'matveylapin' }}"
-          if echo "$ALLOWED_ACTORS" | grep -q "${{ github.actor }}"; then
-            echo "Actor ${{ github.actor }} is allowed"
-          else
-            echo "Actor ${{ github.actor }} is NOT allowed to run releases"
-            exit 1
-          fi
-
       - uses: actions/checkout@v7
         with:
           token: ${{ secrets.GH_PAT }}
+          fetch-depth: 0
 
       - uses: actions/setup-python@v7
         with:
@@ -43,42 +49,73 @@ jobs:
       - name: Install dependencies
         run: pip install -r ./tooling/requirements.txt
 
-      - name: Bump version
-        id: bump
+      - name: Prepare version
+        id: prepare
+        env:
+          CHANNEL: ${{ inputs.channel }}
+          BUMP: ${{ inputs.bump }}
+          PROMOTE_FROM: ${{ inputs.promote_from }}
         run: |
-          CURRENT=$(python3 tooling/scripts/version_manager.py -d . print --main-only)
-          echo "Current version: $CURRENT"
-          python3 tooling/scripts/version_manager.py -vvv -d . bump ${{ inputs.bump }}
-          NEW_VERSION=$(python3 tooling/scripts/version_manager.py -d . print --main-only)
-          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=v$NEW_VERSION" >> "$GITHUB_OUTPUT"
-          PREVIOUS_TAG=$(git tag --sort=-creatordate | head -1)
-          echo "previous_tag=${PREVIOUS_TAG}" >> "$GITHUB_OUTPUT"
+          VM="python3 tooling/scripts/version_manager -d ."
+
+          if [[ "$CHANNEL" == "pre-release" ]]; then
+            BUMP_JSON=$($VM bump rc --base "$BUMP" --json)
+          elif [[ -n "$PROMOTE_FROM" ]]; then
+            VERSION=$($VM compose --ref "$PROMOTE_FROM" --field version)
+            BUMP_JSON=$(jq -n --arg v "$VERSION" '{tag: ("v" + $v), stores_changed: false}')
+          else
+            BUMP_JSON=$($VM bump "$BUMP" --json)
+          fi
+          echo "prepare: ${BUMP_JSON}"
+
+          echo "tag=$(echo "${BUMP_JSON}" | jq -r .tag)" >> "$GITHUB_OUTPUT"
+          echo "changed=$(echo "${BUMP_JSON}" | jq -r .stores_changed)" >> "$GITHUB_OUTPUT"
+          echo "previous_tag=$($VM compose --latest-stable --field tag)" >> "$GITHUB_OUTPUT"
+          echo "to_tag=${PROMOTE_FROM:-HEAD}" >> "$GITHUB_OUTPUT"
 
       - name: Generate changelog
         id: changelog
         uses: mikepenz/release-changelog-builder-action@v6
         with:
           configuration: .github/changelog-config.json
-          fromTag: ${{ steps.bump.outputs.previous_tag }}
-          toTag: HEAD
+          fromTag: ${{ steps.prepare.outputs.previous_tag }}
+          toTag: ${{ steps.prepare.outputs.to_tag }}
 
-      - name: Commit and push
+      - name: Commit, tag and push
         if: ${{ !inputs.dry_run }}
+        env:
+          TAG: ${{ steps.prepare.outputs.tag }}
+          CHANGED: ${{ steps.prepare.outputs.changed }}
+          PROMOTE_FROM: ${{ inputs.promote_from }}
         run: |
+          if git rev-parse -q --verify "refs/tags/${TAG}" > /dev/null; then
+            echo "Tag ${TAG} already exists" >&2
+            exit 1
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "release: ${{ steps.bump.outputs.tag }}"
-          git tag -a "${{ steps.bump.outputs.tag }}" -m "Release ${{ steps.bump.outputs.tag }}"
-          git push origin HEAD:master --follow-tags
+
+          if [[ "$CHANGED" == "true" ]]; then
+            git add -A
+            git commit -m "release: ${TAG}"
+          fi
+
+          if [[ -n "$PROMOTE_FROM" ]]; then
+            # stable tag goes on the exact validated rc commit
+            git tag -a "${TAG}" "${PROMOTE_FROM}^{commit}" -m "Release ${TAG}"
+          else
+            git tag -a "${TAG}" -m "Release ${TAG}"
+          fi
+
+          git push origin HEAD:master
+          git push origin "refs/tags/${TAG}"
 
       - name: Create GitHub Release
         if: ${{ !inputs.dry_run }}
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ steps.bump.outputs.tag }}
-          name: Release ${{ steps.bump.outputs.tag }}
+          tag_name: ${{ steps.prepare.outputs.tag }}
+          name: Release ${{ steps.prepare.outputs.tag }}
           body: ${{ steps.changelog.outputs.changelog }}
           draft: false
-          prerelease: false
+          prerelease: ${{ inputs.channel == 'pre-release' }}
