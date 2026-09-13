@@ -69,6 +69,7 @@ def discover_stores(base_path: pathlib.Path, name_filter: re.Pattern) -> list[Ve
         for file in files:
             store = create_store(pathlib.Path(root) / file)
             if store is not None and name_filter.search(store.name):
+                logger.debug("Found store: %s of %s (%s)", store.name, store.store_name, store.read())
                 stores.append(store)
 
     return stores
