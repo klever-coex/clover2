@@ -30,6 +30,7 @@ export REGISTRY
 export BUILD_MODE
 export PROJECT_DIR
 export DOCKER_OUTPUT_DIR
+export LOCAL_CACHE = 1
 
 ## help: Show this help message
 help:

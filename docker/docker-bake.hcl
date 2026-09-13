@@ -5,6 +5,10 @@ variable "REGISTRY" { }
 variable "CLOVER2_VERSION" { }
 variable "CLOVER2_GIT_HASH" { }
 
+variable "LOCAL_CACHE" {
+  default = ""
+}
+
 variable "LABELS" {
   default = {
     "org.opencontainers.image.authors"  = "Lapin Matvey"
@@ -54,8 +58,8 @@ target "base" {
     CLOVER2_GIT_HASH = "${CLOVER2_GIT_HASH}"
   }
 
-  cache-from = ["type=local,src=.cache/docker"]
-  cache-to   = ["type=local,dest=.cache/docker,mode=max"]
+  cache-from = LOCAL_CACHE == "1" ? ["type=local,src=.cache/docker"] : []
+  cache-to   = LOCAL_CACHE == "1" ? ["type=local,dest=.cache/docker,mode=max"] : []
 }
 
 #      ____           ___           __                         __
