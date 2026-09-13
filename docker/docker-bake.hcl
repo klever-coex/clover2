@@ -68,8 +68,6 @@ target "base" {
 #   /_/  \___/_/   /____/\__/ .__/_/\___/\_, /_/_/_/\__/_//_/\__/
 #                          /_/          /___/
 
-# Docs HTML is platform-independent: build it once and feed both
-# platform variants of the final image as a build context.
 target "docs-html" {
   dockerfile = "docker/docs/Dockerfile"
   target = "builder"
@@ -88,12 +86,22 @@ target "clover2-docs" {
   }
 }
 
+target "frontend-html" {
+  dockerfile = "docker/frontend/Dockerfile"
+  target = "builder"
+
+  inherits = ["base"]
+}
+
 target "clover2-frontend" {
   dockerfile = "docker/frontend/Dockerfile"
   tags = tagged("clover2-frontend")
 
   inherits = ["base"]
   platforms = PLATFORMS
+  contexts = {
+    frontend-html = "target:frontend-html"
+  }
 }
 
 #       ____  ____  _____
