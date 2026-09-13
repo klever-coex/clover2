@@ -122,7 +122,7 @@ void base_ws_session::reset_timer() {
         m_strand, [self = shared_from_this()](boost::system::error_code ec) {
             if (ec) return;
 
-            self->m_logger->debug("WS idle timeout, closing session");
+            self->m_logger->debug("WS idle timeout, closing websocket session");
             self->fail(1001, boost::beast::websocket::close_code::going_away);
         }));
 }

@@ -1,9 +1,9 @@
+// clover2
+#include <clover2_common/version.hpp>
 #include <clover2_http/data/manifest.hpp>
 #include <clover2_http/http/middleware/cors.hpp>
 #include <clover2_http/logger.hpp>
 #include <clover2_http/server.hpp>
-
-#include <exception>
 
 namespace clover2_http {
 
@@ -24,6 +24,8 @@ server::server(const rclcpp::NodeOptions& options)
                clover2_http::http::endpoint::deferred_reply<data::manifest>
                    reply) {
             data::manifest manifest;
+
+            manifest.framework_version = clover2_common::project_version();
 
             for (const auto& [_, plugin] : m_plugins) {
                 auto info = plugin->manifest();

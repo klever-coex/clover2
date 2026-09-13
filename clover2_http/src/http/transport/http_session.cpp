@@ -58,7 +58,7 @@ void http_session::do_read() {
     m_timer.async_wait(boost::asio::bind_executor(
         m_strand, [self = shared_from_this()](boost::system::error_code ec) {
             if (!ec) {
-                self->m_logger->warn("Idle timeout, closing session");
+                self->m_logger->warn("Idle timeout, closing http session");
                 self->do_close();
             }
         }));

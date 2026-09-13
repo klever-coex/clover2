@@ -47,6 +47,14 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
+import { SidebarVersion } from './SidebarVersion.tsx';
+
+const LANGUAGES = [
+  { code: 'en', label: 'English' },
+  { code: 'ru', label: 'Русский' },
+] as const;
+
+const COLLAPSED_STORAGE_KEY = 'sidebar-collapsed';
 
 interface NavLinkItem {
   key: string;
@@ -102,13 +110,6 @@ const MENU: NavSection[] = [
     ],
   },
 ];
-
-const LANGUAGES = [
-  { code: 'en', label: 'English' },
-  { code: 'ru', label: 'Русский' },
-] as const;
-
-const COLLAPSED_STORAGE_KEY = 'sidebar-collapsed';
 
 function AppSidebar() {
   const { t, i18n } = useTranslation();
@@ -232,6 +233,7 @@ function AppSidebar() {
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
+        <SidebarVersion className="px-2 pt-1" />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
