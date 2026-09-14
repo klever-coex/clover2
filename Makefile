@@ -17,12 +17,13 @@ DOCKER_OUTPUT_DIR ?= $(BUILD_EXPTRAS_DIR)/docker
 UID ?= $(shell id -u)
 GID ?= $(shell id -g)
 
-COMPOSE := python3 tooling/scripts/version_manager -d . compose --mode $(BUILD_MODE)
+TOOLING ?= clover2_tooling
+COMPOSE := $(TOOLING) version compose --mode $(BUILD_MODE)
 CLOVER2_GIT_HASH := $(shell $(COMPOSE) --field git_hash)
 CLOVER2_VERSION := $(shell $(COMPOSE) --field version)
 
 ifeq ($(strip $(CLOVER2_VERSION)),)
-$(error version_manager compose failed (check BUILD_MODE '$(BUILD_MODE)' and python deps))
+$(error tooling compose failed (check BUILD_MODE '$(BUILD_MODE)' and tooling lib installed))
 endif
 
 export CLOVER2_VERSION
@@ -90,19 +91,23 @@ clover2-frontend-%:
 
 ## builder-download: Download base disk image for builder
 builder-download:
-	$(PROJECT_DIR)/tooling/builder/download.py \
-		--configuration clover2-ubuntu24 \
-		--output $(PROJECT_DIR)/build-clover2-image/clover2-$(CLOVER2_VERSION).img
+	$(TOOLING) -vvv builder download
 
-## builder-build: Build the clover2 image locally
+## builder-images: Pull declared docker images (arm64) and save as tars
+builder-images:
+	$(TOOLING) -vvv builder images
+
+## builder-build: Build the clover2 disk image
 builder-build:
-	$(PROJECT_DIR)/tooling/builder/builder.py \
-		--sudo \
-		--output $(PROJECT_DIR)/build-clover2-image/clover2-$(CLOVER2_VERSION).img
+	$(TOOLING) -vvv builder build
 
-## builder-image-setup: Setup image with secret server
+## builder-build: Build the clover2 disk image
+builder-upload:
+	$(TOOLING) -vvv builder upload
+
+## builder-image-setup: Run image stage runner (intended to run inside the image)
 builder-image-setup: version
-	/bin/bash $(PROJECT_DIR)/tooling/builder/image-setup.sh
+	$(TOOLING) builder setup
 
 ## builder-in-docker: Run any builder task inside the clover2-builder docker image
 builder-%-in-docker:
@@ -114,6 +119,7 @@ builder-%-in-docker:
 		--env REGISTRY=$(REGISTRY) \
 		--env BUILD_MODE=$(BUILD_MODE) \
 		-v /dev:/dev \
+		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v $(PROJECT_DIR):/builder \
 		-w /builder \
 		$(REGISTRY)clover2-builder:$(CLOVER2_GIT_HASH) \

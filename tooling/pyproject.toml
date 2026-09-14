@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "clover2-tooling"
+version = "0.1.0"
+description = "Clover2 project tooling: version management and image builder"
+requires-python = ">=3.12"
+dependencies = [
+    "semver",
+    "lxml",
+    "gitpython>=3.1",
+    "requests",
+    "asyncssh>=2.21.1",
+    "docker",
+    "minio",
+]
+
+[project.scripts]
+clover2_tooling = "clover2_tooling.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["clover2_tooling"]
+
