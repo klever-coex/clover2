@@ -23,7 +23,7 @@ cp $REPO_DIR/tooling/configs/cyclonedds.xml /opt/clover2/cyclonedds.xml
 cp $REPO_DIR/tooling/configs/cyclonedds_lo.xml /opt/clover2/cyclonedds_lo.xml
 cp $ASSETS_DIR/launcher_config.yaml /opt/clover2/.config.yaml
 
-sudo mkdir /var/log/clover2
+sudo mkdir -p /var/log/clover2
 sudo chmod 755 /var/log/clover2
 
 sudo chmod +x /root/clover2_firstboot.sh
@@ -35,8 +35,6 @@ sudo cp $ASSETS_DIR/systemd/* /etc/systemd/system/
 sudo systemctl enable clover2.service
 sudo systemctl enable clover2-web.service
 sudo systemctl enable clover2-firstboot.service
-
-sudo mkdir -p /var/log/clover2
 
 log_info "Set image version ${CLOVER2_VERSION}"
 echo "CLOVER2_VERSION=${CLOVER2_VERSION}" | sudo tee -a /usr/lib/os-release
