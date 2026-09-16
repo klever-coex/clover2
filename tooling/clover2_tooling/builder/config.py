@@ -14,7 +14,7 @@ class ImageConfiguration:
 image_configurations: dict[str, ImageConfiguration] = {
     "klever5": ImageConfiguration(
         name="klever5",
-        base_image_url="https://cdimage.ubuntu.com/releases/24.04/release/ubuntu-24.04.4-preinstalled-server-arm64+raspi.img.xz",
+        base_image_url="https://cdimage.ubuntu.com/releases/24.04/release/ubuntu-24.04.5-preinstalled-server-arm64+raspi.img.xz",
         docker_images=("clover2-docs", "clover2-frontend"),
     ),
 }

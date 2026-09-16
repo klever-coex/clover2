@@ -30,7 +30,7 @@ log_stage() {
 }
 
 BUILDER_DIR=$(dirname "$(readlink -f "$0")")
-REPO_DIR=$(readlink -m "$BUILDER_DIR/../..")
+REPO_DIR=$(readlink -m "$BUILDER_DIR/../../..")
 ASSETS_DIR="$BUILDER_DIR/assets"
 STAGES_DIR="$BUILDER_DIR/stages"
 CLOVER2_WS_DIR="/opt/clover2/ws"
