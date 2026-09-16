@@ -24,3 +24,6 @@ sudo apt-get install -yq \
 log_info "Install clover2 depends"
 /bin/bash -c "cd $CLOVER2_WS_DIR/src/clover2 && make clover2-devtool-install-repos"
 /bin/bash -c "cd $CLOVER2_WS_DIR && source /opt/ros/$ROS_DISTRO/setup.bash && rosdep install -y --from-paths src --ignore-src --skip-keys=libcamera"
+
+sudo apt-get autoclean -y
+sudo apt-get clean -y

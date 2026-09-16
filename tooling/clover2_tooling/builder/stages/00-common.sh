@@ -61,3 +61,6 @@ done
 log_info "Install vscodium extension"
 wget https://open-vsx.org/api/meta/pyrefly/linux-arm64/1.0.0/file/meta.pyrefly-1.0.0@linux-arm64.vsix -O /tmp/meta.pyrefly-1.0.0@linux-arm64.vsix
 /opt/vscodium/bin/codium-server --install-extension /tmp/meta.pyrefly-1.0.0@linux-arm64.vsix
+
+sudo apt-get autoclean -y
+sudo apt-get clean -y

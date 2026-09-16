@@ -1,8 +1,4 @@
 #!/bin/bash
-# Stage runner: sources stages/*.sh in order, tracks completion markers,
-# supports selection (--stages/--skip), fresh runs (--fresh) and --list.
-# Runs inside the target image; expects REGISTRY/CLOVER2_VERSION/CLOVER2_GIT_HASH
-# in the environment (passed by 'clover2 builder build').
 set -e
 
 [[ "${DEBUG:-0}" == "1" ]] && set -x
@@ -58,12 +54,13 @@ done
 
 stage_selected() {
     local STAGE=$1
+    local NAME=${STAGE%.sh}
 
     if [ -n "$ONLY_STAGES" ]; then
-        [[ ",$ONLY_STAGES," == *",$STAGE,"* ]] || return 1
+        [[ ",$ONLY_STAGES," == *",$NAME,"* ]] || return 1
     fi
     if [ -n "$SKIP_STAGES" ]; then
-        [[ ",$SKIP_STAGES," == *",$STAGE,"* ]] && return 1
+        [[ ",$SKIP_STAGES," == *",$NAME,"* ]] && return 1
     fi
 
     return 0
@@ -109,9 +106,6 @@ run_stage() {
     log_stage "Stage $STAGE finished in $((END - START))s"
 
     cd /home/$USER
-
-    sudo apt-get clean -y
-    sudo apt-get autoclean -y
 }
 
 for stage in "$STAGES_DIR"/*.sh; do

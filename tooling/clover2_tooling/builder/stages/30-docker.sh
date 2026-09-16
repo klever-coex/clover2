@@ -1,4 +1,3 @@
-
 log_info "Download docker installation script"
 curl -fsSL https://get.docker.com -o /tmp/docker-install.sh
 
@@ -11,3 +10,6 @@ sudo usermod -aG docker $USER
 
 log_info "Install builded containers"
 sudo cp /tmp/clover2-build-extras/docker/* /root/
+
+sudo apt-get autoclean -y
+sudo apt-get clean -y
