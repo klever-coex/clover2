@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="klever5_propeller" params="name xyz rpy">
+    <xacro:mesh_link name="${name}_link" mesh="klever5/propeller.dae"/>
+    <xacro:mount name="${name}_joint" parent="base_link" child="${name}_link" xyz="${xyz}" rpy="${rpy}"/>
+  </xacro:macro>
+  <xacro:macro name="klever5_propellers" params="config">
+    <xacro:klever5_propeller name="propeller_front_left" xyz="${config['front_left']['xyz']}" rpy="${config['front_left']['rpy']}"/>
+    <xacro:klever5_propeller name="propeller_front_right" xyz="${config['front_right']['xyz']}" rpy="${config['front_right']['rpy']}"/>
+    <xacro:klever5_propeller name="propeller_rear_left" xyz="${config['rear_left']['xyz']}" rpy="${config['rear_left']['rpy']}"/>
+    <xacro:klever5_propeller name="propeller_rear_right" xyz="${config['rear_right']['xyz']}" rpy="${config['rear_right']['rpy']}"/>
+  </xacro:macro>
+</robot>

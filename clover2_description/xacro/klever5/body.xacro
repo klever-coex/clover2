@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="klever5_body" params="">
+    <xacro:mesh_link name="base_link" mesh="klever5/body.dae"/>
+  </xacro:macro>
+</robot>

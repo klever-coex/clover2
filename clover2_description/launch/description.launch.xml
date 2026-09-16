@@ -1,0 +1,16 @@
+<launch>
+  <arg name="ns" default=""/>
+  <arg name="use_sim_time" default="false"/>
+  <arg name="config_file" default="$(find-pkg-share clover2_description)/config/robots/klever5.yaml"/>
+  <arg name="enable_main_camera" default="true"/>
+  <arg name="enable_front_camera" default="false"/>
+  <arg name="enable_lidar" default="false"/>
+  <arg name="enable_led_strip" default="false"/>
+
+  <node pkg="robot_state_publisher" exec="robot_state_publisher"
+        name="robot_state_publisher" namespace="$(var ns)" output="screen">
+    <param name="use_sim_time" value="$(var use_sim_time)" type="bool"/>
+    <param name="robot_description" type="str"
+           value="$(command 'xacro &quot;$(find-pkg-share clover2_description)/xacro/klever5/klever5.xacro&quot; &quot;config_file:=$(var config_file)&quot; enable_main_camera:=$(var enable_main_camera) enable_front_camera:=$(var enable_front_camera) enable_lidar:=$(var enable_lidar) enable_led_strip:=$(var enable_led_strip)')"/>
+  </node>
+</launch>

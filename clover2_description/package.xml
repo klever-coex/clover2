@@ -3,7 +3,7 @@
 <package format="3">
   <name>clover2_description</name>
   <version>0.2.0</version>
-  <description>TODO: Package description</description>
+  <description>Modular Klever robot geometry and coordinate frames.</description>
   <maintainer email="2663161@mail.ru">l_motya</maintainer>
   <license>TODO: License declaration</license>
 
@@ -12,6 +12,13 @@
   <build_depend>xacro</build_depend>
   <exec_depend>xacro</exec_depend>
 
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_xml</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+  <test_depend>python3-pytest</test_depend>
+  <test_depend>ament_index_python</test_depend>
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- Geometry-only description: physical inertias require measured data. -->
+  <xacro:macro name="mesh_link" params="name mesh xyz:='0 0 0' rpy:='0 0 0'">
+    <link name="${name}">
+      <visual>
+        <origin xyz="${xyz}" rpy="${rpy}"/>
+        <geometry><mesh filename="package://clover2_description/meshes/${mesh}"/></geometry>
+      </visual>
+    </link>
+  </xacro:macro>
+  <xacro:macro name="mount" params="name parent child xyz rpy">
+    <joint name="${name}" type="fixed">
+      <parent link="${parent}"/><child link="${child}"/>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+    </joint>
+  </xacro:macro>
+</robot>

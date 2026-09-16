@@ -1,0 +1,22 @@
+# Metres and radians; ROS body axes: X forward, Y left, Z up.
+# Mounts and visual alignment are preliminary, not calibrated extrinsics.
+propellers:
+  front_left: {xyz: "0.077 0.077 0.058", rpy: "0 0 0"}
+  front_right: {xyz: "0.077 -0.077 0.058", rpy: "0 0 0"}
+  rear_left: {xyz: "-0.077 0.077 0.058", rpy: "0 0 0"}
+  rear_right: {xyz: "-0.077 -0.077 0.058", rpy: "0 0 0"}
+modules:
+  main_camera:
+    xyz: "0.055 0 0"
+    rpy: "1.57 0 0"
+    mesh: "modules/camera.dae"
+  front_camera:
+    xyz: "0.085 0 -0.0085"
+    rpy: "0 -1.57 1.57"
+    mesh: "modules/camera.dae"
+  lidar:
+    xyz: "0 0 0.12"
+    rpy: "0 0 0"
+  led_strip:
+    xyz: "0 0 -0.03"
+    rpy: "0 0 0"
