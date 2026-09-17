@@ -31,7 +31,7 @@ Web IDE в браузере
 :width: 100%
 :align: center
 
-Рисунок 3 — Открытый терминал в Web IDE
+Открытый терминал в Web IDE
 ```
 
 ## SSH
