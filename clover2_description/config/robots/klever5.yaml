@@ -8,15 +8,15 @@ propellers:
 modules:
   main_camera:
     xyz: "0.055 0 0"
-    rpy: "1.57 0 0"
-    mesh: "modules/camera.dae"
+    rpy: "-1.57 1.57 -1.57"
+    mesh: ""  # Geometry is already part of the body mesh.
   front_camera:
     xyz: "0.085 0 -0.0085"
-    rpy: "0 -1.57 1.57"
+    rpy: "0 0 0"
     mesh: "modules/camera.dae"
   lidar:
     xyz: "0 0 0.12"
     rpy: "0 0 0"
   led_strip:
-    xyz: "0 0 -0.03"
+    xyz: "0 0 0.025"
     rpy: "0 0 0"

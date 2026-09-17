@@ -1,17 +1,16 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <!-- *_link is the optical frame, preserving the existing camera driver API.
-       The housing has ROS body axes; optical Z points along housing X. -->
+  <!-- Body link: X forward, Y left, Z up. *_link is the optical frame
+       (Z forward, X right, Y down), preserving the camera driver interface. -->
   <xacro:macro name="description_camera" params="name parent config">
     <link name="${name}_body_link">
-      <visual>
-        <geometry>
-          <xacro:if value="${config['mesh'] != ''}">
+      <xacro:if value="${config.get('mesh', '') != ''}">
+        <visual>
+          <geometry>
             <mesh filename="package://clover2_description/meshes/${config['mesh']}"/>
-          </xacro:if>
-          <xacro:unless value="${config['mesh'] != ''}"><box size="${config['size']}"/></xacro:unless>
-        </geometry>
-      </visual>
+          </geometry>
+        </visual>
+      </xacro:if>
     </link>
     <xacro:mount name="${name}_mount_joint" parent="${parent}" child="${name}_body_link"
       xyz="${config['xyz']}" rpy="${config['rpy']}"/>
