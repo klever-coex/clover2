@@ -1,8 +1,15 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:macro name="description_led_strip" params="parent config name:='led_strip_link'">
-    <xacro:mesh_link name="${name}" mesh="modules/led_strip.dae"/>
+  <xacro:macro name="description_led_strip" params="parent xyz rpy name:='led_strip_link'">
+    <!-- Approximate hardware constants: kg, m; uniform-box inertia. -->
+    <xacro:property name="mass" value="${0.01}"/>
+    <xacro:property name="inertia_size" value="${[0.1638838, 0.1639418, 0.0028042]}"/>
+    <xacro:property name="com" value="${[0.0, 0.0, 0.0]}"/>
+    <xacro:property name="collision_size" value="${[0.1638838, 0.1639418, 0.0028042]}"/>
+    <xacro:property name="collision_xyz" value="${[0.0, 0.0, 0.0]}"/>
+    <xacro:property name="physics" value="${dict(mass=mass, inertia_size=inertia_size, com=com, collision_size=collision_size, collision_xyz=collision_xyz)}"/>
+    <xacro:mesh_link physics="${physics}" name="${name}" mesh="modules/led_strip.dae"/>
     <xacro:mount name="${name}_joint" parent="${parent}" child="${name}"
-      xyz="${config['xyz']}" rpy="${config['rpy']}"/>
+      xyz="${xyz}" rpy="${rpy}"/>
   </xacro:macro>
 </robot>
