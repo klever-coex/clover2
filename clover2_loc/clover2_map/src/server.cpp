@@ -102,7 +102,7 @@ void server::modify_map_callback(
 
         auto find_marker = [&m](int id) {
             return std::find_if(m.markers.begin(), m.markers.end(),
-                                [id](const auto& x) { return x.id == id; });
+                                [id](const auto& x) { return x.first == id; });
         };
 
         using Request = clover2_pose_msgs::srv::ModifyMap::Request;
@@ -119,7 +119,7 @@ void server::modify_map_callback(
                         m.frame_id + "_aruco_" + std::to_string(mk.id);
                 }
 
-                m.markers.push_back(std::move(mk));
+                m.add_marker(std::move(mk));
                 break;
             }
 
@@ -135,7 +135,7 @@ void server::modify_map_callback(
                         m.frame_id + "_aruco_" + std::to_string(mk.id);
                 }
 
-                *it = std::move(mk);
+                it->second = std::move(mk);
                 break;
             }
 
@@ -177,8 +177,8 @@ void server::publish_tf_snapshot() {
 
     const auto& m = m_provider->get_map();
 
-    for (const auto& it : m.markers) {
-        if (!it.pose) {
+    for (const auto& [id, mk] : m.markers) {
+        if (!mk.pose) {
             continue;
         }
 
@@ -186,10 +186,10 @@ void server::publish_tf_snapshot() {
 
         transform.header.frame_id = m.frame_id;
         transform.header.stamp = get_clock()->now();
-        transform.child_frame_id = it.marker_frame_id;
+        transform.child_frame_id = mk.marker_frame_id;
 
         tf2::Transform t;
-        tf2::fromMsg(tf2::toMsg(*it.pose), t);
+        tf2::fromMsg(tf2::toMsg(*mk.pose), t);
         tf2::toMsg(t, transform.transform);
 
         m_tf_broadcaster->sendTransform(transform);

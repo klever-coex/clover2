@@ -216,7 +216,7 @@ void map_server::handle_map(
         info.count = static_cast<int>(map.markers.size());
         info.markers.reserve(map.markers.size());
 
-        for (const auto& mk : map.markers) {
+        for (const auto& [id, mk] : map.markers) {
             info.markers.push_back(to_info(mk));
         }
     }
@@ -235,7 +235,7 @@ void map_server::handle_marker(
     }
 
     const auto map = m_map_client->snapshot();
-    for (const auto& mk : map.markers) {
+    for (const auto& [_, mk] : map.markers) {
         if (mk.id == id) {
             reply(to_info(mk), 200);
             return;
