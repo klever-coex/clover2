@@ -84,41 +84,12 @@ void field_editor::save() noexcept {
 }
 
 void field_editor::try_save() {
-    const auto& type = m_field->type();
-    try {
-        switch (type) {
-            case api::settings::field_type::BOOL:
-                m_field->set(m_toggle->is_on);
-
-                break;
-            case api::settings::field_type::INT: {
-                int val = std::stoi(m_input->get_value());
-                m_field->set(val);
-
-                break;
-            }
-            case api::settings::field_type::FLOAT: {
-                double val = std::stod(m_input->get_value());
-                m_field->set(val);
-
-                break;
-            }
-            case api::settings::field_type::STR:
-            default:
-                if (m_field->is_enum()) {
-                    if (!m_field->set_enum(m_input->get_value())) {
-                        throw std::invalid_argument("Value not in enum");
-                    }
-                } else {
-                    m_field->set(m_input->get_value());
-                }
-
-                break;
-        }
-
-    } catch (const std::exception&) {
-        throw std::invalid_argument("Invalid field value");
+    if (m_toggle) {
+        m_field->set(m_toggle->is_on);
+        return;
     }
+
+    m_field->set_from_string(m_input->get_value());
 }
 
 void field_editor::on_focus() {

@@ -3,6 +3,11 @@ on:
   schedule:
     - cron: "0 0 * * 0"
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'List what would be deleted'
+        type: boolean
+        default: false
 
 permissions:
   packages: write
@@ -15,10 +20,10 @@ jobs:
         uses: snok/container-retention-policy@v3.1.0
         with:
           account: klever-coex
-          token: ${{ secrets.GHCR_PAT }}
+          token: ${{ secrets.GH_PAT }}
           image-names: "clover2/*"
           cut-off: "3d"
           keep-n-most-recent: 3
           image-tags: "!latest !stable"
-          dry-run: false
+          dry-run: ${{ inputs.dry_run == true }}
           tag-selection: both

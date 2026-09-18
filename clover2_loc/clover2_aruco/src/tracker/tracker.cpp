@@ -65,8 +65,8 @@ tracker::CallbackReturn tracker::on_configure(
     auto node_context = std::make_shared<clover2_common::node_context>(*this);
 
     try {
-        m_map_client = std::make_shared<clover2::map::client>(
-            node_context, m_callback_group);
+        m_map_client = std::make_shared<clover2_map::client>(
+            this, m_callback_group);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map client. Exception: %s",
                      e.what());
@@ -116,6 +116,7 @@ tracker::CallbackReturn tracker::on_deactivate(
     m_pose_pub.reset();
     m_pose_cov_pub.reset();
     m_poses_debug_pub.reset();
+    m_tags_pub.reset();
 
     m_tf_listener.reset();
     m_tf_buffer.reset();
@@ -142,9 +143,7 @@ tracker::CallbackReturn tracker::on_shutdown(
 
 void tracker::markers_callback(
     const clover2_pose_msgs::msg::MarkerArray::SharedPtr msg) {
-    auto diagnostic_interface = get_node_diagnostics_interface();
-
-    if (msg->markers.size() == 0) {
+    if (msg->markers.empty()) {
         return;
     }
 
@@ -171,6 +170,7 @@ void tracker::markers_callback(
     estimated_pose_cov.header = estimated_pose.header;
 
     // debug poses of camera from each marker
+    size_t processed_count = 0;
     geometry_msgs::msg::PoseArray poses_debug;
     poses_debug.header.stamp = msg->header.stamp;
     poses_debug.header.frame_id = m_map_client->get_map_id();
@@ -182,12 +182,19 @@ void tracker::markers_callback(
     Eigen::Vector4d cumulative_q = Eigen::Vector4d::Zero();
 
     for (const auto& marker : msg->markers) {
+        if (!m_map_client->has_marker(marker.id)) {
+            continue;
+        }
+
+        const auto map_marker = m_map_client->get_marker(marker.id);
+        if (map_marker.type != clover2_map::marker_type::fixed) {
+            continue;
+        }
+
         Eigen::Isometry3d marker_pose = Eigen::Isometry3d::Identity();
         tf2::fromMsg(marker.pose.pose, marker_pose);
 
-        Eigen::Isometry3d camera_in_map =
-            m_map_client->get_transform(marker.id) * marker_pose.inverse();
-
+        Eigen::Isometry3d camera_in_map = *map_marker.pose * marker_pose.inverse();
         Eigen::Isometry3d drone_in_map = camera_in_map * camera_transform;
 
         // add debug transform
@@ -197,11 +204,13 @@ void tracker::markers_callback(
         avg_translation += drone_in_map.translation();
         Eigen::Quaterniond q(drone_in_map.rotation());
         cumulative_q += q.coeffs();
+
+        processed_count++;
     }
 
     // finalize pose estimation
-    avg_translation /= static_cast<double>(msg->markers.size());
-    cumulative_q /= static_cast<double>(msg->markers.size());
+    avg_translation /= static_cast<double>(processed_count);
+    cumulative_q /= static_cast<double>(processed_count);
     avg_quat.coeffs() = cumulative_q.normalized();
 
     // fill pose msg
@@ -223,7 +232,8 @@ void tracker::markers_callback(
     m_pose_pub->publish(estimated_pose);
     m_pose_cov_pub->publish(estimated_pose_cov);
 
-    publish_tf(estimated_pose.header, result_pose.inverse());
+    publish_tf(estimated_pose.header, result_pose);
+    auto diagnostic_interface = get_node_diagnostics_interface();
     diagnostic_interface->get<diagnostics::pose_task>().update_pose(
         estimated_pose.header.stamp, estimated_pose.pose);
 
@@ -240,8 +250,8 @@ void tracker::publish_tf(const std_msgs::msg::Header& header,
             tf2::eigenToTransform(pose);
 
         transform.header.stamp = header.stamp;
-        transform.header.frame_id = m_child_frame_id;
-        transform.child_frame_id = header.frame_id;
+        transform.header.frame_id = header.frame_id;
+        transform.child_frame_id = m_child_frame_id;
 
         m_tf_broadcaster->sendTransform(transform);
     }

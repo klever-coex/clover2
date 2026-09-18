@@ -2,12 +2,13 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>clover2</name>
-  <version>0.1.9</version>
+  <version>0.2.0</version>
   <description>TODO: Package description</description>
   <maintainer email="2663161@mail.ru">l_motya</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_auto</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <depend>rclpy</depend>
@@ -22,9 +23,12 @@
   <depend>clover2_common</depend>
   <depend>clover2_description</depend>
   <depend>clover2_display_msgs</depend>
+  <depend>clover2_display</depend>
   <depend>clover2_fcu_bridge</depend>
-  <depend>clover2_led</depend>
+  <depend>clover2_http_plugins</depend>
+  <depend>clover2_http</depend>
   <depend>clover2_led_msgs</depend>
+  <depend>clover2_led</depend>
   <depend>clover2_map</depend>
   <depend>clover2_mavros</depend>
   <depend>clover2_nav_msgs</depend>

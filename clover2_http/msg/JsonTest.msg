@@ -1,0 +1,10 @@
+bool flag
+uint8 byte_value
+int32 number
+float64 ratio
+string name
+int32[3] fixed_array
+float64[] values
+string[] tags
+JsonTestInner inner
+JsonTestInner[] inners

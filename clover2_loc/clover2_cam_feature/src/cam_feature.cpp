@@ -9,6 +9,7 @@
 #include <cv_bridge/cv_bridge.hpp>
 
 // ROS2
+#include <image_transport/image_transport.hpp>
 #include <rclcpp/executor.hpp>
 #include <rclcpp/logging.hpp>
 #include <sensor_msgs/image_encodings.hpp>
@@ -60,7 +61,7 @@ cam_feature::CallbackReturn cam_feature::on_configure(
     auto node_context = std::make_shared<clover2_common::node_context>(*this);
 
     try {
-        m_map_client = std::make_shared<clover2::map::client>(node_context);
+        m_map_client = std::make_shared<clover2_map::client>(this);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map: %s", e.what());
         on_cleanup(state);

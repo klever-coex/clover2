@@ -1,0 +1,16 @@
+[Unit]
+Description=Clover2 ROS Service
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+EnvironmentFile=/opt/clover2/.ros2.env
+ExecStart=/usr/local/bin/clover2_backend_run.sh
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

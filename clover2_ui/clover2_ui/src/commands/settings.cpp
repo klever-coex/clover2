@@ -7,7 +7,6 @@
 #include <cpptui/cpptui.hpp>
 
 #include <filesystem>
-#include <fstream>
 #include <memory>
 #include <string>
 
@@ -68,14 +67,17 @@ int main(int argc, char** argv) {
     nav->add_key_binding(
         {'s', true},
         [&]() {
-            std::ofstream out(values_path);
-            if (out) {
-                out << root_field->to_yaml_value();
+            try {
+                root_field->save_to_file(values_path);
                 root_field->mark_clean();
-            }
 
-            nav->show_notification("File saved.",
-                                   cpptui::Notification::Type::Success, 1000);
+                nav->show_notification("File saved.",
+                                       cpptui::Notification::Type::Success,
+                                       1000);
+            } catch (const std::exception& e) {
+                nav->show_notification(e.what(),
+                                       cpptui::Notification::Type::Error, 1000);
+            }
         },
         "ctrl^s", "Save");
 

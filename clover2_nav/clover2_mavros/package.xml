@@ -1,12 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <package format="3">
   <name>clover2_mavros</name>
-  <version>0.1.9</version>
+  <version>0.2.0</version>
   <description>Clover2 MAVROS plugins (VIO pose to MAVLink ODOMETRY)</description>
   <maintainer email="2663161@main.com">l_motya</maintainer>
   <license>TODO</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_auto</buildtool_depend>
   <buildtool_depend>eigen3_cmake_module</buildtool_depend>
 
   <build_depend>eigen</build_depend>
