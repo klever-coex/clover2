@@ -4,22 +4,19 @@ build-backend = "hatchling.build"
 
 [project]
 name = "clover2-tooling"
-version = "0.1.0"
-description = "Clover2 project tooling: version management and image builder"
+version = "0.2.0"
+description = "Clover2-specific plugins for the clover2-dev CLI"
 requires-python = ">=3.12"
 dependencies = [
-    "semver",
-    "lxml",
-    "gitpython>=3.1",
-    "requests",
-    "asyncssh>=2.21.1",
-    "docker",
-    "minio",
+    "click>=8.1",
 ]
 
-[project.scripts]
-clover2_tooling = "clover2_tooling.cli:main"
+[project.entry-points."clover2_dev.plugins"]
+settings = "clover2_tooling.settings:plugin"
+diagnostics = "clover2_tooling.diagnostics:plugin"
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["clover2_tooling"]
-

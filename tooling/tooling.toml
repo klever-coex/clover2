@@ -1,0 +1,9 @@
+[project]
+name = "clover2"
+
+[plugins.version]
+search_root = "."
+reference = "ros::clover2"
+
+[plugins.settings]
+config = "config.yaml"
