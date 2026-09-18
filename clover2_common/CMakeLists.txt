@@ -13,8 +13,7 @@ ament_auto_find_build_dependencies()
 
 set(CLOVER2_VERSION_COMPOSED "$ENV{CLOVER2_VERSION}")
 if("${CLOVER2_VERSION_COMPOSED}" STREQUAL "")
-  ament_package_xml()
-  set(CLOVER2_VERSION_COMPOSED "${${PROJECT_NAME}_VERSION}")
+  set(CLOVER2_VERSION_COMPOSED "${${PROJECT_NAME}_VERSION}+dirty")
 endif()
 message(STATUS "clover2_common: baking version '${CLOVER2_VERSION_COMPOSED}'")
 
