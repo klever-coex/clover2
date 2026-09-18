@@ -5,13 +5,21 @@
 
 namespace clover2_map {
 
+void map::add_marker(marker&& m) {
+    markers[m.id] = std::move(m);
+}
+
+void map::add_marker(const marker& m) {
+    markers[m.id] = m;
+}
+
 void map::to_msg(clover2_pose_msgs::msg::MarkerMap& msg) const {
     msg.header.frame_id = frame_id;
     msg.name = name;
     msg.dictionary = dictionary;
     msg.markers.clear();
 
-    for (const auto& m : markers) {
+    for (const auto& [_, m] : markers) {
         clover2_pose_msgs::msg::Marker out;
         m.to_msg(out);
         msg.markers.push_back(std::move(out));
@@ -26,7 +34,7 @@ map map::from_msg(const clover2_pose_msgs::msg::MarkerMap& msg) {
 
     m.markers.reserve(msg.markers.size());
     for (const auto& it : msg.markers) {
-        m.markers.push_back(marker::from_msg(it));
+        m.markers[it.id] = marker::from_msg(it);
     }
 
     return m;
