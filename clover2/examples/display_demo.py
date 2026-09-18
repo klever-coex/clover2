@@ -29,10 +29,9 @@ def make_test_image(width: int, height: int) -> Image:
 
 drone = Clover2()
 
-if drone.display is None:
+display = drone.display()
+if display is None:
     raise RuntimeError('Display driver is not available')
-
-display = drone.display
 if 'mono8' not in display.supported_encodings:
     raise RuntimeError(
         f'Display does not support mono8: {display.supported_encodings}'
