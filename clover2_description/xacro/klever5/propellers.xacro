@@ -1,20 +1,15 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:macro name="klever5_propeller" params="name xyz rpy">
-    <!-- Approximate hardware constants: kg, m; uniform-box inertia. -->
-    <xacro:property name="mass" value="${0.003}"/>
-    <xacro:property name="inertia_size" value="${[0.091603, 0.1050184, 0.008542]}"/>
-    <xacro:property name="com" value="${[-0.014212, -0.000231, 0.0]}"/>
-    <xacro:property name="collision_size" value="${[0.091603, 0.1050184, 0.008542]}"/>
-    <xacro:property name="collision_xyz" value="${[-0.014212, -0.000231, 0.0]}"/>
-    <xacro:property name="physics" value="${dict(mass=mass, inertia_size=inertia_size, com=com, collision_size=collision_size, collision_xyz=collision_xyz)}"/>
-    <xacro:mesh_link name="${name}_link" mesh="klever5/propeller.dae" physics="${physics}"/>
-    <xacro:mount name="${name}_joint" parent="base_link" child="${name}_link" xyz="${xyz}" rpy="${rpy}"/>
+  <xacro:include filename="../common/geometry.xacro"/>
+  <xacro:macro name="klever5_propeller" params="name parent propeller xyz rpy">
+    <xacro:property name="physics" value="${dict(mass=propeller['mass'], inertia_size=propeller['inertia_size'], com=propeller['com'], collision_size=propeller['collision_size'], collision_xyz=propeller['collision_xyz'])}"/>
+    <xacro:mesh_link name="${name}_link" mesh="${propeller['mesh']}" physics="${physics}"/>
+    <xacro:mount name="${name}_joint" parent="${parent}" child="${name}_link" xyz="${xyz}" rpy="${rpy}"/>
   </xacro:macro>
-  <xacro:macro name="klever5_propellers" params="">
-    <xacro:klever5_propeller name="propeller_front_left" xyz="0.077 0.077 0.058" rpy="0 0 0"/>
-    <xacro:klever5_propeller name="propeller_front_right" xyz="0.077 -0.077 0.058" rpy="0 0 0"/>
-    <xacro:klever5_propeller name="propeller_rear_left" xyz="-0.077 0.077 0.058" rpy="0 0 0"/>
-    <xacro:klever5_propeller name="propeller_rear_right" xyz="-0.077 -0.077 0.058" rpy="0 0 0"/>
+  <xacro:macro name="klever5_propellers" params="propeller rotors parent:=base_link prefix:=''">
+    <xacro:klever5_propeller propeller="${propeller}" parent="${parent}" name="${prefix}propeller_front_left" xyz="${rotors['front_left']['xyz']}" rpy="${rotors['front_left']['rpy']}"/>
+    <xacro:klever5_propeller propeller="${propeller}" parent="${parent}" name="${prefix}propeller_front_right" xyz="${rotors['front_right']['xyz']}" rpy="${rotors['front_right']['rpy']}"/>
+    <xacro:klever5_propeller propeller="${propeller}" parent="${parent}" name="${prefix}propeller_rear_left" xyz="${rotors['rear_left']['xyz']}" rpy="${rotors['rear_left']['rpy']}"/>
+    <xacro:klever5_propeller propeller="${propeller}" parent="${parent}" name="${prefix}propeller_rear_right" xyz="${rotors['rear_right']['xyz']}" rpy="${rotors['rear_right']['rpy']}"/>
   </xacro:macro>
 </robot>

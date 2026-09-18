@@ -8,7 +8,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 
 install(
-  DIRECTORY xacro meshes config launch
+  DIRECTORY xacro gazebo meshes config launch
   DESTINATION share/${PROJECT_NAME}
 )
 

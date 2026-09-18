@@ -1,15 +1,9 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:include filename="common.xacro"/>
   <!-- Approximate box inertias and collision geometry; hardware parameters are supplied by component macros. -->
   <xacro:macro name="physical_box" params="physics">
-    <xacro:property name="m" value="${physics['mass']}"/>
-    <xacro:property name="s" value="${physics['inertia_size']}"/>
-    <inertial>
-      <origin xyz="${' '.join(str(v) for v in physics['com'])}" rpy="0 0 0"/>
-      <mass value="${m}"/>
-      <inertia ixx="${m*(s[1]**2+s[2]**2)/12}" iyy="${m*(s[0]**2+s[2]**2)/12}"
-               izz="${m*(s[0]**2+s[1]**2)/12}" ixy="0" ixz="0" iyz="0"/>
-    </inertial>
+    <xacro:box_inertial physics="${physics}" format="urdf"/>
     <collision>
       <origin xyz="${' '.join(str(v) for v in physics['collision_xyz'])}" rpy="0 0 0"/>
       <geometry><box size="${' '.join(str(v) for v in physics['collision_size'])}"/></geometry>

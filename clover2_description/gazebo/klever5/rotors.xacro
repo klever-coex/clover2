@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<sdf xmlns:xacro="http://www.ros.org/wiki/xacro" version="1.9">
+  <xacro:include filename="../../xacro/common/common.xacro"/>
+  <!-- Gazebo rotor links, joints and PX4 motor-model plugins. -->
+  <xacro:macro name="klever5_gazebo_rotor" params="name config description_share">
+    <xacro:property name="propeller" value="${config['propeller']}"/>
+    <xacro:property name="motor" value="${config['simulation']['motor']}"/>
+    <xacro:property name="rotor" value="${config['rotors'][name]}"/>
+    <xacro:property name="index" value="${rotor['gazebo_index']}"/>
+    <link name="rotor_${index}">
+      <pose>${rotor['xyz']} ${rotor['rpy']}</pose>
+      <xacro:box_inertial physics="${propeller}" format="sdf"/>
+      <visual name="rotor_${index}_visual">
+        <geometry>
+          <mesh><uri>file://${description_share}/meshes/${propeller['mesh']}</uri></mesh>
+        </geometry>
+      </visual>
+      <collision name="rotor_${index}_collision">
+        <pose>${' '.join(str(value) for value in propeller['collision_xyz'])} 0 0 0</pose>
+        <geometry><box><size>${' '.join(str(value) for value in propeller['collision_size'])}</size></box></geometry>
+      </collision>
+    </link>
+    <joint name="rotor_${index}_joint" type="revolute">
+      <parent>base_link</parent><child>rotor_${index}</child>
+      <axis><xyz>0 0 1</xyz><limit><lower>-1e+16</lower><upper>1e+16</upper></limit></axis>
+    </joint>
+    <plugin filename="gz-sim-multicopter-motor-model-system" name="gz::sim::systems::MulticopterMotorModel">
+      <jointName>rotor_${index}_joint</jointName>
+      <linkName>rotor_${index}</linkName>
+      <turningDirection>${rotor['turning_direction']}</turningDirection>
+      <timeConstantUp>${motor['timeConstantUp']}</timeConstantUp>
+      <timeConstantDown>${motor['timeConstantDown']}</timeConstantDown>
+      <maxRotVelocity>${motor['maxRotVelocity']}</maxRotVelocity>
+      <motorConstant>${motor['motorConstant']}</motorConstant>
+      <momentConstant>${motor['momentConstant']}</momentConstant>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <actuator_number>${index}</actuator_number>
+      <rotorDragCoefficient>${motor['rotorDragCoefficient']}</rotorDragCoefficient>
+      <rollingMomentCoefficient>${motor['rollingMomentCoefficient']}</rollingMomentCoefficient>
+      <rotorVelocitySlowdownSim>${motor['rotorVelocitySlowdownSim']}</rotorVelocitySlowdownSim>
+      <motorType>velocity</motorType>
+    </plugin>
+  </xacro:macro>
+
+  <xacro:macro name="klever5_gazebo_rotors" params="config description_share">
+    <xacro:klever5_gazebo_rotor config="${config}" description_share="${description_share}" name="front_left"/>
+    <xacro:klever5_gazebo_rotor config="${config}" description_share="${description_share}" name="front_right"/>
+    <xacro:klever5_gazebo_rotor config="${config}" description_share="${description_share}" name="rear_left"/>
+    <xacro:klever5_gazebo_rotor config="${config}" description_share="${description_share}" name="rear_right"/>
+  </xacro:macro>
+</sdf>

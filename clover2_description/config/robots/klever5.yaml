@@ -1,5 +1,44 @@
-# Module mounting relative to base_link: xyz in metres, rpy in radians.
-# Mounts are preliminary, not calibrated extrinsics. Hardware constants live in xacro.
+# Klever5 geometry and module mounting relative to base_link.
+# Lengths are in metres, mass is in kilograms, and rotations are in radians.
+body:
+  mesh: "klever5/body.dae"
+  mass: 0.72
+  inertia_size: [0.328, 0.328, 0.106]
+  com: [0.0, 0.0, 0.0]
+  collision_size: [0.3280731, 0.3283458, 0.2147339]
+  collision_xyz: [1.0e-07, 0.0, 1.0e-07]
+
+propeller:
+  mesh: "klever5/propeller.dae"
+  mass: 0.003
+  inertia_size: [0.091603, 0.1050184, 0.008542]
+  com: [-0.014212, -0.000231, 0.0]
+  collision_size: [0.091603, 0.1050184, 0.008542]
+  collision_xyz: [-0.014212, -0.000231, 0.0]
+
+# Gazebo rotor index and rotation direction preserve PX4 actuator ordering.
+rotors:
+  front_left:
+    xyz: "0.077 0.077 0.058"
+    rpy: "0 0 0"
+    gazebo_index: 2
+    turning_direction: "cw"
+  front_right:
+    xyz: "0.077 -0.077 0.058"
+    rpy: "0 0 0"
+    gazebo_index: 0
+    turning_direction: "ccw"
+  rear_left:
+    xyz: "-0.077 0.077 0.058"
+    rpy: "0 0 0"
+    gazebo_index: 1
+    turning_direction: "ccw"
+  rear_right:
+    xyz: "-0.077 -0.077 0.058"
+    rpy: "0 0 0"
+    gazebo_index: 3
+    turning_direction: "cw"
+
 modules:
   main_camera:
     xyz: "0.055 0 0"
@@ -13,3 +52,30 @@ modules:
   led_strip:
     xyz: "0 0 0.025"
     rpy: "0 0 0"
+
+# Provisional simulation coefficients; not calibrated against the real powertrain.
+simulation:
+  motor:
+    timeConstantUp: 0.0125
+    timeConstantDown: 0.025
+    maxRotVelocity: 1000.0
+    motorConstant: 8.54858e-06
+    momentConstant: 0.016
+    rotorDragCoefficient: 8.06428e-05
+    rollingMomentCoefficient: 1.0e-06
+    rotorVelocitySlowdownSim: 10
+  camera:
+    horizontal_fov: 1.8
+    width: 640
+    height: 480
+    near: 0.05
+    far: 300.0
+    update_rate: 30
+  lidar:
+    samples: 720
+    min_angle: -3.141592653589793
+    max_angle: 3.141592653589793
+    min_range: 0.15
+    max_range: 12.0
+    resolution: 0.01
+    update_rate: 10

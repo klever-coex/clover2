@@ -1,15 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:macro name="klever5_body" params="">
-    <!-- Body includes battery, electronics, motors and lower camera.
-         Inertia uses supplied 328x328x106 mm; collision follows mesh including legs. -->
-    <!-- Approximate hardware constants: kg, m; uniform-box inertia. -->
-    <xacro:property name="mass" value="${0.72}"/>
-    <xacro:property name="inertia_size" value="${[0.328, 0.328, 0.106]}"/>
-    <xacro:property name="com" value="${[0.0, 0.0, 0.0]}"/>
-    <xacro:property name="collision_size" value="${[0.3280731, 0.3283458, 0.2147339]}"/>
-    <xacro:property name="collision_xyz" value="${['1e-07', 0.0, '1e-07']}"/>
-    <xacro:property name="physics" value="${dict(mass=mass, inertia_size=inertia_size, com=com, collision_size=collision_size, collision_xyz=collision_xyz)}"/>
-    <xacro:mesh_link name="base_link" mesh="klever5/body.dae" physics="${physics}"/>
+  <xacro:include filename="../common/geometry.xacro"/>
+  <xacro:macro name="klever5_body" params="body name:=base_link">
+    <xacro:property name="physics" value="${dict(mass=body['mass'], inertia_size=body['inertia_size'], com=body['com'], collision_size=body['collision_size'], collision_xyz=body['collision_xyz'])}"/>
+    <xacro:mesh_link name="${name}" mesh="${body['mesh']}" physics="${physics}"/>
   </xacro:macro>
 </robot>

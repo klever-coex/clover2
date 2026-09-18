@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<sdf xmlns:xacro="http://www.ros.org/wiki/xacro" version="1.9">
+  <xacro:include filename="../../xacro/common/common.xacro"/>
+  <xacro:macro name="sdf_component" params="name parent mount physics description_share *content">
+    <link name="${name}">
+      <pose relative_to="${parent}">${mount['xyz']} ${mount['rpy']}</pose>
+      <xacro:box_inertial physics="${physics}" format="sdf"/>
+      <visual name="visual">
+        <geometry><mesh><uri>file://${description_share}/meshes/${physics['mesh']}</uri></mesh></geometry>
+      </visual>
+      <collision name="collision">
+        <pose>${' '.join(str(v) for v in physics['collision_xyz'])} 0 0 0</pose>
+        <geometry><box><size>${' '.join(str(v) for v in physics['collision_size'])}</size></box></geometry>
+      </collision>
+      <xacro:insert_block name="content"/>
+    </link>
+    <joint name="${name}_mount_joint" type="fixed">
+      <parent>${parent}</parent><child>${name}</child>
+    </joint>
+  </xacro:macro>
+  <xacro:macro name="sdf_camera_sensor" params="name settings xyz:='0 0 0' rpy:='0 0 0'">
+    <!-- Gazebo camera uses housing axes (+X forward); ROS bridge uses optical frame. -->
+    <sensor name="${name}" type="camera">
+      <pose>${xyz} ${rpy}</pose>
+      <always_on>true</always_on><update_rate>${settings['update_rate']}</update_rate>
+      <camera>
+        <horizontal_fov>${settings['horizontal_fov']}</horizontal_fov>
+        <image><width>${settings['width']}</width><height>${settings['height']}</height><format>R8G8B8</format></image>
+        <clip><near>${settings['near']}</near><far>${settings['far']}</far></clip>
+      </camera>
+    </sensor>
+  </xacro:macro>
+  <xacro:macro name="sdf_lidar_sensor" params="settings">
+    <sensor name="lidar" type="gpu_lidar">
+      <always_on>true</always_on><update_rate>${settings['update_rate']}</update_rate>
+      <lidar>
+        <scan><horizontal>
+          <samples>${settings['samples']}</samples><resolution>1</resolution>
+          <min_angle>${settings['min_angle']}</min_angle><max_angle>${settings['max_angle']}</max_angle>
+        </horizontal></scan>
+        <range><min>${settings['min_range']}</min><max>${settings['max_range']}</max><resolution>${settings['resolution']}</resolution></range>
+      </lidar>
+    </sensor>
+  </xacro:macro>
+</sdf>

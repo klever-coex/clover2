@@ -1,15 +1,10 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:include filename="../common/geometry.xacro"/>
   <!-- Body link: X forward, Y left, Z up. *_link is the optical frame
        (Z forward, X right, Y down), preserving the camera driver interface. -->
   <xacro:macro name="description_camera" params="name parent xyz rpy include_visual:=true include_physics:=true">
-    <!-- Approximate hardware constants: kg, m; uniform-box inertia. -->
-    <xacro:property name="mass" value="${0.018}"/>
-    <xacro:property name="inertia_size" value="${[0.0174835, 0.0250188, 0.024021]}"/>
-    <xacro:property name="com" value="${['-6e-06', 0.0, 6.6e-06]}"/>
-    <xacro:property name="collision_size" value="${[0.0174835, 0.0250188, 0.024021]}"/>
-    <xacro:property name="collision_xyz" value="${['-6e-06', 0.0, 6.6e-06]}"/>
-    <xacro:property name="physics" value="${dict(mass=mass, inertia_size=inertia_size, com=com, collision_size=collision_size, collision_xyz=collision_xyz)}"/>
+    <xacro:property name="physics" value="${component_physics['camera']}"/>
     <link name="${name}_body_link">
       <xacro:if value="${include_physics}">
         <xacro:physical_box physics="${physics}"/>

@@ -1,4 +1,5 @@
 <launch>
+  <arg name="config_file" default="$(find-pkg-share clover2_description)/config/robots/klever5.yaml"/>
   <arg name="enable_main_camera" default="true"/>
   <arg name="enable_front_camera" default="false"/>
   <arg name="enable_lidar" default="false"/>
@@ -6,6 +7,7 @@
   <arg name="use_sim_time" default="false"/>
   <arg name="ns" default=""/>
   <include file="$(find-pkg-share clover2_description)/launch/description.launch.xml">
+    <arg name="config_file" value="$(var config_file)"/>
     <arg name="enable_main_camera" value="$(var enable_main_camera)"/>
     <arg name="enable_front_camera" value="$(var enable_front_camera)"/>
     <arg name="enable_lidar" value="$(var enable_lidar)"/>

@@ -1,13 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:include filename="../common/geometry.xacro"/>
   <xacro:macro name="description_lidar" params="parent xyz rpy name:='laser'">
-    <!-- Approximate hardware constants: kg, m; uniform-box inertia. -->
-    <xacro:property name="mass" value="${0.1}"/>
-    <xacro:property name="inertia_size" value="${[0.0837121, 0.0556375, 0.1242414]}"/>
-    <xacro:property name="com" value="${[-0.0149865, 1.12e-05, -0.0500253]}"/>
-    <xacro:property name="collision_size" value="${[0.0837121, 0.0556375, 0.1242414]}"/>
-    <xacro:property name="collision_xyz" value="${[-0.0149865, 1.12e-05, -0.0500253]}"/>
-    <xacro:property name="physics" value="${dict(mass=mass, inertia_size=inertia_size, com=com, collision_size=collision_size, collision_xyz=collision_xyz)}"/>
+    <xacro:property name="physics" value="${component_physics['lidar']}"/>
     <xacro:mesh_link physics="${physics}" name="${name}" mesh="modules/lidar.dae"/>
     <xacro:mount name="${name}_joint" parent="${parent}" child="${name}"
       xyz="${xyz}" rpy="${rpy}"/>
