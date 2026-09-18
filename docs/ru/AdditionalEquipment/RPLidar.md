@@ -115,7 +115,7 @@ distance = ranges[i]
 
 ### Запуск через `clover2-settings`
 
-Чтобы включить лидар в Клевер необходимо открыть настройки `clover2-settings` и в группе `2d_lidar` включить настройку `enable`.
+Чтобы включить лидар в Клевере, откройте `clover2-settings`, перейдите в раздел `additional_sensors` и включите настройку `2d_lidar`.
 
 ```{figure} @assets@/common/programming/sensors/rplidar/2d-lidar-enable.webp
 :alt: Экран настроек 2d_lidar

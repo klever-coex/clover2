@@ -72,21 +72,20 @@ indication:
       type: bool
       default: true
       description: "Enable LED Strip driver"
-
-display:
-  type: object
-  description: "Display settings"
-  fields:
     display:
       type: bool
       default: true
       description: "Enable display driver"
 
-2d_lidar:
+additional_sensors:
   type: object
-  description: "RPLidar Driver Settings"
+  description: "Additional sensor settings"
   fields:
-    enable:
+    thermal_camera:
       type: bool
       default: false
-      description: "Enable RPLidar Driver"
+      description: "Enable thermal camera driver"
+    2d_lidar:
+      type: bool
+      default: false
+      description: "Enable RPLidar driver"
