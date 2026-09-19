@@ -15,20 +15,20 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-python@v7
-      with:
-        python-version: '3.12'
+    - uses: astral-sh/setup-uv@v6
 
-    - name: Install dependencies
+    - name: Install tooling CLI
       shell: bash
-      run: pip install semver lxml gitpython
+      run: |
+        uv sync --frozen --project tooling
+        echo "$PWD/tooling/.venv/bin" >> "$GITHUB_PATH"
 
     - id: compose
       env:
         GITHUB_REF: ${{ github.ref }}
       shell: bash
       run: |
-        COMPOSE=$(python3 tooling/scripts/version_manager -d . compose --ref "$GITHUB_REF" --json)
+        COMPOSE=$(clover2_tooling version compose --ref "$GITHUB_REF" --json)
         echo "compose: ${COMPOSE}"
         echo "build_mode=$(echo "${COMPOSE}" | jq -r .build_mode)" >> "$GITHUB_OUTPUT"
         echo "git_hash=$(echo "${COMPOSE}" | jq -r .git_hash)" >> "$GITHUB_OUTPUT"

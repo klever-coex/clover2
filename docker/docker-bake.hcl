@@ -148,7 +148,7 @@ target "ros-test" {
 #   /_/  \___/\___/_/_/_//_/\_, /
 #                          /___/
 
-target "builder" {
+target "clover2-tooling" {
   dockerfile = item.dockerfile
   name = item.tgt
   tags = tagged(item.tgt)
@@ -158,8 +158,8 @@ target "builder" {
   matrix = {
     item = [
       {
-        dockerfile = "docker/builder/Dockerfile"
-        tgt = "clover2-builder"
+        dockerfile = "docker/tooling/Dockerfile"
+        tgt = "clover2-tooling"
       }
     ]
   }
@@ -215,7 +215,7 @@ group "px4" {
 }
 
 group "tooling" {
-  targets = ["builder"]
+  targets = ["clover2-tooling"]
 }
 
 group "web" {

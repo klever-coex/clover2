@@ -62,7 +62,8 @@ def collect_patches(patches_path: str, recursive: bool = True) -> List[str]:
     return patch_files
 
 
-def patches_unwind(repo_path: str, applied_patch_list: list):
+def patches_unwind(repo_path: str, applied_patch_list: list) -> None:
+    """Revert already applied patches, newest first."""
     logger.info("Attempting to remove applied patches in order...")
 
     for patch in applied_patch_list:
@@ -71,51 +72,39 @@ def patches_unwind(repo_path: str, applied_patch_list: list):
             "apply",
             "--unsafe-paths",
             "-R",
+            "--directory=" + repo_path,
             patch,
-            "--directory=",
-            repo_path,
         ]
 
-        logger.info(f"Attempting to revert patch: {patch}")
+        logger.info("Attempting to revert patch: %s", patch)
 
-        return_code = subprocess.run(command)
-        logger.info(f"Return code: {return_code}")
-
-        if return_code != 0:
+        result = subprocess.run(command)
+        if result.returncode != 0:
             logger.error("FAILED TO REVERT PATCH!")
             logger.error("The destination repo is probably now in a bad state.")
             logger.error("It may require some manual cleanup.")
-            patches_unwind(repo_path, applied_patch_list)
             sys.exit(255)
-        else:
-            applied_patch_list.append(patch)
 
 
-def apply_patches(repo_path: str, patch_list: list):
-    applied_patch_list = []
+def apply_patches(repo_path: str, patch_list: list) -> None:
+    applied_patch_list: list[str] = []
 
     for patch in patch_list:
         command = [
             "git",
             "apply",
             "--unsafe-paths",
-            patch,
             "--directory=" + repo_path,
+            patch,
         ]
 
-        logger.info("Attempting to apply patch: " + patch)
+        logger.info("Attempting to apply patch: %s", patch)
 
-        return_code = -1
-
-        try:
-            return_code = subprocess.run(command)
-        except subprocess.CalledProcessError as grepexc:
-            logger.info("error code", grepexc.returncode, grepexc.output)
-
-            if return_code != 0:
-                logger.info("FAILED TO APPLY PATCH!")
-                patches_unwind(repo_path, applied_patch_list)
-                sys.exit(255)
+        result = subprocess.run(command)
+        if result.returncode != 0:
+            logger.error("FAILED TO APPLY PATCH!")
+            patches_unwind(repo_path, applied_patch_list)
+            sys.exit(255)
 
         applied_patch_list.insert(0, patch)
 

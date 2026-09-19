@@ -42,12 +42,12 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
 
-      - uses: actions/setup-python@v7
-        with:
-          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v6
 
-      - name: Install dependencies
-        run: pip install -r ./tooling/requirements.txt
+      - name: Install tooling CLI
+        run: |
+          uv sync --frozen --project tooling
+          echo "$PWD/tooling/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Prepare version
         id: prepare
@@ -56,7 +56,7 @@ jobs:
           BUMP: ${{ inputs.bump }}
           PROMOTE_FROM: ${{ inputs.promote_from }}
         run: |
-          VM="python3 tooling/scripts/version_manager -d ."
+          VM="clover2_tooling version -d ."
 
           if [[ "$CHANNEL" == "pre-release" ]]; then
             BUMP_JSON=$($VM bump rc --base "$BUMP" --json)
