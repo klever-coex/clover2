@@ -171,8 +171,9 @@ void yaml::save(const clover2_map::map& map) const {
 
     double common_size = -1.0;
     if (!map.markers.empty()) {
-        common_size = map.markers[0].size;
-        for (const auto& m : map.markers) {
+        common_size = map.markers.begin()->second.size;
+
+        for (const auto& [id, m] : map.markers) {
             if (std::abs(m.size - common_size) > 1e-9) {
                 common_size = -1.0;
                 break;
@@ -185,7 +186,7 @@ void yaml::save(const clover2_map::map& map) const {
     }
 
     YAML::Node markers(YAML::NodeType::Sequence);
-    for (const auto& m : map.markers) {
+    for (const auto& [id, m] : map.markers) {
         YAML::Node entry = YAML::convert<clover2_map::marker>::encode(m);
 
         if (common_size > 0.0) {
@@ -257,7 +258,7 @@ void yaml::load_impl(clover2_map::map& map) {
                                      m_filename.string() + "'");
         }
 
-        map.markers.push_back(std::move(mk));
+        map.add_marker(std::move(mk));
     }
 }
 

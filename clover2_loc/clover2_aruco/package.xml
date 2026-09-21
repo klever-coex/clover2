@@ -10,6 +10,7 @@
   <author email="2663161@mail.ru">l_motya</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_auto</buildtool_depend>
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
   <depend>clover2_common</depend>
@@ -17,6 +18,9 @@
   <depend>clover2_pose_msgs</depend>
   <depend>diagnostic_msgs</depend>
   <depend>diagnostic_updater</depend>
+  <depend>lifecycle_msgs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>rclcpp_components</depend>
   <depend>rclcpp_lifecycle</depend>
