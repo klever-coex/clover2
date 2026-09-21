@@ -1,7 +1,9 @@
 # Klever5 geometry and module mounting relative to base_link.
 # Lengths are in metres, mass is in kilograms, and rotations are in radians.
 body:
-  mesh: "klever5/body.dae"
+  mesh: "klever5/body.glb"
+  xyz: "0 0 0"
+  rpy: "3.14 0 3.14"
   mass: 0.72
   inertia_size: [0.328, 0.328, 0.106]
   com: [0.0, 0.0, 0.0]
@@ -9,7 +11,7 @@ body:
   collision_xyz: [1.0e-07, 0.0, 1.0e-07]
 
 propeller:
-  mesh: "klever5/propeller.dae"
+  mesh: "klever5/propeller.glb"
   mass: 0.003
   inertia_size: [0.091603, 0.1050184, 0.008542]
   com: [-0.014212, -0.000231, 0.0]

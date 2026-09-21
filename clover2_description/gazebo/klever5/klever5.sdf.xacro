@@ -24,6 +24,7 @@
       <xacro:box_inertial physics="${body}" format="sdf"/>
       <gravity>true</gravity>
       <visual name="body_visual">
+        <pose>${body['xyz']} ${body['rpy']}</pose>
         <geometry>
           <mesh><uri>file://${description_share}/meshes/${body['mesh']}</uri></mesh>
         </geometry>

@@ -12,7 +12,7 @@
   <xacro:include filename="../modules/camera.xacro"/>
   <xacro:include filename="../modules/lidar.xacro"/>
   <xacro:include filename="../modules/led_strip.xacro"/>
-  <xacro:klever5_body body="${config['body']}"/>
+  <xacro:klever5_body body="${config['body']}" xyz="${config['body']['xyz']}" rpy="${config['body']['rpy']}"/>
   <xacro:klever5_propellers propeller="${config['propeller']}" rotors="${config['rotors']}"/>
   <xacro:if value="$(arg enable_main_camera)">
     <xacro:description_camera name="main_camera" parent="base_link" include_visual="false" include_physics="false" xyz="${config['modules']['main_camera']['xyz']}" rpy="${config['modules']['main_camera']['rpy']}"/>
