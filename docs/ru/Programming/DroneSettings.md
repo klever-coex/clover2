@@ -8,7 +8,7 @@
 - стрелки `вверх` и `вниз` — для навигации
 - `Enter` — для выбора параметра
 - `Esc` — для возврата на уровень выше или выхода из программы
-- `Ctrl+s` — для сохранения изменненых настроек
+- `Ctrl+s` — для сохранения измененных настроек
 
 Утилита проверяет значения параметров и не позволяет установить недопустимое значение.
 
@@ -17,7 +17,7 @@
 ```text
 ├── main_camera — Настройки основной (нижней) камеры
 │   ├── enable — Включение/Выключение основной камеры
-│   └── feature_detector — Включение/Выключение распознования Aruco на основной камере
+│   └── feature_detector — Включение/Выключение распознавания Aruco на основной камере
 ├── front_camera — Настройки передней камеры
 │   └── enable — Включение/Выключение передней камеры
 ├── optical_flow — Настройки Optical Flow
@@ -48,7 +48,7 @@ sudo systemctl restart clover2
 clover2-settings
 ```
 
-После выполненя команды откроется TUI(Terminal User Interface) — текстовый интерфейс пользователя в терминале.
+После выполнения команды откроется TUI (Terminal User Interface) — текстовый интерфейс пользователя в терминале.
 
 ```{figure} @assets@/common/setup/drone-settings/main-screen.webp
 :alt: Экран настроек
@@ -58,7 +58,7 @@ clover2-settings
 
 <br>
 
-С помощью стрелок `верх` и `вниз` выберите `localization` и нажимем `Enter`, чтобы открыть группу настроек.
+С помощью стрелок `верх` и `вниз` выберите `localization` и нажмите `Enter`, чтобы открыть группу настроек.
 
 ```{figure} @assets@/common/setup/drone-settings/localization-menu.webp
 :alt: Экран настроек localization
@@ -68,7 +68,7 @@ clover2-settings
 
 <br>
 
-Аналогично выберите `map_server`. Эта группа содержит настройки сервера карты. Затем выберите  `map_filename`.
+Аналогично выберите `map_server`. Эта группа содержит настройки сервера карты. Затем выберите `map_filename`.
 
 ```{figure} @assets@/common/setup/drone-settings/map-server-menu.webp
 :alt: Экран настроек map_server
