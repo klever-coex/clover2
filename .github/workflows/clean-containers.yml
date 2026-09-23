@@ -22,8 +22,8 @@ jobs:
           account: klever-coex
           token: ${{ secrets.GH_PAT }}
           image-names: "clover2/*"
-          cut-off: "3d"
-          keep-n-most-recent: 3
+          cut-off: "7d"
+          keep-n-most-recent: 10
           image-tags: "!latest !stable !v*"
           dry-run: ${{ inputs.dry_run == true }}
           tag-selection: both

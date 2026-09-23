@@ -20,7 +20,7 @@ runs:
     - name: Install tooling CLI
       shell: bash
       run: |
-        uv tool install --from "git+https://github.com/klever-coex/clover2-dev.git@0b9ddae#subdirectory=tooling" clover2-dev
+        uv tool install --from "git+https://github.com/klever-coex/clover2-dev.git@5de1613#subdirectory=tooling" clover2-dev
 
     - id: compose
       env:
