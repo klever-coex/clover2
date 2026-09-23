@@ -142,29 +142,6 @@ target "ros-test" {
   }
 }
 
-#    ______          ___
-#   /_  __/__  ___  / (_)__  ___ _
-#    / / / _ \/ _ \/ / / _ \/ _ `/
-#   /_/  \___/\___/_/_/_//_/\_, /
-#                          /___/
-
-target "clover2-tooling" {
-  dockerfile = item.dockerfile
-  name = item.tgt
-  tags = tagged(item.tgt)
-
-  inherits = ["base"]
-
-  matrix = {
-    item = [
-      {
-        dockerfile = "docker/tooling/Dockerfile"
-        tgt = "clover2-tooling"
-      }
-    ]
-  }
-}
-
 #       ____ _  ____ __                                       __
 #      / __ \ |/ / // /    _______  ______  ____  ____  _____/ /_
 #     / /_/ /   / // /_   / ___/ / / / __ \/ __ \/ __ \/ ___/ __/
@@ -207,15 +184,11 @@ target "clover2-px4-sitl" {
 #                                          /_/
 
 group "all" {
-  targets = ["web", "tooling", "ros", "px4"]
+  targets = ["web", "ros", "px4"]
 }
 
 group "px4" {
   targets = ["clover2-px4-deps", "clover2-px4-dev", "clover2-px4-sitl"]
-}
-
-group "tooling" {
-  targets = ["clover2-tooling"]
 }
 
 group "web" {
