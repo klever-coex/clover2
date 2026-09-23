@@ -68,11 +68,10 @@ display.send_image(image)
 
 ## Пример: вывести JPEG или PNG
 
-Драйвер принимает не сжатые байты файла JPEG/PNG, а декодированное ROS-сообщение `sensor_msgs.msg.Image`. С помощью OpenCV можно загрузить файл, привести его к поддерживаемой кодировке и разрешению дисплея, а `CvBridge` преобразует numpy-массив в ROS-сообщение.
+Драйвер принимает сообщение `sensor_msgs.msg.Image`: его поле `data` содержит сырые пиксельные данные, а поле `encoding` задаёт их формат. OpenCV декодирует JPEG- или PNG-файл в `numpy.ndarray`; подготовленный массив можно передать в `send_cv_image()`, который преобразует его в ROS-сообщение с помощью `CvBridge`.
 
 ```python
 import cv2
-from cv_bridge import CvBridge
 
 from clover2 import Clover2
 
@@ -97,11 +96,12 @@ gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 gray = cv2.resize(gray, (display.width, display.height))
 _, binary = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
 
-image = CvBridge().cv2_to_imgmsg(binary, encoding="mono8")
-display.send_image(image)
+display.send_cv_image(binary, encoding="mono8")
 ```
 
 Значение `127` — порог бинаризации: пиксели темнее него станут чёрными, а остальные — белыми. Подберите порог для конкретного изображения при необходимости.
+
+`send_cv_image()` не изменяет размер и не преобразует кодировку изображения: перед отправкой массив должен иметь разрешение `display.width` × `display.height`, а указанная `encoding` должна поддерживаться дисплеем.
 
 ## Пример: тестовое изображение
 

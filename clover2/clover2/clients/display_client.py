@@ -1,3 +1,5 @@
+import numpy as np
+from cv_bridge import CvBridge
 from clover2_display_msgs.srv import GetDriverInfo
 from rclpy.node import Node
 from sensor_msgs.msg import Image
@@ -10,6 +12,7 @@ class DisplayClient:
         self._node = node
         self._logger = self._node.get_logger().get_child('display_client')
         self._base_path = base_path
+        self._bridge = CvBridge()
 
         self._valid = False
         self._width = 0
@@ -44,8 +47,13 @@ class DisplayClient:
     def supported_encodings(self) -> list[str]:
         return self._supported_encodings.copy()
 
-    def send_image(self, image: Image):
+    def send_image(self, image: Image) -> None:
         self._image_pub.publish(image)
+
+    def send_cv_image(
+        self, image: np.ndarray, encoding: str = 'passthrough'
+    ) -> None:
+        self.send_image(self._bridge.cv2_to_imgmsg(image, encoding=encoding))
 
     def _topic(self, name: str) -> str:
         if not self._base_path:

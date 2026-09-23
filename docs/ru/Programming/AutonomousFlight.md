@@ -41,6 +41,7 @@ AutonomousFlight/Display
 
 - `display()` — получить клиент дисплея
 - `send_image(image)` — отправить ROS-сообщение `sensor_msgs.msg.Image`
+- `send_cv_image(image, encoding)` — отправить изображение OpenCV / numpy-массив
 - `width` / `height` — требуемое разрешение кадра
 - `max_fps` — максимальная частота кадров
 - `supported_encodings` — поддерживаемые кодировки изображений
