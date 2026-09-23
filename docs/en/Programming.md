@@ -2,10 +2,13 @@
 
 ```{toctree}
 :titlesonly:
-:maxdepth: 1
+:maxdepth: 2
 :hidden:
 
-Programming/ROS2
+Programming/DroneConnection
+Programming/DroneSettings
+Programming/ArucoMap
+Programming/AutonomousFlight
 ```
 
 The `clover2` framework is built upon `ROS 2`, the industry-standard open-source platform for robotic development. This integration provides developers with a powerful, scalable environment to implement custom autonomous flight logic using any language supported by the `ROS 2` ecosystem.
