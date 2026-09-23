@@ -17,7 +17,7 @@ DOCKER_OUTPUT_DIR ?= $(BUILD_EXPTRAS_DIR)/docker
 UID ?= $(shell id -u)
 GID ?= $(shell id -g)
 
-TOOLING ?= clover2_tooling
+TOOLING ?= clover2-dev
 COMPOSE := $(TOOLING) version compose --mode $(BUILD_MODE)
 CLOVER2_GIT_HASH := $(shell $(COMPOSE) --field git_hash)
 CLOVER2_VERSION := $(shell $(COMPOSE) --field version)

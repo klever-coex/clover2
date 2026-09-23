@@ -20,15 +20,14 @@ runs:
     - name: Install tooling CLI
       shell: bash
       run: |
-        uv sync --frozen --project tooling
-        echo "$PWD/tooling/.venv/bin" >> "$GITHUB_PATH"
+        uv tool install --from "git+https://github.com/klever-coex/clover2-dev.git@0b9ddae#subdirectory=tooling" clover2-dev
 
     - id: compose
       env:
         GITHUB_REF: ${{ github.ref }}
       shell: bash
       run: |
-        COMPOSE=$(clover2_tooling version compose --ref "$GITHUB_REF" --json)
+        COMPOSE=$(clover2-dev version compose --ref "$GITHUB_REF" --json)
         echo "compose: ${COMPOSE}"
         echo "build_mode=$(echo "${COMPOSE}" | jq -r .build_mode)" >> "$GITHUB_OUTPUT"
         echo "git_hash=$(echo "${COMPOSE}" | jq -r .git_hash)" >> "$GITHUB_OUTPUT"

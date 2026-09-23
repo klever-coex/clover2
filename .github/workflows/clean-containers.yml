@@ -24,6 +24,6 @@ jobs:
           image-names: "clover2/*"
           cut-off: "3d"
           keep-n-most-recent: 3
-          image-tags: "!latest !stable"
+          image-tags: "!latest !stable !v*"
           dry-run: ${{ inputs.dry_run == true }}
           tag-selection: both

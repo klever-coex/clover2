@@ -46,8 +46,7 @@ jobs:
 
       - name: Install tooling CLI
         run: |
-          uv sync --frozen --project tooling
-          echo "$PWD/tooling/.venv/bin" >> "$GITHUB_PATH"
+          uv tool install --from "git+https://github.com/klever-coex/clover2-dev.git@0b9ddae#subdirectory=tooling" clover2-dev
 
       - name: Prepare version
         id: prepare
@@ -56,7 +55,7 @@ jobs:
           BUMP: ${{ inputs.bump }}
           PROMOTE_FROM: ${{ inputs.promote_from }}
         run: |
-          VM="clover2_tooling version -d ."
+          VM="clover2-dev version -d ."
 
           if [[ "$CHANNEL" == "pre-release" ]]; then
             BUMP_JSON=$($VM bump rc --base "$BUMP" --json)
