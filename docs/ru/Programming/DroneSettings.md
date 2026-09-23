@@ -54,16 +54,20 @@ clover2-settings
 :alt: Экран настроек
 :width: 90%
 :align: center
+
+TUI  в терминале
 ```
 
 <br>
 
-С помощью стрелок `верх` и `вниз` выберите `localization` и нажмите `Enter`, чтобы открыть группу настроек.
+С помощью стрелок `вверх` и `вниз` выберите `localization` и нажмите `Enter`, чтобы открыть группу настроек.
 
 ```{figure} @assets@/common/setup/drone-settings/localization-menu.webp
 :alt: Экран настроек localization
 :width: 90%
 :align: center
+
+Экран настроек localization
 ```
 
 <br>
@@ -74,6 +78,8 @@ clover2-settings
 :alt: Экран настроек map_server
 :width: 90%
 :align: center
+
+Экран настроек map_server
 ```
 
 <br>
@@ -86,6 +92,8 @@ clover2-settings
 :alt: Экран настроек map_server
 :width: 90%
 :align: center
+
+Редактирование имени файла с картой
 ```
 
 <br>
@@ -96,6 +104,8 @@ clover2-settings
 :alt: Сохранение настроек
 :width: 90%
 :align: center
+
+Сохранение настроек
 ```
 
 <br>
