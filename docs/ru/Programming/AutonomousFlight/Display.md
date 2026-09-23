@@ -64,7 +64,7 @@ image.data = bytearray(image.width * image.height)
 display.send_image(image)
 ```
 
-В примере используется `mono8`: один байт яркости на каждый пиксель, где `0` — чёрный, а `255` — белый. Перед использованием этой кодировки убедитесь, что она есть в `display.supported_encodings`.
+В примере используется `mono8`: один байт яркости на каждый пиксель, где `0` — чёрный, а `255` — белый. Текущий дисплей SSD1306 физически монохромный и отображает только чёрный и белый цвета, поэтому перед отправкой изображения с полутонами его нужно бинаризовать. Перед использованием этой кодировки убедитесь, что она есть в `display.supported_encodings`.
 
 ## Пример: вывести JPEG или PNG
 
@@ -92,13 +92,16 @@ frame = cv2.imread("image.jpg")  # также можно указать путь
 if frame is None:
     raise RuntimeError("Не удалось загрузить изображение")
 
-# Текущий драйвер SSD1306 принимает монохромные изображения mono8.
+# SSD1306 отображает только чёрный и белый цвета.
 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 gray = cv2.resize(gray, (display.width, display.height))
+_, binary = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
 
-image = CvBridge().cv2_to_imgmsg(gray, encoding="mono8")
+image = CvBridge().cv2_to_imgmsg(binary, encoding="mono8")
 display.send_image(image)
 ```
+
+Значение `127` — порог бинаризации: пиксели темнее него станут чёрными, а остальные — белыми. Подберите порог для конкретного изображения при необходимости.
 
 ## Пример: тестовое изображение
 
