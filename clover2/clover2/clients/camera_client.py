@@ -1,4 +1,5 @@
 import threading
+from collections.abc import Callable
 
 import numpy as np
 from cv_bridge import CvBridge
@@ -8,102 +9,100 @@ from sensor_msgs.msg import CameraInfo, Image
 
 
 class CameraClient:
-    def __init__(self, node: Node):
+    def __init__(self, node: Node, camera_name: str = "main_camera"):
         self._node = node
         self._logger = node.get_logger().get_child("camera")
         self._bridge = CvBridge()
+        self._camera_name = camera_name
 
-        self._img_subs: dict[str, object] = {}
-        self._latest_img: dict[str, Image | None] = {}
-        self._img_events: dict[str, threading.Event] = {}
+        self._img_sub = None
+        self._latest_img: Image | None = None
+        self._img_event = threading.Event()
+        self._stream_callbacks: list[Callable[[Image], None]] = []
 
-        self._info_subs: dict[str, object] = {}
-        self._latest_info: dict[str, CameraInfo | None] = {}
-        self._info_events: dict[str, threading.Event] = {}
+        self._info_sub = None
+        self._latest_info: CameraInfo | None = None
+        self._info_event = threading.Event()
 
         self._lock = threading.Lock()
 
+    def stream(self, callback: Callable[[Image], None]) -> None:
+        with self._lock:
+            self._ensure_img_subscription()
+            self._stream_callbacks.append(callback)
+
     def get_image(
-        self,
-        camera_name: str = "main_camera",
-        desired_encoding="bgr8",
-        timeout: float = 5.0,
+        self, desired_encoding: str = "bgr8", timeout: float = 5.0
     ) -> np.ndarray:
-        msg = self.get_image_msg(camera_name, timeout)
+        msg = self.get_image_msg(timeout)
         return self._bridge.imgmsg_to_cv2(msg, desired_encoding=desired_encoding)
 
-    def get_image_msg(
-        self, camera_name: str = "main_camera", timeout: float = 5.0
-    ) -> Image:
+    def get_image_msg(self, timeout: float = 5.0) -> Image:
         with self._lock:
-            if camera_name not in self._img_subs:
-                self._create_img_subscription(camera_name)
-            event = self._img_events[camera_name]
+            self._ensure_img_subscription()
 
-        if not event.wait(timeout):
+        if not self._img_event.wait(timeout):
             raise TimeoutError(
-                f"No image received from '{camera_name}' within {timeout}s"
+                f"No image received from '{self._camera_name}' within {timeout}s"
             )
 
-        return self._latest_img[camera_name]
-
-    def get_camera_info(
-        self, camera_name: str = "main_camera", timeout: float = 5.0
-    ) -> CameraInfo:
         with self._lock:
-            if camera_name not in self._info_subs:
-                self._create_info_subscription(camera_name)
-            event = self._info_events[camera_name]
+            assert self._latest_img is not None
+            return self._latest_img
 
-        if not event.wait(timeout):
+    def get_camera_info(self, timeout: float = 5.0) -> CameraInfo:
+        with self._lock:
+            self._ensure_info_subscription()
+
+        if not self._info_event.wait(timeout):
             raise TimeoutError(
-                f"No camera_info received from '{camera_name}' within {timeout}s"
+                f"No camera_info received from '{self._camera_name}' within {timeout}s"
             )
 
-        return self._latest_info[camera_name]
+        with self._lock:
+            assert self._latest_info is not None
+            return self._latest_info
 
-    def _create_img_subscription(self, camera_name: str):
-        topic = f"/{camera_name}/camera/image_raw"
+    def _ensure_img_subscription(self) -> None:
+        if self._img_sub is not None:
+            return
 
-        qos = QoSProfile(
-            depth=1,
-            reliability=QoSReliabilityPolicy.BEST_EFFORT,
-        )
-
-        self._latest_img[camera_name] = None
-        self._img_events[camera_name] = threading.Event()
-        self._img_subs[camera_name] = self._node.create_subscription(
-            Image, topic, self._make_img_callback(camera_name), qos
+        topic = f"/{self._camera_name}/camera/image_raw"
+        self._img_sub = self._node.create_subscription(
+            Image, topic, self._img_callback, self._sensor_qos()
         )
         self._logger.info(f"Subscribed to {topic}")
 
-    def _make_img_callback(self, camera_name: str):
-        def callback(msg: Image):
-            with self._lock:
-                self._latest_img[camera_name] = msg
-            self._img_events[camera_name].set()
+    def _ensure_info_subscription(self) -> None:
+        if self._info_sub is not None:
+            return
 
-        return callback
-
-    def _create_info_subscription(self, camera_name: str):
-        topic = f"/{camera_name}/camera/camera_info"
-
-        qos = QoSProfile(
-            depth=1,
-            reliability=QoSReliabilityPolicy.BEST_EFFORT,
-        )
-
-        self._latest_info[camera_name] = None
-        self._info_events[camera_name] = threading.Event()
-        self._info_subs[camera_name] = self._node.create_subscription(
-            CameraInfo, topic, self._make_info_callback(camera_name), qos
+        topic = f"/{self._camera_name}/camera/camera_info"
+        self._info_sub = self._node.create_subscription(
+            CameraInfo, topic, self._info_callback, self._sensor_qos()
         )
         self._logger.info(f"Subscribed to {topic}")
 
-    def _make_info_callback(self, camera_name: str):
-        def callback(msg: CameraInfo):
-            with self._lock:
-                self._latest_info[camera_name] = msg
-            self._info_events[camera_name].set()
+    def _img_callback(self, msg: Image) -> None:
+        with self._lock:
+            self._latest_img = msg
+            callbacks = list(self._stream_callbacks)
+            self._img_event.set()
 
-        return callback
+        for callback in callbacks:
+            try:
+                callback(msg)
+            except Exception:
+                self._logger.error("Camera stream callback failed")
+
+    def _info_callback(self, msg: CameraInfo) -> None:
+        with self._lock:
+            self._latest_info = msg
+            self._info_event.set()
+
+    @staticmethod
+    def _sensor_qos() -> QoSProfile:
+        return QoSProfile(
+            depth=1,
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+        )

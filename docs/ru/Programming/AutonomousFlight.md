@@ -23,9 +23,11 @@ AutonomousFlight/Display
 
 ## **{doc}`Камера <AutonomousFlight/Camera>`**
 
-- `get_image(camera_name, encoding)` — получить кадр как numpy-массив
-- `get_image_msg(camera_name)` — получить сырой ROS Image
-- `get_camera_info(camera_name)` — калибровка камеры
+- `camera(name)` — получить клиент камеры
+- `get_image(encoding)` — получить кадр как numpy-массив
+- `get_image_msg()` — получить сырой ROS Image
+- `get_camera_info()` — калибровка камеры
+- `stream(callback)` — получать новые ROS-сообщения `Image`
 
 ## **{doc}`LED-лента <AutonomousFlight/LED>`**
 

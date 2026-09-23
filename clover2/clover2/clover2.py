@@ -29,7 +29,6 @@ class Clover2(Node):
         self._clients: dict[str, object] = {}
 
         self._offboard: OffboardClient = OffboardClient(self)
-        self._camera: CameraClient = CameraClient(self)
 
     def _cached_client(self, name: str, factory: Callable[[], T]) -> T | None:
         if name not in self._clients:
@@ -45,9 +44,10 @@ class Clover2(Node):
     def offboard(self) -> OffboardClient:
         return self._offboard
 
-    @property
-    def camera(self) -> CameraClient:
-        return self._camera
+    def camera(self, name: str = "main_camera") -> CameraClient | None:
+        return self._cached_client(
+            f"camera:{name}", lambda: CameraClient(self, name)
+        )
 
     def led(self, name: str = "/led_strip") -> LEDClient | None:
         return self._cached_client(name, lambda: LEDClient(self, name))
