@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<sdf xmlns:xacro="http://www.ros.org/wiki/xacro" version="1.9">
+  <!-- Sensor names are part of the PX4 Gazebo bridge interface. -->
+  <xacro:macro name="klever5_gazebo_sensors" params="">
+    <sensor name="air_pressure_sensor" type="air_pressure">
+      <always_on>1</always_on><update_rate>50</update_rate>
+      <air_pressure><pressure><noise type="gaussian"><mean>0</mean><stddev>3</stddev></noise></pressure></air_pressure>
+    </sensor>
+    <sensor name="magnetometer_sensor" type="magnetometer">
+      <always_on>1</always_on><update_rate>100</update_rate>
+      <magnetometer>
+        <x><noise type="gaussian"><stddev>0.0001</stddev></noise></x>
+        <y><noise type="gaussian"><stddev>0.0001</stddev></noise></y>
+        <z><noise type="gaussian"><stddev>0.0001</stddev></noise></z>
+      </magnetometer>
+    </sensor>
+    <sensor name="imu_sensor" type="imu">
+      <always_on>1</always_on><update_rate>250</update_rate>
+      <imu>
+        <angular_velocity>
+          <x><noise type="gaussian"><mean>0</mean><stddev>0.0008726646</stddev></noise></x>
+          <y><noise type="gaussian"><mean>0</mean><stddev>0.0008726646</stddev></noise></y>
+          <z><noise type="gaussian"><mean>0</mean><stddev>0.0008726646</stddev></noise></z>
+        </angular_velocity>
+        <linear_acceleration>
+          <x><noise type="gaussian"><mean>0</mean><stddev>0.00637</stddev></noise></x>
+          <y><noise type="gaussian"><mean>0</mean><stddev>0.00637</stddev></noise></y>
+          <z><noise type="gaussian"><mean>0</mean><stddev>0.00686</stddev></noise></z>
+        </linear_acceleration>
+      </imu>
+    </sensor>
+    <sensor name="navsat_sensor" type="navsat">
+      <always_on>1</always_on><update_rate>30</update_rate>
+    </sensor>
+  </xacro:macro>
+</sdf>

@@ -18,6 +18,7 @@
         <arg name="params_file" value="$(var params_file)" />
 
         <arg name="camera_id" value="$(var camera_id)" />
+        <arg name="frame_id" value="$(var camera_name)_link" />
         <arg name="container_name" value="$(var local_ns)/container" />
         <arg name="use_composition" value="true" />
         <arg name="ns" value="$(var local_ns)" />

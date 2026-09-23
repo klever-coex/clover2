@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:include filename="../common/geometry.xacro"/>
+  <xacro:macro name="description_led_strip" params="parent xyz rpy name:='led_strip_link'">
+    <xacro:property name="physics" value="${component_physics['led_strip']}"/>
+    <xacro:mesh_link physics="${physics}" name="${name}" mesh="modules/led_strip.dae"/>
+    <xacro:mount name="${name}_joint" parent="${parent}" child="${name}"
+      xyz="${xyz}" rpy="${rpy}"/>
+  </xacro:macro>
+</robot>

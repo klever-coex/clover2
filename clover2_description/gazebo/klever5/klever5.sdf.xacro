@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<sdf xmlns:xacro="http://www.ros.org/wiki/xacro" version="1.9">
+  <!-- Native Gazebo/PX4 model; shared geometry and physics come from YAML. -->
+  <xacro:arg name="description_share" default="$(find clover2_description)"/>
+  <xacro:arg name="config_file" default="$(find clover2_description)/config/robots/klever5.yaml"/>
+  <xacro:arg name="enable_main_camera" default="true"/>
+  <xacro:arg name="enable_front_camera" default="false"/>
+  <xacro:arg name="enable_lidar" default="false"/>
+  <xacro:arg name="enable_led_strip" default="false"/>
+  <xacro:property name="description_share" value="$(arg description_share)"/>
+  <xacro:property name="config" value="${xacro.load_yaml('$(arg config_file)')}"/>
+  <xacro:property name="body" value="${config['body']}"/>
+  <xacro:property name="propeller" value="${config['propeller']}"/>
+  <xacro:include filename="../../xacro/common/common.xacro"/>
+  <xacro:include filename="rotors.xacro"/>
+  <xacro:include filename="sensors.xacro"/>
+
+  <xacro:include filename="modules.xacro"/>
+
+  <model name="klever5">
+    <static>false</static>
+    <self_collide>false</self_collide>
+    <link name="base_link">
+      <xacro:box_inertial physics="${body}" format="sdf"/>
+      <gravity>true</gravity>
+      <visual name="body_visual">
+        <pose>${body['xyz']} ${body['rpy']}</pose>
+        <geometry>
+          <mesh><uri>file://${description_share}/meshes/${body['mesh']}</uri></mesh>
+        </geometry>
+      </visual>
+      <collision name="body_collision">
+        <pose>${' '.join(str(value) for value in body['collision_xyz'])} 0 0 0</pose>
+        <geometry><box><size>${' '.join(str(value) for value in body['collision_size'])}</size></box></geometry>
+      </collision>
+      <xacro:klever5_gazebo_sensors/>
+      <xacro:if value="$(arg enable_main_camera)">
+        <xacro:sdf_camera_sensor name="main_camera" settings="${config['simulation']['camera']}"
+          xyz="${config['modules']['main_camera']['xyz']}" rpy="${config['modules']['main_camera']['rpy']}"/>
+      </xacro:if>
+    </link>
+    <xacro:klever5_gazebo_rotors config="${config}" description_share="${description_share}"/>
+    <xacro:if value="$(arg enable_main_camera)">
+      <frame name="main_camera_body_link" attached_to="base_link">
+        <pose>${config['modules']['main_camera']['xyz']} ${config['modules']['main_camera']['rpy']}</pose>
+      </frame>
+      <frame name="main_camera_link" attached_to="main_camera_body_link"><pose>0 0 0 ${-pi/2} 0 ${-pi/2}</pose></frame>
+    </xacro:if>
+    <xacro:if value="$(arg enable_front_camera)">
+      <xacro:sdf_component name="front_camera_body_link" parent="base_link" mount="${config['modules']['front_camera']}"
+        physics="${component_physics['camera']}" description_share="${description_share}">
+        <xacro:sdf_camera_sensor name="front_camera" settings="${config['simulation']['camera']}"/>
+      </xacro:sdf_component>
+      <frame name="front_camera_link" attached_to="front_camera_body_link"><pose>0 0 0 ${-pi/2} 0 ${-pi/2}</pose></frame>
+    </xacro:if>
+    <xacro:if value="$(arg enable_lidar)">
+      <xacro:sdf_component name="laser" parent="base_link" mount="${config['modules']['lidar']}"
+        physics="${component_physics['lidar']}" description_share="${description_share}">
+        <xacro:sdf_lidar_sensor settings="${config['simulation']['lidar']}"/>
+      </xacro:sdf_component>
+    </xacro:if>
+    <xacro:if value="$(arg enable_led_strip)">
+      <xacro:sdf_component name="led_strip_link" parent="base_link" mount="${config['modules']['led_strip']}"
+        physics="${component_physics['led_strip']}" description_share="${description_share}">
+        <gravity>true</gravity>
+      </xacro:sdf_component>
+    </xacro:if>
+  </model>
+</sdf>

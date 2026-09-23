@@ -1,0 +1,58 @@
+# Approximate hardware parameters: metres, kilograms; uniform-box inertias.
+camera:
+  mass: 0.018
+  inertia_size:
+  - 0.0174835
+  - 0.0250188
+  - 0.024021
+  com:
+  - -6.0e-06
+  - 0.0
+  - 6.6e-06
+  collision_size:
+  - 0.0174835
+  - 0.0250188
+  - 0.024021
+  collision_xyz:
+  - -6.0e-06
+  - 0.0
+  - 6.6e-06
+  mesh: modules/camera.dae
+lidar:
+  mass: 0.1
+  inertia_size:
+  - 0.0837121
+  - 0.0556375
+  - 0.1242414
+  com:
+  - -0.0149865
+  - 1.12e-05
+  - -0.0500253
+  collision_size:
+  - 0.0837121
+  - 0.0556375
+  - 0.1242414
+  collision_xyz:
+  - -0.0149865
+  - 1.12e-05
+  - -0.0500253
+  mesh: modules/lidar.dae
+led_strip:
+  mass: 0.01
+  inertia_size:
+  - 0.1638838
+  - 0.1639418
+  - 0.0028042
+  com:
+  - 0.0
+  - 0.0
+  - 0.0
+  collision_size:
+  - 0.1638838
+  - 0.1639418
+  - 0.0028042
+  collision_xyz:
+  - 0.0
+  - 0.0
+  - 0.0
+  mesh: modules/led_strip.dae

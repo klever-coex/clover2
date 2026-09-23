@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:property name="component_physics" value="${xacro.load_yaml('$(find clover2_description)/config/components.yaml')}"/>
+  <!-- Box inertia shared by URDF and SDF descriptions. -->
+  <xacro:macro name="box_inertial" params="physics format">
+    <xacro:property name="mass" value="${physics['mass']}"/>
+    <xacro:property name="size" value="${physics['inertia_size']}"/>
+    <xacro:property name="com" value="${' '.join(str(value) for value in physics['com'])}"/>
+    <xacro:property name="ixx" value="${mass * (size[1]**2 + size[2]**2) / 12}"/>
+    <xacro:property name="iyy" value="${mass * (size[0]**2 + size[2]**2) / 12}"/>
+    <xacro:property name="izz" value="${mass * (size[0]**2 + size[1]**2) / 12}"/>
+    <xacro:if value="${format == 'urdf'}">
+      <inertial>
+        <origin xyz="${com}" rpy="0 0 0"/>
+        <mass value="${mass}"/>
+        <inertia ixx="${ixx}" iyy="${iyy}" izz="${izz}" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+    </xacro:if>
+    <xacro:if value="${format == 'sdf'}">
+      <inertial>
+        <pose>${com} 0 0 0</pose>
+        <mass>${mass}</mass>
+        <inertia>
+          <ixx>${ixx}</ixx><iyy>${iyy}</iyy><izz>${izz}</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+    </xacro:if>
+  </xacro:macro>
+</robot>
