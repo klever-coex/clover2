@@ -8,6 +8,7 @@
 AutonomousFlight/Flight
 AutonomousFlight/LED
 AutonomousFlight/Camera
+AutonomousFlight/Display
 ```
 
 Краткий обзор возможностей фреймворка.
@@ -35,3 +36,12 @@ AutonomousFlight/Camera
 - `fill(r, g, b)` — заливка прямым кадром
 - `send_frame(colors, brightness)` — попиксельное управление
 - `led_count` — количество светодиодов в ленте
+
+## **{doc}`Дисплей <AutonomousFlight/Display>`**
+
+- `display()` — получить клиент дисплея
+- `send_image(image)` — отправить ROS-сообщение `sensor_msgs.msg.Image`
+- `send_cv_image(image, encoding)` — отправить изображение OpenCV / numpy-массив
+- `width` / `height` — требуемое разрешение кадра
+- `max_fps` — максимальная частота кадров
+- `supported_encodings` — поддерживаемые кодировки изображений

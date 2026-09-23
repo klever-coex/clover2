@@ -1,11 +1,15 @@
 import atexit
 import threading
+from collections.abc import Callable
+from typing import TypeVar
 
 import rclpy
 from rclpy.node import Node
 
 from . import utils
-from .clients import CameraClient, LEDClient, OffboardClient
+from .clients import CameraClient, DisplayClient, LEDClient, OffboardClient
+
+T = TypeVar("T")
 
 
 class Clover2(Node):
@@ -22,22 +26,20 @@ class Clover2(Node):
         self._ros_thread.start()
         _ = atexit.register(self._stop)
 
+        self._clients: dict[str, object] = {}
+
         self._offboard: OffboardClient = OffboardClient(self)
         self._camera: CameraClient = CameraClient(self)
-        try:
-            self._led = LEDClient(self, "/led_strip")
-        except Exception as e:
-            self._led = None
-            self.get_logger().warning(f"Led strip not found")
 
-    def __getattr__(self, name: str):
+    def _cached_client(self, name: str, factory: Callable[[], T]) -> T | None:
+        if name not in self._clients:
+            try:
+                self._clients[name] = factory()
+            except Exception:
+                self.get_logger().warning(f"Client for '{name}' not found")
+                return None
 
-        for client in [self._offboard, self._camera, self._led]:
-            ret = getattr(client, name, None)
-            if ret:
-                return ret
-
-        raise RuntimeError(f"Unknown method {name}")
+        return self._clients[name]
 
     @property
     def offboard(self) -> OffboardClient:
@@ -47,9 +49,11 @@ class Clover2(Node):
     def camera(self) -> CameraClient:
         return self._camera
 
-    @property
-    def led(self) -> LEDClient | None:
-        return self._led
+    def led(self, name: str = "/led_strip") -> LEDClient | None:
+        return self._cached_client(name, lambda: LEDClient(self, name))
+
+    def display(self, name: str = "/display") -> DisplayClient | None:
+        return self._cached_client(name, lambda: DisplayClient(self, name))
 
     def _ros_worker(self) -> None:
         while rclpy.ok():

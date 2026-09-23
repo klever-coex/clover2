@@ -15,20 +15,20 @@ drone = Clover2("my_drone")
 ## Получить кадр как numpy-массив
 
 ```python
-img = drone.get_image()                      # main_camera, bgr8
-img = drone.get_image("main_camera", "rgb8") # с указанием камеры и encoding
+img = drone.camera.get_image()                      # main_camera, bgr8
+img = drone.camera.get_image("main_camera", "rgb8") # с указанием камеры и encoding
 ```
 
 ## Получить ROS Image msg
 
 ```python
-img_msg = drone.get_image_msg()
+img_msg = drone.camera.get_image_msg()
 ```
 
 ## Получить калибровку камеры
 
 ```python
-info = drone.get_camera_info()
+info = drone.camera.get_camera_info()
 # info.width, info.height, info.k (матрица), info.d (дисторсия)
 ```
 
@@ -42,7 +42,7 @@ drone = Clover2()
 detector = cv2.QRCodeDetector()
 
 while True:
-    img = drone.get_image()
+    img = drone.camera.get_image()
     data, bbox, _ = detector.detectAndDecode(img)
     if data:
         print(f"QR Code: {data}")
