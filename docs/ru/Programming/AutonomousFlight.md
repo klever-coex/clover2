@@ -15,8 +15,8 @@ AutonomousFlight/Display
 
 ## **{doc}`Полёт <AutonomousFlight/Flight>`**
 
-- `fcu.arm()` / `fcu.disarm()` — запуск / остановка моторов
-- `fcu.land()` — посадка
+- `offboard.arm()` / `offboard.disarm()` — запуск / остановка моторов
+- `offboard.land()` — посадка
 - `fcu.is_armed()` / `fcu.flight_mode()` — состояние дрона
 - `offboard.navigate_wait(frame_id, x, y, z, speed, yaw)` — полёт в точку с ожиданием прибытия
 - `offboard.navigate(...)` — то же без блокировки

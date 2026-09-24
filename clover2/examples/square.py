@@ -17,4 +17,4 @@ for x, y in square_points:
 
 time.sleep(5.0)
 
-drone.fcu.land()
+drone.offboard.land()

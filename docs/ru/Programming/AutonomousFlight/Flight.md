@@ -15,9 +15,9 @@ drone = Clover2("my_drone")
 ## Полезные команды
 
 ```python
-drone.fcu.arm()          # запуск моторов
-drone.fcu.disarm()       # остановка моторов
-drone.fcu.land()         # посадка
+drone.offboard.arm()          # запуск моторов
+drone.offboard.disarm()       # остановка моторов
+drone.offboard.land()         # посадка
 
 drone.fcu.is_armed()     # True/False
 drone.fcu.flight_mode()  # режим полёта PX4
@@ -62,7 +62,7 @@ for x, y in square_points:
     drone.offboard.navigate_wait("base_link", x=x, y=y, speed=0.8)
 
 time.sleep(5.0)
-drone.fcu.land()
+drone.offboard.land()
 ```
 
 ## Получение текущей координаты относительно карты

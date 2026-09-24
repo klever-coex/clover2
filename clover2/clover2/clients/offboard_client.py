@@ -3,7 +3,7 @@ import uuid as uuid_lib
 
 from bondpy import bondpy
 from clover2_nav_msgs.action import NavigateAsync
-from clover2_nav_msgs.srv import Navigate, SetPosition
+from clover2_nav_msgs.srv import ArmDisarm, Land, Navigate, SetPosition
 from geometry_msgs.msg import Pose
 from rclpy.action import ActionClient
 from rclpy.node import Node
@@ -34,6 +34,26 @@ class OffboardClient:
         self._navigate_client = self._node.create_client(
             Navigate, "/fcu_bridge/navigate"
         )
+        self._arm_disarm_client = self._node.create_client(
+            ArmDisarm, "/fcu_bridge/arm_disarm"
+        )
+        self._land_client = self._node.create_client(Land, "/fcu_bridge/land")
+
+    def arm_disarm(self, arm: bool) -> bool:
+        req = ArmDisarm.Request()
+        req.arm = arm
+
+        return self.__wait_service_call(self._arm_disarm_client, req)
+
+    def arm(self) -> bool:
+        return self.arm_disarm(True)
+
+    def disarm(self) -> bool:
+        return self.arm_disarm(False)
+
+    def land(self) -> bool:
+        req = Land.Request()
+        return self.__wait_service_call(self._land_client, req)
 
     def set_position(
         self,
