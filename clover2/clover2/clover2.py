@@ -12,7 +12,7 @@ from .clients import (
     DisplayClient,
     FCUClient,
     LEDClient,
-    NavigationClient,
+    OffboardClient,
 )
 
 T = TypeVar("T")
@@ -33,7 +33,7 @@ class Clover2(Node):
         _ = atexit.register(self._stop)
 
         self._clients: dict[str, object] = {}
-        self._navigation = NavigationClient(self)
+        self._offboard = OffboardClient(self)
         self._fcu = FCUClient(self)
 
     def _cached_client(self, name: str, factory: Callable[[], T]) -> T | None:
@@ -47,8 +47,8 @@ class Clover2(Node):
         return self._clients[name]
 
     @property
-    def navigation(self) -> NavigationClient:
-        return self._navigation
+    def offboard(self) -> OffboardClient:
+        return self._offboard
 
     @property
     def fcu(self) -> FCUClient:

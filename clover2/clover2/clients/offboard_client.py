@@ -19,9 +19,9 @@ NAVIGATE_BOND_HEARTBEAT_PERIOD = 0.2
 NAVIGATE_BOND_HEARTBEAT_TIMEOUT = 1.0
 
 
-class NavigationClient:
+class OffboardClient:
     def __init__(self, node: Node):
-        self._logger = node.get_logger().get_child("navigation")
+        self._logger = node.get_logger().get_child("offboard")
         self._node = node
 
         self._navigate_async_action_client = ActionClient(

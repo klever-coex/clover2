@@ -2,7 +2,7 @@ from .camera_client import CameraClient
 from .display_client import DisplayClient
 from .fcu_client import DronePosition, FCUClient
 from .led_client import LEDClient
-from .navigation_client import NavigationClient
+from .offboard_client import OffboardClient
 
 __all__ = [
     "CameraClient",
@@ -10,5 +10,5 @@ __all__ = [
     "DronePosition",
     "FCUClient",
     "LEDClient",
-    "NavigationClient",
+    "OffboardClient",
 ]
