@@ -15,11 +15,11 @@ AutonomousFlight/Display
 
 ## **{doc}`Полёт <AutonomousFlight/Flight>`**
 
-- `arm()` / `disarm()` — запуск / остановка моторов
-- `land()` — посадка
-- `is_armed()` / `flight_mode()` — состояние дрона
-- `navigate_wait(frame_id, x, y, z, speed, yaw)` — полёт в точку с ожиданием прибытия
-- `navigate(...)` — то же без блокировки
+- `fcu.arm()` / `fcu.disarm()` — запуск / остановка моторов
+- `fcu.land()` — посадка
+- `fcu.is_armed()` / `fcu.flight_mode()` — состояние дрона
+- `navigation.navigate_wait(frame_id, x, y, z, speed, yaw)` — полёт в точку с ожиданием прибытия
+- `navigation.navigate(...)` — то же без блокировки
 
 ## **{doc}`Камера <AutonomousFlight/Camera>`**
 

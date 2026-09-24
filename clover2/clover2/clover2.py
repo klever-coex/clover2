@@ -7,7 +7,13 @@ import rclpy
 from rclpy.node import Node
 
 from . import utils
-from .clients import CameraClient, DisplayClient, LEDClient, OffboardClient
+from .clients import (
+    CameraClient,
+    DisplayClient,
+    FCUClient,
+    LEDClient,
+    NavigationClient,
+)
 
 T = TypeVar("T")
 
@@ -27,8 +33,8 @@ class Clover2(Node):
         _ = atexit.register(self._stop)
 
         self._clients: dict[str, object] = {}
-
-        self._offboard: OffboardClient = OffboardClient(self)
+        self._navigation = NavigationClient(self)
+        self._fcu = FCUClient(self)
 
     def _cached_client(self, name: str, factory: Callable[[], T]) -> T | None:
         if name not in self._clients:
@@ -41,8 +47,12 @@ class Clover2(Node):
         return self._clients[name]
 
     @property
-    def offboard(self) -> OffboardClient:
-        return self._offboard
+    def navigation(self) -> NavigationClient:
+        return self._navigation
+
+    @property
+    def fcu(self) -> FCUClient:
+        return self._fcu
 
     def camera(self, name: str = "main_camera") -> CameraClient | None:
         return self._cached_client(
