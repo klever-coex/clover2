@@ -34,7 +34,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: tooling
           - target: clover2-docs
           - target: clover2-frontend
           - target: ros,ros-test
