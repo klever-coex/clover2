@@ -7,7 +7,7 @@ from rclpy.action import ActionClient
 from rclpy.node import Node
 from unique_identifier_msgs.msg import UUID
 
-from ..utils import ActionHelper, ActionStatus
+from ._action_helper import ActionHelper, ActionStatus
 
 NAVIGATE_BOND_TOPIC = "/fcu_bridge/bond"
 NAVIGATE_BOND_CONNECT_TIMEOUT = 2.0
@@ -92,23 +92,18 @@ class NavigationTask:
 
     def wait(self, timeout: float | None = None) -> bool:
         status = self._helper.wait(timeout)
-
         if status is ActionStatus.TIMEOUT:
             raise NavigationTimeoutError(
                 "Navigation task did not finish before the timeout"
             )
-
         if status is ActionStatus.SUCCEEDED:
             if self.result is not None and not self.result.success:
                 raise NavigationAbortedError(self.message)
             return True
-
         if status is ActionStatus.REJECTED:
             raise NavigationRejectedError(self.message)
-
         if status is ActionStatus.CANCELED:
             raise NavigationCanceledError(self.message)
-
         raise NavigationAbortedError(self.message)
 
     def _close_bond(self) -> None:

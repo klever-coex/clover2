@@ -1,16 +1,15 @@
+from clover2_common import wait_future
 from clover2_led_msgs.msg import Color, LedFrame
 from clover2_led_msgs.srv import GetCurrentFrame, GetDriverInfo, StartAnimation
 from rclpy.node import Node
 
-from ..utils import wait_future
-
 
 def _make_color(r: int, g: int, b: int) -> Color:
-    c = Color()
-    c.r = r
-    c.g = g
-    c.b = b
-    return c
+    color = Color()
+    color.r = r
+    color.g = g
+    color.b = b
+    return color
 
 
 class LEDClient:
@@ -24,7 +23,6 @@ class LEDClient:
         self._max_fps = 0.0
 
         self._frame_pub = node.create_publisher(LedFrame, self._topic("led_frame"), 5)
-
         self._get_info_client = node.create_client(
             GetDriverInfo, self._service("get_driver_info")
         )
@@ -57,46 +55,34 @@ class LEDClient:
                 f"{self._get_frame_client.srv_name} service not available"
             )
 
-        req = GetCurrentFrame.Request()
-        future = self._get_frame_client.call_async(req)
-        result = wait_future(future, timeout=timeout)
-
+        result = wait_future(
+            self._get_frame_client.call_async(GetCurrentFrame.Request()), timeout
+        )
         if not result:
-            self._node.get_logger().error("Service not response")
-            return ([], 0.0)
-
+            self._node.get_logger().error("Service did not respond")
+            return [], 0.0
         if not result.success:
-            self._node.get_logger().error(f"`get_current_frame`: {result.message}")
-            return ([], 0.0)
+            self._node.get_logger().error(
+                f"`get_current_frame`: {result.message}"
+            )
+            return [], 0.0
 
-        colors = [(c.r, c.g, c.b) for c in result.colors]
-        return colors, result.brightness
+        return [(color.r, color.g, color.b) for color in result.colors], result.brightness
 
     def send_frame(self, colors: list[tuple[int, int, int]], brightness: float = 1.0):
         msg = LedFrame()
         msg.brightness = float(brightness)
-        msg.colors = [_make_color(*c) for c in colors]
+        msg.colors = [_make_color(*color) for color in colors]
         self._frame_pub.publish(msg)
 
     def clear(self):
-        msg = LedFrame()
-        msg.brightness = 0.0
-        msg.colors = [_make_color(0, 0, 0)] * self._led_count
-        self._frame_pub.publish(msg)
+        self.send_frame([(0, 0, 0)] * self._led_count, brightness=0.0)
 
     def fill(self, r: int, g: int, b: int):
-        msg = LedFrame()
-        msg.brightness = 1.0
-        msg.colors = [_make_color(r, g, b)] * self._led_count
-        self._frame_pub.publish(msg)
+        self.send_frame([(r, g, b)] * self._led_count)
 
     def solid_color(
-        self,
-        r: int,
-        g: int,
-        b: int,
-        brightness: float = 1.0,
-        duration: float = 0.0,
+        self, r: int, g: int, b: int, brightness: float = 1.0, duration: float = 0.0
     ):
         req = StartAnimation.Request()
         req.animation_name = "solid_color"
@@ -123,10 +109,7 @@ class LEDClient:
         self._call_animation(req)
 
     def rainbow(
-        self,
-        period: float = 2.0,
-        brightness: float = 1.0,
-        duration: float = 0.0,
+        self, period: float = 2.0, brightness: float = 1.0, duration: float = 0.0
     ):
         req = StartAnimation.Request()
         req.animation_name = "rainbow"
@@ -136,9 +119,7 @@ class LEDClient:
         self._call_animation(req)
 
     def _topic(self, name: str) -> str:
-        if not self._base_path:
-            return name
-        return f"{self._base_path}/{name}"
+        return name if not self._base_path else f"{self._base_path}/{name}"
 
     def _service(self, name: str) -> str:
         return self._topic(name)
@@ -147,16 +128,11 @@ class LEDClient:
         if not self._start_animation_client.wait_for_service(1.0):
             raise RuntimeError("start_animation service not available")
 
-        future = self._start_animation_client.call_async(req)
-        result = wait_future(future, timeout=1.0)
-
+        result = wait_future(self._start_animation_client.call_async(req), timeout=1.0)
         if not result:
-            self._node.get_logger().error("Service not response")
-            return ([], 0.0)
-
-        if not result.success:
+            self._node.get_logger().error("Service did not respond")
+        elif not result.success:
             self._node.get_logger().error(f"`start_animation`: {result.message}")
-            return ([], 0.0)
 
     def _update_driver_info(self):
         if not self._get_info_client.wait_for_service(1.0):
@@ -164,17 +140,15 @@ class LEDClient:
                 f"{self._get_info_client.srv_name} service not available"
             )
 
-        req = GetDriverInfo.Request()
-        future = self._get_info_client.call_async(req)
-        result = wait_future(future, timeout=1.0)
-
+        result = wait_future(
+            self._get_info_client.call_async(GetDriverInfo.Request()), timeout=1.0
+        )
         if not result:
-            self._node.get_logger().error("Service not response")
-            return ([], 0.0)
-
+            self._node.get_logger().error("Service did not respond")
+            return
         if not result.success:
             self._node.get_logger().error(f"`get_driver_info`: {result.message}")
-            return ([], 0.0)
+            return
 
         self._led_count = result.led_count
         self._max_fps = result.max_fps

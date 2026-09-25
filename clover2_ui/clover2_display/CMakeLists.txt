@@ -8,9 +8,14 @@ endif()
 # Find ROS 2 build system packages.
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_auto REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS core)
 
 ament_auto_find_build_dependencies()
+
+ament_python_install_package(${PROJECT_NAME}
+  PACKAGE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/python/${PROJECT_NAME}"
+)
 
 ament_auto_add_library(${PROJECT_NAME}_device SHARED DIRECTORY "src/device")
 target_link_libraries(${PROJECT_NAME}_device  ${OpenCV_LIBS})

@@ -79,7 +79,6 @@ class ActionHelper:
                 self._status = ActionStatus.CANCELING
 
         self._cancel_goal(goal_handle)
-
         return True
 
     def add_done_callback(self, callback) -> None:
@@ -104,10 +103,9 @@ class ActionHelper:
         with self._lock:
             self._goal_handle = goal_handle
             cancel_requested = self._cancel_requested
-            if cancel_requested:
-                self._status = ActionStatus.CANCELING
-            else:
-                self._status = ActionStatus.ACTIVE
+            self._status = (
+                ActionStatus.CANCELING if cancel_requested else ActionStatus.ACTIVE
+            )
 
         try:
             get_result = goal_handle.get_result_async()
@@ -116,7 +114,6 @@ class ActionHelper:
             return
 
         get_result.add_done_callback(self._on_result)
-
         if cancel_requested:
             self._cancel_goal(goal_handle)
 
@@ -127,9 +124,11 @@ class ActionHelper:
             self._complete(ActionStatus.ABORTED, message=str(error))
             return
 
-        status = _GOAL_STATUS_MAP.get(response.status, ActionStatus.ABORTED)
-        message = getattr(response.result, "message", "")
-        self._complete(status, result=response.result, message=message)
+        self._complete(
+            _GOAL_STATUS_MAP.get(response.status, ActionStatus.ABORTED),
+            result=response.result,
+            message=getattr(response.result, "message", ""),
+        )
 
     def _cancel_goal(self, goal_handle: Any | None) -> None:
         if goal_handle is None:
@@ -146,10 +145,7 @@ class ActionHelper:
             self._complete(ActionStatus.ABORTED, message=str(error))
 
     def _complete(
-        self,
-        status: ActionStatus,
-        result: Any = None,
-        message: str = "",
+        self, status: ActionStatus, result: Any = None, message: str = ""
     ) -> None:
         with self._lock:
             if self._event.is_set():
@@ -162,6 +158,5 @@ class ActionHelper:
             self._done_callbacks = []
 
         self._event.set()
-
         for callback in callbacks:
             callback(self)

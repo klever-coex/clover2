@@ -18,4 +18,5 @@ def wait_future(future: Future, timeout: float | int) -> Any:
 
     if future.exception() is not None:
         raise future.exception()
+
     return future.result()

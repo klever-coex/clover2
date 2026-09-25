@@ -4,16 +4,13 @@ from collections.abc import Callable
 from typing import TypeVar
 
 import rclpy
+from clover2_display import DisplayClient
+from clover2_fcu_bridge import FCUClient, OffboardClient
+from clover2_led import LEDClient
 from rclpy.node import Node
 
 from . import utils
-from .clients import (
-    CameraClient,
-    DisplayClient,
-    FCUClient,
-    LEDClient,
-    OffboardClient,
-)
+from .clients import CameraClient
 
 T = TypeVar("T")
 
