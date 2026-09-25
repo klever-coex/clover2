@@ -1,22 +1,17 @@
 import math
-import uuid as uuid_lib
 
-from bondpy import bondpy
 from clover2_nav_msgs.action import NavigateAsync
-from clover2_nav_msgs.srv import ArmDisarm, Land, Navigate, SetPosition
+from clover2_nav_msgs.srv import ArmDisarm, Land, SetPosition
 from geometry_msgs.msg import Pose
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from tf_transformations import quaternion_from_euler
-from unique_identifier_msgs.msg import UUID
 
-from ..utils import ActionHelper, ActionStatus, wait_future
+from ..utils import wait_future
+from .navigation_task import NavigationAbortedError, NavigationTask
 
 NAN = float("nan")
-NAVIGATE_BOND_TOPIC = "/fcu_bridge/bond"
-NAVIGATE_BOND_CONNECT_TIMEOUT = 2.0
-NAVIGATE_BOND_HEARTBEAT_PERIOD = 0.2
-NAVIGATE_BOND_HEARTBEAT_TIMEOUT = 1.0
+NAVIGATE_ACTION_SERVER_TIMEOUT = 3.0
 
 
 class OffboardClient:
@@ -30,9 +25,6 @@ class OffboardClient:
 
         self._set_position_client = self._node.create_client(
             SetPosition, "/fcu_bridge/set_position"
-        )
-        self._navigate_client = self._node.create_client(
-            Navigate, "/fcu_bridge/navigate"
         )
         self._arm_disarm_client = self._node.create_client(
             ArmDisarm, "/fcu_bridge/arm_disarm"
@@ -79,15 +71,21 @@ class OffboardClient:
         z: float = NAN,
         yaw: float = NAN,
         speed: float = 0.5,
-    ) -> bool:
-        req = Navigate.Request()
-        req.header.frame_id = frame_id
-        req.header.stamp = self._node.get_clock().now().to_msg()
+    ) -> NavigationTask:
+        goal = NavigateAsync.Goal()
+        goal.header.frame_id = frame_id
+        goal.header.stamp = self._node.get_clock().now().to_msg()
+        goal.speed = speed
+        goal.pose = self.__fill_pose(x, y, z, yaw)
 
-        req.speed = speed
-        req.pose = self.__fill_pose(x, y, z, yaw)
+        if not self._navigate_async_action_client.wait_for_server(
+            timeout_sec=NAVIGATE_ACTION_SERVER_TIMEOUT
+        ):
+            raise NavigationAbortedError(
+                "NavigateAsync action server /fcu_bridge/navigate_async is unavailable"
+            )
 
-        return self.__wait_service_call(self._navigate_client, req)
+        return NavigationTask(self._node, self._navigate_async_action_client, goal)
 
     def navigate_wait(
         self,
@@ -98,46 +96,7 @@ class OffboardClient:
         yaw: float = NAN,
         speed: float = 0.5,
     ) -> bool:
-        goal = NavigateAsync.Goal()
-        goal.header.frame_id = frame_id
-        goal.header.stamp = self._node.get_clock().now().to_msg()
-
-        goal.speed = speed
-        goal.pose = self.__fill_pose(x, y, z, yaw)
-
-        self._navigate_async_action_client.wait_for_server()
-
-        goal_uuid = UUID(uuid=list(uuid_lib.uuid4().bytes))
-        goal_uuid_string = str(uuid_lib.UUID(bytes=bytes(goal_uuid.uuid)))
-        self._logger.debug(f"Navigate async goal UUID: {goal_uuid_string}")
-
-        bond_id = f"navigate_async:{goal_uuid_string}"
-        navigate_bond = bondpy.Bond(self._node, NAVIGATE_BOND_TOPIC, bond_id)
-        navigate_bond.set_connect_timeout(NAVIGATE_BOND_CONNECT_TIMEOUT)
-        navigate_bond.set_heartbeat_period(NAVIGATE_BOND_HEARTBEAT_PERIOD)
-        navigate_bond.set_heartbeat_timeout(NAVIGATE_BOND_HEARTBEAT_TIMEOUT)
-        navigate_bond.start()
-
-        try:
-            helper = ActionHelper(
-                self._navigate_async_action_client, goal, goal_uuid
-            )
-            status = helper.wait()
-
-            if status is ActionStatus.REJECTED:
-                raise RuntimeError(helper.message)
-
-            if status is not ActionStatus.SUCCEEDED:
-                raise RuntimeError(
-                    f"NavigateAsync {status.name}: {helper.message}"
-                )
-
-            if not helper.result.success:
-                raise RuntimeError(helper.result.message)
-
-            return helper.result.success
-        finally:
-            navigate_bond.break_bond()
+        return self.navigate(frame_id, x, y, z, yaw, speed).wait()
 
     def __fill_pose(self, x, y, z, yaw) -> Pose:
         pose = Pose()

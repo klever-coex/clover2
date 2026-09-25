@@ -32,19 +32,19 @@ class Clover2(Node):
         self._ros_thread.start()
         _ = atexit.register(self._stop)
 
-        self._clients: dict[str, object] = {}
+        self._cached_clients: dict[str, object] = {}
         self._offboard = OffboardClient(self)
         self._fcu = FCUClient(self)
 
     def _cached_client(self, name: str, factory: Callable[[], T]) -> T | None:
-        if name not in self._clients:
+        if name not in self._cached_clients:
             try:
-                self._clients[name] = factory()
+                self._cached_clients[name] = factory()
             except Exception:
                 self.get_logger().warning(f"Client for '{name}' not found")
                 return None
 
-        return self._clients[name]
+        return self._cached_clients[name]
 
     @property
     def offboard(self) -> OffboardClient:

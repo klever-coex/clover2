@@ -9,6 +9,9 @@ from unique_identifier_msgs.msg import UUID
 
 
 class ActionStatus(Enum):
+    PENDING = auto()
+    ACTIVE = auto()
+    CANCELING = auto()
     REJECTED = auto()
     SUCCEEDED = auto()
     ABORTED = auto()
@@ -28,11 +31,21 @@ class ActionHelper:
         self, action: ActionClient, goal: Any, goal_uuid: UUID | None = None
     ) -> None:
         self._event = threading.Event()
-        self._status: ActionStatus = ActionStatus.REJECTED
+        self._lock = threading.Lock()
+        self._status: ActionStatus = ActionStatus.PENDING
         self._result: Any = None
         self._message: str = ""
+        self._goal_handle: Any = None
+        self._cancel_requested = False
+        self._cancel_sent = False
+        self._done_callbacks: list = []
 
-        goal_future: Future = action.send_goal_async(goal, goal_uuid=goal_uuid)
+        try:
+            goal_future: Future = action.send_goal_async(goal, goal_uuid=goal_uuid)
+        except Exception as error:
+            self._complete(ActionStatus.ABORTED, message=str(error))
+            return
+
         goal_future.add_done_callback(self._on_goal_response)
 
     def wait(self, timeout: float | None = None) -> ActionStatus:
@@ -55,18 +68,100 @@ class ActionHelper:
     def ok(self) -> bool:
         return self._status is ActionStatus.SUCCEEDED
 
+    def cancel(self) -> bool:
+        with self._lock:
+            if self._event.is_set():
+                return False
+
+            self._cancel_requested = True
+            goal_handle = self._goal_handle
+            if goal_handle is not None:
+                self._status = ActionStatus.CANCELING
+
+        self._cancel_goal(goal_handle)
+
+        return True
+
+    def add_done_callback(self, callback) -> None:
+        with self._lock:
+            if not self._event.is_set():
+                self._done_callbacks.append(callback)
+                return
+
+        callback(self)
+
     def _on_goal_response(self, future: Future) -> None:
-        goal_handle = future.result()
-        if not goal_handle.accepted:
-            self._message = "Goal rejected"
-            self._event.set()
+        try:
+            goal_handle = future.result()
+        except Exception as error:
+            self._complete(ActionStatus.ABORTED, message=str(error))
             return
 
-        get_result = goal_handle.get_result_async()
+        if not goal_handle.accepted:
+            self._complete(ActionStatus.REJECTED, message="Goal rejected")
+            return
+
+        with self._lock:
+            self._goal_handle = goal_handle
+            cancel_requested = self._cancel_requested
+            if cancel_requested:
+                self._status = ActionStatus.CANCELING
+            else:
+                self._status = ActionStatus.ACTIVE
+
+        try:
+            get_result = goal_handle.get_result_async()
+        except Exception as error:
+            self._complete(ActionStatus.ABORTED, message=str(error))
+            return
+
         get_result.add_done_callback(self._on_result)
 
+        if cancel_requested:
+            self._cancel_goal(goal_handle)
+
     def _on_result(self, future: Future) -> None:
-        response = future.result()
-        self._status = _GOAL_STATUS_MAP.get(response.status, ActionStatus.ABORTED)
-        self._result = response.result
+        try:
+            response = future.result()
+        except Exception as error:
+            self._complete(ActionStatus.ABORTED, message=str(error))
+            return
+
+        status = _GOAL_STATUS_MAP.get(response.status, ActionStatus.ABORTED)
+        message = getattr(response.result, "message", "")
+        self._complete(status, result=response.result, message=message)
+
+    def _cancel_goal(self, goal_handle: Any | None) -> None:
+        if goal_handle is None:
+            return
+
+        with self._lock:
+            if self._cancel_sent or self._event.is_set():
+                return
+            self._cancel_sent = True
+
+        try:
+            goal_handle.cancel_goal_async()
+        except Exception as error:
+            self._complete(ActionStatus.ABORTED, message=str(error))
+
+    def _complete(
+        self,
+        status: ActionStatus,
+        result: Any = None,
+        message: str = "",
+    ) -> None:
+        with self._lock:
+            if self._event.is_set():
+                return
+
+            self._status = status
+            self._result = result
+            self._message = message
+            callbacks = self._done_callbacks
+            self._done_callbacks = []
+
         self._event.set()
+
+        for callback in callbacks:
+            callback(self)

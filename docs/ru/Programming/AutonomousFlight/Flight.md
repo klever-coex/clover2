@@ -37,11 +37,30 @@ drone.offboard.navigate_wait(frame_id="map", x=1.0, y=2.0, z=1.5, speed=0.5, yaw
 drone.offboard.navigate_wait(frame_id="base_link", z=0.5, speed=0.5)
 ```
 
-Метод `navigate` полностью копирует `navigate_wait`, но не будет ждать, пока дрон долетит до указанной точки.
+Метод `navigate` запускает полёт и сразу возвращает объект задачи. Через него можно дождаться окончания полёта или досрочно отменить текущую цель.
 
 ```python
-drone.offboard.navigate(frame_id="map", x=1.0, y=2.0, z=1.5, yaw=0.0, speed=0.5)
+from clover2.clients import NavigationCanceledError
+
+task = drone.offboard.navigate(
+    frame_id="map", x=1.0, y=2.0, z=1.5, yaw=0.0, speed=0.5
+)
+
+# ждать не более 10 секунд
+# если timeout сработает, полёт не отменяется автоматически
+task.wait(timeout=10.0)
+
+# запросить штатную отмену action
+task.cancel()
+
+try:
+    # ждать окончания
+    task.wait()
+except NavigationCanceledError:
+    print("Полёт отменён")
 ```
+
+Если `wait(timeout=...)` завершился по timeout, полёт не отменяется автоматически. Для остановки нужно явно вызвать `task.cancel()`.
 
 ## Пример: полёт по квадрату
 

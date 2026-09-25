@@ -19,7 +19,17 @@ AutonomousFlight/Display
 - `offboard.land()` — посадка
 - `fcu.is_armed()` / `fcu.flight_mode()` — состояние дрона
 - `offboard.navigate_wait(frame_id, x, y, z, speed, yaw)` — полёт в точку с ожиданием прибытия
-- `offboard.navigate(...)` — то же без блокировки
+- `offboard.navigate(...)` — запускает полёт и возвращает `NavigationTask`
+  - `task.status` — состояние задачи: `PENDING`, `ACTIVE`, `CANCELING`, `REJECTED`, `SUCCEEDED`, `CANCELED` или `ABORTED`
+  - `task.wait(timeout=None)` — дождаться результата; возвращает `True` при успешном прибытии
+  - `task.cancel()` — штатно отменить текущую навигационную цель, без посадки
+  - `task.result` / `task.message` — результат action и сообщение bridge
+  - `NavigationTimeoutError` — истекло время локального ожидания; полёт продолжается
+  - `NavigationRejectedError` — bridge не принял новую цель
+  - `NavigationCanceledError` — цель была отменена
+  - `NavigationAbortedError` — навигация прервана ошибкой либо action server недоступен
+
+`wait(timeout=...)` ограничивает только ожидание результата и не отменяет полёт. Для штатной остановки текущей навигации вызовите `task.cancel()`.
 
 ## **{doc}`Камера <AutonomousFlight/Camera>`**
 
