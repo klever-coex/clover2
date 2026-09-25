@@ -10,9 +10,13 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <depend>clover2_common</depend>
   <depend>clover2_nav_msgs</depend>
+  <depend>action_msgs</depend>
+  <depend>bondpy</depend>
+  <depend>geometry_msgs</depend>
   <depend>diagnostic_updater</depend>
   <depend>mavros_msgs</depend>
   <depend>sensor_msgs</depend>
@@ -24,7 +28,10 @@
   <depend>rclcpp_components</depend>
   <depend>rclcpp_lifecycle</depend>
   <depend>rclcpp</depend>
+  <depend>rclpy</depend>
   <depend>bondcpp</depend>
+  <depend>tf_transformations</depend>
+  <depend>unique_identifier_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

@@ -1,4 +1,5 @@
 from clover2_common._version import __version__
+from clover2_common.wait_future import wait_future
 
 
 def project_version() -> str:

@@ -1,16 +1,15 @@
 import numpy as np
-from cv_bridge import CvBridge
+from clover2_common import wait_future
 from clover2_display_msgs.srv import GetDriverInfo
+from cv_bridge import CvBridge
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 
-from ..utils import wait_future
-
 
 class DisplayClient:
-    def __init__(self, node: Node, base_path: str = ''):
+    def __init__(self, node: Node, base_path: str = ""):
         self._node = node
-        self._logger = self._node.get_logger().get_child('display_client')
+        self._logger = self._node.get_logger().get_child("display_client")
         self._base_path = base_path
         self._bridge = CvBridge()
 
@@ -20,9 +19,9 @@ class DisplayClient:
         self._max_fps = 0.0
         self._supported_encodings: list[str] = []
 
-        self._image_pub = node.create_publisher(Image, self._topic('image'), 5)
+        self._image_pub = node.create_publisher(Image, self._topic("image"), 5)
         self._get_info_client = node.create_client(
-            GetDriverInfo, self._service('get_driver_info')
+            GetDriverInfo, self._service("get_driver_info")
         )
 
         self._update_driver_info()
@@ -51,14 +50,12 @@ class DisplayClient:
         self._image_pub.publish(image)
 
     def send_cv_image(
-        self, image: np.ndarray, encoding: str = 'passthrough'
+        self, image: np.ndarray, encoding: str = "passthrough"
     ) -> None:
         self.send_image(self._bridge.cv2_to_imgmsg(image, encoding=encoding))
 
     def _topic(self, name: str) -> str:
-        if not self._base_path:
-            return name
-        return f'{self._base_path}/{name}'
+        return name if not self._base_path else f"{self._base_path}/{name}"
 
     def _service(self, name: str) -> str:
         return self._topic(name)
@@ -66,19 +63,17 @@ class DisplayClient:
     def _update_driver_info(self):
         if not self._get_info_client.wait_for_service(1.0):
             raise RuntimeError(
-                f'{self._get_info_client.srv_name} service not available'
+                f"{self._get_info_client.srv_name} service not available"
             )
 
-        req = GetDriverInfo.Request()
-        future = self._get_info_client.call_async(req)
-        result = wait_future(future, timeout=1.0)
-
+        result = wait_future(
+            self._get_info_client.call_async(GetDriverInfo.Request()), timeout=1.0
+        )
         if not result:
-            self._node.get_logger().error('Service not response')
+            self._node.get_logger().error("Service did not respond")
             return
-
         if not result.success:
-            self._node.get_logger().error(f'`get_driver_info`: {result.message}')
+            self._node.get_logger().error(f"`get_driver_info`: {result.message}")
             return
 
         self._width = result.width
@@ -87,7 +82,7 @@ class DisplayClient:
         self._supported_encodings = list(result.supported_encodings)
         self._valid = True
         self._logger.debug(
-            'Driver info: '
-            f'{self._width}x{self._height}, max_fps={self._max_fps:.1f}, '
-            f'supported_encodings={self._supported_encodings}'
+            "Driver info: "
+            f"{self._width}x{self._height}, max_fps={self._max_fps:.1f}, "
+            f"supported_encodings={self._supported_encodings}"
         )

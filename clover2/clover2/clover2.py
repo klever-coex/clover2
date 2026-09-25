@@ -4,10 +4,13 @@ from collections.abc import Callable
 from typing import TypeVar
 
 import rclpy
+from clover2_display import DisplayClient
+from clover2_fcu_bridge import FCUClient, OffboardClient
+from clover2_led import LEDClient
 from rclpy.node import Node
 
 from . import utils
-from .clients import CameraClient, DisplayClient, LEDClient, OffboardClient
+from .clients import CameraClient
 
 T = TypeVar("T")
 
@@ -26,28 +29,32 @@ class Clover2(Node):
         self._ros_thread.start()
         _ = atexit.register(self._stop)
 
-        self._clients: dict[str, object] = {}
-
-        self._offboard: OffboardClient = OffboardClient(self)
-        self._camera: CameraClient = CameraClient(self)
+        self._cached_clients: dict[str, object] = {}
+        self._offboard = OffboardClient(self)
+        self._fcu = FCUClient(self)
 
     def _cached_client(self, name: str, factory: Callable[[], T]) -> T | None:
-        if name not in self._clients:
+        if name not in self._cached_clients:
             try:
-                self._clients[name] = factory()
+                self._cached_clients[name] = factory()
             except Exception:
                 self.get_logger().warning(f"Client for '{name}' not found")
                 return None
 
-        return self._clients[name]
+        return self._cached_clients[name]
 
     @property
     def offboard(self) -> OffboardClient:
         return self._offboard
 
     @property
-    def camera(self) -> CameraClient:
-        return self._camera
+    def fcu(self) -> FCUClient:
+        return self._fcu
+
+    def camera(self, name: str = "main_camera") -> CameraClient | None:
+        return self._cached_client(
+            f"camera:{name}", lambda: CameraClient(self, name)
+        )
 
     def led(self, name: str = "/led_strip") -> LEDClient | None:
         return self._cached_client(name, lambda: LEDClient(self, name))

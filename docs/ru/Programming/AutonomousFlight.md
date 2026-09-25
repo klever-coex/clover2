@@ -15,17 +15,29 @@ AutonomousFlight/Display
 
 ## **{doc}`Полёт <AutonomousFlight/Flight>`**
 
-- `arm()` / `disarm()` — запуск / остановка моторов
-- `land()` — посадка
-- `is_armed()` / `flight_mode()` — состояние дрона
-- `navigate_wait(frame_id, x, y, z, speed, yaw)` — полёт в точку с ожиданием прибытия
-- `navigate(...)` — то же без блокировки
+- `offboard.arm()` / `offboard.disarm()` — запуск / остановка моторов
+- `offboard.land()` — посадка
+- `fcu.is_armed()` / `fcu.flight_mode()` — состояние дрона
+- `offboard.navigate_wait(frame_id, x, y, z, speed, yaw)` — полёт в точку с ожиданием прибытия
+- `offboard.navigate(...)` — запускает полёт и возвращает `NavigationTask`
+  - `task.status` — состояние задачи: `PENDING`, `ACTIVE`, `CANCELING`, `REJECTED`, `SUCCEEDED`, `CANCELED` или `ABORTED`
+  - `task.wait(timeout=None)` — дождаться результата; возвращает `True` при успешном прибытии
+  - `task.cancel()` — штатно отменить текущую навигационную цель, без посадки
+  - `task.result` / `task.message` — результат action и сообщение bridge
+  - `NavigationTimeoutError` — истекло время локального ожидания; полёт продолжается
+  - `NavigationRejectedError` — bridge не принял новую цель
+  - `NavigationCanceledError` — цель была отменена
+  - `NavigationAbortedError` — навигация прервана ошибкой либо action server недоступен
+
+`wait(timeout=...)` ограничивает только ожидание результата и не отменяет полёт. Для штатной остановки текущей навигации вызовите `task.cancel()`.
 
 ## **{doc}`Камера <AutonomousFlight/Camera>`**
 
-- `get_image(camera_name, encoding)` — получить кадр как numpy-массив
-- `get_image_msg(camera_name)` — получить сырой ROS Image
-- `get_camera_info(camera_name)` — калибровка камеры
+- `camera(name)` — получить клиент камеры
+- `get_image(encoding)` — получить кадр как numpy-массив
+- `get_image_msg()` — получить сырой ROS Image
+- `get_camera_info()` — калибровка камеры
+- `stream(callback)` — получать новые ROS-сообщения `Image`
 
 ## **{doc}`LED-лента <AutonomousFlight/LED>`**
 

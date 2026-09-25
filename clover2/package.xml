@@ -12,9 +12,7 @@
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <depend>rclpy</depend>
-  <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
-  <depend>bondpy</depend>
   <depend>cv_bridge</depend>
 
   <depend>clover2_aruco</depend>
@@ -22,16 +20,13 @@
   <depend>clover2_cam_feature</depend>
   <depend>clover2_common</depend>
   <depend>clover2_description</depend>
-  <depend>clover2_display_msgs</depend>
   <depend>clover2_display</depend>
   <depend>clover2_fcu_bridge</depend>
   <depend>clover2_http_plugins</depend>
   <depend>clover2_http</depend>
-  <depend>clover2_led_msgs</depend>
   <depend>clover2_led</depend>
   <depend>clover2_map</depend>
   <depend>clover2_mavros</depend>
-  <depend>clover2_nav_msgs</depend>
   <depend>clover2_optical_flow</depend>
   <depend>clover2_pose_msgs</depend>
   <depend>clover2_ui</depend>
