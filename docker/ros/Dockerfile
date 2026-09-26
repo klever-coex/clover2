@@ -82,7 +82,7 @@ RUN touch /clover2_ws/src/clover2_common/CMakeLists.txt
 
 RUN --mount=type=cache,id=ccache-${TARGETPLATFORM},target=${CCACHE_DIR} \
     --mount=type=cache,id=ros-build-${TARGETPLATFORM},target=/clover2_ws/build \
-    ls /clover2_ws/build &&/clover2/build_ros.sh ${CCACHE_DIR} /opt/clover2 "--cmake-args -DBUILD_TESTING=1"
+    /clover2/build_ros.sh ${CCACHE_DIR} /opt/clover2 "--cmake-args -DBUILD_TESTING=1"
 
 FROM builder AS test
 ARG TARGETPLATFORM
