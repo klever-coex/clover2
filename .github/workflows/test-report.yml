@@ -31,7 +31,7 @@ jobs:
         uses: dorny/test-reporter@v3
         with:
           name: ROS2 tests
-          path: '**/test-results/**/*.xml'
+          path: 'test-results/**/*.xml'
           reporter: java-junit
           fail-on-error: 'false'
           fail-on-empty: 'false'
