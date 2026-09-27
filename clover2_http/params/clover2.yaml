@@ -16,3 +16,10 @@
 /**/web_video_server:
   ros__parameters:
     port: 8081
+    qos_overrides:
+      /main_camera/camera/image_raw:
+        subscription:
+          history: keep_last
+          depth: 1
+          reliability: best_effort
+          durability: volatile
