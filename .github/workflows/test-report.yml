@@ -15,9 +15,11 @@ jobs:
     runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}
     if: ${{ github.event.workflow_run.conclusion != 'skipped' && github.event.workflow_run.conclusion != 'cancelled' }}
     steps:
+      - uses: actions/checkout@v7
+
       - name: Download test results
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}

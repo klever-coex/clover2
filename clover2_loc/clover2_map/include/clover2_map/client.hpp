@@ -124,14 +124,14 @@ public:
 
     std::string get_dictionary() const { return m_map.dictionary; }
 
-    int get_count() const { return static_cast<int>(m_markers.size()); }
+    int get_count() const { return static_cast<int>(m_map.markers.size()); }
 
     bool has_marker(int id) const {
-        return m_markers.find(id) != m_markers.end();
+        return m_map.markers.find(id) != m_map.markers.end();
     }
 
     const clover2_map::marker& get_marker(int id) const {
-        return m_markers.at(id);
+        return m_map.markers.at(id);
     }
 
     void refresh() { update_map(); }
@@ -195,13 +195,6 @@ private:
         std::lock_guard<std::recursive_mutex> guard(m_map_mtx);
 
         m_map = clover2_map::map::from_msg(msg);
-
-        m_markers.clear();
-        m_markers.reserve(m_map.markers.size());
-        for (const auto& mk : m_map.markers) {
-            m_markers.emplace(mk.id, mk);
-        }
-
         m_map_valid = true;
     }
 
@@ -249,7 +242,6 @@ private:
 
     bool m_map_valid;
     clover2_map::map m_map;
-    std::unordered_map<int, clover2_map::marker> m_markers;
 };
 
 }  // namespace clover2_map
