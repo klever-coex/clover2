@@ -42,11 +42,7 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
 
-      - uses: astral-sh/setup-uv@v6
-
-      - name: Install tooling CLI
-        run: |
-          uv tool install --from "git+https://github.com/klever-coex/clover2-dev.git@0b9ddae#subdirectory=tooling" clover2-dev
+      - uses: klever-coex/clover2-dev@72a17fb
 
       - name: Prepare version
         id: prepare
