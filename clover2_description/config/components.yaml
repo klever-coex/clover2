@@ -17,7 +17,7 @@ camera:
   - -6.0e-06
   - 0.0
   - 6.6e-06
-  mesh: modules/camera.dae
+  mesh: modules/camera.glb
 lidar:
   mass: 0.1
   inertia_size:
@@ -36,7 +36,7 @@ lidar:
   - -0.0149865
   - 1.12e-05
   - -0.0500253
-  mesh: modules/lidar.dae
+  mesh: modules/lidar.glb
 led_strip:
   mass: 0.01
   inertia_size:
@@ -55,4 +55,4 @@ led_strip:
   - 0.0
   - 0.0
   - 0.0
-  mesh: modules/led_strip.dae
+  mesh: modules/led_strip.glb

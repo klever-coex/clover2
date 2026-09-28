@@ -3,7 +3,7 @@
 body:
   mesh: "klever5/body.glb"
   xyz: "0 0 0"
-  rpy: "3.14 0 3.14"
+  rpy: "3.14 0 0"
   mass: 0.72
   inertia_size: [0.328, 0.328, 0.106]
   com: [0.0, 0.0, 0.0]
