@@ -20,10 +20,10 @@ drone = Clover2("my_drone")
 Если `duration` не указан, анимация будет работать до тех пор, пока вы не запустите другую анимацию или не отправите прямую команду управления лентой.
 
 ```python
-drone.rainbow(period=2.0, duration=5.0)     # радуга, полный цикл за 2 с, 5 секунд
-drone.blink(255, 0, 0, period=0.5)          # красное мигание, период 0.5 с
-drone.solid_color(0, 255, 0, duration=1.0)  # зеленая заливка на 1 секунду
-drone.clear()                               # выключение всех светодиодов
+drone.led().rainbow(period=2.0, duration=5.0)     # радуга, полный цикл за 2 с, 5 секунд
+drone.led().blink(255, 0, 0, period=0.5)          # красное мигание, период 0.5 с
+drone.led().solid_color(0, 255, 0, duration=1.0)  # зеленая заливка на 1 секунду
+drone.led().clear()                            # выключение всех светодиодов
 ```
 
 Параметры анимаций:
@@ -41,7 +41,7 @@ drone.clear()                               # выключение всех св
 
 ```python
 # Заливка всей ленты
-drone.fill(255, 255, 0)  # желтый
+drone.led().fill(255, 255, 0)  # желтый
 ```
 
 :::{attention}
@@ -49,12 +49,12 @@ drone.fill(255, 255, 0)  # желтый
 :::
 
 ```python
-count = drone.led_count     # колличетсво светодиодов в ленте
+count = drone.led().led_count  # количество светодиодов в ленте
 leds = [(0, 0, 0)] * count  # выключает ленту
 leds[4] = (0, 255, 0)       # делает 5-й светодиод зеленым
 
 # Попиксельное управление - [(r, g, b), ...]
-drone.send_frame(leds, brightness=0.5)
+drone.led().send_frame(leds, brightness=0.5)
 ```
 
 ## Пример: демонстрация эффектов
@@ -65,15 +65,15 @@ from clover2 import Clover2
 
 drone = Clover2()
 
-drone.rainbow(period=2.0, duration=5.0)
+drone.led().rainbow(period=2.0, duration=5.0)
 time.sleep(5.5)
 
-drone.blink(255, 255, 255, period=0.5, duration=5.0)
+drone.led().blink(255, 255, 255, period=0.5, duration=5.0)
 time.sleep(5.5)
 
 for r, g, b in [(255, 0, 0), (0, 255, 0), (0, 0, 255)]:
-    drone.solid_color(r, g, b, duration=1.0)
+    drone.led().solid_color(r, g, b, duration=1.0)
     time.sleep(1.2)
 
-drone.clear()
+drone.led().clear()
 ```

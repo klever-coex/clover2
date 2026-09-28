@@ -19,8 +19,8 @@ drone = Clover2("my_drone")
 Используйте get_image(), чтобы получить текущий кадр с камеры в виде NumPy-массива.
 
 ```python
-img = drone.get_image()                      # main_camera, bgr8
-img = drone.get_image("main_camera", "rgb8") # с указанием камеры и encoding
+img = drone.camera.get_image()                      # main_camera, bgr8
+img = drone.camera.get_image("main_camera", "rgb8") # с указанием камеры и encoding
 ```
 
 Если не указать параметры, `get_image()` использует камеру `main_camera` и формат изображения `bgr8`.
@@ -31,7 +31,7 @@ img = drone.get_image("main_camera", "rgb8") # с указанием камер�
 Если вам нужно работать с изображением непосредственно в ROS 2, используйте `get_image_msg()`.
 
 ```python
-img_msg = drone.get_image_msg()
+img_msg = drone.camera.get_image_msg()
 ```
 
 Используйте этот вариант, если ваша программа работает с ROS 2 и вам не нужно сразу преобразовывать изображение в NumPy-массив.
@@ -41,7 +41,7 @@ img_msg = drone.get_image_msg()
 Чтобы получить параметры калибровки камеры, используйте `get_camera_info()`.
 
 ```python
-info = drone.get_camera_info()
+info = drone.camera.get_camera_info()
 # info.width, info.height, info.k (матрица), info.d (дисторсия)
 ```
 
@@ -57,7 +57,7 @@ drone = Clover2()
 detector = cv2.QRCodeDetector()
 
 while True:
-    img = drone.get_image()
+    img = drone.camera.get_image()
     data, bbox, _ = detector.detectAndDecode(img)
     if data:
         print(f"QR Code: {data}")

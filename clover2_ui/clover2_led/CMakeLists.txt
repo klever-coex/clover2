@@ -12,28 +12,29 @@ find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
 ament_auto_add_library(${PROJECT_NAME}_device SHARED DIRECTORY "src/device")
-target_link_libraries(${PROJECT_NAME}_device ${cpp_typesupport_target})
 
 ament_auto_add_library(led_plugins SHARED DIRECTORY "src/plugins")
 target_link_libraries(led_plugins
-  ${cpp_typesupport_target}
   ${PROJECT_NAME}_device
 )
 
 pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)
 
 file(GLOB_RECURSE animation_sources "src/animation/*.cpp")
-ament_auto_add_library(${PROJECT_NAME}_animation ${animation_sources})
-target_link_libraries(${PROJECT_NAME}_animation ${cpp_typesupport_target})
+ament_auto_add_library(${PROJECT_NAME}_animation SHARED DIRECTORY "src/animation")
 
-ament_auto_add_library(${PROJECT_NAME}_driver src/driver.cpp src/animation_server.cpp)
+ament_auto_add_library(${PROJECT_NAME}_driver SHARED
+  src/driver.cpp
+  src/animation_server.cpp
+)
 target_link_libraries(${PROJECT_NAME}_driver
-  ${cpp_typesupport_target}
   ${PROJECT_NAME}_device
   ${PROJECT_NAME}_animation
 )
-
-ament_auto_add_executable(driver src/main.cpp)
+rclcpp_components_register_node(${PROJECT_NAME}_driver
+  PLUGIN "clover2_led::driver"
+  EXECUTABLE driver
+)
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
@@ -43,7 +44,6 @@ if(BUILD_TESTING)
     ${test_source}
   )
 
-  target_link_libraries(test_${PROJECT_NAME} ${cpp_typesupport_target})
 endif()
 
 ament_auto_package(

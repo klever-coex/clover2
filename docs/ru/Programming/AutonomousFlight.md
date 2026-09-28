@@ -8,6 +8,7 @@
 AutonomousFlight/Flight
 AutonomousFlight/LED
 AutonomousFlight/Camera
+AutonomousFlight/Display
 ```
 
 В этом разделе описаны основные возможности фреймворка для программирования автономного полета квадрокоптера. 
@@ -38,3 +39,12 @@ AutonomousFlight/Camera
 - `fill(r, g, b)` — заполнение ленты одним цветом
 - `send_frame(colors, brightness)` — управление каждым светодиодом отдельно
 - `led_count` — количество светодиодов в ленте
+
+## **{doc}`Дисплей <AutonomousFlight/Display>`**
+
+- `display()` — получить клиент дисплея
+- `send_image(image)` — отправить ROS-сообщение `sensor_msgs.msg.Image`
+- `send_cv_image(image, encoding)` — отправить изображение OpenCV / numpy-массив
+- `width` / `height` — требуемое разрешение кадра
+- `max_fps` — максимальная частота кадров
+- `supported_encodings` — поддерживаемые кодировки изображений

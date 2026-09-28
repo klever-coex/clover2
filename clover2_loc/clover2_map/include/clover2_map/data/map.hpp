@@ -6,7 +6,7 @@
 
 // STL
 #include <string>
-#include <vector>
+#include <unordered_map>
 
 namespace clover2_map {
 
@@ -16,7 +16,10 @@ public:
     std::string frame_id = "map";
     int version = 0;
     std::string dictionary;
-    std::vector<marker> markers;
+    std::unordered_map<int, marker> markers;
+
+    void add_marker(marker&& m);
+    void add_marker(const marker& m);
 
     void to_msg(clover2_pose_msgs::msg::MarkerMap& msg) const;
     static map from_msg(const clover2_pose_msgs::msg::MarkerMap& msg);

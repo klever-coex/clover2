@@ -8,6 +8,7 @@
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_auto</buildtool_depend>
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
   <depend>clover2_common</depend>
@@ -17,6 +18,9 @@
   <depend>sensor_msgs</depend>
   <depend>tf2_geometry_msgs</depend>
   <depend>tf2_ros</depend>
+  <depend>diagnostic_msgs</depend>
+  <depend>rclcpp_action</depend>
+  <depend>tf2</depend>
   <depend>rclcpp_components</depend>
   <depend>rclcpp_lifecycle</depend>
   <depend>rclcpp</depend>

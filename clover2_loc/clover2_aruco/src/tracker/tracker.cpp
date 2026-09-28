@@ -147,29 +147,6 @@ void tracker::markers_callback(
         return;
     }
 
-    std::vector<const clover2_pose_msgs::msg::Marker*> fixed_markers;
-    fixed_markers.reserve(msg->markers.size());
-
-    for (const auto& marker : msg->markers) {
-        if (!m_map_client->has_marker(marker.id)) {
-            RCLCPP_DEBUG(get_logger(),
-                         "Detected marker %d is not in the map, skipping",
-                         marker.id);
-            continue;
-        }
-
-        const auto& map_marker = m_map_client->get_marker(marker.id);
-
-        if (map_marker.type == clover2_map::marker_type::fixed) {
-            fixed_markers.push_back(&marker);
-            continue;
-        }
-    }
-
-    if (fixed_markers.empty()) {
-        return;
-    }
-
     // transform between tracking frame and camera frame
     Eigen::Isometry3d camera_transform;
     try {
@@ -193,25 +170,31 @@ void tracker::markers_callback(
     estimated_pose_cov.header = estimated_pose.header;
 
     // debug poses of camera from each marker
+    size_t processed_count = 0;
     geometry_msgs::msg::PoseArray poses_debug;
     poses_debug.header.stamp = msg->header.stamp;
     poses_debug.header.frame_id = m_map_client->get_map_id();
-    poses_debug.poses.reserve(fixed_markers.size());
+    poses_debug.poses.reserve(msg->markers.size());
 
     // temp variables for estimating
     Eigen::Vector3d avg_translation = Eigen::Vector3d::Zero();
     Eigen::Quaterniond avg_quat = Eigen::Quaterniond::Identity();
     Eigen::Vector4d cumulative_q = Eigen::Vector4d::Zero();
 
-    for (const auto* marker : fixed_markers) {
+    for (const auto& marker : msg->markers) {
+        if (!m_map_client->has_marker(marker.id)) {
+            continue;
+        }
+
+        const auto map_marker = m_map_client->get_marker(marker.id);
+        if (map_marker.type != clover2_map::marker_type::fixed) {
+            continue;
+        }
+
         Eigen::Isometry3d marker_pose = Eigen::Isometry3d::Identity();
-        tf2::fromMsg(marker->pose.pose, marker_pose);
+        tf2::fromMsg(marker.pose.pose, marker_pose);
 
-        const auto& map_marker = m_map_client->get_marker(marker->id);
-
-        Eigen::Isometry3d camera_in_map =
-            *map_marker.pose * marker_pose.inverse();
-
+        Eigen::Isometry3d camera_in_map = *map_marker.pose * marker_pose.inverse();
         Eigen::Isometry3d drone_in_map = camera_in_map * camera_transform;
 
         // add debug transform
@@ -221,11 +204,13 @@ void tracker::markers_callback(
         avg_translation += drone_in_map.translation();
         Eigen::Quaterniond q(drone_in_map.rotation());
         cumulative_q += q.coeffs();
+
+        processed_count++;
     }
 
     // finalize pose estimation
-    avg_translation /= static_cast<double>(fixed_markers.size());
-    cumulative_q /= static_cast<double>(fixed_markers.size());
+    avg_translation /= static_cast<double>(processed_count);
+    cumulative_q /= static_cast<double>(processed_count);
     avg_quat.coeffs() = cumulative_q.normalized();
 
     // fill pose msg
@@ -247,7 +232,7 @@ void tracker::markers_callback(
     m_pose_pub->publish(estimated_pose);
     m_pose_cov_pub->publish(estimated_pose_cov);
 
-    publish_tf(estimated_pose.header, result_pose.inverse());
+    publish_tf(estimated_pose.header, result_pose);
     auto diagnostic_interface = get_node_diagnostics_interface();
     diagnostic_interface->get<diagnostics::pose_task>().update_pose(
         estimated_pose.header.stamp, estimated_pose.pose);
@@ -265,8 +250,8 @@ void tracker::publish_tf(const std_msgs::msg::Header& header,
             tf2::eigenToTransform(pose);
 
         transform.header.stamp = header.stamp;
-        transform.header.frame_id = m_child_frame_id;
-        transform.child_frame_id = header.frame_id;
+        transform.header.frame_id = header.frame_id;
+        transform.child_frame_id = m_child_frame_id;
 
         m_tf_broadcaster->sendTransform(transform);
     }
