@@ -42,7 +42,7 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
 
-      - uses: klever-coex/clover2-dev@72a17fb
+      - uses: klever-coex/clover2-cli@master
 
       - name: Prepare version
         id: prepare
@@ -51,7 +51,7 @@ jobs:
           BUMP: ${{ inputs.bump }}
           PROMOTE_FROM: ${{ inputs.promote_from }}
         run: |
-          VM="clover2-dev version -d ."
+          VM="clover2 version --root ."
 
           if [[ "$CHANNEL" == "pre-release" ]]; then
             BUMP_JSON=$($VM bump rc --base "$BUMP" --json)

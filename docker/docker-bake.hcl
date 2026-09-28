@@ -1,5 +1,4 @@
 variable "BUILD_MODE" { }
-variable "DOCKER_OUTPUT_DIR" { }
 variable "REGISTRY" { }
 
 variable "CLOVER2_VERSION" { }

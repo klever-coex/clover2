@@ -17,13 +17,13 @@ DOCKER_OUTPUT_DIR ?= $(BUILD_EXPTRAS_DIR)/docker
 UID ?= $(shell id -u)
 GID ?= $(shell id -g)
 
-TOOLING ?= clover2-dev
+TOOLING ?= clover2
 COMPOSE := $(TOOLING) version compose --mode $(BUILD_MODE)
 CLOVER2_GIT_HASH := $(shell $(COMPOSE) --field git_hash)
 CLOVER2_VERSION := $(shell $(COMPOSE) --field version)
 
 ifeq ($(strip $(CLOVER2_VERSION)),)
-$(error tooling compose failed (check BUILD_MODE '$(BUILD_MODE)' and tooling lib installed))
+$(error clover2 version compose failed (check BUILD_MODE '$(BUILD_MODE)' and that the clover2 CLI is installed))
 endif
 
 export CLOVER2_VERSION
@@ -51,7 +51,6 @@ help:
 
 ## clover2-bake-%: Build docker images using buildx bake
 clover2-bake-%:
-	@mkdir -p $(DOCKER_OUTPUT_DIR)
 	docker buildx bake \
 		$(if $(TARGET_ARCH),--set *.platform=linux/$(TARGET_ARCH)) \
 		-f docker/docker-bake.hcl \
@@ -88,42 +87,6 @@ clover2-docs-doxygen:
 ## clover2-frontend-%: Execute npm run command in frontend folder
 clover2-frontend-%:
 	cd $(PROJECT_DIR)/frontend && npm run $*
-
-## builder-download: Download base disk image for builder
-builder-download:
-	$(TOOLING) -vvv builder download
-
-## builder-images: Pull declared docker images (arm64) and save as tars
-builder-images:
-	$(TOOLING) -vvv builder images
-
-## builder-build: Build the clover2 disk image
-builder-build:
-	$(TOOLING) -vvv builder build
-
-## builder-build: Build the clover2 disk image
-builder-upload:
-	$(TOOLING) -vvv builder upload
-
-## builder-image-setup: Run image stage runner (intended to run inside the image)
-builder-image-setup: version
-	$(TOOLING) builder setup
-
-## builder-in-docker: Run any builder task inside the clover2-builder docker image
-builder-%-in-docker:
-	docker run \
-		--rm \
-		-i \
-		--net=host \
-		--privileged \
-		--env REGISTRY=$(REGISTRY) \
-		--env BUILD_MODE=$(BUILD_MODE) \
-		-v /dev:/dev \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v $(PROJECT_DIR):/builder \
-		-w /builder \
-		$(REGISTRY)clover2-builder:$(CLOVER2_GIT_HASH) \
-		sh -c "make builder-$*"
 
 ## clover2-devtool-install-repos: install mainline ros2 repos to third party folder
 clover2-devtool-install-repos:
