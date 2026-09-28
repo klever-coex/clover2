@@ -23,7 +23,7 @@ drone = Clover2("my_drone")
 drone.led().rainbow(period=2.0, duration=5.0)     # радуга, полный цикл за 2 с, 5 секунд
 drone.led().blink(255, 0, 0, period=0.5)          # красное мигание, период 0.5 с
 drone.led().solid_color(0, 255, 0, duration=1.0)  # зеленая заливка на 1 секунду
-drone.led().clear()                            # выключение всех светодиодов
+drone.led().clear()                               # выключение всех светодиодов
 ```
 
 Параметры анимаций:
