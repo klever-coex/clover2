@@ -45,6 +45,8 @@
 
         <arg name="camera_id" value="0" />
         <arg name="camera_name" value="main_camera" />
+        <arg name="camera_link" value="base_link" />
+        <arg name="camera_sensor" value="main_camera" />
         <arg name="ns" value="$(var root_ns)" />
         <arg name="sensing_pkg" value="$(var sensing_pkg)" />
 
@@ -62,6 +64,8 @@
 
         <arg name="camera_id" value="1" />
         <arg name="camera_name" value="front_camera" />
+        <arg name="camera_link" value="front_camera_body_link" />
+        <arg name="camera_sensor" value="front_camera" />
         <arg name="ns" value="$(var root_ns)" />
         <arg name="sensing_pkg" value="$(var sensing_pkg)" />
 
