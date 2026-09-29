@@ -130,7 +130,7 @@ class FCUBridgeAction(Action):
                 Node(
                     package="mavros",
                     executable="mavros_node",
-                    namespace=f"{namespace}",
+                    namespace=f"{namespace}/mavros",
                     parameters=mavros_params,
                     output="screen",
                     arguments=["--ros-args", "--log-level", "warn"],
