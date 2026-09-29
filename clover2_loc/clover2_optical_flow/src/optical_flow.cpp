@@ -86,7 +86,7 @@ optical_flow::CallbackReturn optical_flow::on_activate(
 
     // Create publishers
     m_flow_pub = this->create_publisher<mavros_msgs::msg::OpticalFlowRad>(
-        "/mavros/px4flow/raw/send", rclcpp::SystemDefaultsQoS());
+        "mavros/px4flow/raw/send", rclcpp::SystemDefaultsQoS());
     m_debug_pub = this->create_publisher<sensor_msgs::msg::Image>(
         "~/debug", rclcpp::SystemDefaultsQoS());
 
