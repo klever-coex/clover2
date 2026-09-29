@@ -152,9 +152,8 @@ python3 visualize_raw_thermal.py
 Назначение примеров:
 
 1. `subscribe_raw_image.py` подписывается на raw-кадр и публикует строку `/thermal_camera/status`.
-2. `find_temperature_extremes.py` публикует `/thermal_camera/min_temperature`, `/thermal_camera/max_temperature`, `/thermal_camera/center_temperature`.
-3. `visualize_raw_thermal.py` берет верхнюю половину кадра и публикует `/thermal_camera/image_colormap`.
-4. `find_temperature_extremes.py` публикует точки `geometry_msgs/msg/PointStamped`:
+2. `visualize_raw_thermal.py` берет верхнюю половину кадра и публикует `/thermal_camera/image_colormap`.
+3. `find_temperature_extremes.py` публикует `/thermal_camera/min_temperature`, `/thermal_camera/max_temperature`, `/thermal_camera/center_temperature` и точки `geometry_msgs/msg/PointStamped`:
 ```text
 point.x — координата пикселя по горизонтали
 point.y — координата пикселя по вертикали
