@@ -8,6 +8,7 @@
 AutonomousFlight/Flight
 AutonomousFlight/LED
 AutonomousFlight/Camera
+AutonomousFlight/Display
 ```
 
 This guide introduces the core framework features designed for programming autonomous quadcopter flight. 
