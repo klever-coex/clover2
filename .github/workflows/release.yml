@@ -114,3 +114,28 @@ jobs:
           body: ${{ steps.changelog.outputs.changelog }}
           draft: false
           prerelease: ${{ inputs.channel == 'pre-release' }}
+
+      - name: Telegram notify — success
+        if: ${{ !inputs.dry_run && success() }}
+        uses: klever-coex/ci/.github/actions/release-notify@main
+        with:
+          telegram_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          telegram_chat: ${{ secrets.TELEGRAM_TO }}
+          status: success
+          project: clover2
+          tag: ${{ steps.prepare.outputs.tag }}
+          channel: ${{ inputs.channel }}
+          promoted_from: ${{ inputs.promote_from }}
+          changelog: ${{ steps.changelog.outputs.changelog }}
+          extra: ${{ inputs.channel == 'pre-release' && 'Docker images will be built by the next docker-build run' || '' }}
+
+      - name: Telegram notify — failure
+        if: ${{ !inputs.dry_run && failure() }}
+        uses: klever-coex/ci/.github/actions/release-notify@main
+        with:
+          telegram_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          telegram_chat: ${{ secrets.TELEGRAM_TO }}
+          status: failure
+          project: clover2
+          tag: ${{ steps.prepare.outputs.tag }}
+
