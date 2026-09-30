@@ -117,7 +117,7 @@ jobs:
 
       - name: Telegram notify - success
         if: ${{ !inputs.dry_run && success() }}
-        uses: klever-coex/ci/.github/actions/release-notify@main
+        uses: klever-coex/ci/.github/actions/release-notify@master
         with:
           telegram_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           telegram_chat: ${{ secrets.TELEGRAM_TO }}
@@ -131,7 +131,7 @@ jobs:
 
       - name: Telegram notify - failure
         if: ${{ !inputs.dry_run && failure() }}
-        uses: klever-coex/ci/.github/actions/release-notify@main
+        uses: klever-coex/ci/.github/actions/release-notify@master
         with:
           telegram_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           telegram_chat: ${{ secrets.TELEGRAM_TO }}
