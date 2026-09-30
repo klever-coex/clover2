@@ -12,8 +12,11 @@ The camera transmits a single raw frame measuring 256×384 pixels over USB, whic
 This raw data can be processed by a program. 
 The top section can be converted into a visual image by applying a color palette. 
 The bottom section (temperature matrix) can be converted into usable temperature values for analysis.
+
+```{tip}
 To obtain the temperature in Kelvin, divide the original raw value by 64. 
 To convert this to degrees Celsius, subtract 273.15.
+```
 
 ## How to Install the Camera
 
@@ -100,7 +103,7 @@ ros2 run v4l2_camera v4l2_camera_node --ros-args \
 | `image_size` | `[256, 384]` | Full raw frame size (Top 192 rows: IR image; Bottom 192 rows: temperature matrix) |
 | `pixel_format` | `YUYV` | Pixel format output by the USB camera |
 | `output_encoding` | `yuv422_yuy2` | ROS 2 message encoding that preserves original data without RGB conversion |
-| `camera_frame_id` | `thermal_camera` | frame_id name in the `sensor_msgs/msg/Image` header |
+| `camera_frame_id` | `thermal_camera` | `frame_id` name in the `sensor_msgs/msg/Image` header |
 | `-r /image_raw:=...` | `/thermal_camera/image_raw` | Remapping of the image topic |
 | `-r /camera_info:=...` | `/thermal_camera/camera_info` | Remapping of the calibration data topic |
 
@@ -138,7 +141,7 @@ Expected Values:
 ```text
 encoding: yuv422_yuy2
 step: 512
-rate: около 25 Гц
+rate: approx. 25 Hz
 ```
 
 ## Code Examples
@@ -179,7 +182,7 @@ px   ├──────────────┤
 px   └──────────────┘
 ```
 
-The top half is utilized for visual representation and colormap overlays. 
+The top half is utilized for visual representation and `colormap` overlays. 
 The bottom half is processed as `uint16` data and converted into degrees Celsius.
 
 ```python
