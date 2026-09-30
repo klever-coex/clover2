@@ -1,0 +1,96 @@
+name: Build
+
+on:
+  push:
+    tags: ['v*']
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  detect-mode:
+    if: github.event.pull_request.draft == false
+    runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}
+    outputs:
+      build_mode: ${{ steps.version.outputs.build_mode }}
+      git_hash: ${{ steps.version.outputs.git_hash }}
+      version: ${{ steps.version.outputs.project_version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: klever-coex/clover2-cli@v0.0.5
+        id: version
+        with:
+          detect-version: true
+
+  docker:
+    needs: detect-mode
+    runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: clover2-docs
+          - target: clover2-frontend
+          - target: ros,ros-test
+            cache-scope: ros
+    env:
+      BUILD_MODE: ${{ needs.detect-mode.outputs.build_mode }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/docker-bake
+        with:
+          target: ${{ matrix.target }}
+          build-mode: ${{ needs.detect-mode.outputs.build_mode }}
+          git-hash: ${{ needs.detect-mode.outputs.git_hash }}
+          version: ${{ needs.detect-mode.outputs.version }}
+          cache-scope: ${{ matrix.cache-scope }}
+          push: ${{ github.event_name != 'pull_request' }}
+
+      - name: Check test results
+        if: ${{ always() && matrix.cache-scope == 'ros' }}
+        run: test ! -f test-results/FAILED
+
+      - name: Upload test results
+        if: ${{ always() && matrix.cache-scope == 'ros' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: test-results
+          if-no-files-found: warn
+
+  telegram-notify:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [detect-mode, docker]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Images ready
+        if: success()
+        uses: klever-coex/ci/.github/actions/release-notify@master
+        with:
+          telegram_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          telegram_chat: ${{ secrets.TELEGRAM_TO }}
+          status: success
+          project: clover2
+          tag: ${{ github.ref_name }}
+          channel: ${{ needs.detect-mode.outputs.build_mode == 'pre-release' && 'pre-release' || 'stable' }}
+          extra: docker images pushed to ghcr.io/klever-coex/clover2
+
+      - name: Images failed
+        if: failure()
+        uses: klever-coex/ci/.github/actions/release-notify@master
+        with:
+          telegram_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          telegram_chat: ${{ secrets.TELEGRAM_TO }}
+          status: failure
+          project: clover2
+          tag: ${{ github.ref_name }}
