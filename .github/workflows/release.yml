@@ -115,8 +115,6 @@ jobs:
           draft: false
           prerelease: ${{ inputs.channel == 'pre-release' }}
 
-      # Release success is notified from build.yml (telegram-notify job) once
-      # the images are actually pushed - announcing before the build is useless.
       - name: Telegram notify - failure
         if: ${{ !inputs.dry_run && failure() }}
         uses: klever-coex/ci/.github/actions/release-notify@master
