@@ -115,7 +115,7 @@ jobs:
           draft: false
           prerelease: ${{ inputs.channel == 'pre-release' }}
 
-      - name: Telegram notify — success
+      - name: Telegram notify - success
         if: ${{ !inputs.dry_run && success() }}
         uses: klever-coex/ci/.github/actions/release-notify@main
         with:
@@ -127,9 +127,9 @@ jobs:
           channel: ${{ inputs.channel }}
           promoted_from: ${{ inputs.promote_from }}
           changelog: ${{ steps.changelog.outputs.changelog }}
-          extra: ${{ inputs.channel == 'pre-release' && 'Docker images will be built by the next docker-build run' || '' }}
+          extra: ${{ inputs.channel == 'pre-release' && 'Image build will need a manual dispatch' || '' }}
 
-      - name: Telegram notify — failure
+      - name: Telegram notify - failure
         if: ${{ !inputs.dry_run && failure() }}
         uses: klever-coex/ci/.github/actions/release-notify@main
         with:
