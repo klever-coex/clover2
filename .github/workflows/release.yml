@@ -42,7 +42,7 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
 
-      - uses: klever-coex/clover2-cli@master
+      - uses: klever-coex/clover2-cli@v0.0.5
 
       - name: Prepare version
         id: prepare
