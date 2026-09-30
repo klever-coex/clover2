@@ -5,8 +5,10 @@
 
 // opencv
 #include <opencv2/aruco.hpp>
+#include <rclcpp/logging.hpp>
 
 // STL
+#include <exception>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -96,9 +98,13 @@ protected:
         std::vector<std::vector<cv::Point2f>>& corners) override final {
         ensure_dictionary();
 
-        std::vector<std::vector<cv::Point2f>> rejected;
-        cv::aruco::detectMarkers(image, m_dictionary, corners, ids,
-                                 m_detector_parameters, rejected);
+        try {
+            std::vector<std::vector<cv::Point2f>> rejected;
+            cv::aruco::detectMarkers(image, m_dictionary, corners, ids,
+                                     m_detector_parameters, rejected);
+        } catch (const std::exception& e) {
+            RCLCPP_ERROR(get_logger(), "Marker detect fail: %s", e.what());
+        }
     }
 
 private:

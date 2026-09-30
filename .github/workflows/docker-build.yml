@@ -18,11 +18,15 @@ jobs:
     outputs:
       build_mode: ${{ steps.version.outputs.build_mode }}
       git_hash: ${{ steps.version.outputs.git_hash }}
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.version.outputs.project_version }}
     steps:
       - uses: actions/checkout@v7
-      - uses: ./.github/actions/version-detect
+        with:
+          fetch-depth: 0
+      - uses: klever-coex/clover2-cli@v0.0.5
         id: version
+        with:
+          detect-version: true
 
   docker:
     needs: detect-mode
@@ -34,7 +38,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: tooling
           - target: clover2-docs
           - target: clover2-frontend
           - target: ros,ros-test

@@ -1,9 +1,10 @@
 // clover2
-#include <clover2/cam_feature/cam_feature.hpp>
-#include <clover2/cam_feature/diagnostics/markers_task.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 #include <clover2_common/node_context.hpp>
 #include <clover2_common/util/parameter.hpp>
+
+#include <clover2/cam_feature/cam_feature.hpp>
+#include <clover2/cam_feature/diagnostics/markers_task.hpp>
 
 // opencv
 #include <cv_bridge/cv_bridge.hpp>
@@ -126,6 +127,8 @@ cam_feature::CallbackReturn cam_feature::on_activate(
         }
     }
 
+    auto camera_qos = rclcpp::QoS(1).best_effort().durability_volatile();
+
     try {
         m_markers_pub = create_publisher<clover2_pose_msgs::msg::MarkerArray>(
             "~/output/markers", rclcpp::SensorDataQoS());
@@ -134,12 +137,12 @@ cam_feature::CallbackReturn cam_feature::on_activate(
             "~/output/debug", rclcpp::SystemDefaultsQoS());
 
         m_camera_info_sub = create_subscription<sensor_msgs::msg::CameraInfo>(
-            "~/input/camera_info", rclcpp::SensorDataQoS(),
+            "~/input/camera_info", camera_qos,
             std::bind(&cam_feature::camera_info_callback, this,
                       std::placeholders::_1));
 
         m_image_sub = create_subscription<sensor_msgs::msg::Image>(
-            "~/input/image_raw", rclcpp::SensorDataQoS(),
+            "~/input/image_raw", camera_qos,
             std::bind(&cam_feature::image_callback, this,
                       std::placeholders::_1));
     } catch (const std::exception& e) {
