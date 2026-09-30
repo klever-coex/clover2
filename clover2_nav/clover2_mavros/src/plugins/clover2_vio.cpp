@@ -96,7 +96,7 @@ private:
         bool reset = is_vio_reset(tr.translation(), stamp);
 
         if (reset) {
-            RCLCPP_WARN(get_logger(), "VIO reset detected → updating offset");
+            RCLCPP_WARN(get_logger(), "VIO reset detected. Updating offset");
 
             m_offset = m_world_current * tr.inverse();
             ++m_reset_counter;

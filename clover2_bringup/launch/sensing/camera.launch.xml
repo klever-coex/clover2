@@ -21,6 +21,7 @@
         <param name="frame_id" value="$(var frame_id)" />
 
         <param from="$(find-pkg-share clover2_bringup)/params/libcamera/default.yaml" />
+        <param from="$(find-pkg-share clover2_bringup)/params/libcamera/$(var camera_name).yaml" />
         <param from="$(var params_file)" />
     </node>
 
@@ -32,11 +33,13 @@
             namespace="$(var ns)"
             if="$(var use_composition)"
         >
+            <extra_arg name="use_intra_process_comms" value="true" />
 
             <param name="camera" value="$(var camera_id)" />
             <param name="frame_id" value="$(var frame_id)" />
 
             <param from="$(find-pkg-share clover2_bringup)/params/libcamera/default.yaml" />
+            <param from="$(find-pkg-share clover2_bringup)/params/libcamera/$(var camera_name).yaml" />
             <param from="$(var params_file)" />
         </composable_node>
     </load_composable_node>
