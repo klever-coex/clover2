@@ -10,7 +10,7 @@ Assembly/Clover5Dev
 Assembly/Clover5FPV
 ```
 
-Select the drone version you want to assemble:
+Select the quadcopter version you want to assemble:
 
 ````{list-table}
 :header-rows: 1
