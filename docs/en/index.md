@@ -12,6 +12,14 @@ AdditionalEquipment
 UsefulInformation
 ```
 
+```{figure} @assets@/common/klever5-code.webp
+:alt: Klever 5 CODE
+:width: 90%
+:align: center
+
+Klever 5 CODE
+```
+
 **Klever** is an educational quadcopter kit engineered with industry standards in mind. The kit provides everything required for assembly, configuration, and advanced autonomous operation.
 
 Combining modern hardware and cutting-edge software stack, the platform features a high-performance STM32H7-based flight controller running PX4 firmware, ensuring high computational stability for complex control algorithms. Raspberry Pi 5 serves as an onboard computer for ROS 2 nodes, computer vision, and custom user applications.
