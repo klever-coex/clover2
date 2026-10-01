@@ -1,22 +1,23 @@
 # YAML
 
-YAML (YAML Ain't Markup Language) is a human-readable data serialization language. In Clover2, it is used to describe ArUco marker maps, camera configs, and parameters.
+YAML (YAML Ain't Markup Language) is a human-readable data serialization language. 
+In the `Clover2`, it is used to describe ArUco marker maps, camera configs, and system parameters.
 
 ## Basic Syntax Rules
 
-- **Key-value pairs:** `key: value` (the space after the colon is required)
-- **Comments:** `#` — everything up to the end of the line is ignored
+- **Key-value pairs:** `key: value` (a space must always follow the colon)
+- **Comments:** `#` — everything following the `#` on a line is ignored
 
   ```yaml
-    name: test          # this is a comment
-    # and this entire line is a comment
+    name: test          # this is an inline comment
+    # this is a standalone comment line
 
   ```
 
-  Comments can only be placed at the end of a line or on a standalone line. YAML does not support block comments (/* */).
+YAML does not support block comments (/* */). Comments can only be placed at the end of a line or on a standalone line. 
 
-* **Indentation:** Spaces only (2 or 4 spaces); tab characters are strictly prohibited.
-* **Strings:** Quotes are optional unless special characters are present. Otherwise, use double `" "` or single `' '` quotes.
+* **Indentation:** Spaces only (typically 2 or 4) to define structure. Tab characters are strictly prohibited.
+* **Strings:** Quotes are optional unless using special characters. Otherwise, use double `" "` or single `' '` quotes.
 * **Numbers:** `42`, `3.14`, `-1.5`, `1e-3`
 * **Booleans:** `true` / `false`, `yes` / `no`, `on` / `off`
 * **Null values:** `~`, `null`, or an empty field
