@@ -1,5 +1,7 @@
 
 // clover2
+#include <clover2/cam_feature/data/aruco_pattern_pos.hpp>
+#include <clover2/cam_feature/data/solve_pnp_method.hpp>
 #include <clover2/cam_feature/detail/maker_base.hpp>
 
 // opencv
@@ -9,6 +11,8 @@
 // tf2
 #include <rclcpp/create_publisher.hpp>
 #include <tf2/LinearMath/Quaternion.h>
+
+// STL
 #include <memory>
 
 namespace clover2::cam_feature::detail {
@@ -22,6 +26,22 @@ void maker_base::_configure(
     [[maybe_unused]] const std::shared_ptr<clover2_common::node_context>& node,
     const std::shared_ptr<clover2_map::client>& map_client) {
     m_map_client = map_client;
+
+    declare_and_watch_parameter<std::string>(
+        name + ".solve_pnp_method", "ippe_square",
+        [this](const rclcpp::Parameter& p) {
+            m_estimate_parameters.solvePnPMethod =
+                data::solve_pnp_method::from_str(p.as_string());
+        },
+        "SolvePnP method to use for pose estimation");
+
+    declare_and_watch_parameter<std::string>(
+        name + ".aruco_pattern_pos", "center",
+        [this](const rclcpp::Parameter& p) {
+            m_estimate_parameters.pattern =
+                data::aruco_pattern_pos::from_str(p.as_string());
+        },
+        "ARUCO pattern position to use for pose estimation");
 }
 
 void maker_base::_activate() {
@@ -40,8 +60,7 @@ void maker_base::_cleanup() {  //
 }
 
 const std::vector<cv::Point3d>& maker_base::get_marker_obj_points(
-    int id, double length,
-    const cv::Ptr<cv::aruco::EstimateParameters>& params) {
+    int id, double length, const cv::aruco::EstimateParameters& params) {
     auto it = m_marker_obj_cache.find(id);
     if (it != m_marker_obj_cache.end()) {
         return it->second;
@@ -49,7 +68,7 @@ const std::vector<cv::Point3d>& maker_base::get_marker_obj_points(
 
     std::vector<cv::Point3d> pts(4);
 
-    if (params->pattern == cv::aruco::CW_top_left_corner) {
+    if (params.pattern == cv::aruco::CW_top_left_corner) {
         pts[0] = cv::Vec3d(0.f, 0.f, 0);
         pts[1] = cv::Vec3d(length, 0.f, 0);
         pts[2] = cv::Vec3d(length, length, 0);
@@ -141,34 +160,30 @@ std::list<clover2_pose_msgs::msg::Marker> maker_base::process(
     std::vector<cv::Vec3d> marker_rot(ids.size()), marker_pose(ids.size());
 
     if (!ids.empty()) {
-        auto estimate_parameters = cv::makePtr<cv::aruco::EstimateParameters>();
+        parallel_for_(
+            cv::Range(0, static_cast<int>(ids.size())),
+            [&](const cv::Range& range) {
+                for (int i = range.start; i < range.end; i++) {
+                    if (!m_map_client->has_marker(ids[i])) {
+                        continue;
+                    }
 
-        parallel_for_(cv::Range(0, static_cast<int>(ids.size())),
-                      [&](const cv::Range& range) {
-                          for (int i = range.start; i < range.end; i++) {
-                              if (!m_map_client->has_marker(ids[i])) {
-                                  continue;
-                              }
+                    const auto& map_marker = m_map_client->get_marker(ids[i]);
 
-                              const auto& map_marker =
-                                  m_map_client->get_marker(ids[i]);
+                    const auto& obj_pts = get_marker_obj_points(
+                        ids[i], map_marker.size, m_estimate_parameters);
 
-                              const auto& obj_pts = get_marker_obj_points(
-                                  ids[i], map_marker.size,
-                                  estimate_parameters);
+                    cv::solvePnP(obj_pts, cv::Mat(corners[i]), matrix,
+                                 distortion, marker_rot[i], marker_pose[i],
+                                 m_estimate_parameters.useExtrinsicGuess,
+                                 m_estimate_parameters.solvePnPMethod);
 
-                              cv::solvePnP(
-                                  obj_pts, cv::Mat(corners[i]), matrix,
-                                  distortion, marker_rot[i], marker_pose[i],
-                                  estimate_parameters->useExtrinsicGuess,
-                                  estimate_parameters->solvePnPMethod);
+                    compute_pose_covariance(marker_rot[i], marker_pose[i],
+                                            marker_cov[i]);
 
-                              compute_pose_covariance(
-                                  marker_rot[i], marker_pose[i], marker_cov[i]);
-
-                              pose_estimated[i] = true;
-                          }
-                      });
+                    pose_estimated[i] = true;
+                }
+            });
 
         for (size_t i = 0; i < ids.size(); i++) {
             if (!pose_estimated[i]) {
