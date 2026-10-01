@@ -1,19 +1,22 @@
-# Полезная информация
+# Useful Information
 
 ```{toctree}
 :titlesonly:
 :maxdepth: 2
 :hidden:
 
+UsefulInformation/YAML
 UsefulInformation/ROS2
 ```
 
-Данная серия статей посвящена основным технологиям и инструментам, которые используются при разработке программ для робототехники.
+This series of articles is dedicated to the core technologies and tools used in robotics software development.
 
-Разобравшись с этими инструментами, вы сможете самостоятельно настраивать дрон и глубже понимать принципы работы современных роботов.
+By mastering these tools, you will be able to configure your drone independently and gain a deeper understanding of how modern robots operate.
 
-## О чём статьи
+## What these articles cover
 
-- **{doc}`YAML <UsefulInformation/YAML>`** — простой человекочитаемый формат данных. С его помощью в Clover2 описывают карты ArUco-маркеров, настройки камер и другие параметры. YAML является одним из общепринятых форматов данных.
+* **{doc}`YAML <UsefulInformation/YAML>**` — A simple, human-readable data format used in Clover2 to describe ArUco marker maps, camera settings, and other configuration parameters. YAML is an industry-standard data format.
 
-- **{doc}`ROS 2 <UsefulInformation/ROS2>`** — набор инструментов и библиотек, на основе которых построена вся программная часть проекта clover2. Здесь вы узнаете, как строятся большие робототехнические системы.
+* **{doc}`ROS 2 <UsefulInformation/ROS2>**` — A set of software libraries and tools that form the foundation of the Clover2 software architecture. Here, you will learn how large-scale robotic systems are built.
+
+```
