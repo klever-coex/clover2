@@ -6,6 +6,5 @@
 :hidden:
 
 AdditionalEquipment/ThermalCamera
-AdditionalEquipment/RPLidar
 AdditionalEquipment/Hailo
 ```

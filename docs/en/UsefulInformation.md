@@ -15,8 +15,7 @@ By mastering these tools, you will be able to configure your drone independently
 
 ## What these articles cover
 
-* **{doc}`YAML <UsefulInformation/YAML>**` — A simple, human-readable data format used in Clover2 to describe ArUco marker maps, camera settings, and other configuration parameters. YAML is an industry-standard data format.
+- **{doc}`YAML <UsefulInformation/YAML>`** — A simple, human-readable data format used in Clover2 to describe ArUco marker maps, camera settings, and other configuration parameters. YAML is an industry-standard data format.
 
-* **{doc}`ROS 2 <UsefulInformation/ROS2>**` — A set of software libraries and tools that form the foundation of the Clover2 software architecture. Here, you will learn how large-scale robotic systems are built.
+- **{doc}`ROS 2 <UsefulInformation/ROS2>`** — A set of software libraries and tools that form the foundation of the Clover2 software architecture. Here, you will learn how large-scale robotic systems are built.
 
-```
