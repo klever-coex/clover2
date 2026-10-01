@@ -48,7 +48,7 @@ protected:
 private:
     const std::vector<cv::Point3d>& get_marker_obj_points(
         int id, double length,
-        const cv::Ptr<cv::aruco::EstimateParameters>& params);
+        const cv::aruco::EstimateParameters& params);
 
     static void compute_pose_covariance(const cv::Vec3d& rvec,
                                         const cv::Vec3d& tvec,
@@ -57,6 +57,8 @@ private:
     static void fill_pose_stamped(geometry_msgs::msg::PoseWithCovariance& out,
                                   const cv::Vec3d& rvec, const cv::Vec3d& tvec,
                                   const cv::Mat& cov);
+
+    cv::aruco::EstimateParameters m_estimate_parameters;
 
     std::shared_ptr<clover2_map::client> m_map_client;
     rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr
