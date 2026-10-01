@@ -5,6 +5,9 @@
 :maxdepth: 1
 :hidden:
 
-Programming
 Assembly
+Setup
+Programming
+AdditionalEquipment
+UsefulInformation
 ```
