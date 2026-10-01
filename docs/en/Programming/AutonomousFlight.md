@@ -39,3 +39,12 @@ Below is a quick reference to the framework's capabilities, organized by module.
 - `fill(r, g, b)` — Fills the entire LED strip with a chosen color
 - `send_frame(colors, brightness)` — Provides granular control (each individual LED with custom pattern)
 - `led_count` — Displays the number of LEDs available in your strip
+
+## **{doc}`Display <AutonomousFlight/Display>`**
+
+- `display()` — Initializes and returns the display client instance
+- `send_image(image)` — Transmits a standard ROS `sensor_msgs.msg.Image` message
+- `send_cv_image(image, encoding)` — Transmits an image using OpenCV format or a NumPy array
+- `width` / `height` — Defines the resolution of the output frame
+- `max_fps` — Sets the maximum frames per second for the stream
+- `supported_encodings` — A list of all compatible image encodings supported by the client
