@@ -5,6 +5,7 @@
 #include <sensor_msgs/msg/image.hpp>
 
 #include <atomic>
+#include <string>
 #include <thread>
 
 namespace clover2_thermal {
@@ -15,7 +16,11 @@ public:
     ~camera() override;
 
 private:
+    void open_camera();
     void capture_loop();
+
+    std::string m_device;
+    std::string m_frame_id;
 
     cv::VideoCapture m_capture;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr m_viz_publisher;

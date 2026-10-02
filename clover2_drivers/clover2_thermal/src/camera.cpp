@@ -1,4 +1,5 @@
 #include <clover2_thermal/camera.hpp>
+#include <clover2_thermal/thermal_frame.hpp>
 
 #include <cv_bridge/cv_bridge.hpp>
 #include <sensor_msgs/image_encodings.hpp>
@@ -10,24 +11,32 @@ namespace clover2_thermal {
 
 camera::camera(const rclcpp::NodeOptions& options)
     : clover2_common::node("camera", options) {
-    if (!m_capture.open("/dev/video1", cv::CAP_V4L2)) {
-        throw std::runtime_error("Failed to open /dev/video1");
-    }
-    if (!m_capture.set(cv::CAP_PROP_CONVERT_RGB, 0.0)) {
-        throw std::runtime_error("Failed to disable RGB conversion");
-    }
+    m_device = declare_parameter<std::string>("device", "/dev/thermal_camera");
+    m_frame_id = declare_parameter<std::string>("frame_id", "camera_optical_frame");
+    const bool publish_viz = declare_parameter<bool>("publish_viz", true);
 
-    m_viz_publisher = create_publisher<sensor_msgs::msg::Image>(
-        "image_viz", rclcpp::SensorDataQoS());
+    if (publish_viz) {
+        m_viz_publisher = create_publisher<sensor_msgs::msg::Image>(
+            "image_viz", rclcpp::SensorDataQoS());
+    }
     m_temperature_publisher = create_publisher<sensor_msgs::msg::Image>(
         "temperature", rclcpp::SensorDataQoS());
+
+    open_camera();
     m_capture_thread = std::thread(&camera::capture_loop, this);
 }
 
 camera::~camera() {
     m_running = false;
-    if (m_capture_thread.joinable()) m_capture_thread.join();
+    m_capture_thread.join();
     m_capture.release();
+}
+
+void camera::open_camera() {
+    if (!m_capture.open(m_device, cv::CAP_V4L2))
+        throw std::runtime_error("Failed to open " + m_device);
+    if (!m_capture.set(cv::CAP_PROP_CONVERT_RGB, 0.0))
+        throw std::runtime_error("Failed to disable RGB conversion");
 }
 
 void camera::capture_loop() {
@@ -36,39 +45,26 @@ void camera::capture_loop() {
         while (m_running &&
                rclcpp::ok(get_node_base_interface()->get_context())) {
             if (!m_capture.read(frame) || frame.empty()) {
-                RCLCPP_ERROR(get_logger(), "Failed to read a camera frame");
-                break;
+                throw std::runtime_error("capture failed or returned empty frame");
             }
 
-            if (frame.type() != CV_8UC2 || frame.rows % 2 != 0) {
-                RCLCPP_ERROR(get_logger(), "Unexpected frame format");
-                break;
+            const thermal_frame thermal(frame);
+
+            std_msgs::msg::Header header;
+            header.stamp = get_clock()->now();
+            header.frame_id = m_frame_id;
+
+            if (m_viz_publisher) {
+                const cv::Mat grayscale = thermal.extract_grayscale();
+                cv_bridge::CvImage viz_image(
+                    header, sensor_msgs::image_encodings::MONO8, grayscale);
+                m_viz_publisher->publish(*viz_image.toImageMsg());
             }
 
-            int h = frame.rows / 2;
-            int w = frame.cols;
-
-            cv::Mat upper = frame(cv::Rect(0, 0, w, h));
-            cv::Mat grayscale;
-            cv::extractChannel(upper, grayscale, 0);
-            
-            cv_bridge::CvImage viz_image;
-            viz_image.header.stamp = get_clock()->now();
-            viz_image.header.frame_id = "camera_optical_frame";
-            viz_image.encoding = sensor_msgs::image_encodings::MONO8;
-            viz_image.image = grayscale;
-            m_viz_publisher->publish(*viz_image.toImageMsg());
-
-            cv::Mat lower = frame(cv::Rect(0, h, w, h));
-            cv::Mat raw16(h, w, CV_16UC1, lower.data, lower.step);
-            cv::Mat temperature;
-            raw16.convertTo(temperature, CV_32FC1, 1.0 / 64.0, -273.15);
-
-            cv_bridge::CvImage image;
-            image.header.stamp = get_clock()->now();
-            image.header.frame_id = "camera_optical_frame";
-            image.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
-            image.image = temperature;
+            const cv::Mat temperature = thermal.extract_kelvin_temperature();
+            temperature -= 273.15f;  // Convert Kelvin to Celsius (REP 103)
+            cv_bridge::CvImage image(
+                header, sensor_msgs::image_encodings::TYPE_32FC1, temperature);
             m_temperature_publisher->publish(*image.toImageMsg());
         }
     } catch (const std::exception& error) {
