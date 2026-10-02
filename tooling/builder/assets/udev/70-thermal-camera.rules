@@ -1,0 +1,1 @@
+SUBSYSTEM=="video4linux", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="5840", ATTR{index}=="0", SYMLINK+="thermal_camera"
