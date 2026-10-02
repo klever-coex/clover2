@@ -1,4 +1,4 @@
-#include <clover2_thermal/camera.hpp>
+#include <clover2_thermal/thermal_camera.hpp>
 #include <clover2_thermal/thermal_frame.hpp>
 
 #include <cv_bridge/cv_bridge.hpp>
@@ -15,7 +15,7 @@
 namespace clover2_thermal {
 
 camera::camera(const rclcpp::NodeOptions& options)
-    : clover2_common::node("camera", options) {
+    : clover2_common::node("thermal_camera", options) {
     m_device = declare_parameter<std::string>("device", "/dev/thermal_camera");
     m_frame_id =
         declare_parameter<std::string>("frame_id", "camera_optical_frame");
