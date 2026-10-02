@@ -7,7 +7,7 @@ detector = cv2.QRCodeDetector()
 print("Waiting for first QR code...")
 
 while True:
-    img = drone.get_image()
+    img = drone.camera.get_image()
     data, bbox, _ = detector.detectAndDecode(img)
 
     if data:

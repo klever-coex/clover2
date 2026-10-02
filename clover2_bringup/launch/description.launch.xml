@@ -1,9 +1,18 @@
 <launch>
-    <node
-        pkg="tf2_ros"
-        exec="static_transform_publisher"
-        name="camera_to_base"
-        args="--frame-id base_link --child-frame-id main_camera_link --x 0.05 --y 0.0 --z -0.07 --roll 0.0 --pitch 3.1415926 --yaw -1.5707963"
-    >
-    </node>
+  <arg name="config_file" default="$(find-pkg-share clover2_description)/config/robots/klever5.yaml"/>
+  <arg name="enable_main_camera" default="true"/>
+  <arg name="enable_front_camera" default="false"/>
+  <arg name="enable_lidar" default="false"/>
+  <arg name="enable_led_strip" default="false"/>
+  <arg name="use_sim_time" default="false"/>
+  <arg name="ns" default=""/>
+  <include file="$(find-pkg-share clover2_description)/launch/description.launch.xml">
+    <arg name="config_file" value="$(var config_file)"/>
+    <arg name="enable_main_camera" value="$(var enable_main_camera)"/>
+    <arg name="enable_front_camera" value="$(var enable_front_camera)"/>
+    <arg name="enable_lidar" value="$(var enable_lidar)"/>
+    <arg name="enable_led_strip" value="$(var enable_led_strip)"/>
+    <arg name="use_sim_time" value="$(var use_sim_time)"/>
+    <arg name="ns" value="$(var ns)"/>
+  </include>
 </launch>

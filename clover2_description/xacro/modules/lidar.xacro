@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:include filename="../common/geometry.xacro"/>
+  <xacro:macro name="description_lidar" params="parent xyz rpy name:='laser'">
+    <xacro:property name="physics" value="${component_physics['lidar']}"/>
+    <xacro:mesh_link physics="${physics}" name="${name}" mesh="modules/lidar.dae"/>
+    <xacro:mount name="${name}_joint" parent="${parent}" child="${name}"
+      xyz="${xyz}" rpy="${rpy}"/>
+  </xacro:macro>
+</robot>

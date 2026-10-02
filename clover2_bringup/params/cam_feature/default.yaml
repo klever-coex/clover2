@@ -7,3 +7,5 @@
       cornerRefinementMethod: 2
       minMarkerPerimeterRate: 0.0375
       adaptiveThreshConstant: 25.0
+      solve_pnp_method: "ippe_square" # Options: "iterative", "p3p", "ap3p", "eppnp", "dls", "upnp", "ippe" "ippe_square"
+      aruco_pattern_pos: "center" # Options: "center", "top_left"

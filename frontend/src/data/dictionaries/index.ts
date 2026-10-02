@@ -59,3 +59,7 @@ async function loadAndParse(name: ArUcoDictionary): Promise<DictionaryData> {
 export function isDictionaryName(name: string): name is ArUcoDictionary {
   return name in DICT_META;
 }
+
+export function maxMarkerId(name: ArUcoDictionary): number {
+  return DICT_META[name].maxMarkerId;
+}

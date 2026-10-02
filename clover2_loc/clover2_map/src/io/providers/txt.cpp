@@ -42,7 +42,7 @@ void txt::save(const clover2_map::map& map) const {
     }
 
     out << std::setprecision(12);
-    for (const auto& m : map.markers) {
+    for (const auto& [id, m] : map.markers) {
         if (!m.pose) {
             RCLCPP_DEBUG(m_logger,
                          "Skipping marker %d without pose when saving '%s' as "
@@ -123,7 +123,8 @@ void txt::load_impl(clover2_map::map& map) {
         }
 
         if (!(s >> pitch)) {
-            RCLCPP_DEBUG(m_logger, "No pitch provided for marker %d, assuming 0",
+            RCLCPP_DEBUG(m_logger,
+                         "No pitch provided for marker %d, assuming 0",
                          marker.id);
         }
 
@@ -152,7 +153,7 @@ void txt::load_impl(clover2_map::map& map) {
                 std::to_string(line_no) + ")");
         }
 
-        map.markers.push_back(std::move(marker));
+        map.add_marker(std::move(marker));
     }
 }
 
