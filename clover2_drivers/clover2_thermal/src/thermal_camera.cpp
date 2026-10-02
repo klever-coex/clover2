@@ -18,7 +18,7 @@ camera::camera(const rclcpp::NodeOptions& options)
     : clover2_common::node("thermal_camera", options) {
     m_device = declare_parameter<std::string>("device", "/dev/thermal_camera");
     m_frame_id =
-        declare_parameter<std::string>("frame_id", "camera_optical_frame");
+        declare_parameter<std::string>("frame_id", "thermal_camera_link");
     const bool publish_viz = declare_parameter<bool>("publish_viz", true);
 
     if (publish_viz) {
