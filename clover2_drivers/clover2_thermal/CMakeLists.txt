@@ -8,12 +8,17 @@ endif()
 # Find ROS 2 build system packages.
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_auto REQUIRED)
-find_package(OpenCV REQUIRED COMPONENTS core)
+find_package(OpenCV REQUIRED COMPONENTS core videoio)
+find_package(Threads REQUIRED)
 
 ament_auto_find_build_dependencies()
 
-ament_auto_add_library(${PROJECT_NAME}_camera SHARED src/camera.cpp)
+ament_auto_add_library(${PROJECT_NAME}_camera SHARED
+  src/camera.cpp
+  src/thermal_frame.cpp
+)
 target_include_directories(${PROJECT_NAME}_camera PUBLIC ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME}_camera ${OpenCV_LIBS} Threads::Threads)
 rclcpp_components_register_node(${PROJECT_NAME}_camera
   PLUGIN "clover2_thermal::camera"
   EXECUTABLE camera
