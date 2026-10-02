@@ -18,6 +18,7 @@ public:
 private:
     void open_camera();
     void capture_loop();
+    void log_camera_info();
 
     std::string m_device;
     std::string m_frame_id;
