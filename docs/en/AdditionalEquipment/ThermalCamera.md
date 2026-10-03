@@ -4,19 +4,20 @@ You can connect a thermal imaging camera to the Raspberry Pi 5 on a quadcopter t
 
 ## Principle of Operation
 
-The thermal imaging camera utilizes an infrared sensor with a resolution of 256×192 pixels. 
-The camera transmits a single raw frame measuring 256×384 pixels over USB, which consists of two distinct sections:
-* Top 192 rows: Infrared (IR) image data
-* Bottom 192 rows: Temperature data (temperature matrix)
+The thermal imaging camera detects infrared radiation emitted by surrounding objects. A dedicated sensor converts thermal radiation into electrical signals. The camera's electronics use these signals to determine the temperature distribution and produce a thermal image of the object.
 
-This raw data can be processed by a program. 
-The top section can be converted into a visual image by applying a color palette. 
-The bottom section (temperature matrix) can be converted into usable temperature values for analysis.
+The thermal imaging module used here has a resolution of 256x192 pixels and returns two frames: a processed thermal image and a temperature matrix.
 
-```{tip}
-To obtain the temperature in Kelvin, divide the original raw value by 64. 
-To convert this to degrees Celsius, subtract 273.15.
-```
+## Data in ROS 2
+
+The `clover2_thermal` driver splits the frame received from the camera into a thermal image and a temperature matrix. With the default settings, these are published to two topics with the `sensor_msgs/msg/Image` message type:
+
+| Topic | Encoding (`encoding`) | Content |
+| --- | --- | --- |
+| `/thermal_camera/image_viz` | `mono8` | Processed grayscale thermal image. Each pixel contains a brightness value from 0 to 255. |
+| `/thermal_camera/temperature` | `32FC1` | Temperature matrix. Each pixel contains a temperature in degrees Celsius as a 32-bit floating-point number. |
+
+Both images measure 256×192 pixels. Each pixel in the thermal image corresponds to an element of the temperature matrix at the same coordinates. Use `image_viz` to view the image and `temperature` to obtain temperature values.
 
 ## How to Install the Camera
 
@@ -76,117 +77,66 @@ The thermal imaging camera can be mounted on the quadcopter using one of two met
 
 ## Configuration
 
-### Launching via v4l2_camera
+### Launching via `clover2-settings`
 
-The recommended method for launching the camera is using the `v4l2_camera` package. This approach transmits frames to ROS 2 without converting the original format to RGB.
-It is critical to preserve the original `yuv422_yuy2`format.
-Converting the data to a standard color image (RGB) may result in the loss of the temperature matrix data contained in the lower half of the frame.
+To enable the thermal imaging camera in Clover, open the settings:
 
 Launch the node using the following command:
 
 ```bash
-ros2 run v4l2_camera v4l2_camera_node --ros-args \
-  -p video_device:=/dev/thermal_camera \
-  -p image_size:="[256, 384]" \
-  -p pixel_format:=YUYV \
-  -p output_encoding:=yuv422_yuy2 \
-  -p camera_frame_id:=thermal_camera \
-  -r /image_raw:=/thermal_camera/image_raw \
-  -r /camera_info:=/thermal_camera/camera_info
+clover2-settings
 ```
 
-### Parameter Description
+Select the `additional_sensors` group, as shown in Figure 5.
 
-| Parameter | Value | Explanation |
-|---|---|---|
-| `video_device` | `/dev/thermal_camera` | Stable udev link to the thermal imager's Video4Linux device |
-| `image_size` | `[256, 384]` | Full raw frame size (Top 192 rows: IR image; Bottom 192 rows: temperature matrix) |
-| `pixel_format` | `YUYV` | Pixel format output by the USB camera |
-| `output_encoding` | `yuv422_yuy2` | ROS 2 message encoding that preserves original data without RGB conversion |
-| `camera_frame_id` | `thermal_camera` | `frame_id` name in the `sensor_msgs/msg/Image` header |
-| `-r /image_raw:=...` | `/thermal_camera/image_raw` | Remapping of the image topic |
-| `-r /camera_info:=...` | `/thermal_camera/camera_info` | Remapping of the calibration data topic |
+```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings.webp
+:alt: Selecting the additional_sensors group in clover2-settings
+:width: 700px
+:align: center
 
-## How to Check Functionality
+Figure 5 — Selecting the additional_sensors group in clover2-settings
+```
 
-To verify the camera is working correctly, open a new terminal and run the following commands:
-1. Confirm the topic is active:
+In the `additional_sensors` group, select the `thermal_camera` setting (see Figure 6) and enable it by setting its value to `true`.
+
+```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings-thermal-camera.webp
+:alt: Selecting the thermal_camera setting
+:width: 700px
+:align: center
+
+Figure 6 — Selecting the thermal_camera option
+```
+
+Press Ctrl+S to save the changes. A confirmation will appear, as shown in Figure 7.
+
+```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings-save.webp
+:alt: Saving the thermal imaging camera setting
+:width: 700px
+:align: center
+
+Figure 7 — Saving the thermal imaging camera setting
+```
+
+Then press Esc several times to exit the application. Restart the clover2 service:
 
 ```bash
-ros2 topic list | grep thermal_camera
+sudo systemctl restart clover2
 ```
 
-2. Verify the message type:
+Once the driver starts successfully, it will publish frames to the `/thermal_camera/image_viz` and `/thermal_camera/temperature` topics.
 
-```bash
-ros2 topic info /thermal_camera/image_raw
-```
+## Usage
 
-Expected Output:
-
-```text
-Type: sensor_msgs/msg/Image
-```
-
-3. Check encoding, step, and frequency:
-
-```bash
-ros2 topic echo --once /thermal_camera/image_raw --field encoding
-ros2 topic echo --once /thermal_camera/image_raw --field step
-ros2 topic hz /thermal_camera/image_raw
-```
-
-Expected Values:
-
-```text
-encoding: yuv422_yuy2
-step: 512
-rate: approx. 25 Hz
-```
-
-## Code Examples
-
-The following examples subscribe to the `/thermal_camera/image_raw` topic and do not utilize ROS parameters for topic remapping.
-To run the examples, navigate to the directory containing the Python files and execute the following commands:
-
-```bash
-python3 subscribe_raw_image.py
-python3 find_temperature_extremes.py
-python3 visualize_raw_thermal.py
-```
-
-Examples' Overview:
-
-1. `subscribe_raw_image.py` subscribes to the raw frame and publishes status updates to the `/thermal_camera/status` topic.
-2. `visualize_raw_thermal.py` processes the top half of the raw frame and publishes a color-mapped version to `/thermal_camera/image_colormap`.
-3. `find_temperature_extremes.py` analyzes the temperature matrix and publishes the minimum, maximum, and center temperatures to the following topics `/thermal_camera/min_temperature`, `/thermal_camera/max_temperature`, `/thermal_camera/center_temperature`. Extreme values are published as `geometry_msgs/msg/PointStamped` messages:
-```text
-point.x: Pixel coordinate along the horizontal axis
-point.y: Pixel coordinate along the vertical axis
-point.z: Temperature in degrees Celsius
-```
-
-### Splitting the Raw Frame
-
-The raw frame has a resolution of `256x384` pixels with `yuv422_yuy2` encoding:
-
-```text
-/thermal_camera/image_raw
-sensor_msgs/msg/Image 256x384, yuv422_yuy2
-
-          256 px
-     ┌──────────────┐
-192  │ rows 0..191  │ IR image (for visualization)
-px   ├──────────────┤
-192  │ rows 192..383│ Temperature matrix
-px   └──────────────┘
-```
-
-The top half is utilized for visual representation and `colormap` overlays. 
-The bottom half is processed as `uint16` data and converted into degrees Celsius.
+In Python, you can obtain the temperature matrix using the `Clover2` client:
 
 ```python
-raw = np.frombuffer(msg.data[:msg.height * msg.width * 2], dtype="<u2").reshape(msg.height, msg.width)
-temperature_raw = raw[msg.height // 2:, :]
-temperature_c = temperature_raw.astype(np.float32) / 64.0 - 273.15
+from clover2 import Clover2
+
+drone = Clover2()
+temperature = drone.thermal_camera.get_temperature()
+
+# The NumPy matrix has shape (192, 256), with indices in [y, x] order.
+print(f"Temperature at the center of the frame: {temperature[96, 128]:.2f} °C")
 ```
+
+The pixel coordinate origin is at the top-left corner: `x` increases to the right and `y` increases downward. The `get_temperature()` method returns the most recently received NumPy matrix. On the first call, it waits up to 5 seconds for data and raises `TimeoutError` if none arrives. To obtain the original ROS message, use `drone.thermal_camera.get_temperature_msg()`.
