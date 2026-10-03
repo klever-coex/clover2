@@ -9,9 +9,6 @@ import { ListToolbar } from '../common/ListToolbar.tsx';
 import { TypeBadge } from '../common/TypeBadge.tsx';
 import { EmptyState } from '../common/EmptyState.tsx';
 
-// Разрешает перенос длинного имени только по границам сегментов после «/»;
-// wrap-anywhere ограничивает min-content и остаётся страховкой для сегмента
-// длиннее всей строки.
 function TopicName({ name }: { name: string }) {
   return (
     <span className="font-mono wrap-anywhere">
