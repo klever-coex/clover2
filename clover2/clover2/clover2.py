@@ -7,7 +7,13 @@ import rclpy
 from rclpy.node import Node
 
 from . import utils
-from .clients import CameraClient, DisplayClient, LEDClient, OffboardClient
+from .clients import (
+    CameraClient,
+    DisplayClient,
+    LEDClient,
+    OffboardClient,
+    ThermalCameraClient,
+)
 
 T = TypeVar("T")
 
@@ -30,6 +36,7 @@ class Clover2(Node):
 
         self._offboard: OffboardClient = OffboardClient(self)
         self._camera: CameraClient = CameraClient(self)
+        self._thermal_camera: ThermalCameraClient = ThermalCameraClient(self)
 
     def _cached_client(self, name: str, factory: Callable[[], T]) -> T | None:
         if name not in self._cached_clients:
@@ -48,6 +55,10 @@ class Clover2(Node):
     @property
     def camera(self) -> CameraClient:
         return self._camera
+
+    @property
+    def thermal_camera(self) -> ThermalCameraClient:
+        return self._thermal_camera
 
     def led(self, name: str = "/led_strip") -> LEDClient | None:
         return self._cached_client(name, lambda: LEDClient(self, name))

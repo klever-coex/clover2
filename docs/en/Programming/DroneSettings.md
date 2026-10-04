@@ -27,8 +27,12 @@ You can navigate the menu using either mouse or keyboard:
 │   │   └── map_filename — Map file name
 │   └── aruco_tracker — ArUco marker-based map navigation settings
 │       └── enable — Enable/Disable navigation
-└── 2d_lidar — 2D LiDAR settings
-    └── enable — Enable/Disable LiDAR
+├── indication — Indication settings
+│   ├── led_strip — Enable/Disable the LED strip
+│   └── display — Enable/Disable the display
+└── additional_sensors — Additional sensor settings
+    ├── thermal_camera — Enable/Disable the thermal imaging camera
+    └── 2d_lidar — Enable/Disable LiDAR
 ```
 
 ```{warning}

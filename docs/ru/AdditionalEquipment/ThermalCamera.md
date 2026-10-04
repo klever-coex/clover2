@@ -4,17 +4,20 @@
 
 ## Принцип работы
 
-Тепловизионная камера использует инфракрасный сенсор с разрешением 256×192 пикселя. 
-Камера передает по USB один raw-кадр размером 256×384 пикселя, который содержит две части:
-* верхние 192 строки — данные инфракрасного изображения;
-* нижние 192 строки — данные о температуре (матрица температур).
+Тепловизионная камера улавливает инфракрасное излучение, испускаемое окружающими объектами. Специальный датчик преобразует тепловое излучение в электрические сигналы. По полученным сигналам электроника тепловизора определяет распределение температур и формирует тепловое изображение объекта.
 
-Полученные данные можно обрабатывать программно. Верхнюю часть кадра можно преобразовать в изображение и наложить цветовую палитру. Нижнюю часть (матрицу температур) можно преобразовать в значения температуры для анализа. 
+Используемый тепловизионный модуль имеет разрешение 256x192 пикселей и возвращает 2 кадра: обработанное тепловое изображение и матрицу температур.
 
-```{tip}
-Чтобы получить температуру в Кельвинах, разделите исходное значение на 64. 
-Чтобы получить значение в градусах Цельсия, вычтите 273,15 из значения в Кельвинах.
-```
+## Данные в ROS2
+
+Драйвер `clover2_thermal` разделяет полученный от камеры кадр на тепловое изображение и матрицу температур. При стандартных настройках они публикуются в два топика с типом сообщения `sensor_msgs/msg/Image`:
+
+| Топик | Кодировка (`encoding`) | Содержимое |
+| --- | --- | --- |
+| `/thermal_camera/image_viz` | `mono8` | Обработанное тепловое изображение в оттенках серого. Каждый пиксель содержит значение яркости от 0 до 255. |
+| `/thermal_camera/temperature` | `32FC1` | Матрица температур. Каждый пиксель содержит температуру в градусах Цельсия в виде 32-битного числа с плавающей точкой. |
+
+Оба изображения имеют размер 256×192 пикселя. Пикселю теплового изображения соответствует элемент матрицы температур с теми же координатами. `image_viz` используется для просмотра изображения; температуру нужно брать из `temperature`.
 
 ## Сборка и установка модуля
 
@@ -74,118 +77,66 @@
 
 ## Настройка
 
-### Запуск через v4l2_camera
+### Запуск через `clover2-settings`
 
-Рекомендуемый способ запуска — пакет `v4l2_camera`.
-Он позволяет передать кадр в ROS 2 без преобразования исходного формата в RGB.
-Для тепловизора важно сохранить исходный формат `yuv422_yuy2`, поскольку после преобразования в обычное цветное изображение данные температурной матрицы могут быть потеряны.
+Чтобы включить тепловизионную камеру в Клевер необходимо открыть настройки:
 
 Запустите узел следующей командой:
 
 ```bash
-ros2 run v4l2_camera v4l2_camera_node --ros-args \
-  -p video_device:=/dev/thermal_camera \
-  -p image_size:="[256, 384]" \
-  -p pixel_format:=YUYV \
-  -p output_encoding:=yuv422_yuy2 \
-  -p camera_frame_id:=thermal_camera \
-  -r /image_raw:=/thermal_camera/image_raw \
-  -r /camera_info:=/thermal_camera/camera_info
+clover2-settings
 ```
 
-### Описание параметров
+Выберите группу `additional_sensors`, как показано на рисунке 5.
 
-| Параметр | Значение | Пояснение |
-|---|---|---|
-| `video_device` | `/dev/thermal_camera` | Стабильная udev-ссылка на video4linux-устройство тепловизора |
-| `image_size` | `[256, 384]` | Размер полного raw-кадра. Верхние 192 строки — ИК-изображение, нижние 192 строки — матрица температур |
-| `pixel_format` | `YUYV` | Формат пикселей, который отдает USB-камера |
-| `output_encoding` | `yuv422_yuy2` | Кодировка сообщения ROS 2, которая позволяет сохранить исходные данные без преобразования в RGB |
-| `camera_frame_id` | `thermal_camera` | Имя системы координат `frame_id` в заголовке сообщения `sensor_msgs/msg/Image` |
-| `-r /image_raw:=...` | `/thermal_camera/image_raw` | Переименование (remap) топика изображения |
-| `-r /camera_info:=...` | `/thermal_camera/camera_info` | Переименование топика калибровочных данных |
+```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings.webp
+:alt: Выбор группы additional_sensors в clover2-settings
+:width: 700px
+:align: center
 
-## Проверка работоспособности
+Рисунок 5 — Выбор группы additional_sensors в clover2-settings
+```
 
-В другом терминале проверьте, что топик появился:
+В группе `additional_sensors` выберите настройку `thermal_camera` (см. рисунок 6) и включите её, установив значение `true`.
+
+```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings-thermal-camera.webp
+:alt: Выбор настройки thermal_camera
+:width: 700px
+:align: center
+
+Рисунок 6 — Выбор пункта thermal_camera
+```
+
+Для сохранения изменений нажмите ctrl+S. Появится уведомление о сохранении, как показано на рисунке 7.
+
+```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings-save.webp
+:alt: Сохранение настройки тепловизионной камеры
+:width: 700px
+:align: center
+
+Рисунок 7 — Сохранение настройки тепловизионной камеры
+```
+
+Затем несколько раз нажмите esc чтоб выйти из приложения. Перезапустите сервис clover2:
 
 ```bash
-ros2 topic list | grep thermal_camera
+sudo systemctl restart clover2
 ```
 
-Проверьте тип сообщения:
+После успешного запуска драйвер будет публиковать кадры в топики `/thermal_camera/image_viz` и `/thermal_camera/temperature`.
 
-```bash
-ros2 topic info /thermal_camera/image_raw
-```
+## Использование
 
-Ожидаемый тип:
-
-```text
-Type: sensor_msgs/msg/Image
-```
-
-Проверьте кодировку, шаг строки и частоту:
-
-```bash
-ros2 topic echo --once /thermal_camera/image_raw --field encoding
-ros2 topic echo --once /thermal_camera/image_raw --field step
-ros2 topic hz /thermal_camera/image_raw
-```
-
-Ожидаемые значения:
-
-```text
-encoding: yuv422_yuy2
-step: 512
-rate: около 25 Гц
-```
-
-## Примеры кода
-
-Примеры подписываются на `/thermal_camera/image_raw` и не используют ROS-параметры для смены топиков.
-
-Запустите примеры следующими командами:
-
-```bash
-python3 subscribe_raw_image.py
-python3 find_temperature_extremes.py
-python3 visualize_raw_thermal.py
-```
-
-Запускайте команды из каталога, в котором находятся соответствующие Python-файлы.
-
-Назначение примеров:
-
-1. `subscribe_raw_image.py` подписывается на raw-кадр и публикует строку `/thermal_camera/status`.
-2. `visualize_raw_thermal.py` берет верхнюю половину кадра и публикует `/thermal_camera/image_colormap`.
-3. `find_temperature_extremes.py` публикует `/thermal_camera/min_temperature`, `/thermal_camera/max_temperature`, `/thermal_camera/center_temperature` и точки `geometry_msgs/msg/PointStamped`:
-```text
-point.x — координата пикселя по горизонтали
-point.y — координата пикселя по вертикали
-point.z — температура в градусах Цельсия
-```
-
-### Разделение raw-кадра
-
-В данном случае raw-кадр имеет размер `256x384` и encoding `yuv422_yuy2`:
-
-```text
-/thermal_camera/image_raw
-sensor_msgs/msg/Image 256x384, yuv422_yuy2
-
-          256 px
-     ┌──────────────┐
-192  │ rows 0..191  │  ИК-изображение для визуализации
-px   ├──────────────┤
-192  │ rows 192..383│  матрица температур
-px   └──────────────┘
-```
-
-Верхняя половина используется для визуализации и наложения `colormap`. Нижняя половина читается как `uint16` и переводится в градусы Цельсия.
+В Python матрицу температур удобно получать через клиент `Clover2`:
 
 ```python
-raw = np.frombuffer(msg.data[:msg.height * msg.width * 2], dtype="<u2").reshape(msg.height, msg.width)
-temperature_raw = raw[msg.height // 2:, :]
-temperature_c = temperature_raw.astype(np.float32) / 64.0 - 273.15
+from clover2 import Clover2
+
+drone = Clover2()
+temperature = drone.thermal_camera.get_temperature()
+
+# Матрица NumPy имеет форму (192, 256), индексы задаются в порядке [y, x].
+print(f"Температура в центре кадра: {temperature[96, 128]:.2f} °C")
 ```
+
+Начало координат пикселей находится в левом верхнем углу: `x` увеличивается вправо, `y` — вниз. Метод `get_temperature()` возвращает последнюю полученную матрицу NumPy. При первом обращении он ожидает данные до 5 секунд и вызывает `TimeoutError`, если они не поступили. Для получения исходного ROS-сообщения используйте `drone.thermal_camera.get_temperature_msg()`.
