@@ -65,8 +65,8 @@ tracker::CallbackReturn tracker::on_configure(
     auto node_context = std::make_shared<clover2_common::node_context>(*this);
 
     try {
-        m_map_client = std::make_shared<clover2_map::client>(
-            this, m_callback_group);
+        m_map_client =
+            std::make_shared<clover2_map::client>(this, m_callback_group);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map client. Exception: %s",
                      e.what());
@@ -194,8 +194,10 @@ void tracker::markers_callback(
         Eigen::Isometry3d marker_pose = Eigen::Isometry3d::Identity();
         tf2::fromMsg(marker.pose.pose, marker_pose);
 
-        Eigen::Isometry3d camera_in_map = *map_marker.pose * marker_pose.inverse();
-        Eigen::Isometry3d drone_in_map = camera_in_map * camera_transform;
+        Eigen::Isometry3d camera_in_map =
+            *map_marker.pose * marker_pose.inverse();
+        Eigen::Isometry3d drone_in_map =
+            camera_in_map * camera_transform.inverse();
 
         // add debug transform
         poses_debug.poses.push_back(tf2::toMsg(drone_in_map));
@@ -208,34 +210,36 @@ void tracker::markers_callback(
         processed_count++;
     }
 
-    // finalize pose estimation
-    avg_translation /= static_cast<double>(processed_count);
-    cumulative_q /= static_cast<double>(processed_count);
-    avg_quat.coeffs() = cumulative_q.normalized();
+    if (processed_count) {
+        // finalize pose estimation
+        avg_translation /= static_cast<double>(processed_count);
+        cumulative_q /= static_cast<double>(processed_count);
+        avg_quat.coeffs() = cumulative_q.normalized();
 
-    // fill pose msg
-    Eigen::Isometry3d result_pose = Eigen::Isometry3d::Identity();
-    result_pose.translate(avg_translation);
-    result_pose.rotate(avg_quat);
+        // fill pose msg
+        Eigen::Isometry3d result_pose = Eigen::Isometry3d::Identity();
+        result_pose.translate(avg_translation);
+        result_pose.rotate(avg_quat);
 
-    estimated_pose.pose = tf2::toMsg(result_pose);
-    estimated_pose_cov.pose.pose = estimated_pose.pose;
-    estimated_pose_cov.pose.covariance[0] = m_xy_variation;
-    estimated_pose_cov.pose.covariance[7] = m_xy_variation;
-    estimated_pose_cov.pose.covariance[14] = m_z_variation;
+        estimated_pose.pose = tf2::toMsg(result_pose);
+        estimated_pose_cov.pose.pose = estimated_pose.pose;
+        estimated_pose_cov.pose.covariance[0] = m_xy_variation;
+        estimated_pose_cov.pose.covariance[7] = m_xy_variation;
+        estimated_pose_cov.pose.covariance[14] = m_z_variation;
 
-    estimated_pose_cov.pose.covariance[21] = 0.3;
-    estimated_pose_cov.pose.covariance[28] = 0.3;
-    estimated_pose_cov.pose.covariance[35] = 0.1;
+        estimated_pose_cov.pose.covariance[21] = 0.3;
+        estimated_pose_cov.pose.covariance[28] = 0.3;
+        estimated_pose_cov.pose.covariance[35] = 0.1;
 
-    // publish estimated pose
-    m_pose_pub->publish(estimated_pose);
-    m_pose_cov_pub->publish(estimated_pose_cov);
+        // publish estimated pose
+        m_pose_pub->publish(estimated_pose);
+        m_pose_cov_pub->publish(estimated_pose_cov);
 
-    publish_tf(estimated_pose.header, result_pose);
-    auto diagnostic_interface = get_node_diagnostics_interface();
-    diagnostic_interface->get<diagnostics::pose_task>().update_pose(
-        estimated_pose.header.stamp, estimated_pose.pose);
+        publish_tf(estimated_pose.header, result_pose);
+        auto diagnostic_interface = get_node_diagnostics_interface();
+        diagnostic_interface->get<diagnostics::pose_task>().update_pose(
+            estimated_pose.header.stamp, estimated_pose.pose);
+    }
 
     // publish tracker id poses form each marker
     if (m_poses_debug_pub->get_subscription_count() != 0) {

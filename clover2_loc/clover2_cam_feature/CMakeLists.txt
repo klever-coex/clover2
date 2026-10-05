@@ -15,10 +15,16 @@ ament_auto_find_build_dependencies()
 ament_auto_add_library(cam_feature_base SHARED src/base_plugin.cpp)
 target_link_libraries(cam_feature_base ${OpenCV_LIBS})
 
+file(GLOB_RECURSE data_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/data/*.cpp")
+file(GLOB_RECURSE detail_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/detail/*.cpp")
+file(GLOB_RECURSE plugin_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/plugins/*.cpp")
+
 ament_auto_add_library(cam_feature_plugins SHARED
-  src/detail/maker_base.cpp
-  src/plugins/aruco.cpp
+  ${data_files}
+  ${detail_files}
+  ${plugin_files}
 )
+
 target_link_libraries(cam_feature_plugins
   cam_feature_base
   ${OpenCV_LIBS}

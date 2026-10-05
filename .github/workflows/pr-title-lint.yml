@@ -24,10 +24,6 @@ jobs:
             docs
             documentation
             refactor
-            style
-            ci
-            test
-            chore
             release
           ignoreLabels: |
             dependencies

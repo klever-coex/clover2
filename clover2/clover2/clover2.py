@@ -32,15 +32,20 @@ class Clover2(Node):
         self._cached_clients: dict[str, object] = {}
         self._offboard = OffboardClient(self)
         self._fcu = FCUClient(self)
+        self._camera: CameraClient = CameraClient(self)
+        self._thermal_camera: ThermalCameraClient = ThermalCameraClient(self)
 
     def _cached_client(self, name: str, factory: Callable[[], T]) -> T | None:
         if name not in self._cached_clients:
+        if name not in self._cached_clients:
             try:
+                self._cached_clients[name] = factory()
                 self._cached_clients[name] = factory()
             except Exception:
                 self.get_logger().warning(f"Client for '{name}' not found")
                 return None
 
+        return self._cached_clients[name]
         return self._cached_clients[name]
 
     @property
@@ -55,6 +60,10 @@ class Clover2(Node):
         return self._cached_client(
             f"camera:{name}", lambda: CameraClient(self, name)
         )
+
+    @property
+    def thermal_camera(self) -> ThermalCameraClient:
+        return self._thermal_camera
 
     def led(self, name: str = "/led_strip") -> LEDClient | None:
         return self._cached_client(name, lambda: LEDClient(self, name))

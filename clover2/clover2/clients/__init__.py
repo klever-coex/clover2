@@ -1,4 +1,5 @@
 from .camera_client import CameraClient
+from .thermal_camera_client import ThermalCameraClient
 from clover2_display import DisplayClient
 from clover2_fcu_bridge import (
     DronePosition,
@@ -28,4 +29,5 @@ __all__ = [
     "NavigationTask",
     "NavigationTimeoutError",
     "OffboardClient",
+    "ThermalCameraClient",
 ]

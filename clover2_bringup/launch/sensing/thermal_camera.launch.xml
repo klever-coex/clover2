@@ -1,0 +1,14 @@
+<launch>
+    <arg name="thermal_camera_device" default="/dev/thermal_camera" />
+    <arg name="thermal_camera_name" default="thermal_camera" />
+    <arg name="ns" default="" />
+
+    <node pkg="clover2_thermal" exec="thermal_camera" name="$(var thermal_camera_name)" namespace="$(var ns)">
+        <param name="device" value="$(var thermal_camera_device)" />
+        <param name="frame_id" value="$(var thermal_camera_name)_link" />
+        <param name="publish_viz" value="true" />
+
+        <remap from="image_viz" to="$(var thermal_camera_name)/image_viz" />
+        <remap from="temperature" to="$(var thermal_camera_name)/temperature" />
+    </node>
+</launch>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 
@@ -8,6 +8,20 @@ import { CardRow } from '../common/CardRow.tsx';
 import { ListToolbar } from '../common/ListToolbar.tsx';
 import { TypeBadge } from '../common/TypeBadge.tsx';
 import { EmptyState } from '../common/EmptyState.tsx';
+
+function TopicName({ name }: { name: string }) {
+  return (
+    <span className="font-mono wrap-anywhere">
+      {name.split('/').map((segment, index) => (
+        <Fragment key={index}>
+          {index > 0 && '/'}
+          {segment}
+          <wbr />
+        </Fragment>
+      ))}
+    </span>
+  );
+}
 
 export function VideoTopicList() {
   const { t } = useTranslation();
@@ -38,9 +52,9 @@ export function VideoTopicList() {
             variant="compact"
             active={topic.name === activeTopic}
             onSelect={() => setSearchParams({ topic: topic.name })}
-            contentClassName="break-all"
+            contentClassName="flex-col items-start gap-1"
           >
-            <span className="font-mono">{topic.name}</span>
+            <TopicName name={topic.name} />
             <TypeBadge type={topic.type} />
           </CardRow>
         ))}
