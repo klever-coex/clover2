@@ -33,7 +33,7 @@
         <arg name="ns" value="$(var root_ns)" />
         <arg name="enable_main_camera" value="$(var main_camera.enable)" />
         <arg name="enable_front_camera" value="$(var front_camera.enable)" />
-        <arg name="enable_lidar" value="$(var 2d_lidar.enable)" />
+        <arg name="enable_lidar" value="$(var additional_sensors.2d_lidar)" />
         <arg name="enable_led_strip" value="$(var indication.led_strip)" />
     </include>
 
