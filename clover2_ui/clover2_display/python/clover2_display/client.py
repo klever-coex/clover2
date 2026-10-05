@@ -73,7 +73,8 @@ class DisplayClient:
             self._node.get_logger().error("Service did not respond")
             return
         if not result.success:
-            self._node.get_logger().error(f"`get_driver_info`: {result.message}")
+            self._node.get_logger().error(
+                f"`get_driver_info`: {result.message}")
             return
 
         self._width = result.width
