@@ -2,7 +2,7 @@ import math
 
 from clover2_common import wait_future
 from clover2_nav_msgs.action import NavigateAsync
-from clover2_nav_msgs.srv import ArmDisarm, Land, SetPosition
+from clover2_nav_msgs.srv import Land, SetPosition
 from geometry_msgs.msg import Pose
 from rclpy.action import ActionClient
 from rclpy.node import Node
@@ -24,21 +24,7 @@ class OffboardClient:
         self._set_position_client = self._node.create_client(
             SetPosition, "/fcu_bridge/set_position"
         )
-        self._arm_disarm_client = self._node.create_client(
-            ArmDisarm, "/fcu_bridge/arm_disarm"
-        )
         self._land_client = self._node.create_client(Land, "/fcu_bridge/land")
-
-    def arm_disarm(self, arm: bool) -> bool:
-        req = ArmDisarm.Request()
-        req.arm = arm
-        return self.__wait_service_call(self._arm_disarm_client, req)
-
-    def arm(self) -> bool:
-        return self.arm_disarm(True)
-
-    def disarm(self) -> bool:
-        return self.arm_disarm(False)
 
     def land(self) -> bool:
         return self.__wait_service_call(self._land_client, Land.Request())

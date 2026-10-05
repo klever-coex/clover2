@@ -15,9 +15,9 @@ drone = Clover2("my_drone")
 ## Полезные команды
 
 ```python
-drone.offboard.arm()          # запуск моторов
-drone.offboard.disarm()       # остановка моторов
-drone.offboard.land()         # посадка
+drone.fcu.arm()          # запуск моторов
+drone.fcu.disarm()       # остановка моторов
+drone.offboard.land()    # посадка
 
 drone.fcu.is_armed()     # True/False
 drone.fcu.flight_mode()  # режим полёта PX4

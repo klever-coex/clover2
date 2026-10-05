@@ -14,10 +14,9 @@ AutonomousFlight/Display
 Краткий обзор возможностей фреймворка.
 
 ## **{doc}`Полёт <AutonomousFlight/Flight>`**
-
-- `offboard.arm()` / `offboard.disarm()` — запуск / остановка моторов
-- `offboard.land()` — посадка
+- `fcu.arm()` / `fcu.disarm()` — запуск / остановка моторов
 - `fcu.is_armed()` / `fcu.flight_mode()` — состояние дрона
+- `offboard.land()` — посадка
 - `offboard.navigate_wait(frame_id, x, y, z, speed, yaw)` — полёт в точку с ожиданием прибытия
 - `offboard.navigate(...)` — запускает полёт и возвращает `NavigationTask`
   - `task.status` — состояние задачи: `PENDING`, `ACTIVE`, `CANCELING`, `REJECTED`, `SUCCEEDED`, `CANCELED` или `ABORTED`
