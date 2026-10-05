@@ -18,7 +18,7 @@ class CameraClient:
         self._img_sub = None
         self._latest_img: Image | None = None
         self._img_event = threading.Event()
-        self._stream_callbacks: list[Callable[[Image], None]] = []
+        self._stream_callback: Callable[[Image], None] | None = None
 
         self._info_sub = None
         self._latest_info: CameraInfo | None = None
@@ -26,10 +26,22 @@ class CameraClient:
 
         self._lock = threading.Lock()
 
-    def stream(self, callback: Callable[[Image], None]) -> None:
+    def stream(
+        self,
+        callback: Callable[[np.ndarray], None],
+        desired_encoding: str = "bgr8",
+    ) -> None:
+        def on_image(msg: Image) -> None:
+            callback(
+                self._bridge.imgmsg_to_cv2(msg, desired_encoding=desired_encoding)
+            )
+
+        self.stream_msg(on_image)
+
+    def stream_msg(self, callback: Callable[[Image], None]) -> None:
         with self._lock:
             self._ensure_img_subscription()
-            self._stream_callbacks.append(callback)
+            self._stream_callback = callback
 
     def get_image(
         self, desired_encoding: str = "bgr8", timeout: float = 5.0
@@ -86,14 +98,16 @@ class CameraClient:
     def _img_callback(self, msg: Image) -> None:
         with self._lock:
             self._latest_img = msg
-            callbacks = list(self._stream_callbacks)
+            callback = self._stream_callback
             self._img_event.set()
 
-        for callback in callbacks:
-            try:
-                callback(msg)
-            except Exception:
-                self._logger.error("Camera stream callback failed")
+        if callback is None:
+            return
+
+        try:
+            callback(msg)
+        except Exception:
+            self._logger.error("Camera stream callback failed")
 
     def _info_callback(self, msg: CameraInfo) -> None:
         with self._lock:

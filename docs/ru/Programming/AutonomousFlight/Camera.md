@@ -34,19 +34,36 @@ info = drone.camera().get_camera_info()
 
 ## Получать поток изображений
 
-`stream` принимает callback, который вызывается для каждого нового ROS-сообщения
-`sensor_msgs.msg.Image`. Подписка продолжает работать до завершения `Clover2`.
+`stream` устанавливает callback, который вызывается для каждого нового кадра как
+`numpy.ndarray`. По умолчанию используется кодировка `bgr8`; её можно изменить
+аргументом `desired_encoding`.
+
+```python
+import numpy as np
+
+
+def on_image(img: np.ndarray):
+    print(img.shape)
+
+
+drone.camera().stream(on_image)
+```
+
+Для получения исходных ROS-сообщений `sensor_msgs.msg.Image` используйте `stream_msg`:
 
 ```python
 from sensor_msgs.msg import Image
 
 
-def on_image(msg: Image):
-    print(msg.width, msg.height)
+def on_image_msg(msg: Image):
+    print(msg.header.stamp)
 
 
-drone.camera().stream(on_image)
+drone.camera().stream_msg(on_image_msg)
 ```
+
+Повторный вызов `stream` или `stream_msg` заменяет предыдущий callback. Подписка
+продолжает работать до завершения `Clover2`.
 
 ## Пример: детекция QR-кода
 
