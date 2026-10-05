@@ -114,3 +114,14 @@ jobs:
           body: ${{ steps.changelog.outputs.changelog }}
           draft: false
           prerelease: ${{ inputs.channel == 'pre-release' }}
+
+      - name: Telegram notify - failure
+        if: ${{ !inputs.dry_run && failure() }}
+        uses: klever-coex/ci/.github/actions/release-notify@master
+        with:
+          telegram_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          telegram_chat: ${{ secrets.TELEGRAM_TO }}
+          status: failure
+          project: clover2
+          tag: ${{ steps.prepare.outputs.tag }}
+

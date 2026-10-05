@@ -1,9 +1,10 @@
 import i18n from '@/i18n/index.ts';
 import { clover2Api } from '../api/clover2.ts';
 import { ApiError } from '@/types/errors';
-import { DEFAULT_MARKER_SIZE_M } from '@/constants/defaults';
+import { DEFAULT_DICTIONARY, DEFAULT_MARKER_SIZE_M } from '@/constants/defaults';
+import { maxMarkerId } from '../data/dictionaries/index.ts';
 import type { MarkerInfo, ModifyResult } from '@/types/map';
-import type { MapMarker } from '@/types/marker';
+import type { ArUcoDictionary, MapMarker } from '@/types/marker';
 import { resolvePose } from '../utils/transformUtils.ts';
 import { confirmDialog } from './useConfirmStore.ts';
 import { mapDirtyIds, toMapMarker } from './slices/mapSlice.ts';
@@ -16,28 +17,54 @@ export function validateSize(sizeM: number): string | null {
   return null;
 }
 
+function takenMarkerIds(): Set<number> {
+  const s = useMapStore.getState();
+  return new Set([
+    ...Object.values(s.markers).map((m) => m.id),
+    ...Object.keys(s.baseline).map(Number),
+  ]);
+}
+
+function currentDictionary(): ArUcoDictionary {
+  return useMapStore.getState().mapMeta?.dictionary ?? DEFAULT_DICTIONARY;
+}
+
+export function validateMarkerId(id: number): string | null {
+  if (!Number.isInteger(id) || id < 0) return i18n.t('map.idInteger');
+  const dict = currentDictionary();
+  if (id > maxMarkerId(dict)) return i18n.t('map.idRange', { max: maxMarkerId(dict) });
+  if (takenMarkerIds().has(id)) return i18n.t('map.idTaken', { id });
+  return null;
+}
+
+export function suggestMarkerId(): number | null {
+  const taken = takenMarkerIds();
+  const max = maxMarkerId(currentDictionary());
+  const next = (taken.size ? Math.max(...taken) : -1) + 1;
+  if (next <= max) return next;
+  for (let id = 0; id <= max; id++) {
+    if (!taken.has(id)) return id;
+  }
+  return null;
+}
+
 function markerToInfo(m: MapMarker, ui: { positionExpr: [string, string, string]; rotationExpr: [string, string, string] } | undefined): MarkerInfo {
   const fallback = m.pose ?? { x: 0, y: 0, z: 0.01, roll: 0, pitch: 0, yaw: 0 };
   const pose = ui ? resolvePose(ui.positionExpr, ui.rotationExpr, m.id) : fallback;
   return { id: m.id, type: m.type, size: m.sizeM, marker_frame_id: m.markerFrameId, pose };
 }
 
-export function addMarker(): void {
+export function addMarker(id: number): void {
   const s = useMapStore.getState();
-  const knownIds = [
-    ...Object.values(s.markers).map((m) => m.id),
-    ...Object.keys(s.baseline).map(Number),
-  ];
-  const id = (knownIds.length ? Math.max(...knownIds) : -1) + 1;
   const info: MarkerInfo = {
     id,
     type: 'fixed',
     size: DEFAULT_MARKER_SIZE_M,
-    marker_frame_id: `Marker ${String(id).padStart(2, '0')}`,
+    marker_frame_id: `${s.mapMeta?.frameId || 'map'}_aruco_${id}`,
     pose: {
-      x: (Object.keys(s.markers).length * 0.15) % 3,
-      y: Math.floor(Object.keys(s.markers).length / 5) * 0.15,
-      z: 0.01,
+      x: 0.0,
+      y: 0.0,
+      z: 0.0,
       roll: 0,
       pitch: 0,
       yaw: 0,
@@ -78,19 +105,22 @@ export async function saveMap(): Promise<void> {
   const s = useMapStore.getState();
   if (s.saving) return;
 
-  const ops: Array<() => Promise<ModifyResult>> = [];
+  const deletes: Array<() => Promise<ModifyResult>> = [];
+  const writes: Array<() => Promise<ModifyResult>> = [];
   for (const id of mapDirtyIds(s)) {
     const marker = s.markers[id];
     if (marker === undefined) {
       const numericId = Number(id);
-      ops.push(() => clover2Api.map.delete(numericId));
+      deletes.push(() => clover2Api.map.delete(numericId));
       continue;
     }
     const info = markerToInfo(marker, s.markerUi[id]);
-    ops.push(() =>
+    writes.push(() =>
       id in s.baseline ? clover2Api.map.edit(marker.id, info) : clover2Api.map.add(info),
     );
   }
+
+  const ops = [...deletes, ...writes];
   if (ops.length === 0) return;
 
   s.setSaving(true);
