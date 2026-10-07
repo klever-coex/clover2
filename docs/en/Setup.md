@@ -1,4 +1,4 @@
-# Flight Controller Setup Guide
+# Setup Guide
 
 ```{toctree}
 :titlesonly:
