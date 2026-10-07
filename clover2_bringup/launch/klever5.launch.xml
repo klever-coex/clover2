@@ -102,6 +102,7 @@
         <arg name="ns" value="$(var root_ns)" />
 
         <arg name="led_strip" value="$(var indication.led_strip)" />
+        <arg name="params_file" value="$(var params_file)" />
     </include>
 
     <include file="$(find-pkg-share clover2_bringup)/launch/snippets/display.launch.xml">
