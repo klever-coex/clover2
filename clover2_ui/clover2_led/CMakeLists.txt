@@ -8,6 +8,8 @@ endif()
 # Find ROS 2 build system packages
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_auto REQUIRED)
+find_package(gz-transport13 REQUIRED)
+find_package(gz-msgs10 REQUIRED)
 
 ament_auto_find_build_dependencies()
 
@@ -16,6 +18,8 @@ ament_auto_add_library(${PROJECT_NAME}_device SHARED DIRECTORY "src/device")
 ament_auto_add_library(led_plugins SHARED DIRECTORY "src/plugins")
 target_link_libraries(led_plugins
   ${PROJECT_NAME}_device
+  gz-transport13::gz-transport13
+  gz-msgs10::gz-msgs10
 )
 
 pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)

@@ -5,5 +5,10 @@
             type="clover2_led::device::ws2812_spi"
             base_class_type="clover2_led::device::base_device"
         />
+        <class
+            name="gz_led_strip"
+            type="clover2_led::device::gz_led_strip"
+            base_class_type="clover2_led::device::base_device"
+        />
     </library>
 </class_libraries>

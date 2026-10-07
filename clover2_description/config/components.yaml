@@ -55,4 +55,3 @@ led_strip:
   - 0.0
   - 0.0
   - 0.0
-  mesh: modules/led_strip.glb
