@@ -50,10 +50,10 @@ modules:
     rpy: "0 0 0"
   lidar:
     xyz: "0 0 0.12"
-    rpy: "0 0 0"
+    rpy: "1.5707 0 0"
   led_strip:
     xyz: "0 0 0.025"
-    rpy: "0 0 0"
+    rpy: "1.5707 0 0"
 
 simulation:
   motor:
