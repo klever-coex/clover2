@@ -42,4 +42,4 @@ To begin your journey with the quadcopter kit, refer to the following guides:
 - {doc}`Assembly Guide <Assembly>`: Everything you need to know to put your kit together.
 - {doc}`Setup Guide <Setup>`: Easy steps to calibrate and configure your device.
 - {doc}`Development Guide <Programming>`: Get connected and start your first programming project.
-- {doc}`Project Insights: <UsefulInformation>`: Learn more about the tech behind `clover2`.
+- {doc}`Project Insights <UsefulInformation>`: Learn more about the tech behind `clover2`.
