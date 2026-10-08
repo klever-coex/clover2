@@ -7,10 +7,10 @@
 :depth: 1
 ```
 
-## Fastener Sizes
+## Fasteners
 
-```{tip}
-Fasteners of various sizes are used during assembly. Installing screws or standoffs of the wrong size may result in damage to the quadcopter.
+```{attention}
+Use fasteners only as specified in this assembly guide. Using incorrect sizes for screws, nuts, or standoffs may cause damage to components or the structural integrity of the quadcopter.
 ```
 
 ````{list-table}
@@ -27,7 +27,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
     :align: center
     ```
 
-    Press Nut M3
+    Press-fit Nut M3
   - (clover5-fpv-cell2)=
 
     **Cell 2**
@@ -38,7 +38,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
     :align: center
     ```
 
-    Nylon Nut M3
+    Nylon lock Nut M3
   - (clover5-fpv-cell3)=
 
     **Cell 3**
@@ -60,7 +60,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
     :align: center
     ```
 
-    Nylon Nut M2.5
+    Nylon Lock Nut M2.5
   - (clover5-fpv-cell5)=
 
     **Cell 5**
@@ -71,7 +71,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
     :align: center
     ```
 
-    Nylon Nut M2
+    Nylon Lock Nut M2
 * - (clover5-fpv-cell6)=
 
     **Cell 6**
@@ -148,7 +148,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
     :align: center
     ```
 
-    Damper Standoff M3
+    Anti-vibration Standoff M3
   - (clover5-fpv-cell13)=
 
     **Cell 13**
@@ -286,12 +286,12 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
     **Cell 25**
 
     ```{image} @assets@/common/assembly/clover5/fasteners/tpu-spacer.webp
-    :alt: TPU Foot
+    :alt: Screw M2.5x25
     :width: 60px
     :align: center
     ```
 
-    TPU Foot
+    Screw M2.5x25
 ````
 
 <!--
@@ -303,33 +303,46 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 :align: center
 ```
 -->
+
+## Wiring Diagram
+
+```{tip}
+Refer to this wiring diagram to ensure all electronic components are connected correctly.
+```
+
+```{figure}
+```
+
 ## Frame Assembly
 
-1. Align the 4 arms between the middle and bottom plates, installing the spacer between them.
+1. Position the four arms between the intermediate and lower frame plates. Once aligned, install the frame crossbar between the arms.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/frame/frame_step_1.webp
     :alt: Frame Assembly
     :width: 700px
     :align: center
+    Arm alignment
     ```
 
-2. Install M3x12 screws ([Cell 7](#clover5-fpv-cell7)) and M3x40 screws ([Cell 6](#clover5-fpv-cell6)) from the bottom plate side: M3x12 ([Cell 7](#clover5-fpv-cell7)) in the outer arm holes, M3x40 ([Cell 6](#clover5-fpv-cell6)) in the central holes of the bottom plate.
+2. Insert M3x12 screws ([Cell 7](#clover5-fpv-cell7)) into the outer holes of the lower frame plate. Insert M3x40 screws ([Cell 6](#clover5-fpv-cell6)) into the central holes of the lower frame plate.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/frame/frame_step_2.webp
     :alt: Frame Assembly
     :width: 700px
     :align: center
+    Assembling the frame
     ```
 
-3. Install M3 press nuts ([Cell 1](#clover5-fpv-cell1)) on the middle plate and secure them with screws.
+3. Install M3 press-fit nuts ([Cell 1](#clover5-fpv-cell1)) into the designated holes on the intermediate frame plate. Tighten the screws installed in the previous step until the frame arms are securely fastened.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/frame/frame_step_3.webp
     :alt: Frame Assembly
     :width: 700px
     :align: center
+    Securing the frame
     ```
 
-## Motor Installation
+## Motor and ESC Installation
 
 1. Install the arm guards as shown in the image.
 
@@ -337,203 +350,249 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
     :alt: Motor Installation
     :width: 700px
     :align: center
+    Installing the arm guards
     ```
 
-2. Install the motors into the corresponding holes on the arm using **M3x10 screws** ([Cell 13](#clover5-fpv-cell13)).
+2. Install the motors into the designated holes on the arms and secure them using M3x10 screws ([Cell 13](#clover5-fpv-cell13)).
 
     ```{figure} @assets@/en/assembly/clover5-fpv/motor_step_5.webp
     :alt: Motor Installation
     :width: 700px
     :align: center
+    Motor mounting
     ```
 
 ```{caution}
-Ensure that the motors are secured with M3x10 screws; otherwise, a short circuit between the windings may occur.
-```
+Ensure the screws do not protrude into the motor winding area. Too long screws can damage the windings and cause a short circuit.
+ ```
 
-## ESC Installation
-1. Install the Electronic Speed Controller (ESC) over the M3x40 screws ([Cell 6](#clover5-fpv-cell6)) on the middle plate. The battery power contacts should face backward.
+3. Install the Electronic Speed Controller (ESC) onto the M3x40 screws ([Cell 6](#clover5-fpv-cell6)) on the intermediate frame plate. Route the battery power contacts toward the rear of the frame.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/esc_step_6.webp
     :alt: ESC Installation
     :width: 700px
     :align: center
+    ESC mounting
     ```
 
-2. Glue the protective covers and thread the motor wires through them. Solder the power wires and the capacitor to the ESC power pads, and solder the motors to the motor pads (see image below).
+4. Install wire protectors and route the motor wires through them. Solder the power wires and the capacitor to the ESC power contacts. Solder the motor wires to their corresponding contacts as shown in the wiring diagram.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/esc_step_7.webp
     :alt: ESC Installation
     :width: 700px
     :align: center
+    Soldering
     ```
 
-3. Slide the protective cover onto the power wires, then solder the XT60 power connector. Snap the protective cover onto the power connector.
+5. Install the protective cap over the power wires. Solder the XT60 power connector, then snap the protective cap onto the connector to secure it.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/xt60_step_8.webp
     :alt: ESC Installation
     :width: 700px
     :align: center
+    Power connection
     ```
 
 ## Flight Controller Installation
 
-1. Install the flight controller with the arrow pointing forward, then install M3 nylon nuts ([Cell 2](#clover5-fpv-cell2)) to secure the flight controller.
+1. Install the flight controller and secure it using  M3 nylon lock nuts ([Cell 2](#clover5-fpv-cell2)).
 
     ```{figure} @assets@/en/assembly/clover5-fpv/fcu_step_9.webp
     :alt: Flight Controller Installation
     :width: 700px
     :align: center
+    FC mounting
     ```
 
-2. Install the 6-pin cable between the flight controller and the ESC.
+2. Connect the 8-pin ribbon cable between the flight controller and the ESC.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/fcu_to_esc_step_10.webp
     :alt: Flight Controller Installation
     :width: 700px
     :align: center
+    Communication
     ```
 
-## Video Transmitter Installation
+## Video Transmission System Installation
 
-1. Install M3x10 screws ([Cell 13](#clover5-fpv-cell13)) from the bottom side of the plate; from the top side, install the Video Transmitter (VTX) and secure it with M3 nylon nuts ([Cell 2](#clover5-fpv-cell2)).
+1. From the underside of the frame, install M3x10 screws ([Cell 13](#clover5-fpv-cell13)). Place the video transmitter (VTX) on the top side of the frame and secure it using M3 nylon lock nuts ([Cell 2](#clover5-fpv-cell2)).
 
     ```{figure} @assets@/en/assembly/clover5-fpv/vtx_step_11.webp
     :alt: Video Transmitter Installation
     :width: 700px
     :align: center
+    VTX Mounting
     ```
 
-2. View with the Video Transmitter (VTX) installed.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/vtx_step_12.webp
     :alt: Video Transmitter Installation
     :width: 700px
     :align: center
+    VTX installed
     ```
 
-## Quadcopter Assembly
-
-1. Install M3x30 aluminum standoffs ([Cell 15](#clover5-fpv-cell15)) on top, and secure them from the bottom using M3x6 screws ([Cell 9](#clover5-fpv-cell9)).
+2. Install M3x30 aluminum standoffs ([Cell 15](#clover5-fpv-cell15)) on top, and secure them from underneath using M3x6 screws ([Cell 9](#clover5-fpv-cell9)).
 
     ```{figure} @assets@/en/assembly/clover5-fpv/aluminium_30_step_13.webp
     :alt: Quadcopter Assembly
     :width: 700px
     :align: center
+    Standoff setup
     ```
 
-2. View with aluminum standoffs installed.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/aluminium_30_step_14.webp
     :alt: Quadcopter Assembly
     :width: 700px
     :align: center
+    Standoffs installed
     ```
 
-3. Install the camera mount on the front standoffs as shown in the image below.
+3. Install the camera holders to the front standoffs.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/camera_mount_step_15.webp
     :alt: Quadcopter Assembly
     :width: 700px
     :align: center
+    Holders installation
     ```
 
-4. Install the video camera into the mount using M2x3 screws ([Cell 20](#clover5-fpv-cell20)) and secure it at your preferred camera tilt angle.
+4. Install the camera into the holders using M2x3 screws ([Cell 20](#clover5-fpv-cell20)). Adjust the camera to your preferred tilt angle and secure it.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/camera_step_16.webp
     :alt: Quadcopter Assembly
     :width: 700px
     :align: center
+    Camera installation
     ```
 
-5. Connect the camera cable to the camera port on the flight controller, as shown in the image.
+5. Connect the camera cable to the camera port on the flight controller.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/camera_step_17.webp
     :alt: Quadcopter Assembly
     :width: 700px
     :align: center
+    Communication
     ```
 
-6. Install the connector into the antenna mount and tighten it using a propeller wrench (8mm wrench), then connect the antenna connector to the video transmitter and install it on the rear standoffs.
+6. Insert the video transmitter antenna connector into the antenna mount. Tighten the connector using the 8mm propeller wrench. Attach the antenna connector to the video transmitter, then mount the antenna onto the rear standoffs.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/backward_mount_step_18.webp
     :alt: Quadcopter Assembly
     :width: 700px
     :align: center
+    Antenna installation
     ```
 
-7. Install the ELRS radio receiver and connect it using the cable to the SBUS/CRSF port on the flight controller.
+## Final Assembly
+
+1. Install the ELRS radio receiver and connect it using the cable to the SBUS/CRSF port on the flight controller.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/elrs_rx_step_19.webp
     :alt: Quadcopter Assembly
     :width: 700px
     :align: center
+    Receiver installation
     ```
 
-8. Install the rear protective guards by hooking them onto the standoff near the flight controller and snapping the clip onto the rear standoff.
+2. Install rear protective covers. To do this, hook the mounting tab behind the standoff near the flight controller, then snap the clip onto the rear standoff.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/backward_guard_step_20.webp
     :alt: Quadcopter Assembly
     :width: 700px
     :align: center
+    Rear protection
     ```
 
-9. Install the LED modules by sticking them with double-sided tape onto the inner sides of the arms (see image below).
+3. Use double-sided adhesive tape to install the LED modules to the inner sides of the arms.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/led_step_21.webp
     :alt: Quadcopter Assembly
     :width: 700px
     :align: center
+    LED mounting
     ```
 
-10. Connect the LED modules to the hub as shown in the image. Connect the hub to the LED/Buzzer port on the flight controller.
+4. Connect the LED modules to the LED hub as shown in the image. Connect the hub to the LED/Buzzer port on the flight controller.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/led_hub_step_22.webp
     :alt: Quadcopter Assembly
     :width: 700px
     :align: center
+    Wiring
     ```
 
-11. Route the wires from the LED modules as shown in the image.
+5. Route the LED module wires to ensure they are neither stretched tight nor positioned where they could interfere with moving parts.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/led_hub_step_23.webp
     :alt: Quadcopter Assembly
     :width: 700px
     :align: center
+    Wire management
     ```
 
-12. Thread the battery strap through the mounting slots, and install the top plate using M3x6 screws ([Cell 9](#clover5-fpv-cell9)).
+6. Thread the battery strap through the designated slots, and install the top frame plate using M3x6 screws ([Cell 9](#clover5-fpv-cell9)).
 
     ```{figure} @assets@/en/assembly/clover5-fpv/top_plate_step_24.webp
     :alt: Quadcopter Assembly
     :width: 700px
     :align: center
+    Threading battery strap
     ```
 
-13. Install the side guards on the central standoffs and snap them onto the guard clips.
+7. Install the side guards onto the central standoffs and snap them onto the integrated clips.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/side_guard_step_25.webp
     :alt: Quadcopter Assembly
     :width: 700px
     :align: center
+    Side protection
     ```
 
-14. Screw the video antenna onto the connector at the rear.
+8. Screw the video antenna onto the rear connector.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/vtx_antenna_step_26.webp
     :alt: Quadcopter Assembly
     :width: 700px
     :align: center
+    Installing video antenna
     ```
 
-15. Install the propellers according to the reversed rotation direction ("props out"), as shown in the image.
+9. Install the propellers according to the rotation directions indicated in the image.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/props_step_27.webp
     :alt: Quadcopter Assembly
     :width: 700px
     :align: center
+    Installing the props
     ```
 
+10. Before your first power-up, check the following:
+* All components are securely fastened.
+* All electrical connectors are correctly connected.
+* No wires are damaged and no connectors are loose.
+* The battery has no signs of swelling, overheating, or physical damage.
+* The propellers have sufficient clearance and do not contact the guard, wires, or any other quadcopter elements.
+
 ```{caution}
-Check that no components remain unsecured. Before the first power-on, ensure that the propellers do not touch the canopy or wires.
+Do not power on the quadcopter until all detected faults have been fully resolved.
 ```
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+:hidden:
+
+Clover5FPV/Firmware
+Clover5FPV/BetaflightSetup
+Clover5FPV/Radio
+```
+
+## Flashing Firmware
+
+Before proceeding to software configuration, replace the PX4 firmware with Betaflight. Follow the procedure outlined in the {doc}`Firmware Guide <Clover5FPV/Firmware>`.
+
+## Software Setup
+
+After firmware flashing is complete, perform the final system configuration by following the {doc}`Setup Guide <Clover5FPV/BetaflightSetup>`.
