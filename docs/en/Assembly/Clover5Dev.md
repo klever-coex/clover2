@@ -7,10 +7,10 @@
 :depth: 1
 ```
 
-## Fastener Sizes
+## Fasteners
 
-```{tip}
-Fasteners of various sizes are used during assembly. Installing screws or standoffs of the wrong size may result in damage to the quadcopter.
+```{attention}
+Use fasteners only as specified in this assembly guide. Using incorrect sizes for screws, nuts, or standoffs may cause damage to components or the structural integrity of the quadcopter.
 ```
 
 ````{list-table}
@@ -22,12 +22,12 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
     **Cell 1**
 
     ```{image} @assets@/common/assembly/clover5/fasteners/nut_press.webp
-    :alt: Press Nut M3
+    :alt: Press-fit Nut M3
     :width: 20px
     :align: center
     ```
 
-    Press Nut M3
+    Press-fit Nut M3
   - (clover5-dev-cell2)=
 
     **Cell 2**
@@ -38,7 +38,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
     :align: center
     ```
 
-    Nylon Nut M3
+    Nylon Lock Nut M3
   - (clover5-dev-cell3)=
 
     **Cell 3**
@@ -60,7 +60,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
     :align: center
     ```
 
-    Nylon Nut M2.5
+    Nylon Lock Nut M2.5
   - (clover5-dev-cell5)=
 
     **Cell 5**
@@ -71,7 +71,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
     :align: center
     ```
 
-    Nylon Nut M2
+    Nylon Lock Nut M2
 * - (clover5-dev-cell6)=
 
     **Cell 6**
@@ -148,7 +148,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
     :align: center
     ```
 
-    Damper Standoff M3
+    Anti-vibration Standoff M3
   - (clover5-dev-cell13)=
 
     **Cell 13**
@@ -286,16 +286,20 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
     **Cell 25**
 
     ```{image} @assets@/common/assembly/clover5/fasteners/tpu-spacer.webp
-    :alt: TPU Foot
+    :alt: Screw М2.5х25
     :width: 60px
     :align: center
     ```
 
-    TPU Foot
+    Screw M2.5x25
 ````
 
 
 ## Wiring Diagram
+
+```{tip}
+Refer to this wiring diagram to ensure all electronic components are connected correctly.
+```
 
 ```{figure} @assets@/en/assembly/clover5-dev/layout.webp
 :alt: Wiring Diagram
@@ -305,61 +309,75 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
 ## Frame Assembly
 
-1. Align the 4 arms between the middle and bottom plates.
-
+1. Position the four arms between the upper and lower frame plates.
+   
     ```{figure} @assets@/en/assembly/clover5-dev/frame/frame_step_1.webp
     :alt: Frame Assembly
     :width: 700px
     :align: center
+    Installing the arms
     ```
 
-2. Install M3x12 screws ([Cell 7](#clover5-dev-cell7)) and M3x40 screws ([Cell 6](#clover5-dev-cell6)) from the bottom plate side: M3x12 ([Cell 7](#clover5-dev-cell7)) in the outer arm holes, M3x40 ([Cell 6](#clover5-dev-cell6)) in the central holes of the bottom plate.
+2. Insert M3x12 screws ([Cell 7](#clover5-dev-cell7)) into the outer holes of the arms. Insert M3x40 screws ([Cell 6](#clover5-dev-cell6)) into the central holes of the lower frame plate.
 
     ```{figure} @assets@/en/assembly/clover5-dev/frame/frame_step_2.webp
     :alt: Frame Assembly
     :width: 700px
     :align: center
+    Assembling the frame
     ```
 
-3. Install M3 press nuts ([Cell 1](#clover5-dev-cell1)) on the middle plate and secure them with screws.
-
+3. Insert M3 press-fit nuts ([Cell 1](#clover5-dev-cell1)) into the designated holes on the lower frame plate. Tighten the screws installed in the previous step until the frame plates and arms are securely fastened.
+   
     ```{figure} @assets@/en/assembly/clover5-dev/frame/frame_step_3.webp
     :alt: Frame Assembly
     :width: 700px
     :align: center
+    Press-fitting
     ```
 
 ## Motor and ESC Installation
 
-1. Install the motors into the corresponding holes on the arm using **M3x8 screws** ([Cell 8](#clover5-dev-cell8)).
+1. Place the motors into the designated holes on the arms and secure them using M3x8 screw ([Cell 8](#clover5-dev-cell8)).
 
     ```{figure} @assets@/en/assembly/clover5-dev/motor_step_4.webp
     :alt: Motor and ESC Installation
     :width: 700px
     :align: center
+    Installing the motor
     ```
+
 
     ```{caution}
-    Ensure that the motors are secured with M3x8 screws; otherwise, a short circuit between the windings may occur.
+     Ensure the screws do not protrude into the motor winding area. Too long screws can damage the windings and cause a short circuit.
     ```
 
-2. Install the motor wire protective covers on the arms.
+2. Install wire protectors on the arms.
+
 
     ```{figure} @assets@/en/assembly/clover5-dev/motor_step_5.webp
     :alt: Motor and ESC Installation
     :width: 700px
     :align: center
+    Installing wire protectors
     ```
 
-3. On the top side of the ESC contacts, solder the power wires with a capacitor, put the protective cap on the wires, and solder the XT60 connector. On the bottom side of the ESC contacts, solder the XT30 connector.
+```{caution}
+Before soldering, make sure the battery is disconnected.
+```
 
+```{attention}
+Read the safety guidelines before soldering.
+```
+
+3. Solder power wires and a capacitor to the top of ESC contact pads. Secure the wires with a protective cap. Solder an XT60 connector. Solder an XT30 connector to the bottom of the ESC contact pads.
+   
     ```{figure} @assets@/en/assembly/clover5-dev/esc_step_6.webp
     :alt: Motor and ESC Installation
     :width: 700px
     :align: center
+    Soldering power wires
     ```
-
-4. View of the ESC with the soldered capacitor and connectors.
 
     ```{figure} @assets@/en/assembly/clover5-dev/esc_step_7.webp
     :alt: Motor and ESC Installation
@@ -367,25 +385,27 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
     :align: center
     ```
 
-5. Install the ESC with the connector facing backward and solder the motors as shown in the image below.
+5. Install the ESC. Solder the motor wires to the ESC as shown in the image below.
 
     ```{figure} @assets@/en/assembly/clover5-dev/motor_step_8.webp
     :alt: Motor and ESC Installation
     :width: 700px
     :align: center
+    Installing the standoffs
     ```
 
 ## Aluminum Standoffs Installation
 
-1. Install M3x40 aluminum standoffs ([Cell 11](#clover5-dev-cell11)) on the middle plate using M3 damper standoffs ([Cell 12](#clover5-dev-cell12)).
+1. Mount M3x40 aluminum standoffs ([Cell 11](#clover5-dev-cell11)) on the lower frame plate using anti-vibration standoffs ([Cell 12](#clover5-dev-cell12)).
 
     ```{figure} @assets@/en/assembly/clover5-dev/aluminium_40_step_9.webp
     :alt: Aluminum Standoffs Installation
     :width: 700px
     :align: center
+    Securing the standoffs
     ```
 
-2. Tighten the damper standoffs from the bottom plate side.
+2. Tighten the anti-vibration standoffs from the lower frame plate side.
 
     ```{figure} @assets@/en/assembly/clover5-dev/aluminium_40_step_10.webp
     :alt: Aluminum Standoffs Installation
@@ -395,288 +415,332 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 
 ## Flight Controller Installation
 
-1. Before installing the flight controller, thread M3 nylon nuts ([Cell 2](#clover5-dev-cell2)) onto the M3x40 screws ([Cell 6](#clover5-dev-cell6)), then install the flight controller with the arrow pointing forward.
-Install nylon nuts to secure the flight controller.
+1. Screw M3 nylon nuts ([Cell 2](#clover5-dev-cell2)) onto the installed M3x40 screws ([Cell 6](#clover5-dev-cell6)). Install the flight controller, ensuring the arrow is facing forward. Fasten the flight controller in place using the M3 nylon lock nuts ([Cell 2](#clover5-dev-cell2)).
 
     ```{figure} @assets@/en/assembly/clover5-dev/flight_controller_step_11.webp
     :alt: Flight Controller Installation
     :width: 700px
     :align: center
+    Installing the flight controller
     ```
 
-2. Install the 6-pin cable between the flight controller and the ESC.
+2. Connect the 8-pin ribbon cable between the flight controller and the ESC.
 
     ```{figure} @assets@/en/assembly/clover5-dev/flight_controller_step_12.webp
     :alt: Flight Controller Installation
     :width: 700px
     :align: center
+    ESC to Flight controller connection
     ```
-
-3. View with the cable installed.
 
     ```{figure} @assets@/en/assembly/clover5-dev/flight_controller_step_13.webp
     :alt: Flight Controller Installation
     :width: 700px
     :align: center
+    FC and ESC assembled
     ```
 
-## Raspberry Pi Installation
+## Raspberry Pi 5 Installation
 
-1. Install M2.5 standoffs ([Cell 3](#clover5-dev-cell3)) on the polycarbonate mounting plate using M2.5x4 screws ([Cell 17](#clover5-dev-cell17)).
+1. Mount M2.5x6 nylon standoffs ([Cell 3](#clover5-dev-cell3)) to the plastic mounting plate using M2.5x4 screws ([Cell 17](#clover5-dev-cell17)).
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_14.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Installing the standoffs
     ```
 
-2. Tighten the screws. Use an H1.5/HEX1.5 bit.
+2. Tighten the screws using an H1.5/HEX1.5 bit.
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_15.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Prepared mounting plate
     ```
 
-3. Place the Raspberry Pi 5 on top of the M2.5 standoffs and secure the Raspberry Pi 5 board using M2.5x4 screws ([Cell 17](#clover5-dev-cell17)).
+3. Place the Raspberry Pi 5 onto the installed M2.5x6 standoffs.
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_16.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Installing the Raspberry Pi 5
     ```
 
-4. View with the Raspberry Pi 5 installed.
+4. Secure the Raspberry Pi 5 with M2.5x4 screws ([Cell 17](#clover5-cell17)).
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_17.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Assembled Raspberry Pi 5 mounting plate
     ```
 
-5. Remove the films from the thermal pads and place them in the positions highlighted in the image. Install the cooling heatsink on the Raspberry Pi by inserting the locking clips through the heatsink into the Raspberry Pi. Connect the cooling system to the port marked in the image.
+5. Remove protective films from both sides of the thermal pads. Apply the thermal pads to the positions highlighted by the red frames in the image. Install the cooling heatsink by inserting retaining clips through the heatsink into the designated holes on the Raspberry Pi 5. Connect the cooling system to the designated connector located under the protective cover.
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_18.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Installing the cooler
     ```
-
-6. Raspberry Pi with heatsink assembled.
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_19.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Assembled Raspberry Pi 5
     ```
 
-7. Install 30mm nylon standoffs ([Cell 21](#clover5-dev-cell21)) on the plate with the Raspberry Pi using M3x8 screws ([Cell 8](#clover5-dev-cell8)).
+6. Mount M3x30 nylon standoffs ([Cell 21](#clover5-dev-cell21)) to the plate with the Raspberry Pi 5 using M3x8 screws ([Cell 8](#clover5-dev-cell8)).
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_20.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Installing the standoffs
     ```
-
-8. View with nylon standoffs installed.
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_21.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Assembled Raspberry Pi 5 mounting plate
     ```
 
-9. Install the assembled plate with the Raspberry Pi onto the bottom part of the quadcopter onto the damper standoffs, secure with M3x4 screws ([Cell 10](#clover5-dev-cell10)).
+7. Install the assembled Raspberry Pi 5 mounting plate onto the frame's anti-vibration standoffs. Secure the plate using M3x4 screws ([Cell 10](#clover5-cell10)).
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_22.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Installing the Raspberry Pi 5 mounting plate
     ```
 
-10. Connect the data cable to the Raspberry Pi. The connection is made to the outer row of the header, starting from the 4th port relative to the SD card port (black wire in port 14, see pinout). The other end connects to the UART 4 port on the flight controller (black wire is located in the far right corner).
+8. Connect the telemetry ribbon cable to the Raspberry Pi 5. Connect to the outer row of the header, starting from pin 8 (GPIO 14). Ensure the black wire is connected to pin 14 (Ground) (see pinout). Connect the mating end of the ribbon cable to the UART4 port of the flight controller with the black wire in the far right corner.
     
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_23.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Raspberry Pi 5 to flight controller connection
     ```
+
     ```{figure} @assets@/en/assembly/clover5-dev/RPI_pinout.webp
     :alt: Raspberry Pi Installation
     :width: 400px
     :align: center
+    Raspberry Pi 5 pinout
     ```
 
-11. Install the camera on the small mounting plate with the tab towards the top clip and secure it using two M1.4x4 self-tapping screws ([Cell 19](#clover5-dev-cell19)) in the top left and bottom right corners. Assembly bit: PH1.
+## Camera, Rangefinder, and Screen Installation
+
+1. Install the camera on the small mounting plate. Secure it using M1.4x4 self-tapping screws ([Cell 19](#clover5-dev-cell19)) in the designated holes. Use a PH1 bit.
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_24.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Installing the camera
     ```
 
-12. Install 20mm nylon standoffs ([Cell 22](#clover5-dev-cell22)) on the small mounting plate and secure with M3x6 screws ([Cell 9](#clover5-dev-cell9)).
+2. Install M3x20 nylon standoffs ([Cell 22](#clover5-dev-cell22)) onto the small mounting plate and secure them with M3x6 screws ([Cell 9](#clover5-dev-cell9)).
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_25.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Installing the standoffs
     ```
 
-13. Install the small mounting plate with the camera onto the gripper plate using M3x6 screws ([Cell 9](#clover5-dev-cell9)).
+3. Install the small mounting plate (with the camera attached) onto the gripper plate using M3x6 screws ([Cell 9](#clover5-dev-cell9)).
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_26.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Installing to the gripper plate
     ```
 
-14. Install the laser rangefinder on the gripper plate using M2x6 screws ([Cell 16](#clover5-dev-cell16)) and M2 nylon nuts ([Cell 5](#clover5-dev-cell5)).
+4. Install the laser rangefinder onto the gripper plate using M2x6 screws ([Cell 16](#clover5-dev-cell16)) and M2 nylon lock nuts ([Cell 5](#clover5-dev-cell5)).
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_27.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Installing the rangefinder
     ```
 
-15. Connect the laser rangefinder cable.
+5. Connect the laser rangefinder ribbon cable.
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_28.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Connecting the rangefinder
     ```
 
-16. Install the gripper plate on the quadcopter using M3x8 screws ([Cell 8](#clover5-dev-cell8)).
+6. Secure the gripper plate to the quadcopter frame using using M3x8 screws ([Cell 8](#clover5-dev-cell8)). Connect the camera ribbon cable to the computer, following the wiring diagram.
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_29.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Securing the gripper plate
     ```
 
-17. Connect the rangefinder cable to the UART 1 port on the flight controller (black wire in the far left pin).
+7. Connect the rangefinder ribbon cable to the UART1 port on the flight controller. Ensure the black wire is inserted into the far-left pin. Route the cable through the opening in the flight controller housing.
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_30.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Connecting the rangefinder
     ```
 
-18. Install the screen on the drone canopy using M2.5x6 screws ([Cell 18](#clover5-dev-cell18)) and M2.5 nylon nuts ([Cell 4](#clover5-dev-cell4)).
+8. Install the screen onto the flight controller housing using M2.5x6 screws ([Cell 18](#clover5-dev-cell18)) and M2.5 nylon lock nuts ([Cell 4](#clover5-dev-cell4)).
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_31.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Installing the screen
     ```
 
-19. Solder a Dupont connector to one UBEC and a JST connector to the other. On the other side, join the input wires and solder the XT30 connector. Glue the UBECs together using double-sided tape.
+9. Solder a Dupont connector to the one UBEC and a JST connector to the other UBEC. On the other side, connect the wires and solder on an XT30 connector. Connect the UBECs using double-sided adhesive tape.
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_32.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Preparing the UBECs
     ```
 
-20. Install the UBEC on the plate with the Raspberry Pi using double-sided tape. Connect the UBEC to the ESC via the XT30 connector. Connect the first UBEC wire to the Raspberry Pi as indicated in the picture (pins 4 and 6, see pinout above).
+10. Install the UBEC onto the  Raspberry Pi 5 plate using double-sided adhesive tape. Connect the UBEC to the ESC via the XT30 connector. Connect the first UBEC wire to the Raspberry Pi 5 at pin 4 (5V power) and pin 6 (Ground) (see pinout).
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_33.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Installing the UBECs
     ```
 
-21. Connect the receiver to the SBUS/CRSF (UART 6) port on the flight controller (black wire in the far left pin). 
+11. Connect the receiver to the SBUS/CRSF port (UART 6) of the flight controller (black wire in the far left pin). 
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_34.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Connecting the receiver
     ```
 
-22. Install the canopy over the aluminum standoffs and secure the receiver with a zip tie into the highlighted holes in the image. Route the wires into the wire cutout in the canopy. Connect the screen to the Raspberry Pi; the red wire connects to the far left pin of the inner row of the header relative to the SD card (red - pin 1, black - pin 9). 
+12. Install the flight controller housing onto the aluminum standoffs. Secure the receiver in the designated holes using nylon cable ties. Route all wires through the wire cutout. Connect the screen to the Raspberry Pi 5 by connecting the red wire to pin 1 (3V3) and the black wire to pin 9 (Ground) (see pinout).
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_35.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
+    Installing the FC housing
     ```
 
-## Installing Guards, Legs, and LED Strip
+## Guards, Legs, and LED Strip Installation
 
-1. Thread the strap into the top plate, then secure it to the aluminum standoffs using M3x8 screws ([Cell 8](#clover5-dev-cell8)), and secure the power connector using M2.5x6 screws ([Cell 18](#clover5-dev-cell18)). Assembly bit for the plate - H2.0/HEX2.0, for the connector - H1.5/HEX1.5.
+1. Thread the battery strap through the designated holes of the carbon mounting plate. Install the plate to the aluminum standoffs using M3x8 screws ([Cell 8](#clover5-cell8)).
 
     ```{figure} @assets@/en/assembly/clover5-dev/RPI5_step_36.webp
     :alt: Installing Guards, Legs, and LED Strip
     :width: 700px
     :align: center
+    Installing the mounting plate
     ```
 
-2. Arrange the guard bridges in a square at the bottom, then place the bottom guard arcs on the corners, secure with M3x10 screws ([Cell 13](#clover5-dev-cell13)) from the top, and 40mm nylon standoffs ([Cell 23](#clover5-dev-cell23)) from the bottom.
+2. Arrange guard crossbars into a square shape. Place lower prop guards onto the corners. Secure these components using M3x10 screws ([Cell 13](#clover5-cell13)) on the top and M3x40 nylon standoffs ([Cell 23](#clover5-cell23)) on the bottom.
 
     ```{figure} @assets@/en/assembly/clover5-dev/other_step_37.webp
     :alt: Installing Guards, Legs, and LED Strip
     :width: 700px
     :align: center
+    Securing lower guards
     ```
 
-3. Secure the top arcs and bridges in reverse order using M3x8 screws ([Cell 8](#clover5-dev-cell8)); the bridges should face inward and the arcs outward.
+3. Secure the upper prop guards and crossbars with M3x8 screws ([Cell 8](#clover5-cell8)).
+
+```{tip}
+Arrange the elements so that the crossbars point inward and the arcs point outward.
+```
+
 
     ```{figure} @assets@/en/assembly/clover5-dev/other_step_38.webp
     :alt: Installing Guards, Legs, and LED Strip
     :width: 700px
     :align: center
+    Securing upper guards
     ```
 
-4. Install and secure M3 press nuts ([Cell 1](#clover5-dev-cell1)) into the holes at the ends of the arms.
+
+4. Install M3 press-fit nuts ([Cell 1](#clover5-dev-cell1)) into the designated holes at the edges of the arms.
 
     ```{figure} @assets@/en/assembly/clover5-dev/other_step_39.webp
     :alt: Installing Guards, Legs, and LED Strip
     :width: 700px
     :align: center
+    Press-fitting
     ```
 
-5. Install the guard from the bottom side and secure it using M3x10 screws ([Cell 13](#clover5-dev-cell13)).
+5. Install the assembled guard to the underside of the frame and secure it with M3x10 screws ([Cell 13](#clover5-dev-cell13)).
 
     ```{figure} @assets@/en/assembly/clover5-dev/other_step_40.webp
     :alt: Installing Guards, Legs, and LED Strip
     :width: 700px
     :align: center
+    Installing the guard
     ```
 
-6. Screw M3x6 screws ([Cell 9](#clover5-dev-cell9)) into all holes on one side of the large leg, and secure them with 10mm aluminum standoffs ([Cell 14](#clover5-dev-cell14)) on the other side. Place a TPU foot (spacer) ([Cell 25](#clover5-dev-cell25)) over the standoff in the bottom hole.
+6. On one side of a large landing gear, insert M3x6 screws ([Cell 9](#clover5-cell9)) into the designated holes. On the opposite side, install M3x10 aluminum standoffs ([Cell 14](#clover5-cell14)). Cover the standoff with the anti-slip spacer. Repeat this process for all landing gears.
 
     ```{figure} @assets@/en/assembly/clover5-dev/other_step_41.webp
     :alt: Installing Guards, Legs, and LED Strip
     :width: 700px
     :align: center
+    Assembling the landing gear
     ```
 
-7. Place the large leg on the arm as shown in the image and secure with M3x6 screws ([Cell 9](#clover5-dev-cell9)). Do the same for the other legs.
+7. Attach the landing gear to the arm and secure it with M3x6 screws ([Cell 9](#clover5-cell9)). Do the same for the other landing gears.
 
     ```{figure} @assets@/en/assembly/clover5-dev/other_step_42.webp
     :alt: Installing Guards, Legs, and LED Strip
     :width: 700px
     :align: center
+    Installing the landing gears
     ```
 
-8. Stick the LED strip onto the circumference (plastic ring for the strip), then install it into the hooks on the legs and secure the wires with a zip tie. Connect the power to the second free UBEC, and connect the signal wire to GPIO 9 (pin 21).
+8. Stick the LED strip to the plastic LED ring. Snap the ring into the designated hooks on the landing gears and secure the wires with a nylon cable tie. Connect the LED strip power to the second UBEC. Connect the signal wire to pin 21 (GPIO 9).
 
     ```{figure} @assets@/en/assembly/clover5-dev/other_step_43.webp
     :alt: Installing Guards, Legs, and LED Strip
     :width: 700px
     :align: center
+    Installing the LED strip
     ```
 
-9. Install the propellers according to the classic rotation direction, as shown in the image.
+9. Install the propellers according to the rotation directions indicated in the image.
 
     ```{figure} @assets@/en/assembly/clover5-dev/other_step_44.webp
     :alt: Installing Guards, Legs, and LED Strip
     :width: 700px
     :align: center
+    Installing the props
     ```
 
+10. Before your first power-up, check the following:
+* All components are securely fastened.
+* All electrical connectors are correctly connected.
+* No wires are damaged and no connectors are loose.
+* The battery has no signs of swelling, overheating, or physical damage.
+* The propellers have sufficient clearance and do not contact the guard, wires, or any other quadcopter elements.
+
 ```{caution}
-Check that no components remain unsecured. Before the first power-on, ensure that the propellers do not touch the canopy or wires.
+Do not power on the quadcopter until all detected faults have been fully resolved.
 ```
