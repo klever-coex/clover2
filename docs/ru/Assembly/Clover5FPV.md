@@ -587,4 +587,4 @@ Clover5FPV/Radio
 
 ## Настройка
 
-После завершения сборки выполните {doc}`настройку FPV в Betaflight <Clover5FPV/BetaflightSetup>`.
+После завершения сборки выполните настройку в {doc}` Betaflight <Clover5FPV/BetaflightSetup>`.
