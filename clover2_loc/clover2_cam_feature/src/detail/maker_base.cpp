@@ -42,6 +42,11 @@ void maker_base::_configure(
                 data::aruco_pattern_pos::from_str(p.as_string());
         },
         "ARUCO pattern position to use for pose estimation");
+
+    declare_and_watch_parameter<double>(
+        name + ".reproj_max_px", m_reproj_max_px,
+        [this](const rclcpp::Parameter& p) { m_reproj_max_px = p.as_double(); },
+        "Maximum reprojection error[px]");
 }
 
 void maker_base::_activate() {
@@ -148,52 +153,66 @@ std::list<clover2_pose_msgs::msg::Marker> maker_base::process(
         return result;
     }
 
-    geometry_msgs::msg::PoseArray debug_msg;
-    debug_msg.header = header;
+    m_debug_msg.poses.clear();
+    m_debug_msg.header = header;
 
-    std::vector<int> ids;
-    std::vector<std::vector<cv::Point2f>> corners;
-    detect_markers(image, ids, corners);
+    m_ids.clear();
+    m_corners.clear();
+    detect_markers(image, m_ids, m_corners);
 
-    std::vector<bool> pose_estimated(ids.size(), false);
-    std::vector<cv::Mat> marker_cov(ids.size());
-    std::vector<cv::Vec3d> marker_rot(ids.size()), marker_pose(ids.size());
+    std::vector<bool> pose_estimated(m_ids.size(), false);
+    std::vector<cv::Mat> marker_cov(m_ids.size());
+    std::vector<cv::Vec3d> marker_rot(m_ids.size()), marker_pose(m_ids.size());
 
-    if (!ids.empty()) {
+    if (!m_ids.empty()) {
         parallel_for_(
-            cv::Range(0, static_cast<int>(ids.size())),
+            cv::Range(0, static_cast<int>(m_ids.size())),
             [&](const cv::Range& range) {
                 for (int i = range.start; i < range.end; i++) {
-                    if (!m_map_client->has_marker(ids[i])) {
+                    if (!m_map_client->has_marker(m_ids[i])) {
                         continue;
                     }
 
-                    const auto& map_marker = m_map_client->get_marker(ids[i]);
+                    const auto& map_marker = m_map_client->get_marker(m_ids[i]);
 
                     const auto& obj_pts = get_marker_obj_points(
-                        ids[i], map_marker.size, m_estimate_parameters);
+                        m_ids[i], map_marker.size, m_estimate_parameters);
 
-                    cv::solvePnP(obj_pts, cv::Mat(corners[i]), matrix,
-                                 distortion, marker_rot[i], marker_pose[i],
-                                 m_estimate_parameters.useExtrinsicGuess,
-                                 m_estimate_parameters.solvePnPMethod);
+                    bool valid =
+                        cv::solvePnP(obj_pts, cv::Mat(m_corners[i]), matrix,
+                                     distortion, marker_rot[i], marker_pose[i],
+                                     m_estimate_parameters.useExtrinsicGuess,
+                                     m_estimate_parameters.solvePnPMethod);
 
-                    compute_pose_covariance(marker_rot[i], marker_pose[i],
-                                            marker_cov[i]);
+                    if (valid) {
+                        std::vector<cv::Point2f> proj;
+                        cv::projectPoints(obj_pts, marker_rot[i],
+                                          marker_pose[i], matrix, distortion,
+                                          proj);
 
-                    pose_estimated[i] = true;
+                        const double reproj =
+                            cv::norm(proj, m_corners[i], cv::NORM_L2) /
+                            std::sqrt(proj.size());
+                        valid = reproj < m_reproj_max_px;
+                    }
+
+                    if (valid) {
+                        compute_pose_covariance(marker_rot[i], marker_pose[i],
+                                                marker_cov[i]);
+                        pose_estimated[i] = true;
+                    }
                 }
             });
 
-        for (size_t i = 0; i < ids.size(); i++) {
+        for (size_t i = 0; i < m_ids.size(); i++) {
             if (!pose_estimated[i]) {
                 continue;
             }
 
-            const auto& map_marker = m_map_client->get_marker(ids[i]);
+            const auto& map_marker = m_map_client->get_marker(m_ids[i]);
 
             clover2_pose_msgs::msg::Marker marker;
-            marker.id = ids[i];
+            marker.id = m_ids[i];
             marker.type = static_cast<uint8_t>(map_marker.type);
             marker.size = map_marker.size;
             marker.marker_frame_id = map_marker.marker_frame_id;
@@ -201,16 +220,16 @@ std::list<clover2_pose_msgs::msg::Marker> maker_base::process(
                               marker_cov[i]);
             result.push_back(std::move(marker));
 
-            debug_msg.poses.push_back(marker.pose.pose);
+            m_debug_msg.poses.push_back(marker.pose.pose);
         }
     }
 
     if (m_pose_array_debug_pub->get_subscription_count()) {
-        m_pose_array_debug_pub->publish(debug_msg);
+        m_pose_array_debug_pub->publish(m_debug_msg);
     }
 
     if (debug) {
-        cv::aruco::drawDetectedMarkers(*debug, corners, ids);
+        cv::aruco::drawDetectedMarkers(*debug, m_corners, m_ids);
     }
 
     return result;

@@ -1,20 +1,19 @@
 #pragma once
 
 // clover2
-#include "geometry_msgs/msg/pose_array.hpp"
-#include "std_msgs/msg/header.hpp"
+#include <clover2_common/node_context.hpp>
+#include <clover2_pose_msgs/msg/marker.hpp>
 #include <clover2/cam_feature/base_plugin.hpp>
 
 // OpenCV
-#include <clover2_common/node_context.hpp>
 #include <opencv2/aruco.hpp>
 
 // ROS2
-#include <clover2_pose_msgs/msg/marker.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <geometry_msgs/msg/pose_with_covariance.hpp>
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/subscription.hpp>
+#include <std_msgs/msg/header.hpp>
 
 // STL
 #include <memory>
@@ -47,8 +46,7 @@ protected:
 
 private:
     const std::vector<cv::Point3d>& get_marker_obj_points(
-        int id, double length,
-        const cv::aruco::EstimateParameters& params);
+        int id, double length, const cv::aruco::EstimateParameters& params);
 
     static void compute_pose_covariance(const cv::Vec3d& rvec,
                                         const cv::Vec3d& tvec,
@@ -58,7 +56,12 @@ private:
                                   const cv::Vec3d& rvec, const cv::Vec3d& tvec,
                                   const cv::Mat& cov);
 
+    double m_reproj_max_px{4.0};
     cv::aruco::EstimateParameters m_estimate_parameters;
+
+    geometry_msgs::msg::PoseArray m_debug_msg;
+    std::vector<int> m_ids;
+    std::vector<std::vector<cv::Point2f>> m_corners;
 
     std::shared_ptr<clover2_map::client> m_map_client;
     rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr
