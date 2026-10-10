@@ -5,7 +5,8 @@
 :maxdepth: 2
 :hidden:
 
-Simulator/GazeboDevContainer
+Simulator/DevContainer
+Simulator/VirtualMachine
 ```
 
 ```{figure} @assets@/common/simulator/sim-screenshot.webp
