@@ -3,7 +3,7 @@
 body:
   mesh: "klever5/body.glb"
   xyz: "0 0 0"
-  rpy: "3.14 0 3.14"
+  rpy: "3.14 0 0"
   mass: 0.72
   inertia_size: [0.328, 0.328, 0.106]
   com: [0.0, 0.0, 0.0]
@@ -50,20 +50,19 @@ modules:
     rpy: "0 0 0"
   lidar:
     xyz: "0 0 0.12"
-    rpy: "0 0 0"
+    rpy: "1.5707 0 0"
   led_strip:
     xyz: "0 0 0.025"
-    rpy: "0 0 0"
+    rpy: "1.5707 0 0"
 
-# Provisional simulation coefficients; not calibrated against the real powertrain.
 simulation:
   motor:
-    timeConstantUp: 0.0125
-    timeConstantDown: 0.025
-    maxRotVelocity: 1000.0
-    motorConstant: 8.54858e-06
+    timeConstantUp: 0.020
+    timeConstantDown: 0.035
+    maxRotVelocity: 2800.0
+    motorConstant: 1.40e-06
     momentConstant: 0.016
-    rotorDragCoefficient: 8.06428e-05
+    rotorDragCoefficient: 1.0e-04
     rollingMomentCoefficient: 1.0e-06
     rotorVelocitySlowdownSim: 10
   camera:

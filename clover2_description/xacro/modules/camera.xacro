@@ -12,7 +12,7 @@
       <xacro:if value="${include_visual}">
         <visual>
           <geometry>
-            <mesh filename="package://clover2_description/meshes/modules/camera.dae"/>
+            <mesh filename="package://clover2_description/meshes/modules/camera.glb"/>
           </geometry>
         </visual>
       </xacro:if>
