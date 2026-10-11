@@ -58,9 +58,6 @@ private:
     std::string m_solver_id;
     solver::base_solver::UniquePtr m_solver;
 
-    // last time the marker map fetch was retried while the map is empty
-    rclcpp::Time m_last_map_retry{};
-
     // Detection parameters
     std::shared_ptr<clover2_map::client> m_map_client;
 

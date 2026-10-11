@@ -109,40 +109,7 @@ std::optional<Eigen::Isometry3d> global_pnp::solve(
                                    distortion, rvec, tvec, false,
                                    m_ransac_iterations,
                                    static_cast<float>(m_ransac_reproj_px), 0.99,
-                                   cv::noArray(), cv::SOLVEPNP_ITERATIVE)) {
-        return std::nullopt;
-    }
-
-    size_t inlier_points = 0;
-    std::vector<cv::Point2f> reprojected;
-    for (int pass = 0; pass < 3; ++pass) {
-        cv::projectPoints(object_points, rvec, tvec, camera_matrix, distortion,
-                          reprojected);
-
-        inlier_points = 0;
-        std::vector<cv::Point3f> inlier_obj;
-        std::vector<cv::Point2f> inlier_img;
-
-        for (size_t j = 0; j < image_points.size(); ++j) {
-            if (cv::norm(reprojected[j] - image_points[j]) <
-                m_ransac_reproj_px) {
-                ++inlier_points;
-                inlier_obj.push_back(object_points[j]);
-                inlier_img.push_back(image_points[j]);
-            }
-        }
-
-        if (pass == 2 || inlier_points < m_min_markers * 4) {
-            break;
-        }
-
-        if (!cv::solvePnP(inlier_obj, inlier_img, camera_matrix, distortion,
-                          rvec, tvec, false, cv::SOLVEPNP_ITERATIVE)) {
-            return std::nullopt;
-        }
-    }
-
-    if (inlier_points < m_min_markers * 4) {
+                                   cv::noArray(), cv::SOLVEPNP_SQPNP)) {
         return std::nullopt;
     }
 
