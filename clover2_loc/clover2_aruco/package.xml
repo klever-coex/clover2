@@ -7,13 +7,13 @@
   <maintainer email="2663161@mail.ru">l_motya</maintainer>
   <license>TODO: License declaration</license>
 
-  <author email="2663161@mail.ru">l_motya</author>
-
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
   <depend>clover2_common</depend>
+  <depend>image_geometry</depend>
+  <depend>libopencv-dev</depend>
   <depend>clover2_map</depend>
   <depend>clover2_pose_msgs</depend>
   <depend>diagnostic_msgs</depend>

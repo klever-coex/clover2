@@ -13,3 +13,7 @@ string marker_frame_id
 
 # Only if type is fixed
 geometry_msgs/PoseWithCovariance pose
+
+# Detected corners in image, px: TL,TR,BR,BL (map marker convention, CCW)
+# z is unused and stays 0
+geometry_msgs/Point[] corner_px

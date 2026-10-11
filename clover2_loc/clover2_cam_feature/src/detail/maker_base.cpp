@@ -185,15 +185,19 @@ std::list<clover2_pose_msgs::msg::Marker> maker_base::process(
                                      m_estimate_parameters.solvePnPMethod);
 
                     if (valid) {
-                        std::vector<cv::Point2f> proj;
+                        std::vector<cv::Point2d> proj;
                         cv::projectPoints(obj_pts, marker_rot[i],
                                           marker_pose[i], matrix, distortion,
                                           proj);
 
-                        const double reproj =
-                            cv::norm(proj, m_corners[i], cv::NORM_L2) /
-                            std::sqrt(proj.size());
-                        valid = reproj < m_reproj_max_px;
+                        double reproj_sq = 0;
+                        for (size_t j = 0; j < proj.size(); j++) {
+                            const cv::Point2d d =
+                                proj[j] - cv::Point2d(m_corners[i][j]);
+                            reproj_sq += d.x * d.x + d.y * d.y;
+                        }
+                        valid = std::sqrt(reproj_sq / proj.size()) <
+                                m_reproj_max_px;
                     }
 
                     if (valid) {
@@ -216,8 +220,17 @@ std::list<clover2_pose_msgs::msg::Marker> maker_base::process(
             marker.type = static_cast<uint8_t>(map_marker.type);
             marker.size = map_marker.size;
             marker.marker_frame_id = map_marker.marker_frame_id;
+
             fill_pose_stamped(marker.pose, marker_rot[i], marker_pose[i],
                               marker_cov[i]);
+            marker.corner_px.reserve(m_corners[i].size());
+
+            for (const auto& corner : m_corners[i]) {
+                auto& point = marker.corner_px.emplace_back();
+                point.x = corner.x;
+                point.y = corner.y;
+            }
+
             result.push_back(std::move(marker));
 
             m_debug_msg.poses.push_back(marker.pose.pose);
