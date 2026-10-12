@@ -71,8 +71,8 @@ void declare_and_watch_parameter(
     const rcl_interfaces::msg::ParameterDescriptor& descriptor =
         rcl_interfaces::msg::ParameterDescriptor(),
     bool ignore_override = false) {
-    declare_and_watch_parameter<NodeParametersWatcherT, ParameterT>(
-        parameters_watcher, name, default_value, cb, descriptor,
+    parameters_watcher.declare_and_watch_parameter(
+        name, rclcpp::ParameterValue(default_value), cb, descriptor,
         ignore_override);
 }
 
