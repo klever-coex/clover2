@@ -130,7 +130,7 @@ cam_feature::CallbackReturn cam_feature::on_activate(
     auto camera_qos = rclcpp::QoS(1).best_effort().durability_volatile();
 
     try {
-        m_markers_pub = create_publisher<clover2_pose_msgs::msg::MarkerArray>(
+        m_markers_pub = create_publisher<clover2_pose_msgs::msg::MarkerFrame>(
             "~/output/markers", rclcpp::SensorDataQoS());
 
         m_image_debug_pub = create_publisher<sensor_msgs::msg::Image>(
@@ -202,7 +202,7 @@ void cam_feature::image_callback(
         debug = std::make_shared<cv::Mat>(image.clone());
     }
 
-    clover2_pose_msgs::msg::MarkerArray markers;
+    clover2_pose_msgs::msg::MarkerFrame markers;
     cv::Matx33d km;
     cv::Mat_<double> distortion;
 
@@ -217,6 +217,7 @@ void cam_feature::image_callback(
 
     markers.header.frame_id = m_camera_model.tfFrame();
     markers.header.stamp = msg->header.stamp;
+    markers.camera_info = m_camera_model.cameraInfo();
 
     std::list<clover2_pose_msgs::msg::Marker> marker_list;
     for (const auto& [name, plugin] : m_plugins) {
@@ -228,7 +229,7 @@ void cam_feature::image_callback(
     markers.markers.insert(markers.markers.begin(), marker_list.begin(),
                            marker_list.end());
 
-    m_markers_pub->publish(markers);
+    m_markers_pub->publish(std::move(markers));
     get_node_diagnostics_interface()
         ->get<diagnostics::markers_task>()
         .update_markers(markers.header.stamp, markers.markers.size());

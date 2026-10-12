@@ -17,7 +17,7 @@ file(GLOB srv_files RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "srv/*.srv")
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${msg_files}
   ${srv_files}
-  DEPENDENCIES geometry_msgs std_msgs
+  DEPENDENCIES geometry_msgs std_msgs sensor_msgs
 )
 
 rosidl_get_typesupport_target(cpp_typesupport_target "${PROJECT_NAME}"
