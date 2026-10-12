@@ -52,8 +52,7 @@
 * В поле `Название борта` *(Craft name)* укажите имя квадрокоптера.
 * В поле `Имя пилота` *(Pilot name)* при необходимости укажите имя пилота.
 
-4. В разделе `Прочий функционал` *(Other features)* включите включите `AIRMODE`, `DISPLAY`, `LED_STRIP`, `OSD`.
-.
+4. В разделе `Прочий функционал` *(Other features)* включите `AIRMODE`, `DISPLAY`, `LED_STRIP`, `OSD`.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/setup/feature-configuration.webp
     :alt: Включение дополнительных функций Betaflight
@@ -70,7 +69,7 @@
 2. Настройте порты следующим образом:
 
    - **UART2**: выключите `MSP` и в разделе `Периферия` *(Peripherals)* выберите `VTX` *(IRC Tramp)*;
-   - **UART3**: если подключён GPS, в разделе `Вход датчиков` *(Sensor Input)* выберите `GPS` и скорость `57600`;
+   - **UART3**: если подключен GPS, в разделе `Вход датчиков` *(Sensor Input)* выберите `GPS` и скорость `57600`;
    - **UART6**: включите `Serial RX` для приемника;
    - **UART7**: если используется телеметрия ESC, выберите `ESC`.
 
@@ -275,7 +274,7 @@
 ```
 
 1. Откройте вкладку `Видеопередатчик` *(Video Transmitter)*.
-2. Если таблица VTX ещё не загружена, нажмите `Загрузить из файла` *(Load from file)*.
+2. Если таблица VTX еще не загружена, нажмите `Загрузить из файла` *(Load from file)*.
 3. Выберите файл VTX-таблицы.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/setup/vtx-settings.webp
