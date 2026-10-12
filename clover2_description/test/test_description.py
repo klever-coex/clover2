@@ -26,8 +26,10 @@ def generate(values, config_file=None):
         str(SHARE / 'xacro/klever5/klever5.xacro'), mappings=mappings).toxml())
 
 
-def generate_sdf(config_file=None, values=None):
+def generate_sdf(config_file=None, values=None, rangefinder_type=None):
     mappings = {'description_share': str(SHARE)}
+    if rangefinder_type is not None:
+        mappings['rangefinder_type'] = rangefinder_type
     if values is not None:
         mappings.update({'enable_' + m: str(v).lower()
                          for m, v in zip(MODULES, values)})
@@ -124,3 +126,33 @@ def test_sdf_modules_match_urdf(values):
             element = model.find(f"frame[@name='{link}']")
         origin = urdf.find(f"joint[@name='{urdf_joint}']/origin")
         assert element.findtext('pose') == origin.get('xyz') + ' ' + origin.get('rpy')
+
+
+@pytest.mark.parametrize('rangefinder_type', ('raycast', 'gpu_lidar'))
+@pytest.mark.parametrize('values', tuple(itertools.product((False, True), repeat=len(MODULES))))
+def test_sdf_rangefinder_choice(rangefinder_type, values):
+    model = generate_sdf(values=values, rangefinder_type=rangefinder_type).find('model')
+    gpu = model.findall("link/sensor[@name='rangefinder']")
+    raycast = model.findall("plugin[@name='clover2::sim::RangefinderSystem']")
+    assert len(gpu) + len(raycast) == 1
+    if rangefinder_type == 'gpu_lidar':
+        assert len(gpu) == 1
+        assert gpu[0].get('type') == 'gpu_lidar'
+        assert gpu[0].findtext('topic') == '/rangefinder'
+        assert gpu[0].findtext('ray/range/max') == '30'
+    else:
+        assert len(raycast) == 1
+        assert raycast[0].findtext('topic') == '/rangefinder'
+        assert raycast[0].findtext('link_name') == 'base_link'
+        assert raycast[0].findtext('max_range') == '30'
+
+
+def test_sdf_rangefinder_default():
+    model = generate_sdf().find('model')
+    assert model.find("plugin[@name='clover2::sim::RangefinderSystem']") is not None
+    assert model.find("link/sensor[@name='rangefinder']") is None
+
+
+def test_sdf_rangefinder_invalid_choice():
+    with pytest.raises(xacro.XacroException, match='not in list'):
+        generate_sdf(rangefinder_type='invalid')

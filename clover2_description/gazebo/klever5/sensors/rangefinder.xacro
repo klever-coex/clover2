@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<sdf xmlns:xacro="http://www.ros.org/wiki/xacro" version="1.9">
+  <xacro:macro name="sdf_gpu_rangefinder_sensor" params="">
+    <sensor name="rangefinder" type="gpu_lidar">
+      <pose>0.025 0 -0.03 0 1.5707 3.1415926</pose>
+      <always_on>true</always_on>
+      <update_rate>10</update_rate>
+      <visualize>false</visualize>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>10</samples>
+            <resolution>1</resolution>
+            <min_angle>-0.0872</min_angle>
+            <max_angle>0.0872</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.1</min>
+          <max>30</max>
+          <resolution>0.01</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </ray>
+    </sensor>
+  </xacro:macro>
+
+  <xacro:macro name="sdf_raycast_rangefinder_plugin" params="">
+    <!-- Physics rangefinder from clover2-sim; works with Ogre1 and Ogre2. -->
+    <plugin filename="clover2-rangefinder-system" name="clover2::sim::RangefinderSystem">
+      <link_name>base_link</link_name>
+      <frame_name>main_camera_link</frame_name>
+      <pose>0.025 0 -0.03 0 1.5707 3.1415926</pose>
+      <samples>10</samples>
+      <min_angle>-0.0872</min_angle>
+      <max_angle>0.0872</max_angle>
+      <min_range>0.1</min_range>
+      <max_range>30</max_range>
+      <update_rate>10</update_rate>
+      <noise_stddev>0.01</noise_stddev>
+    </plugin>
+  </xacro:macro>
+</sdf>

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<sdf xmlns:xacro="http://www.ros.org/wiki/xacro" version="1.9">
+  <xacro:macro name="sdf_lidar_sensor" params="settings">
+    <sensor name="lidar" type="gpu_lidar">
+      <always_on>true</always_on><update_rate>${settings['update_rate']}</update_rate>
+      <lidar>
+        <scan><horizontal>
+          <samples>${settings['samples']}</samples><resolution>1</resolution>
+          <min_angle>${settings['min_angle']}</min_angle><max_angle>${settings['max_angle']}</max_angle>
+        </horizontal></scan>
+        <range><min>${settings['min_range']}</min><max>${settings['max_range']}</max><resolution>${settings['resolution']}</resolution></range>
+      </lidar>
+    </sensor>
+  </xacro:macro>
+</sdf>
