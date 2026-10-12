@@ -225,5 +225,5 @@ Use this method if you are unable to configure a Binding Phrase.
     :alt: Главное меню после успешного сопряжения
     :width: 55%
     :align: center
-   Binded
+   Bound
     ```
