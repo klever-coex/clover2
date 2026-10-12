@@ -132,25 +132,48 @@ def test_sdf_modules_match_urdf(values):
 @pytest.mark.parametrize('values', tuple(itertools.product((False, True), repeat=len(MODULES))))
 def test_sdf_rangefinder_choice(rangefinder_type, values):
     model = generate_sdf(values=values, rangefinder_type=rangefinder_type).find('model')
-    gpu = model.findall("link/sensor[@name='rangefinder']")
-    raycast = model.findall("plugin[@name='clover2::sim::RangefinderSystem']")
-    assert len(gpu) + len(raycast) == 1
+    sensors = model.findall("link/sensor[@name='rangefinder']")
+    assert len(sensors) == 1
+    assert model.find("plugin[@name='clover2::sim::RangefinderSystem']") is None
+    sensor = sensors[0]
+    assert sensor.findtext('pose') == '0.025 0 -0.03 0 1.5707 3.1415926'
+    assert sensor.findtext('update_rate') == '10'
+    # An absent topic selects the scoped sensor scan topic used by the bridge.
+    assert sensor.find('topic') is None
     if rangefinder_type == 'gpu_lidar':
-        assert len(gpu) == 1
-        assert gpu[0].get('type') == 'gpu_lidar'
-        assert gpu[0].findtext('topic') == '/rangefinder'
-        assert gpu[0].findtext('ray/range/max') == '30'
+        assert sensor.get('type') == 'gpu_lidar'
+        assert sensor.find('plugin') is None
+        assert sensor.findtext('ray/range/max') == '30'
     else:
-        assert len(raycast) == 1
-        assert raycast[0].findtext('topic') == '/rangefinder'
-        assert raycast[0].findtext('link_name') == 'base_link'
-        assert raycast[0].findtext('max_range') == '30'
+        assert sensor.get('type') == 'custom'
+        plugin = sensor.find("plugin[@name='clover2::sim::RangefinderSystem']")
+        assert plugin is not None
+        assert plugin.get('filename') == 'clover2_gz_sim_rangefinder_system'
+        assert plugin.find('link_name') is None
+        assert plugin.find('pose') is None
+        assert plugin.find('update_rate') is None
+        assert plugin.findtext('max_range') == '30'
 
 
 def test_sdf_rangefinder_default():
     model = generate_sdf().find('model')
-    assert model.find("plugin[@name='clover2::sim::RangefinderSystem']") is not None
-    assert model.find("link/sensor[@name='rangefinder']") is None
+    assert model.find("link/sensor[@name='rangefinder'][@type='custom']/plugin") is not None
+    assert model.find("plugin[@name='clover2::sim::RangefinderSystem']") is None
+
+
+def test_sdf_raycast_rangefinder_other_link(tmp_path):
+    source = tmp_path / 'rangefinder.sdf.xacro'
+    source.write_text(f'''<sdf xmlns:xacro="http://www.ros.org/wiki/xacro" version="1.9">
+      <xacro:include filename="{SHARE}/gazebo/klever5/sensors/rangefinder.xacro"/>
+      <model name="test"><link name="sensor_mount">
+        <xacro:sdf_raycast_rangefinder_sensor/>
+      </link></model>
+    </sdf>''')
+    model = ET.fromstring(xacro.process_file(str(source)).toxml()).find('model')
+    sensor = model.find("link[@name='sensor_mount']/sensor[@name='rangefinder']")
+    assert sensor is not None
+    assert sensor.get('type') == 'custom'
+    assert sensor.find('plugin/link_name') is None
 
 
 def test_sdf_rangefinder_invalid_choice():

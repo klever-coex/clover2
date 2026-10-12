@@ -29,19 +29,21 @@
     </sensor>
   </xacro:macro>
 
-  <xacro:macro name="sdf_raycast_rangefinder_plugin" params="">
-    <!-- Physics rangefinder from clover2-sim; works with Ogre1 and Ogre2. -->
-    <plugin filename="clover2-rangefinder-system" name="clover2::sim::RangefinderSystem">
-      <link_name>base_link</link_name>
-      <frame_name>main_camera_link</frame_name>
+  <xacro:macro name="sdf_raycast_rangefinder_sensor" params="">
+    <!-- Gazebo loads the system plugin from this custom sensor under a link. -->
+    <sensor name="rangefinder" type="custom">
       <pose>0.025 0 -0.03 0 1.5707 3.1415926</pose>
-      <samples>10</samples>
-      <min_angle>-0.0872</min_angle>
-      <max_angle>0.0872</max_angle>
-      <min_range>0.1</min_range>
-      <max_range>30</max_range>
+      <always_on>true</always_on>
       <update_rate>10</update_rate>
-      <noise_stddev>0.01</noise_stddev>
-    </plugin>
+      <plugin filename="clover2_gz_sim_rangefinder_system" name="clover2::sim::RangefinderSystem">
+        <frame_name>main_camera_link</frame_name>
+        <samples>10</samples>
+        <min_angle>-0.0872</min_angle>
+        <max_angle>0.0872</max_angle>
+        <min_range>0.1</min_range>
+        <max_range>30</max_range>
+        <noise_stddev>0.01</noise_stddev>
+      </plugin>
+    </sensor>
   </xacro:macro>
 </sdf>
