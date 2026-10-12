@@ -1,4 +1,4 @@
-# Control Equipment Setup
+# Radio Controller Setup Guide
 
 This section details how to prepare your transmitter and pair it with an ExpressLRS (ELRS) receiver.
 
