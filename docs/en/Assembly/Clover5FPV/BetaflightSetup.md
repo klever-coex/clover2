@@ -13,15 +13,22 @@ Remove the propellers before configuring and testing the motors.
 ## Connection and Preparation
 
 1. Connect your flight controller to your computer using a USB cable and launch the **Betaflight Configurator**.
-2. Navigate to the `Firmware Flasher` tab and toggle on `Enable Expert Mode`.
+2. Click `Connect` to establish a link with the flight controller.
 
-3. Click `Connect` to establish a link with the flight controller.
-
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/configurator-connection.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/configurator-connection.webp
     :alt: Подключение полётного контроллера в Betaflight Configurator
     :width: 700px
     :align: center
     Flight controller to Betaflight Configurator connection
+    ```
+
+    <br>
+
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/setup-overview.webp
+    :alt: Setup tab overview
+    :width: 700px
+    :align: center
+    Setup tab overview
     ```
 
     <br>
@@ -31,7 +38,7 @@ Remove the propellers before configuring and testing the motors.
 1. If you see an `Accelerometer is not calibrated` warning, navigate to the `Sensors` tab and click `Calibrate`.
 2. Disable any sensors that you do not use.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/accelerometer-calibration.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/accelerometer-calibration.webp
     :alt: Калибровка акселерометра
     :width: 700px
     :align: center
@@ -40,7 +47,7 @@ Remove the propellers before configuring and testing the motors.
 
     <br>
 
-     ```{figure} @assets@/ru/assembly/clover5-fpv/setup/basic-configuration.webp
+     ```{figure} @assets@/en/assembly/clover5-fpv/setup/basic-configuration.webp
     :alt: Базовая конфигурация квадрокоптера
     :width: 700px
     :align: center
@@ -50,12 +57,12 @@ Remove the propellers before configuring and testing the motors.
     <br>
 
 3. Navigate to the `Configuration` tab. In the `Personalization` section:
-* Enter your quadcopter's name in the `Craft name` field.
+* Enter your quadcopter's name in the `Aircraft name` field.
 * Enter the pilot's name (optional) in the `Pilot name` field.
 
 4. In the `Other Features` section, enable the following: `AIRMODE`, `DISPLAY`, `LED_STRIP`, `OSD`.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/feature-configuration.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/feature-configuration.webp
     :alt: Включение дополнительных функций Betaflight
     :width: 700px
     :align: center
@@ -78,7 +85,7 @@ Remove the propellers before configuring and testing the motors.
 
 3. Click `Save and Reboot`.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/port-configuration.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/port-configuration.webp
     :alt: Настройка портов полётного контроллера
     :width: 700px
     :align: center
@@ -101,7 +108,7 @@ If your receiver, GPS, or VTX are connected to different UART ports, ensure you 
 6. If the receiver is not yet linked, use the `Bind Receiver` button.
 7. Click `Save`.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/receiver-configuration.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/receiver-configuration.webp
     :alt: Настройка приёмника CRSF
     :width: 700px
     :align: center
@@ -115,42 +122,38 @@ If your receiver, GPS, or VTX are connected to different UART ports, ensure you 
 1. Navigate to the `Modes` tab.
 2. Configure the following switches:
 
-   - `ARM`: Set to `AUX1` (Range: `1700–2100`)
+   - `ARM`: Set to `AUX1` (Range: `1675–2075`)
    - `ANGLE`: Set to `AUX3` (Range: `1300–1700`)
    - `HORIZON`: Set to `AUX3` (Range: `1700–2100`)
    - `FAILSAFE`: Set to `AUX4` (Range: `1700–2100`)
-   - `BEEPER`: Set to `*AUX4` (Range: `1700–2100`)
+   - `BEEPER`: Set to `AUX4` (Range: `1700–2100`)
 
 3. Click `Save`.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/arm-mode.webp
-    :alt: Настройка режима ARM
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/flight-modes.webp
+    :alt: ARM, ANGLE, and HORIZON modes
     :width: 700px
     :align: center
+    ARM, ANGLE, and HORIZON modes
     ```
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/angle-mode.webp
-    :alt: Настройка режима ANGLE
-    :width: 700px
-    :align: center
-    ```
-
-    <br>
-
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/horizon-mode.webp
-    :alt: Настройка режима HORIZON
-    :width: 700px
-    :align: center
-    ```
-
-    <br>
-
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/failsafe-beeper-modes.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/failsafe-beeper-modes.webp
     :alt: Настройка режимов FAILSAFE и BEEPER
     :width: 700px
     :align: center
+    ```
+
+    <br>
+
+    If needed, assign `FLIP OVER AFTER CRASH` to `AUX2` with a range of `1700–2100`.
+
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/flip-over-after-crash-mode.webp
+    :alt: Flip over after crash mode
+    :width: 700px
+    :align: center
+    Flip over after crash mode
     ```
 
     <br>
@@ -164,7 +167,7 @@ Ensure all propellers are removed before proceeding with motor configuration and
 1. Navigate to the `Motors` tab.
 2. Set the `Mixer` to `QUAD X`.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/quad-x-mixer.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/quad-x-mixer.webp
     :alt: Выбор схемы QUAD X
     :width: 700px
     :align: center
@@ -181,7 +184,7 @@ Ensure all propellers are removed before proceeding with motor configuration and
    - `Motor poles`: `14`
    - `Motor Idle (% static)`: `5.5`
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-features.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/motor-features.webp
     :alt: Настройка ESC и моторов
     :width: 700px
     :align: center
@@ -192,7 +195,7 @@ Ensure all propellers are removed before proceeding with motor configuration and
 
 4. Enable `Motor direction is reversed`.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/reversed-motor-direction.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/reversed-motor-direction.webp
     :alt: Выбор обратного направления вращения моторов
     :width: 700px
     :align: center
@@ -201,38 +204,38 @@ Ensure all propellers are removed before proceeding with motor configuration and
     <br>
 
 5. Click `Motor direction` to configure how each motor spins.
-6. Acknowledge the warning regarding the removal of propellers.
+6. Acknowledge the warning regarding the removal of propellers and select `Wizard`.
    
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-direction-safety-warning.webp
-    :alt: Предупреждение перед настройкой направления моторов
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/motor-direction-method.webp
+    :alt: Safety notice and motor direction method
     :width: 700px
     :align: center
-    Warning
+    Safety notice and motor direction method
     ```
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-direction-wizard.webp
-    :alt: Мастер настройки направления моторов
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/motor-direction-wizard.webp
+    :alt: Starting the motor direction check
     :width: 700px
     :align: center
-    Wizard
+    Starting the motor direction check
     ```
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-direction-method.webp
-    :alt: Выбор способа настройки направления моторов
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/motor-direction-adjustment.webp
+    :alt: Adjusting motor directions
     :width: 700px
     :align: center
-    Motor direction 
+    Adjusting motor directions
     ```
 
     <br>
 
 8. Click `Reorder motors` to ensure the motor numbering matches your frame layout.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-reordering-start.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/motor-reordering-start.webp
     :alt: Запуск настройки порядка моторов
     :width: 700px
     :align: center
@@ -240,7 +243,7 @@ Ensure all propellers are removed before proceeding with motor configuration and
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-reordering.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/motor-reordering.webp
     :alt: Настройка порядка моторов
     :width: 700px
     :align: center
@@ -267,7 +270,7 @@ Ensure all propellers are removed before proceeding with motor configuration and
    - `Altitude`: `100`
    - `Link Quality`: `60`
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/osd-settings.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/osd-settings.webp
     :alt: Настройка параметров OSD
     :width: 700px
     :align: center
@@ -278,7 +281,7 @@ Ensure all propellers are removed before proceeding with motor configuration and
 
 6. Enable and drag the following elements onto your screen layout to your preference:
 
-   - `Craft name`
+   - `Aircraft name`
    - `Battery voltage`
    - `Disarmed`
    - `Fly mode`
@@ -292,7 +295,7 @@ Ensure all propellers are removed before proceeding with motor configuration and
 
 7. Once you have organized the layout, click `Save`.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/osd-layout.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/osd-layout.webp
     :alt: Размещение элементов OSD
     :width: 700px
     :align: center
@@ -311,7 +314,7 @@ Always connect the antenna to the video transmitter (VTX) before applying power.
 2. If the VTX table is not present, click `Load from file`.
 3. Select your specific VTX table file.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/vtx-settings.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/vtx-settings.webp
     :alt: Настройка видеопередатчика
     :width: 700px
     :align: center
@@ -320,7 +323,7 @@ Always connect the antenna to the video transmitter (VTX) before applying power.
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/vtx-table.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/vtx-table.webp
     :alt: Таблица частот и мощности видеопередатчика
     :width: 700px
     :align: center
@@ -346,7 +349,7 @@ Always connect the antenna to the video transmitter (VTX) before applying power.
 3. Use the grid to mark the specific LEDs.
 4. Click `Wire Ordering Mode` to define the LED sequence.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/led-strip-layout.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/led-strip-layout.webp
     :alt: Разметка светодиодов на сетке
     :width: 700px
     :align: center
@@ -355,11 +358,20 @@ Always connect the antenna to the video transmitter (VTX) before applying power.
 
     <br>
 
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/led-strip-wire-order-mode.webp
+    :alt: Wire Ordering Mode
+    :width: 700px
+    :align: center
+    Wire Ordering Mode
+    ```
+
+    <br>
+
 5. In the `Function` field, select `Color`.
 6. If desired, select a modifier (e.g., `Throttle`) in the `Color Modifier` section to link LED colors to flight inputs.
 7. Assign your preferred colors and click `Save`.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/led-strip-wire-order.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/led-strip-wire-order.webp
     :alt: Настройка порядка светодиодов
     :width: 700px
     :align: center
@@ -368,7 +380,7 @@ Always connect the antenna to the video transmitter (VTX) before applying power.
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/led-strip-color-settings.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/led-strip-color-settings.webp
     :alt: Настройка цвета LED-ленты
     :width: 700px
     :align: center
@@ -377,7 +389,7 @@ Always connect the antenna to the video transmitter (VTX) before applying power.
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/led-strip-preview.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/setup/led-strip-preview.webp
     :alt: Предварительный просмотр LED-ленты
     :width: 700px
     :align: center
@@ -388,7 +400,7 @@ Always connect the antenna to the video transmitter (VTX) before applying power.
 
 ## Final Setup and Pre-Flight Checklist
 
-1. In the `Configuration` tab, confirm the quadcopter model icon moves in the same direction as your physical frame.
+1. In the `Setup` tab, confirm the quadcopter model icon moves in the same direction as your physical frame.
 2. In the `Receiver` tab, verify that all stick movements and switch toggles are displayed accurately.
 3. In the `Modes` tab, cycle through your switches to ensure the correct ranges are activated for each mode. 
 5. Verify the correct motor rotation direction (ensure **propellers are removed**).

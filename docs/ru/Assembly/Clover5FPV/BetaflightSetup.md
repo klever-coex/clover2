@@ -14,14 +14,21 @@
 ## Подключение и подготовка
 
 1. Подключите полетный контроллер к компьютеру по USB и откройте **Betaflight Configurator**.
-2. Во вкладке `Программатор` *(Firmware Flasher)* включите режим эксперта *(Enable Expert Mode)*.
-
-3. Нажмите `Подключиться` *(Connect)*.
+2. Нажмите `Подключиться` *(Connect)*.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/setup/configurator-connection.webp
     :alt: Подключение полётного контроллера в Betaflight Configurator
     :width: 700px
     :align: center
+    ```
+
+    <br>
+
+    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/setup-overview.webp
+    :alt: Обзор вкладки «Система»
+    :width: 700px
+    :align: center
+    Обзор вкладки «Система»
     ```
 
     <br>
@@ -50,7 +57,7 @@
      <br>
 
 3. Перейдите во вкладку `Конфигурация` *(Configuration)*. В разделе `Персонализация` *(Personalization)*:
-* В поле `Название борта` *(Craft name)* укажите имя квадрокоптера.
+* В поле `Название борта` *(Aircraft name)* укажите имя квадрокоптера.
 * В поле `Имя пилота` *(Pilot name)* при необходимости укажите имя пилота.
 
 4. В разделе `Прочий функционал` *(Other features)* включите `AIRMODE`, `DISPLAY`, `LED_STRIP`, `OSD`.
@@ -119,30 +126,15 @@
    - `ANGLE` на `AUX3` в диапазоне `1300–1700`;
    - `HORIZON` на `AUX3` в диапазоне `1700–2100`;
    - `FAILSAFE` на `AUX4` в диапазоне `1700–2100`;
-   - `BEEPER` на `*AUX4` в диапазоне `1700–2100`.
+   - `BEEPER` на `AUX4` в диапазоне `1700–2100`.
 
 3. Нажмите `Сохранить` *(Save)*.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/arm-mode.webp
-    :alt: Настройка режима ARM
+    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/flight-modes.webp
+    :alt: Режимы ARM, ANGLE и HORIZON
     :width: 700px
     :align: center
-    ```
-
-    <br>
-
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/angle-mode.webp
-    :alt: Настройка режима ANGLE
-    :width: 700px
-    :align: center
-    ```
-
-    <br>
-
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/horizon-mode.webp
-    :alt: Настройка режима HORIZON
-    :width: 700px
-    :align: center
+    Режимы ARM, ANGLE и HORIZON
     ```
 
     <br>
@@ -151,6 +143,17 @@
     :alt: Настройка режимов FAILSAFE и BEEPER
     :width: 700px
     :align: center
+    ```
+
+    <br>
+
+    При необходимости назначьте `FLIP OVER AFTER CRASH` на `AUX2` в диапазоне `1700–2100`.
+
+    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/flip-over-after-crash-mode.webp
+    :alt: Режим переворота после падения
+    :width: 700px
+    :align: center
+    Режим переворота после падения
     ```
 
     <br>
@@ -202,31 +205,31 @@
     <br>
 
 5. Для настройки направления вращения нажмите `Направление мотора` *(Motor direction)*.
-6. Подтвердите предупреждение о снятых пропеллерах.
+6. Подтвердите предупреждение о снятых пропеллерах и выберите `Мастер настройки` *(Wizard)*.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-direction-safety-warning.webp
-    :alt: Предупреждение перед настройкой направления моторов
+    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-direction-method.webp
+    :alt: Предупреждение и выбор способа настройки направления моторов
     :width: 700px
     :align: center
-    Предупреждение перед настройкой направления моторов
+    Предупреждение и выбор способа настройки направления моторов
     ```
 
     <br>
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-direction-wizard.webp
-    :alt: Мастер настройки направления моторов
+    :alt: Запуск проверки направления моторов
     :width: 700px
     :align: center
-    Мастер настройки направления моторов
+    Запуск проверки направления моторов
     ```
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-direction-method.webp
-    :alt: Выбор способа настройки направления моторов
+    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-direction-adjustment.webp
+    :alt: Настройка направления моторов
     :width: 700px
     :align: center
-    Выбор способа настройки направления моторов
+    Настройка направления моторов
     ```
 
     <br>
@@ -279,7 +282,7 @@
 
 6. Включите и разместите на экране основные элементы OSD:
 
-   - `Название борта` *(Craft name)*;
+   - `Название борта` *(Aircraft name)*;
    - `Напряжение батареи` *(Battery voltage)*;
    - `Disarmed`;
    - `Режим полета` *(Fly mode)*;
@@ -356,6 +359,15 @@
 
     <br>
 
+    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/led-strip-wire-order-mode.webp
+    :alt: Режим назначения цепи
+    :width: 700px
+    :align: center
+    Режим назначения цепи
+    ```
+
+    <br>
+
 5. В поле `Функция` *(Function)* выберите `Цвет` *(Color)*.
 6. При необходимости в разделе `Изменение цвета` *(Color modifier)* выберите режим, например `Газ` *(Throttle)*.
 7. Назначьте цвета по своему усмотрению и нажмите `Сохранить` *(Save)*.
@@ -389,7 +401,7 @@
 
 ## Заключительная настройка
 
-1. Проверьте, что во вкладке `Конфигурация` *(Configuration)* модель квадрокоптера повторяет реальные движения рамы.
+1. Проверьте, что во вкладке `Система` *(Setup)* модель квадрокоптера повторяет реальные движения рамы.
 2. Убедитесь, что стики и переключатели корректно отображаются во вкладке `Приемник` *(Receiver)*.
 3. Проверьте, что при переключении режимов во вкладке `Режимы` *(Modes)* активируются нужные диапазоны.
 4. Проверьте направление вращения электродвигателей без пропеллеров.
