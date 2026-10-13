@@ -13,9 +13,17 @@
 Use fasteners only as specified in this assembly guide. Using incorrect sizes for screws, nuts, or standoffs may cause damage to components or the structural integrity of the quadcopter.
 ```
 
+```{raw} html
+<style>
+table.assembly-fasteners td {
+    vertical-align: top;
+}
+</style>
+```
+
 ````{list-table}
 :widths: 20 20 20 20 20
-:class: sd-text-center
+:class: sd-text-center assembly-fasteners
 
 * - (clover5-cell1)=
 
@@ -285,16 +293,17 @@ Use fasteners only as specified in this assembly guide. Using incorrect sizes fo
 
     **Cell 25**
 
-     ```{image} @assets@/common/assembly/clover5/fasteners/m2,5x25.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m2,5x25.webp
     :alt: Screw М2.5х25
     :width: 120px
     :align: center
     ```
 
-   Screw M2.5x25
+    Screw M2.5x25
 ````
 
 
+(clover5-layout)=
 ## Wiring Diagram
 
 ```{tip}
@@ -353,9 +362,9 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
 
 2. Install the Electronic Speed Controller (ESC) onto the M3x40 screws ([Cell 6](#clover5-cell6)).
 
-```{note}
-The ESC is supplied pre-assembled with soldered connectors.
-```
+    ```{note}
+    The ESC is supplied pre-assembled with soldered connectors.
+    ```
 
     ```{figure} @assets@/en/assembly/clover5/esc_step_1.webp
     :alt: ESC Installation
@@ -404,7 +413,7 @@ The ESC is supplied pre-assembled with soldered connectors.
     Installing the flight controller
     ```
 
-2. Connect the 8-pin ribbon cable between the flight controller and the ESC.
+2. Connect the 8-pin ribbon cable between the flight controller and the ESC (see [wiring diagram](#clover5-layout)).
 
     ```{figure} @assets@/en/assembly/clover5/flight_controller_step_2.webp
     :alt: Flight Controller Installation
@@ -499,19 +508,13 @@ The ESC is supplied pre-assembled with soldered connectors.
     Installing the Raspberry Pi 5 mounting plate
     ```
 
-8. Connect the telemetry ribbon cable to the Raspberry Pi 5. Connect to the outer row of the header, starting from pin 8 (GPIO 14). Ensure the black wire is connected to pin 14 (Ground) (see pinout). Connect the mating end of the ribbon cable to the UART4 port of the flight controller with the black wire in the far right corner.
+8. Connect the telemetry ribbon cable to the Raspberry Pi 5. Connect to the outer row of the header, starting from pin 8 (GPIO 14). Ensure the black wire is connected to pin 14 (Ground) (see [wiring diagram](#clover5-layout)). Connect the mating end of the ribbon cable to the UART4 port of the flight controller with the black wire in the far right corner.
 
     ```{figure} @assets@/en/assembly/clover5/RPI_step_10.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
     Raspberry Pi 5 to flight controller connection
-    ```
-    ```{figure} @assets@/en/assembly/clover5/RPI_pinout.webp
-    :alt: Raspberry Pi Installation
-    :width: 400px
-    :align: center
-     Raspberry Pi 5 pinout
     ```
 
 ## Camera, Rangefinder, and Screen Installation
@@ -552,7 +555,7 @@ The ESC is supplied pre-assembled with soldered connectors.
     Installing the rangefinder
     ```
 
-5. Connect the laser rangefinder ribbon cable.
+5. Connect the laser rangefinder ribbon cable (see [wiring diagram](#clover5-layout)).
 
     ```{figure} @assets@/en/assembly/clover5/RPI_step_15.webp
     :alt: Raspberry Pi Installation
@@ -561,7 +564,7 @@ The ESC is supplied pre-assembled with soldered connectors.
     Connecting the rangefinder
     ```
 
-6. Secure the gripper plate to the quadcopter frame using M3x8 screws ([Cell 8](#clover5-cell8)). Connect the camera ribbon cable to the computer, following the wiring diagram.
+6. Secure the gripper plate to the quadcopter frame using M3x8 screws ([Cell 8](#clover5-cell8)). Connect the camera ribbon cable to the computer, following the [wiring diagram](#clover5-layout).
 
     ```{figure} @assets@/en/assembly/clover5/RPI_step_16.webp
     :alt: Raspberry Pi Installation
@@ -570,7 +573,7 @@ The ESC is supplied pre-assembled with soldered connectors.
     Securing the gripper plate
     ```
 
-7. Connect the rangefinder ribbon cable to the UART 1 port on the flight controller. Ensure the black wire is inserted into the far-left pin. Route the cable through the opening in the flight controller housing.
+7. Connect the rangefinder ribbon cable to the UART 1 port on the flight controller. Ensure the black wire is inserted into the far-left pin. Route the cable through the opening in the flight controller housing (see [wiring diagram](#clover5-layout)).
 
     ```{figure} @assets@/en/assembly/clover5/RPI_step_17.webp
     :alt: Raspberry Pi Installation
@@ -588,7 +591,7 @@ The ESC is supplied pre-assembled with soldered connectors.
     Installing the screen
     ```
 
-9. Install the UBEC onto the  Raspberry Pi 5 plate using double-sided adhesive tape. Connect the UBEC to the ESC via the XT30 connector. Connect the first UBEC wire to the Raspberry Pi 5 at pin 4 (5V power) and pin 6 (Ground) (see pinout).
+9. Install the UBEC onto the  Raspberry Pi 5 plate using double-sided adhesive tape. Connect the UBEC to the ESC via the XT30 connector. Connect the first UBEC wire to the Raspberry Pi 5 at pin 4 (5V power) and pin 6 (Ground) (see [wiring diagram](#clover5-layout)).
 
     ```{figure} @assets@/en/assembly/clover5/RPI_step_19.webp
     :alt: Raspberry Pi Installation
@@ -597,7 +600,7 @@ The ESC is supplied pre-assembled with soldered connectors.
     Installing UBEC
     ```
 
-10. Connect the receiver to the SBUS/CRSF port (UART 6) of the flight controller (the black wire is in the far left pin).
+10. Connect the receiver to the SBUS/CRSF port (UART 6) of the flight controller (the black wire is in the far left pin) (see [wiring diagram](#clover5-layout)).
 
     ```{figure} @assets@/en/assembly/clover5/RPI_step_20.webp
     :alt: Raspberry Pi Installation
@@ -606,7 +609,7 @@ The ESC is supplied pre-assembled with soldered connectors.
     Connecting the receiver
     ```
 
-11. Install the flight controller housing onto the aluminum standoffs. Secure the receiver in the designated holes using nylon cable ties. Route all wires through the wire cutout. Connect the screen to the Raspberry Pi 5 by connecting the red wire to pin 1 (3V3) and the black wire to pin 9 (Ground) (see pinout).
+11. Install the flight controller housing onto the aluminum standoffs. Secure the receiver in the designated holes using nylon cable ties. Route all wires through the wire cutout. Connect the screen to the Raspberry Pi 5 by connecting the red wire to pin 1 (3V3) and the black wire to pin 9 (Ground) (see [wiring diagram](#clover5-layout)).
 
     ```{figure} @assets@/en/assembly/clover5/RPI_step_21.webp
     :alt: Raspberry Pi Installation
@@ -635,11 +638,11 @@ The ESC is supplied pre-assembled with soldered connectors.
     Securing lower guards
     ```
 
-3. Secure the upper prop guards and crossbars with M3x8 screws ([Cell 8](#clover5-cell8)).
+3. Secure the upper prop guards and crossbars with M3x10 screws ([Cell 13](#clover5-cell13)).
 
-```{tip}
-Arrange the elements so that the crossbars point inward and the arcs point outward.
-```
+    ```{tip}
+    Arrange the elements so that the crossbars point inward and the arcs point outward.
+    ```
 
     ```{figure} @assets@/en/assembly/clover5/other_step_3.webp
     :alt: Installing Guards, Legs, and LED Strip
@@ -684,7 +687,7 @@ Arrange the elements so that the crossbars point inward and the arcs point outwa
     Installing the landing gears
     ```
 
-8. Stick the LED strip to the plastic LED ring. Snap the ring into the designated hooks on the landing gears and secure the wires with a nylon cable tie. Connect the LED strip power to the second free UBEC connector. Connect the signal wire to pin 21 (GPIO 9).
+8. Stick the LED strip to the plastic LED ring. Snap the ring into the designated hooks on the landing gears and secure the wires with a nylon cable tie. Connect the LED strip power to the second free UBEC connector. Connect the signal wire to pin 21 (GPIO 9) (see [wiring diagram](#clover5-layout)).
 
     ```{figure} @assets@/en/assembly/clover5/other_step_8.webp
     :alt: Installing Guards, Legs, and LED Strip

@@ -1,4 +1,4 @@
-# Clover 5 FPV
+# Klever 5 FPV
 
 ## Contents
 
@@ -13,9 +13,17 @@
 Use fasteners only as specified in this assembly guide. Using incorrect sizes for screws, nuts, or standoffs may cause damage to components or the structural integrity of the quadcopter.
 ```
 
+```{raw} html
+<style>
+table.assembly-fasteners td {
+    vertical-align: top;
+}
+</style>
+```
+
 ````{list-table}
 :widths: 20 20 20 20 20
-:class: sd-text-center
+:class: sd-text-center assembly-fasteners
 
 * - (clover5-fpv-cell1)=
 
@@ -38,7 +46,7 @@ Use fasteners only as specified in this assembly guide. Using incorrect sizes fo
     :align: center
     ```
 
-    Nylon lock Nut M3
+    Nylon Lock Nut M3
   - (clover5-fpv-cell3)=
 
     **Cell 3**
@@ -77,12 +85,12 @@ Use fasteners only as specified in this assembly guide. Using incorrect sizes fo
     **Cell 6**
 
     ```{image} @assets@/common/assembly/clover5/fasteners/m3x40.webp
-    :alt: Screw M3x40
+    :alt: Screw M3x30
     :width: 150px
     :align: center
     ```
 
-    Screw M3x40
+    Screw M3x30
   - (clover5-fpv-cell7)=
 
     **Cell 7**
@@ -285,9 +293,9 @@ Use fasteners only as specified in this assembly guide. Using incorrect sizes fo
 
     **Cell 25**
 
-    ```{image} @assets@/common/assembly/clover5/fasteners/tpu-spacer.webp
+    ```{image} @assets@/common/assembly/clover5/fasteners/m2,5x25.webp
     :alt: Screw M2.5x25
-    :width: 60px
+    :width: 120px
     :align: center
     ```
 
@@ -297,6 +305,10 @@ Use fasteners only as specified in this assembly guide. Using incorrect sizes fo
 <!--
 ## Wiring Diagram
 
+```{tip}
+Refer to this wiring diagram to ensure all electronic components are connected correctly.
+```
+
 ```{figure} @assets@/en/assembly/clover5-fpv/layout.webp
 :alt: Wiring Diagram
 :width: 700px
@@ -304,29 +316,20 @@ Use fasteners only as specified in this assembly guide. Using incorrect sizes fo
 ```
 -->
 
-## Wiring Diagram
-
-```{tip}
-Refer to this wiring diagram to ensure all electronic components are connected correctly.
-```
-
-```{figure}
-```
-
 ## Frame Assembly
 
 1. Position the four arms between the intermediate and lower frame plates. Once aligned, install the frame crossbar between the arms.
 
-    ```{figure} @assets@/en/assembly/clover5-fpv/frame/frame_step_1.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/frame/frame_step_2.webp
     :alt: Frame Assembly
     :width: 700px
     :align: center
     Arm alignment
     ```
 
-2. Insert M3x12 screws ([Cell 7](#clover5-fpv-cell7)) into the outer holes of the lower frame plate. Insert M3x40 screws ([Cell 6](#clover5-fpv-cell6)) into the central holes of the lower frame plate.
+2. Insert M3x12 screws ([Cell 7](#clover5-fpv-cell7)) into the outer holes of the lower frame plate. Insert M3x30 screws ([Cell 6](#clover5-fpv-cell6)) into the central holes of the lower frame plate.
 
-    ```{figure} @assets@/en/assembly/clover5-fpv/frame/frame_step_2.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/frame/frame_step_1.webp
     :alt: Frame Assembly
     :width: 700px
     :align: center
@@ -364,9 +367,9 @@ Refer to this wiring diagram to ensure all electronic components are connected c
 
 ```{caution}
 Ensure the screws do not protrude into the motor winding area. Too long screws can damage the windings and cause a short circuit.
- ```
+```
 
-3. Install the Electronic Speed Controller (ESC) onto the M3x40 screws ([Cell 6](#clover5-fpv-cell6)) on the intermediate frame plate. Route the battery power contacts toward the rear of the frame.
+3. Install the Electronic Speed Controller (ESC) onto the M3x30 screws ([Cell 6](#clover5-fpv-cell6)) on the intermediate frame plate. Route the battery power contacts toward the rear of the frame.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/esc_step_6.webp
     :alt: ESC Installation
