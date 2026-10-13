@@ -13,15 +13,15 @@ Before configuring, remove the propellers from the quadcopter to prevent the mot
 
 ## Controller Overview
 
-```{figure} @assets@/ru/setup/radio/rc-pocket-front-part.webp
-:alt: Аппаратура RadioMaster Pocket, вид спереди
+```{figure} @assets@/en/setup/radio/rc-pocket-front-part.webp
+:alt: RadioMaster Pocket, front view
 :width: 90%
 :align: center
 Controller front view
 ```
 
-```{figure} @assets@/ru/setup/radio/rc-pocket-back-part.webp
-:alt: Аппаратура RadioMaster Pocket, вид сзади
+```{figure} @assets@/en/setup/radio/rc-pocket-back-part.webp
+:alt: RadioMaster Pocket, rear view
 :width: 90%
 :align: center
 Controller rear view

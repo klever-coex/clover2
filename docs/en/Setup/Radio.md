@@ -8,15 +8,15 @@ Remove all propellers before starting this setup. This prevents accidental motor
 
 ## Hardware Preparation
 
-```{figure} @assets@/ru/setup/radio/rc-pocket-front-part.webp
-:alt: Аппаратура управления, вид спереди
+```{figure} @assets@/en/setup/radio/rc-pocket-front-part.webp
+:alt: RadioMaster Pocket, front view
 :width: 90%
 :align: center
 
 Transmitter front view
 ```
-```{figure} @assets@/ru/setup/radio/rc-pocket-back-part.webp
-:alt: Аппаратура управления, вид сзади
+```{figure} @assets@/en/setup/radio/rc-pocket-back-part.webp
+:alt: RadioMaster Pocket, rear view
 :width: 90%
 :align: center
 
