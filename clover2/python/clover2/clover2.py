@@ -37,15 +37,12 @@ class Clover2(Node):
 
     def _cached_client(self, name: str, factory: Callable[[], T]) -> T | None:
         if name not in self._cached_clients:
-        if name not in self._cached_clients:
             try:
-                self._cached_clients[name] = factory()
                 self._cached_clients[name] = factory()
             except Exception:
                 self.get_logger().warning(f"Client for '{name}' not found")
                 return None
 
-        return self._cached_clients[name]
         return self._cached_clients[name]
 
     @property
