@@ -1,12 +1,5 @@
 # Klever 5 CODE
 
-## Contents
-
-```{contents}
-:local:
-:depth: 1
-```
-
 ## Fasteners
 
 ```{attention}
@@ -316,6 +309,8 @@ Refer to this wiring diagram to ensure all electronic components are connected c
 :align: center
 ```
 
+<br>
+
 ## Frame Assembly
 
 1. Position the four arms between the upper and lower frame plates.
@@ -327,6 +322,8 @@ Refer to this wiring diagram to ensure all electronic components are connected c
     Installing the arms
     ```
 
+    <br>
+
 2. Insert M3x12 screws ([Cell 7](#clover5-cell7)) into the outer holes of the arms. Insert M3x40 screws ([Cell 6](#clover5-cell6)) into the central holes of the lower frame plate.
 
     ```{figure} @assets@/en/assembly/clover5/frame/frame_step_2.webp
@@ -336,6 +333,8 @@ Refer to this wiring diagram to ensure all electronic components are connected c
     Assembling the frame
     ```
 
+    <br>
+
 3. Insert M3 press-fit nuts ([Cell 1](#clover5-cell1)) into the designated holes on the lower frame plate. Tighten the screws installed in the previous step until the frame plates and arms are securely fastened.
 
     ```{figure} @assets@/en/assembly/clover5/frame/frame_step_3.webp
@@ -344,6 +343,8 @@ Refer to this wiring diagram to ensure all electronic components are connected c
     :align: center
     Press-fitting
     ```
+
+    <br>
 
 ## Motors and ESC Installation
 
@@ -355,6 +356,8 @@ Refer to this wiring diagram to ensure all electronic components are connected c
     :align: center
     Installing the motor
     ```
+
+    <br>
 
 ```{caution}
 Ensure the screws do not protrude into the motor winding area. Too long screws can damage the windings and cause a short circuit.
@@ -373,6 +376,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Installing the ESC
     ```
 
+    <br>
+
 3. Connect the MR30 connectors from the ESC to the motors. Route the wires as shown in the image. Use nylon cable ties to secure the wires to the arms.
 
     ```{figure} @assets@/en/assembly/clover5/esc_step_2.webp
@@ -381,6 +386,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Motors to ESG connection
     ```
+
+    <br>
 
 ## Aluminum Standoffs Installation
 
@@ -393,6 +400,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Installing the standoffs
     ```
 
+    <br>
+
 2. Tighten the anti-vibration standoffs from the lower frame plate side.
 
     ```{figure} @assets@/en/assembly/clover5/aluminium_40_step_2.webp
@@ -401,6 +410,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Securing the standoffs
     ```
+
+    <br>
 
 ## Flight Controller Installation
 
@@ -413,6 +424,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Installing the flight controller
     ```
 
+    <br>
+
 2. Connect the 8-pin ribbon cable between the flight controller and the ESC (see [wiring diagram](#clover5-layout)).
 
     ```{figure} @assets@/en/assembly/clover5/flight_controller_step_2.webp
@@ -422,12 +435,16 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     ESC to Flight controller connection
     ```
 
+    <br>
+
     ```{figure} @assets@/en/assembly/clover5/flight_controller_step_3.webp
     :alt: Flight Controller Installation
     :width: 700px
     :align: center
     FC and ESC assembled
     ```
+
+    <br>
 
 ## Raspberry Pi 5 Installation
 
@@ -440,6 +457,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Installing the standoffs
     ```
 
+    <br>
+
 2. Tighten the screws using an H1.5/HEX1.5 bit.
 
     ```{figure} @assets@/en/assembly/clover5/RPI_step_2.webp
@@ -448,6 +467,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Prepared mounting plate
     ```
+
+    <br>
 
 3. Place the Raspberry Pi 5 onto the installed M2.5x6 standoffs.
 
@@ -458,6 +479,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Installing the Raspberry Pi 5
     ```
 
+    <br>
+
 4. Secure the Raspberry Pi 5 with M2.5x4 screws ([Cell 17](#clover5-cell17)).
 
     ```{figure} @assets@/en/assembly/clover5/RPI_step_4.webp
@@ -466,6 +489,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Assembled Raspberry Pi 5 mounting plate
     ```
+
+    <br>
 
 5. Remove protective films from both sides of the thermal pads. Apply the thermal pads to the positions highlighted by the red frames in the image. Install the cooling heatsink by inserting retaining clips through the heatsink into the designated holes on the Raspberry Pi 5. Connect the cooling system to the designated connector located under the protective cover.
 
@@ -476,12 +501,16 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Installing the cooler
     ```
 
+    <br>
+
     ```{figure} @assets@/en/assembly/clover5/RPI_step_6.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
     Assembled Raspberry Pi 5
     ```
+
+    <br>
 
 6. Mount M3x30 nylon standoffs ([Cell 21](#clover5-cell21)) to the plate with the Raspberry Pi 5 using M3x8 screws ([Cell 8](#clover5-cell8)).
 
@@ -492,12 +521,16 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Installing the standoffs
     ```
 
+    <br>
+
     ```{figure} @assets@/en/assembly/clover5/RPI_step_8.webp
     :alt: Raspberry Pi Installation
     :width: 700px
     :align: center
     Assembled Raspberry Pi 5 mounting plate
     ```
+
+    <br>
 
 7. Install the assembled Raspberry Pi 5 mounting plate onto the frame's anti-vibration standoffs. Secure the plate using M3x4 screws ([Cell 10](#clover5-cell10)).
 
@@ -508,6 +541,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Installing the Raspberry Pi 5 mounting plate
     ```
 
+    <br>
+
 8. Connect the telemetry ribbon cable to the Raspberry Pi 5. Connect to the outer row of the header, starting from pin 8 (GPIO 14). Ensure the black wire is connected to pin 14 (Ground) (see [wiring diagram](#clover5-layout)). Connect the mating end of the ribbon cable to the UART4 port of the flight controller with the black wire in the far right corner.
 
     ```{figure} @assets@/en/assembly/clover5/RPI_step_10.webp
@@ -516,6 +551,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Raspberry Pi 5 to flight controller connection
     ```
+
+    <br>
 
 ## Camera, Rangefinder, and Screen Installation
 
@@ -528,6 +565,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Installing the camera
     ```
 
+    <br>
+
 2. Install M3x20 nylon standoffs ([Cell 22](#clover5-cell22)) onto the small mounting plate and secure them with M3x6 screws ([Cell 9](#clover5-cell9)).
 
     ```{figure} @assets@/en/assembly/clover5/RPI_step_12.webp
@@ -536,6 +575,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Installing the standoffs
     ```
+
+    <br>
 
 3. Install the small mounting plate (with the camera attached) onto the gripper plate using M3x6 screws ([Cell 9](#clover5-cell9)).
 
@@ -546,6 +587,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Installing to the gripper plate
     ```
 
+    <br>
+
 4. Install the laser rangefinder onto the gripper plate using M2x6 screws ([Cell 16](#clover5-cell16)) and M2 nylon lock nuts ([Cell 5](#clover5-cell5)).
 
     ```{figure} @assets@/en/assembly/clover5/RPI_step_14.webp
@@ -554,6 +597,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Installing the rangefinder
     ```
+
+    <br>
 
 5. Connect the laser rangefinder ribbon cable (see [wiring diagram](#clover5-layout)).
 
@@ -564,6 +609,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Connecting the rangefinder
     ```
 
+    <br>
+
 6. Secure the gripper plate to the quadcopter frame using M3x8 screws ([Cell 8](#clover5-cell8)). Connect the camera ribbon cable to the computer, following the [wiring diagram](#clover5-layout).
 
     ```{figure} @assets@/en/assembly/clover5/RPI_step_16.webp
@@ -572,6 +619,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Securing the gripper plate
     ```
+
+    <br>
 
 7. Connect the rangefinder ribbon cable to the UART 1 port on the flight controller. Ensure the black wire is inserted into the far-left pin. Route the cable through the opening in the flight controller housing (see [wiring diagram](#clover5-layout)).
 
@@ -582,6 +631,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Connecting the rangefinder
     ```
 
+    <br>
+
 8. Install the screen onto the flight controller housing using M2.5x6 screws ([Cell 18](#clover5-cell18)) and M2.5 nylon lock nuts ([Cell 4](#clover5-cell4)).
 
     ```{figure} @assets@/en/assembly/clover5/RPI_step_18.webp
@@ -590,6 +641,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Installing the screen
     ```
+
+    <br>
 
 9. Install the UBEC onto the  Raspberry Pi 5 plate using double-sided adhesive tape. Connect the UBEC to the ESC via the XT30 connector. Connect the first UBEC wire to the Raspberry Pi 5 at pin 4 (5V power) and pin 6 (Ground) (see [wiring diagram](#clover5-layout)).
 
@@ -600,6 +653,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Installing UBEC
     ```
 
+    <br>
+
 10. Connect the receiver to the SBUS/CRSF port (UART 6) of the flight controller (the black wire is in the far left pin) (see [wiring diagram](#clover5-layout)).
 
     ```{figure} @assets@/en/assembly/clover5/RPI_step_20.webp
@@ -609,6 +664,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Connecting the receiver
     ```
 
+    <br>
+
 11. Install the flight controller housing onto the aluminum standoffs. Secure the receiver in the designated holes using nylon cable ties. Route all wires through the wire cutout. Connect the screen to the Raspberry Pi 5 by connecting the red wire to pin 1 (3V3) and the black wire to pin 9 (Ground) (see [wiring diagram](#clover5-layout)).
 
     ```{figure} @assets@/en/assembly/clover5/RPI_step_21.webp
@@ -617,6 +674,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Installing the FC housing
     ```
+
+    <br>
 
 ## Guards, Legs, and LED Strip Installation
 
@@ -629,6 +688,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Installing the mounting plate
     ```
 
+    <br>
+
 2. Arrange guard crossbars into a square shape. Place lower prop guards onto the corners. Secure these components using M3x10 screws ([Cell 13](#clover5-cell13)) on the top and M3x40 nylon standoffs ([Cell 23](#clover5-cell23)) on the bottom.
 
     ```{figure} @assets@/en/assembly/clover5/other_step_2.webp
@@ -637,6 +698,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Securing lower guards
     ```
+
+    <br>
 
 3. Secure the upper prop guards and crossbars with M3x10 screws ([Cell 13](#clover5-cell13)).
 
@@ -651,6 +714,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Securing upper guards
     ```
 
+    <br>
+
 4. Install M3 press-fit nuts ([Cell 1](#clover5-cell1)) into the designated holes at the edges of the arms.
 
     ```{figure} @assets@/en/assembly/clover5/other_step_4.webp
@@ -659,6 +724,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Press-fitting
     ```
+
+    <br>
 
 5. Install the assembled guard to the underside of the frame and secure it with M3x10 screws ([Cell 13](#clover5-cell13)).
 
@@ -669,6 +736,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Installing the guard
     ```
 
+    <br>
+
 6. On one side of a small landing gear, insert M3x6 screws ([Cell 9](#clover5-cell9)) into the designated holes. On the opposite side, install M3x10 aluminum standoffs ([Cell 14](#clover5-cell14)). Cover the standoff with the anti-slip spacer. Repeat this process for all landing gears.
 
     ```{figure} @assets@/en/assembly/clover5/other_step_6.webp
@@ -677,6 +746,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Assembling the landing gear
     ```
+
+    <br>
 
 7. Attach the landing gears to the arms and secure them with M3x6 screws ([Cell 9](#clover5-cell9)). Do the same for the other landing gears.
 
@@ -687,6 +758,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Installing the landing gears
     ```
 
+    <br>
+
 8. Stick the LED strip to the plastic LED ring. Snap the ring into the designated hooks on the landing gears and secure the wires with a nylon cable tie. Connect the LED strip power to the second free UBEC connector. Connect the signal wire to pin 21 (GPIO 9) (see [wiring diagram](#clover5-layout)).
 
     ```{figure} @assets@/en/assembly/clover5/other_step_8.webp
@@ -696,6 +769,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Installing the LED strip
     ```
 
+    <br>
+
 9. Install the propellers according to the rotation directions indicated in the image.
 
     ```{figure} @assets@/en/assembly/clover5/other_step_9.webp
@@ -704,6 +779,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Installing the props
     ```
+
+    <br>
 
 10. Before your first power-up, check the following:
 * All components are securely fastened.

@@ -6,11 +6,6 @@
 Перед настройкой снимите пропеллеры. Это исключит случайный запуск электродвигателей при проверке каналов и переключателей.
 ```
 
-```{contents}
-:local:
-:depth: 2
-```
-
 ## Обзор аппаратуры
 
 ```{figure} @assets@/ru/setup/radio/rc-pocket-front-part.webp
@@ -21,6 +16,8 @@
 Аппаратура управления, вид спереди
 ```
 
+<br>
+
 ```{figure} @assets@/ru/setup/radio/rc-pocket-back-part.webp
 :alt: Аппаратура RadioMaster Pocket, вид сзади
 :width: 90%
@@ -28,6 +25,8 @@
 
 Аппаратура управления, вид сзади
 ```
+
+<br>
 
 ## Подготовка аппаратуры
 
@@ -46,6 +45,8 @@
 Предупреждение при неверном положении стиков или тумблеров
 ```
 
+<br>
+
 6. После устранения предупреждения перейдите в главное меню аппаратуры.
 
 ```{figure} @assets@/common/setup/radio/main-menu-no-signal.webp
@@ -54,6 +55,8 @@
 :align: center
 Главное меню аппаратуры без связи с приемником
 ```
+
+<br>
 
 ## Настройка модели для Betaflight
 
@@ -75,6 +78,8 @@
     Выбор свободной ячейки модели
     ```
 
+    <br>
+
 3. Выберите `CREATE MODEL`.
 4. Нажмите `PAGE`, колесом-энкодером выберите `Model name` и задайте имя модели, например `CLOVER FPV`.
 
@@ -85,6 +90,8 @@
     Настройка имени модели квадрокоптера
     ```
 
+    <br>
+
 5. Нажмите `RTN`, прокрутите список вниз. В разделе `Internal RF` установите `Mode` в значение `CRSF`.
 
     ```{figure} @assets@/common/setup/radio/model/internal-rf-disabled.webp
@@ -94,12 +101,16 @@
     Выключенный внутренний радиомодуль
     ```
 
+    <br>
+
     ```{figure} @assets@/common/setup/radio/model/internal-rf-crsf.webp
     :alt: Внутренний радиомодуль в режиме CRSF
     :width: 450px
     :align: center
     Внутренний радиомодуль в режиме CRSF
     ```
+
+    <br>
 
 6. Перейдите на страницу `MIXES` и назначьте переключатели дополнительным каналам:
 
@@ -115,6 +126,8 @@
     Настройка переключателя на дополнительном канале
     ```
 
+    <br>
+
     ```{figure} @assets@/common/setup/radio/model/mixes-channels.webp
     :alt: Основные и дополнительные каналы модели
     :width: 450px
@@ -122,12 +135,16 @@
     Основные и дополнительные каналы модели
     ```
 
+    <br>
+
     ```{figure} @assets@/common/setup/radio/model/mixes-switches.webp
     :alt: Список настроенных переключателей
     :width: 450px
     :align: center
     Список настроенных переключателей
     ```
+
+    <br>
 
 7. Нажмите `RTN`. После сопряжения проверьте в **Betaflight Configurator**, что стики и переключатели изменяют соответствующие каналы во вкладке `Receiver`.
 
@@ -146,6 +163,8 @@
     Каталог MODELS на карте памяти аппаратуры
     ```
 
+    <br>
+
 4. Скопируйте в каталог `MODELS` файл `model05.yml`.
 
     ```{figure} @assets@/common/setup/radio/model/model-file-copied.webp
@@ -154,6 +173,8 @@
     :align: center
     Файл готовой модели в каталоге MODELS
     ```
+
+    <br>
 
 5. Безопасно извлеките USB-накопитель, отключите кабель и выберите загруженную модель в меню `MDL`.
 6. Проверьте, что `Internal RF` работает в режиме `CRSF`, а переключатели назначены каналам `CH5–CH8`.
@@ -174,6 +195,8 @@
     Инструмент ExpressLRS в системном меню
     ```
 
+    <br>
+
 3. Выберите `WiFi Connectivity`, затем `Enable WiFi` и дождитесь сообщения `WiFi Running`.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-wifi-connectivity-menu.webp
@@ -183,6 +206,8 @@
     Пункт WiFi Connectivity в ExpressLRS
     ```
 
+    <br>
+
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-enable-wifi.webp
     :alt: Включение Wi-Fi передатчика ExpressLRS
     :width: 450px
@@ -190,12 +215,16 @@
     Включение Wi-Fi передатчика ExpressLRS
     ```
 
+    <br>
+
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-wifi-running.webp
     :alt: Передатчик ExpressLRS в режиме Wi-Fi
     :width: 450px
     :align: center
      Передатчик ExpressLRS в режиме Wi-Fi
     ```
+
+    <br>
 
 4. Подключите компьютер или смартфон к сети `ExpressLRS TX`. Пароль по умолчанию — `expresslrs`.
 
@@ -206,6 +235,8 @@
     Подключение к сети ExpressLRS TX
     ```
 
+    <br>
+
 5. Откройте в браузере адрес `http://10.0.0.1`.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-web-interface.webp
@@ -215,6 +246,8 @@
     Веб-интерфейс передатчика ExpressLRS
     ```
 
+    <br>
+
 6. В разделе `Binding Phrase` введите выбранную фразу и нажмите `SAVE`.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-binding-phrase.webp
@@ -222,6 +255,8 @@
     :width: 700px
     :align: center
     ```
+
+    <br>
 
 7. Подтвердите перезагрузку кнопкой `REBOOT`.
 
@@ -231,6 +266,8 @@
     :align: center
     Перезагрузка устройства ExpressLRS
     ```
+
+    <br>
 
 ### Настройка приемника
 
@@ -249,6 +286,8 @@
     Подключение к сети ExpressLRS RX
     ```
 
+    <br>
+
 4. Откройте в браузере адрес `http://10.0.0.1`.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/rx-web-interface.webp
@@ -257,6 +296,8 @@
     :align: center
     Веб-интерфейс приемника ExpressLRS
     ```
+
+    <br>
 
 5. Введите фразу в строке `Binding Phrase`, как на передатчике.  Нажмите `SAVE & REBOOT`.
 
@@ -267,6 +308,8 @@
     Binding Phrase в настройках приемника
     ```
 
+    <br>
+
 6. При появлении окна подтверждения нажмите `REBOOT` и дождитесь перезагрузки приемника.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/web-interface-reboot.webp
@@ -276,6 +319,8 @@
     Подтверждение перезагрузки приемника
     ```
 
+    <br>
+
 7. Включите аппаратуру. После установления связи на главном экране появится индикатор приемника.
 
     ```{figure} @assets@/common/setup/radio/main-menu.webp
@@ -283,6 +328,8 @@
     :width: 55%
     :align: center
     ```
+
+    <br>
 
 ## Сопряжение в режиме Bind
 
@@ -299,6 +346,8 @@
     Переход в меню ExpressLRS
     ```
 
+    <br>
+
 3. Установите `TX Power` в значение `100 mW`.
 
     ```{figure} @assets@/common/setup/radio/rx/elrs-step-2.webp
@@ -307,6 +356,8 @@
     :align: center
     Установка мощности передатчика TX Power
     ```
+
+    <br>
 
 4. Выберите команду `Bind` и дождитесь завершения сопряжения.
 
@@ -317,12 +368,16 @@
     Запуск сопряжения ExpressLRS
     ```
 
+    <br>
+
     ```{figure} @assets@/common/setup/radio/rx/elrs-bind.webp
     :alt: Процесс сопряжения ExpressLRS
     :width: 55%
     :align: center
     Процесс сопряжения ExpressLRS
     ```
+
+    <br>
 
 5. Нажмите и удерживайте кнопку `RTN` для возврата в основное меню. Убедитесь, что на основном экране отображается индикатор связи с приемником. 
 
@@ -332,6 +387,8 @@
     :align: center
     Индикация связи с приемником на основном экране аппаратуры
     ```
+
+    <br>
 
 После сопряжения откройте вкладку `Receiver` в **Betaflight Configurator** и проверьте работу стиков и всех назначенных переключателей.
 

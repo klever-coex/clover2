@@ -34,6 +34,8 @@ The thermal imaging camera can be mounted on the quadcopter using one of two met
    Camera in the mount
    ```
 
+   <br>
+
 2. Secure the mount (with the camera installed) onto the guard arcs, as shown in the figure below.
 
    ```{figure} @assets@/common/programming/sensors/thermal-camera/thermal-mount-1.webp
@@ -43,6 +45,8 @@ The thermal imaging camera can be mounted on the quadcopter using one of two met
 
    Mount installed to the quadcopter guard arcs
    ```
+
+   <br>
 
 3. Connect the USB cable from the kit to the camera.
 4. Plug the other end of the USB cable into an available USB port on the Raspberry Pi 5.
@@ -60,6 +64,8 @@ The thermal imaging camera can be mounted on the quadcopter using one of two met
    Camera in the mount
    ```
 
+   <br>
+
 2. Secure the mount to the bottom deck using M3x8 screws, as shown in the figure.
 
 
@@ -70,6 +76,8 @@ The thermal imaging camera can be mounted on the quadcopter using one of two met
 
    Mount secured to the bottom deck
    ```
+
+   <br>
 
 3. Connect the USB cable from the kit to the camera.
 4. Plug the other end of the USB cable into an available USB port on the Raspberry Pi 5.
@@ -97,6 +105,8 @@ Select the `additional_sensors` group, as shown in Figure 5.
 Figure 5 — Selecting the additional_sensors group in clover2-settings
 ```
 
+<br>
+
 In the `additional_sensors` group, select the `thermal_camera` setting (see Figure 6) and enable it by setting its value to `true`.
 
 ```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings-thermal-camera.webp
@@ -107,6 +117,8 @@ In the `additional_sensors` group, select the `thermal_camera` setting (see Figu
 Figure 6 — Selecting the thermal_camera option
 ```
 
+<br>
+
 Press Ctrl+S to save the changes. A confirmation will appear, as shown in Figure 7.
 
 ```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings-save.webp
@@ -116,6 +128,8 @@ Press Ctrl+S to save the changes. A confirmation will appear, as shown in Figure
 
 Figure 7 — Saving the thermal imaging camera setting
 ```
+
+<br>
 
 Then press Esc several times to exit the application. Restart the clover2 service:
 

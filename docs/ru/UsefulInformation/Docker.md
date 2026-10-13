@@ -1,4 +1,5 @@
 # Docker
+
 ```{figure} @assets@/common/programming/docker/docker-logo.webp
 :alt: Docker
 :width: 90%

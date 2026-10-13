@@ -1,12 +1,5 @@
 # Klever 5 FPV
 
-## Contents
-
-```{contents}
-:local:
-:depth: 1
-```
-
 ## Fasteners
 
 ```{attention}
@@ -314,6 +307,9 @@ Refer to this wiring diagram to ensure all electronic components are connected c
 :width: 700px
 :align: center
 ```
+
+<br>
+
 -->
 
 ## Frame Assembly
@@ -327,6 +323,8 @@ Refer to this wiring diagram to ensure all electronic components are connected c
     Arm alignment
     ```
 
+    <br>
+
 2. Insert M3x12 screws ([Cell 7](#clover5-fpv-cell7)) into the outer holes of the lower frame plate. Insert M3x30 screws ([Cell 6](#clover5-fpv-cell6)) into the central holes of the lower frame plate.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/frame/frame_step_1.webp
@@ -336,6 +334,8 @@ Refer to this wiring diagram to ensure all electronic components are connected c
     Assembling the frame
     ```
 
+    <br>
+
 3. Install M3 press-fit nuts ([Cell 1](#clover5-fpv-cell1)) into the designated holes on the intermediate frame plate. Tighten the screws installed in the previous step until the frame arms are securely fastened.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/frame/frame_step_3.webp
@@ -344,6 +344,8 @@ Refer to this wiring diagram to ensure all electronic components are connected c
     :align: center
     Securing the frame
     ```
+
+    <br>
 
 ## Motor and ESC Installation
 
@@ -356,6 +358,8 @@ Refer to this wiring diagram to ensure all electronic components are connected c
     Installing the arm guards
     ```
 
+    <br>
+
 2. Install the motors into the designated holes on the arms and secure them using M3x10 screws ([Cell 13](#clover5-fpv-cell13)).
 
     ```{figure} @assets@/en/assembly/clover5-fpv/motor_step_5.webp
@@ -364,6 +368,8 @@ Refer to this wiring diagram to ensure all electronic components are connected c
     :align: center
     Motor mounting
     ```
+
+    <br>
 
 ```{caution}
 Ensure the screws do not protrude into the motor winding area. Too long screws can damage the windings and cause a short circuit.
@@ -378,6 +384,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     ESC mounting
     ```
 
+    <br>
+
 4. Install wire protectors and route the motor wires through them. Solder the power wires and the capacitor to the ESC power contacts. Solder the motor wires to their corresponding contacts as shown in the wiring diagram.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/esc_step_7.webp
@@ -387,6 +395,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Soldering
     ```
 
+    <br>
+
 5. Install the protective cap over the power wires. Solder the XT60 power connector, then snap the protective cap onto the connector to secure it.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/xt60_step_8.webp
@@ -395,6 +405,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Power connection
     ```
+
+    <br>
 
 ## Flight Controller Installation
 
@@ -407,6 +419,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     FC mounting
     ```
 
+    <br>
+
 2. Connect the 8-pin ribbon cable between the flight controller and the ESC.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/fcu_to_esc_step_10.webp
@@ -415,6 +429,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Communication
     ```
+
+    <br>
 
 ## Video Transmission System Installation
 
@@ -427,6 +443,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     VTX Mounting
     ```
 
+    <br>
+
 
     ```{figure} @assets@/en/assembly/clover5-fpv/vtx_step_12.webp
     :alt: Video Transmitter Installation
@@ -434,6 +452,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     VTX installed
     ```
+
+    <br>
 
 2. Install M3x30 aluminum standoffs ([Cell 15](#clover5-fpv-cell15)) on top, and secure them from underneath using M3x6 screws ([Cell 9](#clover5-fpv-cell9)).
 
@@ -444,6 +464,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Standoff setup
     ```
 
+    <br>
+
 
     ```{figure} @assets@/en/assembly/clover5-fpv/aluminium_30_step_14.webp
     :alt: Quadcopter Assembly
@@ -451,6 +473,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Standoffs installed
     ```
+
+    <br>
 
 3. Install the camera holders to the front standoffs.
 
@@ -461,6 +485,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Holders installation
     ```
 
+    <br>
+
 4. Install the camera into the holders using M2x3 screws ([Cell 20](#clover5-fpv-cell20)). Adjust the camera to your preferred tilt angle and secure it.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/camera_step_16.webp
@@ -469,6 +495,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Camera installation
     ```
+
+    <br>
 
 5. Connect the camera cable to the camera port on the flight controller.
 
@@ -479,6 +507,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Communication
     ```
 
+    <br>
+
 6. Insert the video transmitter antenna connector into the antenna mount. Tighten the connector using the 8mm propeller wrench. Attach the antenna connector to the video transmitter, then mount the antenna onto the rear standoffs.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/backward_mount_step_18.webp
@@ -487,6 +517,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Antenna installation
     ```
+
+    <br>
 
 ## Final Assembly
 
@@ -499,6 +531,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Receiver installation
     ```
 
+    <br>
+
 2. Install rear protective covers. To do this, hook the mounting tab behind the standoff near the flight controller, then snap the clip onto the rear standoff.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/backward_guard_step_20.webp
@@ -507,6 +541,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Rear protection
     ```
+
+    <br>
 
 3. Use double-sided adhesive tape to install the LED modules to the inner sides of the arms.
 
@@ -517,6 +553,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     LED mounting
     ```
 
+    <br>
+
 4. Connect the LED modules to the LED hub as shown in the image. Connect the hub to the LED/Buzzer port on the flight controller.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/led_hub_step_22.webp
@@ -525,6 +563,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Wiring
     ```
+
+    <br>
 
 5. Route the LED module wires to ensure they are neither stretched tight nor positioned where they could interfere with moving parts.
 
@@ -535,6 +575,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Wire management
     ```
 
+    <br>
+
 6. Thread the battery strap through the designated slots, and install the top frame plate using M3x6 screws ([Cell 9](#clover5-fpv-cell9)).
 
     ```{figure} @assets@/en/assembly/clover5-fpv/top_plate_step_24.webp
@@ -543,6 +585,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Threading battery strap
     ```
+
+    <br>
 
 7. Install the side guards onto the central standoffs and snap them onto the integrated clips.
 
@@ -553,6 +597,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Side protection
     ```
 
+    <br>
+
 8. Screw the video antenna onto the rear connector.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/vtx_antenna_step_26.webp
@@ -562,6 +608,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     Installing video antenna
     ```
 
+    <br>
+
 9. Install the propellers according to the rotation directions indicated in the image.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/props_step_27.webp
@@ -570,6 +618,8 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
     :align: center
     Installing the props
     ```
+
+    <br>
 
 10. Before your first power-up, check the following:
 * All components are securely fastened.

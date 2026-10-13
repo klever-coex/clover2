@@ -102,6 +102,7 @@ Once the firmware is installed, you must configure the following sections in ord
 Frame Geometry Configuration in QGroundControl
 ```
 <br>
+
 Setting the correct airframe ensures the flight controller understands how to apply motor outputs.
 
 1. Navigate to the `Vehicle Configuration` panel.

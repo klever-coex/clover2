@@ -16,6 +16,9 @@
 
 Аппаратура управления, вид спереди
 ```
+
+<br>
+
 ```{figure} @assets@/ru/setup/radio/rc-pocket-back-part.webp
 :alt: Аппаратура управления, вид сзади
 :width: 90%
@@ -23,6 +26,9 @@
 
 Аппаратура управления, вид сзади
 ```
+
+<br>
+
 ## Подготовка аппаратуры управления
 
 1. Снимите черные резиновые накладки с задней стороны аппаратуры управления.
@@ -41,6 +47,9 @@
 
 Предупреждение при неверном положении стиков
 ```
+
+<br>
+
 5. После устранения предупреждения перейдите в главное меню аппаратуры.
 
 ```{figure} @assets@/common/setup/radio/main-menu-no-signal.webp
@@ -50,6 +59,8 @@
 
 Главное меню аппаратуры без связи с приемником
 ```
+
+<br>
 
 ## Сопряжение аппаратуры управления с приемником
 
@@ -65,6 +76,8 @@
     Инструмент ExpressLRS в системном меню
     ```
 
+    <br>
+
 3. Выберите `WiFi Connectivity`.
   
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-wifi-connectivity-menu.webp
@@ -74,6 +87,8 @@
    Пункт WiFi Connectivity в ExpressLRS 
     ```
 
+    <br>
+
 4. Выберите `Enable WiFi`.
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-enable-wifi.webp
     :alt: Включение Wi-Fi передатчика ExpressLRS
@@ -81,6 +96,9 @@
     :align: center
     Включение Wi-Fi передатчика ExpressLRS
     ```
+
+    <br>
+
 5. Дождитесь сообщения `WiFi Running`.
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-wifi-running.webp
     :alt: Передатчик ExpressLRS в режиме Wi-Fi
@@ -88,6 +106,8 @@
     :align: center
     Передатчик ExpressLRS в режиме Wi-Fi
     ```
+
+    <br>
 
 6. Подключите компьютер или смартфон к сети `ExpressLRS TX`. Пароль по умолчанию — `expresslrs`.
 
@@ -98,6 +118,8 @@
     Подключение к сети ExpressLRS TX
     ```
 
+    <br>
+
 7. Откройте в браузере адрес `http://10.0.0.1`.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-web-interface.webp
@@ -106,6 +128,8 @@
     :align: center
     Веб-интерфейс передатчика ExpressLRS
     ```
+
+    <br>
 
 8. В строке `Binding Phrase` введите выбранную фразу и нажмите `SAVE`.
 
@@ -116,6 +140,8 @@
     Binding Phrase в настройках передатчика
     ```
 
+    <br>
+
 9. Подтвердите перезагрузку кнопкой `REBOOT`.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/web-interface-reboot.webp
@@ -124,6 +150,8 @@
     :align: center
     Перезагрузка устройства ExpressLRS
     ```
+
+    <br>
 
 ### Настройка приемника
 
@@ -142,6 +170,8 @@
     Подключение к сети ExpressLRS RX
     ```
 
+    <br>
+
 4. Откройте в браузере адрес `http://10.0.0.1`.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/rx-web-interface.webp
@@ -150,6 +180,8 @@
     :align: center
     Веб-интерфейс приемника ExpressLRS
     ```
+
+    <br>
 
 5. Введите фразу в строке `Binding Phrase`, как на передатчике. Нажмите `SAVE & REBOOT`.
 
@@ -160,6 +192,8 @@
     Binding Phrase в настройках приемника
     ```
 
+    <br>
+
 6. При появлении окна подтверждения нажмите `REBOOT` и дождитесь перезагрузки приемника.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/web-interface-reboot.webp
@@ -169,6 +203,8 @@
     Подтверждение перезагрузки приемника
     ```
 
+    <br>
+
 7. Включите аппаратуру управления. После установления связи на главном экране появится индикатор приемника.
 
     ```{figure} @assets@/common/setup/radio/main-menu.webp
@@ -177,6 +213,8 @@
     :align: center
     Главное меню после сопряжения с приемником
     ```
+
+    <br>
 
 ### Альтернативный способ сопряжения: режим Bind
 
@@ -193,6 +231,8 @@
     Меню ExpressLRS
     ```
 
+    <br>
+
 3. Установите для `TX Power`  значение `100 mW`.
 
     ```{figure} @assets@/common/setup/radio/rx/elrs-step-2.webp
@@ -201,6 +241,8 @@
     :align: center
     Установка мощности передатчика TX Power
     ```
+
+    <br>
 
 4. Выберите команду `Bind`. Дождитесь завершения сопряжения аппаратуры с приемником.
 
@@ -211,6 +253,8 @@
     Меню ExpressLRS
     ```
 
+    <br>
+
 5. После успешного сопряжения убедитесь, что на экране отображается состояние соединения. 
     ```{figure} @assets@/common/setup/radio/rx/elrs-bind.webp
     :alt: Процесс сопряжения ExpressLRS
@@ -218,6 +262,8 @@
     :align: center
     Экран состояния после успешного сопряжения
     ```
+
+    <br>
 
 6. Нажмите и удерживайте `RTN` для возврата в основное меню. 
 Убедитесь, что на основном экране отображается индикатор связи с приемником. 
@@ -229,3 +275,4 @@
     Индикация связи с приемником на основном экране аппаратуры
     ```
 
+    <br>

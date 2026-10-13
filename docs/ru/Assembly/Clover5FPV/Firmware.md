@@ -13,10 +13,7 @@
 Полетный контроллер MicoAir743v2
 ```
 
-```{contents}
-:local:
-:depth: 1
-```
+<br>
 
 ## Необходимые программы и файлы
 
@@ -46,6 +43,8 @@
     Выбор интерфейса подключения в STM32CubeProgrammer
     ```
 
+    <br>
+
 2. Выберите интерфейс `USB`.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/select-usb-interface.webp
@@ -54,6 +53,8 @@
     :align: center
     Выбор интерфейса USB
     ```
+
+    <br>
 
 3. Нажмите кнопку обновления справа от списка `Port`. **STM32CubeProgrammer** должен обнаружить контроллер, подключенный в режиме DFU. Если устройство не появилось в списке, повторите действия из раздела {ref}`Вход в режим DFU <clover5-fpv-dfu-mode>`.
 
@@ -64,6 +65,8 @@
     Поиск DFU-устройства
     ```
 
+    <br>
+
 4. Нажмите `Connect`, чтобы подключиться к контроллеру.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/connect-dfu-device.webp
@@ -72,6 +75,8 @@
     :align: center
     Подключение к контроллеру в режиме DFU
     ```
+
+    <br>
 
 5. Выполните полную очистку памяти: нажмите кнопку с изображением ластика в левом нижнем углу окна, подтвердите действие во всплывающем окне и дождитесь завершения операции.
 
@@ -82,6 +87,8 @@
     Полная очистка памяти контроллера
     ```
 
+    <br>
+
 6. Нажмите `Open file` и выберите файл прошивки `MicoAir743v2_Betaflight-4.5.2.hex`.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/open-firmware-file.webp
@@ -89,6 +96,8 @@
     :width: 700px
     :align: center
     ```
+
+    <br>
 
 7. Нажмите `Download` и дождитесь завершения записи прошивки.
 
@@ -99,6 +108,8 @@
     Загрузка прошивки Betaflight
     ```
 
+    <br>
+
 8. После успешной записи нажмите `Disconnect`.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/disconnect-programmer.webp
@@ -108,6 +119,8 @@
     Отключение контроллера от STM32CubeProgrammer
     ```
 
+    <br>
+
 9. Отключите контроллер от USB, подключите его снова, не нажимая кнопку `BOOT` и откройте **Betaflight Configurator**.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/betaflight-configurator.webp
@@ -116,5 +129,7 @@
     :align: center
     Полетный контроллер в Betaflight Configurator
     ```
+
+    <br>
 
 После установки прошивки перейдите к {doc}`настройке квадрокоптера <BetaflightSetup>`.

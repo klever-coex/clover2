@@ -6,11 +6,6 @@ This guide describes how to set up the **RadioMaster Pocket ELRS** controller an
 Before configuring, remove the propellers from the quadcopter to prevent the motors from starting accidentally.
 ```
 
-```{contents}
-:local:
-:depth: 2
-```
-
 ## Controller Overview
 
 ```{figure} @assets@/en/setup/radio/rc-pocket-front-part.webp
@@ -20,12 +15,16 @@ Before configuring, remove the propellers from the quadcopter to prevent the mot
 Controller front view
 ```
 
+<br>
+
 ```{figure} @assets@/en/setup/radio/rc-pocket-back-part.webp
 :alt: RadioMaster Pocket, rear view
 :width: 90%
 :align: center
 Controller rear view
 ```
+
+<br>
 
 ## Preparing the Controller
 
@@ -43,6 +42,8 @@ Controller rear view
 Warning screen
 ```
 
+<br>
+
 6. Once the warning is cleared, navigate to the main menu.
 
 ```{figure} @assets@/common/setup/radio/main-menu-no-signal.webp
@@ -51,6 +52,8 @@ Warning screen
 :align: center
 Main menu
 ```
+
+<br>
 
 ## Configuring a Model for Betaflight
 
@@ -72,6 +75,8 @@ You may either create a model manually or load a pre-configured file.
     Creating model
     ```
 
+    <br>
+
 3. Select `CREATE MODEL`.
 4. Press `PAGE`,  use the rotary encoder to select `Model name` and name your model (e.g. `CLOVER FPV`).
 
@@ -82,6 +87,8 @@ You may either create a model manually or load a pre-configured file.
     Model naming
     ```
 
+    <br>
+
 5. Press `RTN` and scroll down to the `Internal RF` section. Set the `Mode` to `CRSF`.
 
     ```{figure} @assets@/common/setup/radio/model/internal-rf-disabled.webp
@@ -91,12 +98,16 @@ You may either create a model manually or load a pre-configured file.
     Internal RF disabled
     ```
 
+    <br>
+
     ```{figure} @assets@/common/setup/radio/model/internal-rf-crsf.webp
     :alt: Внутренний радиомодуль в режиме CRSF
     :width: 450px
     :align: center
     CRSF mode
     ```
+
+    <br>
 
 6. Navigate to the `MIXES` page and assign the following switches to the additional channels:
 
@@ -112,6 +123,8 @@ You may either create a model manually or load a pre-configured file.
     Channel settings
     ```
 
+    <br>
+
     ```{figure} @assets@/common/setup/radio/model/mixes-channels.webp
     :alt: Основные и дополнительные каналы модели
     :width: 450px
@@ -119,12 +132,16 @@ You may either create a model manually or load a pre-configured file.
     Model channels
     ```
 
+    <br>
+
     ```{figure} @assets@/common/setup/radio/model/mixes-switches.webp
     :alt: Список настроенных переключателей
     :width: 450px
     :align: center
     Switches
     ```
+
+    <br>
 
 7. Press `RTN`. After binding, open the **Betaflight Configurator** and check the `Receiver` tab to ensure that moving the sticks and switches updates the corresponding channels correctly.
 
@@ -143,6 +160,8 @@ To save time, you can load a pre-configured profile:
     Models folder
     ```
 
+    <br>
+
 5. Copy the `model05.yml` file into the `MODELS` folder.
 
     ```{figure} @assets@/common/setup/radio/model/model-file-copied.webp
@@ -151,6 +170,8 @@ To save time, you can load a pre-configured profile:
     :align: center
     Model file
     ```
+
+    <br>
 
 6. Safely eject the storage, disconnect the cable, and select the newly loaded model from the `MDL` menu.
 7. Confirm that `Internal RF` is set to `CRSF` mode and that switches are correctly assigned to `CH5–CH8`.
@@ -171,6 +192,8 @@ The **Binding Phrase** must be identical on both the transmitter and the receive
     ExpressLRS
     ```
 
+    <br>
+
 3. Select `WiFi Connectivity`, then select `Enable WiFi`. Wait until the `WiFi Running` message appears.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-wifi-connectivity-menu.webp
@@ -180,6 +203,8 @@ The **Binding Phrase** must be identical on both the transmitter and the receive
     WiFi Connectivity in ExpressLRS
     ```
 
+    <br>
+
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-enable-wifi.webp
     :alt: Включение Wi-Fi передатчика ExpressLRS
     :width: 450px
@@ -187,12 +212,16 @@ The **Binding Phrase** must be identical on both the transmitter and the receive
     Wi-Fi enabling
     ```
 
+    <br>
+
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-wifi-running.webp
     :alt: Передатчик ExpressLRS в режиме Wi-Fi
     :width: 450px
     :align: center
     Wi-Fi running
     ```
+
+    <br>
 
 4. On your computer or smartphone, connect to the `ExpressLRS TX` Wi-Fi network (Default password: `expresslrs`).
 
@@ -203,6 +232,8 @@ The **Binding Phrase** must be identical on both the transmitter and the receive
    Connecting to ExpressLRS TX
     ```
 
+    <br>
+
 5. Open a web browser and go to:  `http://10.0.0.1`.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-web-interface.webp
@@ -212,6 +243,8 @@ The **Binding Phrase** must be identical on both the transmitter and the receive
    Web interface
     ```
 
+    <br>
+
 6. In the `Binding Phrase` field, enter your chosen phrase and click `SAVE`.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-binding-phrase.webp
@@ -219,6 +252,8 @@ The **Binding Phrase** must be identical on both the transmitter and the receive
     :width: 700px
     :align: center
     ```
+
+    <br>
 
 7. Click `REBOOT` to confirm.
 
@@ -228,6 +263,8 @@ The **Binding Phrase** must be identical on both the transmitter and the receive
     :align: center
     ExpressLRS reboot
     ```
+
+    <br>
 
 ### Receiver setup
 
@@ -246,6 +283,8 @@ Before powering the receiver for an extended period, ensure the antenna is conne
     Connecting to ExpressLRS RX
     ```
 
+    <br>
+
 4. Open a web browser and go to: `http://10.0.0.1`.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/rx-web-interface.webp
@@ -254,6 +293,8 @@ Before powering the receiver for an extended period, ensure the antenna is conne
     :align: center
     Web interface
     ```
+
+    <br>
 
 5. Enter the **exact same phrase** used on the transmitter in the `Binding Phrase` field. Click `SAVE & REBOOT`.
 
@@ -264,6 +305,8 @@ Before powering the receiver for an extended period, ensure the antenna is conne
     Binding Phrase
     ```
 
+    <br>
+
 6. When the confirmation window appears, click `REBOOT` and wait for the receiver to restart.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/web-interface-reboot.webp
@@ -273,6 +316,8 @@ Before powering the receiver for an extended period, ensure the antenna is conne
     Reboot
     ```
 
+    <br>
+
 7. Turn on your controller. Once connected, a receiver indicator will appear on the main screen.
 
     ```{figure} @assets@/common/setup/radio/main-menu.webp
@@ -280,6 +325,8 @@ Before powering the receiver for an extended period, ensure the antenna is conne
     :width: 55%
     :align: center
     ```
+
+    <br>
 
 ## Binding in Bind Mode
 
@@ -296,6 +343,8 @@ If you cannot use a Binding Phrase, use the manual **Bind Mode**:
     ExpressLRS menu
     ```
 
+    <br>
+
 4. Set `TX Power` to `100 mW`.
 
     ```{figure} @assets@/common/setup/radio/rx/elrs-step-2.webp
@@ -304,6 +353,8 @@ If you cannot use a Binding Phrase, use the manual **Bind Mode**:
     :align: center
     TX Power
     ```
+
+    <br>
 
 5. Select `Bind` and wait for binding to complete.
 
@@ -314,12 +365,16 @@ If you cannot use a Binding Phrase, use the manual **Bind Mode**:
     ExpressLRS binding start
     ```
 
+    <br>
+
     ```{figure} @assets@/common/setup/radio/rx/elrs-bind.webp
     :alt: Процесс сопряжения ExpressLRS
     :width: 55%
     :align: center
     ExpressLRS binding
     ```
+
+    <br>
 
 6. Press and hold the `RTN` button to return to the main menu. Make sure that a connection indicator with the receiver is displayed on the main screen.
 
@@ -329,6 +384,8 @@ If you cannot use a Binding Phrase, use the manual **Bind Mode**:
     :align: center
     Receiver bound
     ```
+
+    <br>
 
 After binding, open the `Receiver` tab in **Betaflight Configurator** and check the operation of the sticks and all assigned switches.
 

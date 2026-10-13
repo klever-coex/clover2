@@ -35,6 +35,8 @@ Dev Container — заранее подготовленная среда раз�
 :align: center
 ```
 
+<br>
+
 Для Linux скачайте файл `.deb` для вашей системы, например x64, и выполните:
 
 ```bash
@@ -55,6 +57,8 @@ sudo apt install -f ./путь-до-файла/code_*.deb
 :width: 90%
 :align: center
 ```
+
+<br>
 
 ---
 
@@ -123,6 +127,8 @@ code .
 :width: 90%
 :align: center
 ```
+
+<br>
 
 ---
 
@@ -201,6 +207,8 @@ colcon build --symlink-install
 :align: center
 ```
 
+<br>
+
 ---
 
 ## 6. Запуск симулятора
@@ -229,6 +237,8 @@ ros2 pkg list | grep clover
 :align: center
 ```
 
+<br>
+
 ---
 
 ### 6.2. Запустить симулятор
@@ -251,6 +261,8 @@ ros2 launch clover2_sim gz_simple.launch.py
 :width: 90%
 :align: center
 ```
+
+<br>
 
 ---
 
