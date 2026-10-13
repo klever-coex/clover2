@@ -7,8 +7,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from sensor_msgs.msg import CameraInfo, Image
 
-type ImageCallback = Callable[[Image], None] | None
-
+type ImageCallback = Callable[[Image | np.ndarray], None] | None
 
 class CameraClient:
     def __init__(self, node: Node, camera_name: str = "/main_camera/camera"):

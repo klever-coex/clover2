@@ -4,15 +4,22 @@ from collections.abc import Callable
 from typing import TypeVar
 
 import rclpy
-from clover2_display import DisplayClient
-from clover2_fcu_bridge import FCUClient, OffboardClient
-from clover2_led import LEDClient
 from rclpy.node import Node
 
 from . import utils
-from .clients import CameraClient
+from .clients import (
+    CameraClient,
+    LEDClient,
+    DisplayClient,
+    ThermalCameraClient,
+    FCUClient,
+    OffboardClient,
+    NavigationTask,
+    DronePosition,
+)
 
 T = TypeVar("T")
+NAN = float("nan")
 
 
 class Clover2(Node):
@@ -26,21 +33,21 @@ class Clover2(Node):
         self._ros_thread: threading.Thread = threading.Thread(
             target=self._ros_worker, daemon=True
         )
+
         self._ros_thread.start()
         _ = atexit.register(self._stop)
 
         self._cached_clients: dict[str, object] = {}
         self._offboard = OffboardClient(self)
         self._fcu = FCUClient(self)
-        self._camera: CameraClient = CameraClient(self)
-        self._thermal_camera: ThermalCameraClient = ThermalCameraClient(self)
 
     def _cached_client(self, name: str, factory: Callable[[], T]) -> T | None:
         if name not in self._cached_clients:
             try:
                 self._cached_clients[name] = factory()
-            except Exception:
-                self.get_logger().warning(f"Client for '{name}' not found")
+            except Exception as e:  # noqa: BLE001
+                self.get_logger().warning(
+                    f"Failed to create client '{name}': {e}")
                 return None
 
         return self._cached_clients[name]
@@ -49,18 +56,70 @@ class Clover2(Node):
     def offboard(self) -> OffboardClient:
         return self._offboard
 
+    def set_position(
+        self,
+        frame_id: str = "map",
+        x: float = NAN,
+        y: float = NAN,
+        z: float = NAN,
+        yaw: float = NAN,
+    ) -> bool:
+        return self.offboard.set_position(frame_id, x, y, z, yaw)
+
+    def navigate(
+        self,
+        frame_id: str = "map",
+        x: float = NAN,
+        y: float = NAN,
+        z: float = NAN,
+        yaw: float = NAN,
+        speed: float = 0.5,
+    ) -> NavigationTask:
+        return self.offboard.navigate(frame_id, x, y, z, yaw, speed)
+
+    def navigate_wait(
+        self,
+        frame_id: str = "map",
+        x: float = NAN,
+        y: float = NAN,
+        z: float = NAN,
+        yaw: float = NAN,
+        speed: float = 0.5,
+    ) -> bool:
+        return self.offboard.navigate_wait(frame_id, x, y, z, yaw, speed)
+
     @property
     def fcu(self) -> FCUClient:
         return self._fcu
 
-    def camera(self, name: str = "main_camera") -> CameraClient | None:
-        return self._cached_client(
-            f"camera:{name}", lambda: CameraClient(self, name)
-        )
+    def arm(self) -> bool:
+        return self.fcu.arm()
 
-    @property
-    def thermal_camera(self) -> ThermalCameraClient:
-        return self._thermal_camera
+    def disarm(self) -> bool:
+        return self.fcu.disarm()
+
+    def is_armed(self) -> bool:
+        return self.fcu.is_armed()
+
+    def flight_mode(self) -> str:
+        return self.fcu.flight_mode()
+
+    def get_position(self, from_frame: str = "map") -> DronePosition:
+        return self._fcu.get_position(from_frame)
+
+    def camera(self, name: str = "main_camera") -> CameraClient | None:
+        name_map = {
+            "main_camera": "/main_camera/camera",
+            "front_camera": "/front_camera/camera",
+        }
+
+        if name in name_map:
+            name = name_map[name]
+
+        return self._cached_client(f"{name}", lambda: CameraClient(self, name))
+
+    def thermal_camera(self, name: str = "/thermal_camera") -> ThermalCameraClient | None:
+        return self._cached_client(f"{name}", lambda: ThermalCameraClient(self, name))
 
     def led(self, name: str = "/led_strip") -> LEDClient | None:
         return self._cached_client(name, lambda: LEDClient(self, name))

@@ -57,12 +57,14 @@ class FCUClient:
         transform = self._tf_buffer.lookup_transform(
             from_frame, "base_link", Time()
         )
+
         rpy = euler_from_quaternion((
             transform.transform.rotation.x,
             transform.transform.rotation.y,
             transform.transform.rotation.z,
             transform.transform.rotation.w,
         ))
+
         return DronePosition(
             x=transform.transform.translation.x,
             y=transform.transform.translation.y,
