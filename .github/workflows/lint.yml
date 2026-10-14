@@ -23,6 +23,7 @@ jobs:
         id: generate
         uses: docker/bake-action/subaction/matrix@v7
         with:
+          files: docker/docker-bake.hcl
           target: lint
 
   validate:
@@ -37,5 +38,7 @@ jobs:
       - name: Validate
         uses: docker/bake-action@v7
         with:
+          source: .
+          files: docker/docker-bake.hcl
           targets: ${{ matrix.target }}
           push: false
