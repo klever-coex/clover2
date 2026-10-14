@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<sdf xmlns:xacro="http://www.ros.org/wiki/xacro" version="1.9">
+  <xacro:macro name="sdf_led_strip_visuals" params="index led_count radius background_radius segment_size">
+    <xacro:property name="angle" value="${2 * pi * index / led_count}"/>
+    <visual name="led_background_${index}">
+      <pose>${background_radius * cos(angle)} 0 ${-background_radius * sin(angle)} 0 ${angle + pi / 2} 0</pose>
+      <geometry><box><size>0.01 0.003 0.0005</size></box></geometry>
+      <material>
+        <ambient>0.25 0.25 0.25 1</ambient><diffuse>0.45 0.45 0.45 1</diffuse>
+      </material>
+    </visual>
+    <visual name="led_${index}">
+      <pose>${radius * cos(angle)} 0.000 ${-radius * sin(angle)} 0 ${angle + pi / 2} 0</pose>
+      <geometry><box><size>${segment_size} 0.002 0.001</size></box></geometry>
+    <material>
+        <ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse><emissive>0 0 0 1</emissive>
+    </material>
+    </visual>
+    <xacro:if value="${index + 1 &lt; led_count}">
+      <xacro:sdf_led_strip_visuals index="${index + 1}" led_count="${led_count}"
+        radius="${radius}" background_radius="${background_radius}" segment_size="${segment_size}"/>
+    </xacro:if>
+  </xacro:macro>
+
+  <xacro:macro name="sdf_led_strip" params="parent mount physics led_count:='80'">
+    <link name="led_strip_link">
+      <pose relative_to="${parent}">${mount['xyz']} ${mount['rpy']}</pose>
+      <xacro:box_inertial physics="${physics}" format="sdf"/>
+      <collision name="collision">
+        <pose>${' '.join(str(v) for v in physics['collision_xyz'])} 0 0 0</pose>
+        <geometry><box><size>${' '.join(str(v) for v in physics['collision_size'])}</size></box></geometry>
+      </collision>
+      <xacro:property name="radius" value="0.081"/>
+      <xacro:property name="background_radius" value="0.079"/>
+      <xacro:property name="segment_size" value="0.005"/>
+      <xacro:sdf_led_strip_visuals index="0" led_count="${int(led_count)}"
+        radius="${radius}" background_radius="${background_radius}" segment_size="${segment_size}"/>
+    </link>
+    <joint name="led_strip_link_mount_joint" type="fixed">
+      <parent>${parent}</parent><child>led_strip_link</child>
+    </joint>
+    <plugin filename="libclover2_gz_sim_led_strip_system.so" name="clover2_gz_sim::LedStripSystem">
+      <led_count>${led_count}</led_count>
+      <visual_prefix>led_</visual_prefix>
+    </plugin>
+  </xacro:macro>
+</sdf>

@@ -1,6 +1,8 @@
 <launch>
     <arg name="camera_id" description="Camera identificator (for libcamera numeretic or dts path)" />
     <arg name="camera_name" default="camera" />
+    <arg name="camera_link" default="" />
+    <arg name="camera_sensor" default="" />
     <arg name="container_name" default="camera_container" />
     <arg name="frame_id" default="$(var camera_name)_link" />
     <arg name="ns" default="" />

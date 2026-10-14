@@ -3,6 +3,7 @@
 // clover2
 #include <clover2_led/animation_server.hpp>
 #include <clover2_led/data/led_frame.hpp>
+#include <clover2_led/exceptions.hpp>
 
 // ROS2
 #include <rclcpp/rclcpp.hpp>
@@ -115,7 +116,19 @@ void driver::on_frame(const clover2_led_msgs::msg::LedFrame& msg) {
 
     m_last_frame = data::led_frame{msg};
     m_last_frame.brightness *= m_brightness_scale;
-    m_device->write(m_last_frame);
+
+    try {
+        m_device->write(m_last_frame);
+    } catch (const data::frequency_to_high& e) {
+        RCLCPP_WARN_THROTTLE(
+            get_logger(), *get_clock(), 5000,
+            "LED frame dropped: %s", e.what());
+    } catch (const std::exception& e) {
+        RCLCPP_ERROR(
+            get_logger(),
+            "Failed to write LED frame: %s",
+            e.what());
+    }
 }
 
 void driver::handle_get_driver_info(

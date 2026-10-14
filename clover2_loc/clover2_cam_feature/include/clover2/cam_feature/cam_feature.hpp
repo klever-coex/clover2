@@ -1,11 +1,12 @@
 #pragma once
 
 // clover2
-#include <clover2/cam_feature/base_plugin.hpp>
-#include <clover2_map/client.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 #include <clover2_common/node.hpp>
 #include <clover2_map/client.hpp>
+#include <clover2_pose_msgs/msg/marker_frame.hpp>
+
+#include <clover2/cam_feature/base_plugin.hpp>
 
 // ROS 2
 #include <diagnostic_updater/diagnostic_updater.hpp>
@@ -15,9 +16,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
-
-// msgs
-#include <clover2_pose_msgs/msg/marker_array.hpp>
 
 // STL
 #include <memory>
@@ -68,7 +66,7 @@ private:
 
     std::shared_ptr<clover2_map::client> m_map_client;
 
-    rclcpp::Publisher<clover2_pose_msgs::msg::MarkerArray>::SharedPtr
+    rclcpp::Publisher<clover2_pose_msgs::msg::MarkerFrame>::SharedPtr
         m_markers_pub;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr m_image_debug_pub;
     rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr

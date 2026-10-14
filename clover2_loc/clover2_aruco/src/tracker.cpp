@@ -1,5 +1,6 @@
 // clover2
 #include <clover2/aruco/diagnostics/pose_task.hpp>
+#include <clover2/aruco/solver/factory.hpp>
 #include <clover2/aruco/tracker.hpp>
 
 // ROS2
@@ -35,7 +36,7 @@ tracker::tracker(const rclcpp::NodeOptions& options)
         "Vision position estimate frame");
 
     declare_and_watch_parameter<double>(
-        "xy_variation", 0.4,
+        "xy_variation", 0.3,
         [this](const rclcpp::Parameter& p) { m_xy_variation = p.as_double(); },
         "Published variation for x and y");
 
@@ -43,6 +44,21 @@ tracker::tracker(const rclcpp::NodeOptions& options)
         "z_variation", 0.4,
         [this](const rclcpp::Parameter& p) { m_z_variation = p.as_double(); },
         "Published variation for x and y");
+
+    declare_and_watch_parameter<std::string>(
+        "solver", "global_pnp",
+        [this](const rclcpp::Parameter& p) {
+            auto solver_id = p.as_string();
+            auto available_solvers = solver::factory::instance().list_solvers();
+
+            if (std::find(available_solvers.begin(), available_solvers.end(),
+                          solver_id) == available_solvers.end()) {
+                throw std::invalid_argument("Invalid solver id");
+            }
+
+            m_solver_id = solver_id;
+        },
+        "Pose fusion solver, one of: global_pnp, average");
 
     register_on_configure(
         std::bind(&tracker::on_configure, this, std::placeholders::_1));
@@ -62,13 +78,21 @@ tracker::CallbackReturn tracker::on_configure(
     [[maybe_unused]] const rclcpp_lifecycle::State& state) {
     m_callback_group =
         create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
-    auto node_context = std::make_shared<clover2_common::node_context>(*this);
 
     try {
         m_map_client =
             std::make_shared<clover2_map::client>(this, m_callback_group);
     } catch (const std::exception& e) {
         RCLCPP_ERROR(get_logger(), "Fail to create map client. Exception: %s",
+                     e.what());
+        on_cleanup(state);
+        return CallbackReturn::FAILURE;
+    }
+
+    try {
+        m_solver = solver::factory::instance().create(m_solver_id, *this);
+    } catch (const std::exception& e) {
+        RCLCPP_ERROR(get_logger(), "Fail to create solver. Exception: %s",
                      e.what());
         on_cleanup(state);
         return CallbackReturn::FAILURE;
@@ -101,7 +125,7 @@ tracker::CallbackReturn tracker::on_activate(
     rclcpp::SubscriptionOptions options;
     options.callback_group = m_callback_group;
 
-    m_markers_sub = create_subscription<clover2_pose_msgs::msg::MarkerArray>(
+    m_markers_sub = create_subscription<clover2_pose_msgs::msg::MarkerFrame>(
         "~/markers", rclcpp::SensorDataQoS(),
         std::bind(&tracker::markers_callback, this, std::placeholders::_1),
         options);
@@ -116,7 +140,6 @@ tracker::CallbackReturn tracker::on_deactivate(
     m_pose_pub.reset();
     m_pose_cov_pub.reset();
     m_poses_debug_pub.reset();
-    m_tags_pub.reset();
 
     m_tf_listener.reset();
     m_tf_buffer.reset();
@@ -131,6 +154,7 @@ tracker::CallbackReturn tracker::on_deactivate(
 tracker::CallbackReturn tracker::on_cleanup(
     [[maybe_unused]] const rclcpp_lifecycle::State& /* state */) {
     m_map_client.reset();
+    m_solver.reset();
 
     RCLCPP_INFO(get_logger(), "Cleaned up");
     return tracker::CallbackReturn::SUCCESS;
@@ -142,8 +166,18 @@ tracker::CallbackReturn tracker::on_shutdown(
 }
 
 void tracker::markers_callback(
-    const clover2_pose_msgs::msg::MarkerArray::SharedPtr msg) {
+    const clover2_pose_msgs::msg::MarkerFrame::SharedPtr msg) {
     if (msg->markers.empty()) {
+        return;
+    }
+
+    if (!m_solver) {
+        RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 5000,
+                             "No pose solver configured");
+        return;
+    }
+
+    if (!m_map_client->valid()) {
         return;
     }
 
@@ -161,88 +195,64 @@ void tracker::markers_callback(
         return;
     }
 
+    const auto solution = m_solver->solve(*msg, m_map_client->get_map());
+    if (!solution) {
+        return;
+    }
+
+    const Eigen::Isometry3d drone_in_map =
+        *solution * camera_transform.inverse();
+
     // tracking position
     geometry_msgs::msg::PoseStamped estimated_pose;
     estimated_pose.header.stamp = msg->header.stamp;
     estimated_pose.header.frame_id = m_map_client->get_map_id();
+    estimated_pose.pose = tf2::toMsg(drone_in_map);
 
     geometry_msgs::msg::PoseWithCovarianceStamped estimated_pose_cov;
     estimated_pose_cov.header = estimated_pose.header;
+    estimated_pose_cov.pose.pose = estimated_pose.pose;
+    estimated_pose_cov.pose.covariance[0] = m_xy_variation;
+    estimated_pose_cov.pose.covariance[7] = m_xy_variation;
+    estimated_pose_cov.pose.covariance[14] = m_z_variation;
 
-    // debug poses of camera from each marker
-    size_t processed_count = 0;
-    geometry_msgs::msg::PoseArray poses_debug;
-    poses_debug.header.stamp = msg->header.stamp;
-    poses_debug.header.frame_id = m_map_client->get_map_id();
-    poses_debug.poses.reserve(msg->markers.size());
+    estimated_pose_cov.pose.covariance[21] = 0.3;
+    estimated_pose_cov.pose.covariance[28] = 0.3;
+    estimated_pose_cov.pose.covariance[35] = 0.1;
 
-    // temp variables for estimating
-    Eigen::Vector3d avg_translation = Eigen::Vector3d::Zero();
-    Eigen::Quaterniond avg_quat = Eigen::Quaterniond::Identity();
-    Eigen::Vector4d cumulative_q = Eigen::Vector4d::Zero();
+    // publish estimated pose
+    m_pose_pub->publish(estimated_pose);
+    m_pose_cov_pub->publish(estimated_pose_cov);
 
-    for (const auto& marker : msg->markers) {
-        if (!m_map_client->has_marker(marker.id)) {
-            continue;
-        }
+    publish_tf(estimated_pose.header, drone_in_map);
+    auto diagnostic_interface = get_node_diagnostics_interface();
+    diagnostic_interface->get<diagnostics::pose_task>().update_pose(
+        estimated_pose.header.stamp, estimated_pose.pose);
 
-        const auto map_marker = m_map_client->get_marker(marker.id);
-        if (map_marker.type != clover2_map::marker_type::fixed) {
-            continue;
-        }
-
-        Eigen::Isometry3d marker_pose = Eigen::Isometry3d::Identity();
-        tf2::fromMsg(marker.pose.pose, marker_pose);
-
-        Eigen::Isometry3d camera_in_map =
-            *map_marker.pose * marker_pose.inverse();
-        Eigen::Isometry3d drone_in_map =
-            camera_in_map * camera_transform.inverse();
-
-        // add debug transform
-        poses_debug.poses.push_back(tf2::toMsg(drone_in_map));
-
-        // estimate position
-        avg_translation += drone_in_map.translation();
-        Eigen::Quaterniond q(drone_in_map.rotation());
-        cumulative_q += q.coeffs();
-
-        processed_count++;
-    }
-
-    if (processed_count) {
-        // finalize pose estimation
-        avg_translation /= static_cast<double>(processed_count);
-        cumulative_q /= static_cast<double>(processed_count);
-        avg_quat.coeffs() = cumulative_q.normalized();
-
-        // fill pose msg
-        Eigen::Isometry3d result_pose = Eigen::Isometry3d::Identity();
-        result_pose.translate(avg_translation);
-        result_pose.rotate(avg_quat);
-
-        estimated_pose.pose = tf2::toMsg(result_pose);
-        estimated_pose_cov.pose.pose = estimated_pose.pose;
-        estimated_pose_cov.pose.covariance[0] = m_xy_variation;
-        estimated_pose_cov.pose.covariance[7] = m_xy_variation;
-        estimated_pose_cov.pose.covariance[14] = m_z_variation;
-
-        estimated_pose_cov.pose.covariance[21] = 0.3;
-        estimated_pose_cov.pose.covariance[28] = 0.3;
-        estimated_pose_cov.pose.covariance[35] = 0.1;
-
-        // publish estimated pose
-        m_pose_pub->publish(estimated_pose);
-        m_pose_cov_pub->publish(estimated_pose_cov);
-
-        publish_tf(estimated_pose.header, result_pose);
-        auto diagnostic_interface = get_node_diagnostics_interface();
-        diagnostic_interface->get<diagnostics::pose_task>().update_pose(
-            estimated_pose.header.stamp, estimated_pose.pose);
-    }
-
-    // publish tracker id poses form each marker
     if (m_poses_debug_pub->get_subscription_count() != 0) {
+        geometry_msgs::msg::PoseArray poses_debug;
+        poses_debug.header.stamp = msg->header.stamp;
+        poses_debug.header.frame_id = m_map_client->get_map_id();
+        poses_debug.poses.reserve(msg->markers.size());
+
+        for (const auto& marker : msg->markers) {
+            if (!m_map_client->has_marker(marker.id)) {
+                continue;
+            }
+
+            const auto map_marker = m_map_client->get_marker(marker.id);
+            if (map_marker.type != clover2_map::marker_type::fixed) {
+                continue;
+            }
+
+            Eigen::Isometry3d marker_pose = Eigen::Isometry3d::Identity();
+            tf2::fromMsg(marker.pose.pose, marker_pose);
+
+            poses_debug.poses.push_back(
+                tf2::toMsg(*map_marker.pose * marker_pose.inverse() *
+                           camera_transform.inverse()));
+        }
+
         m_poses_debug_pub->publish(poses_debug);
     }
 }

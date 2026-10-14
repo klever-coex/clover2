@@ -28,10 +28,10 @@ void markers_task::run(diagnostic_updater::DiagnosticStatusWrapper& stat) {
                      "Waiting for marker publications");
     } else if (m_last_marker_count == 0) {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::WARN,
-                     "MarkerArray published, no visible markers");
+                     "MarkerFrame published, no visible markers");
     } else {
         stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK,
-                     "MarkerArray published");
+                     "MarkerFrame published");
     }
 
     stat.add("Last marker count", std::to_string(m_last_marker_count));
