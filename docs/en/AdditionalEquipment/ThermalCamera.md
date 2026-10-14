@@ -4,20 +4,26 @@ You can connect a thermal imaging camera to the Raspberry Pi 5 on a quadcopter t
 
 ## Principle of Operation
 
-The thermal imaging camera detects infrared radiation emitted by surrounding objects. A dedicated sensor converts thermal radiation into electrical signals. The camera's electronics use these signals to determine the temperature distribution and produce a thermal image of the object.
+A thermal imaging camera captures infrared radiation emitted from surrounding objects. The camera's sensor converts this radiation into electrical signals, which are then processed by onboard electronics to generate a thermal image. This image provides a visual representation of the temperature distribution across object surfaces.
 
-The thermal imaging module used here has a resolution of 256x192 pixels and returns two frames: a processed thermal image and a temperature matrix.
+The integrated thermal module features a resolution of 256x192 pixels and outputs two data streams: a processed thermal image and a temperature matrix.
 
 ## Data in ROS 2
 
-The `clover2_thermal` driver splits the frame received from the camera into a thermal image and a temperature matrix. With the default settings, these are published to two topics with the `sensor_msgs/msg/Image` message type:
+The `clover2_thermal` driver splits the raw camera data and publishes it via two separate ROS 2 topics. By default, both topics utilize the `sensor_msgs/msg/Image` message type.
 
-| Topic | Encoding (`encoding`) | Content |
+| Topic | Encoding | Content |
 | --- | --- | --- |
 | `/thermal_camera/image_viz` | `mono8` | Processed grayscale thermal image. Each pixel contains a brightness value from 0 to 255. |
-| `/thermal_camera/temperature` | `32FC1` | Temperature matrix. Each pixel contains a temperature in degrees Celsius as a 32-bit floating-point number. |
+| `/thermal_camera/temperature` | `32FC1` | Temperature matrix. Each pixel contains the exact temperature in degrees Celsius as a 32-bit floating-point number. |
 
-Both images measure 256×192 pixels. Each pixel in the thermal image corresponds to an element of the temperature matrix at the same coordinates. Use `image_viz` to view the image and `temperature` to obtain temperature values.
+Both images maintain a consistent size of 256×192 pixels. Pixel coordinates are identical across both topics. 
+
+Use the `image_viz` topic for visual monitoring and thermal imaging. Access the `temperature` topic to obtain precise temperature measurements.
+
+```{hint}
+Do not rely on pixel brightness alone to determine temperature. The grayscale image is for visualization and does not represent exact numerical temperature values.
+```
 
 ## How to Install the Camera
 
@@ -85,63 +91,64 @@ The thermal imaging camera can be mounted on the quadcopter using one of two met
 
 ## Configuration
 
-### Launching via `clover2-settings`
+### Enabling via `clover2-settings`
 
-To enable the thermal imaging camera in Clover, open the settings:
+To enable the thermal imaging camera on your quadcopter, update the system configuration using the `clover2-settings` utility.
 
-Launch the node using the following command:
+1. Open a terminal and execute:
 
 ```bash
 clover2-settings
 ```
 
-Select the `additional_sensors` group, as shown in Figure 5.
+2. Select the `additional_sensors` group.
 
 ```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings.webp
 :alt: Selecting the additional_sensors group in clover2-settings
 :width: 700px
 :align: center
 
-Figure 5 — Selecting the additional_sensors group in clover2-settings
+Navigating to sensors
 ```
 
 <br>
 
-In the `additional_sensors` group, select the `thermal_camera` setting (see Figure 6) and enable it by setting its value to `true`.
+3. In the `additional_sensors` group, select the `thermal_camera` setting  and change its value to `true`.
 
 ```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings-thermal-camera.webp
 :alt: Selecting the thermal_camera setting
 :width: 700px
 :align: center
 
-Figure 6 — Selecting the thermal_camera option
+Enabling the camera
 ```
 
 <br>
 
-Press Ctrl+S to save the changes. A confirmation will appear, as shown in Figure 7.
+4. Press `Ctrl+S` to save the changes (a notifiaction will confirm the save).
 
 ```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings-save.webp
 :alt: Saving the thermal imaging camera setting
 :width: 700px
 :align: center
 
-Figure 7 — Saving the thermal imaging camera setting
+Saving
 ```
 
 <br>
 
-Then press Esc several times to exit the application. Restart the clover2 service:
+5. Press `Esc` several times to exit the application.
+6. Restart the `clover2` service with the following command:
 
 ```bash
 sudo systemctl restart clover2
 ```
 
-Once the driver starts successfully, it will publish frames to the `/thermal_camera/image_viz` and `/thermal_camera/temperature` topics.
+Once the service has started, the thermal camera driver will automatically begin publishing data to the `/thermal_camera/image_viz` and `/thermal_camera/temperature` topics.
 
 ## Usage
 
-In Python, you can obtain the temperature matrix using the `Clover2` client:
+For Python development, you can obtain the temperature matrix using the `Clover2` client:
 
 ```python
 from clover2 import Clover2
@@ -153,4 +160,8 @@ temperature = drone.thermal_camera.get_temperature()
 print(f"Temperature at the center of the frame: {temperature[96, 128]:.2f} °C")
 ```
 
-The pixel coordinate origin is at the top-left corner: `x` increases to the right and `y` increases downward. The `get_temperature()` method returns the most recently received NumPy matrix. On the first call, it waits up to 5 seconds for data and raises `TimeoutError` if none arrives. To obtain the original ROS message, use `drone.thermal_camera.get_temperature_msg()`.
+The pixel coordinate system originates from the top-left corner: `x`-axis increases from left to right, and `y`-axis increases  from top to bottom. 
+
+The `get_temperature()` method returns the most recent temperature matrix as a NumPy array. On the initial call, the method will wait up to 5 seconds for data.  If no data received, a `TimeoutError` exception will be raised. 
+
+To obtain the original ROS message instead of a processed NumPy matrix, use the `drone.thermal_camera.get_temperature_msg()` method.
