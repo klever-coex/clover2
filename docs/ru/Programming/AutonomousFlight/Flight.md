@@ -19,12 +19,12 @@ drone = Clover2("my_drone")
 Используйте следующие команды для управления квадрокоптером:
 
 ```python
-drone.fcu.arm()          # запуск электродвигателей
-drone.fcu.disarm()       # остановка электродвигателей
-drone.offboard.land()    # посадка
+drone.arm()          # запуск электродвигателей
+drone.disarm()       # остановка электродвигателей
+drone.land()         # посадка
 
-drone.fcu.is_armed()     # проверка состояния электродвигателей: True/False
-drone.fcu.flight_mode()  # получение текущего режима полета PX4
+drone.is_armed()     # проверка состояния электродвигателей: True/False
+drone.flight_mode()  # получение текущего режима полета PX4
 ```
 
 ## Полет по точкам
@@ -35,7 +35,7 @@ drone.fcu.flight_mode()  # получение текущего режима по
 В следующем примере квадрокоптер летит со скоростью 0,5 м/с. Функция `navigate_wait()` ожидает завершения полета до указанной точки. После этого программа продолжает выполнение.
 
 ```python
-drone.offboard.navigate_wait(frame_id="map", x=1.0, y=2.0, z=1.5, speed=0.5, yaw=0.0)
+drone.navigate_wait(frame_id="map", x=1.0, y=2.0, z=1.5, speed=0.5, yaw=0.0)
 ```
 
 В этом примере координаты заданы относительно системы координат карты `frame_id="map"`.
@@ -44,7 +44,7 @@ drone.offboard.navigate_wait(frame_id="map", x=1.0, y=2.0, z=1.5, speed=0.5, yaw
 В следующем примере квадрокоптер поднимется на 0,5 м относительно текущего положения.
 
 ```python
-drone.offboard.navigate_wait(frame_id="base_link", z=0.5, speed=0.5)
+drone.navigate_wait(frame_id="base_link", z=0.5, speed=0.5)
 ```
 
 Используйте `navigate_wait()`, когда следующую команду нужно выполнить после достижения точки.
@@ -56,7 +56,7 @@ drone.offboard.navigate_wait(frame_id="base_link", z=0.5, speed=0.5)
 ```python
 from clover2.clients import NavigationCanceledError
 
-task = drone.offboard.navigate(
+task = drone.navigate(
     frame_id="map", x=1.0, y=2.0, z=1.5, yaw=0.0, speed=0.5
 )
 
@@ -92,14 +92,14 @@ NAN = float("nan")
 square_points = [(NAN, 2), (2, NAN), (NAN, -2), (-2, NAN)]
 
 time.sleep(1)
-drone.offboard.navigate_wait("base_link", z=1, speed=1.0)
+drone.navigate_wait("base_link", z=1, speed=1.0)
 
 for x, y in square_points:
     time.sleep(1)
-    drone.offboard.navigate_wait("base_link", x=x, y=y, speed=0.8)
+    drone.navigate_wait("base_link", x=x, y=y, speed=0.8)
 
 time.sleep(5.0)
-drone.offboard.land()
+drone.land()
 ```
 
 `float("nan")` создает специальное значение `NaN` для координаты, которую не нужно изменять. 
@@ -118,7 +118,7 @@ drone.offboard.land()
 Чтобы получить текущие координаты квадрокоптера относительно системы координат карты, используйте функцию `get_position()`.
 
 ```python
-print(drone.fcu.get_position())
+print(drone.get_position())
 ```
 
 Функция возвращает координаты и ориентацию квадрокоптера:
@@ -132,7 +132,7 @@ DronePosition(x=-0.2, y=-0.05, z=1.0, roll=0.0, pitch=0.0, yaw=-0.4)
 Вы можете получить координаты квадрокоптера относительно другой системы координат. Например, чтобы получить координаты относительно маркера `map_aruco_1`, укажите его имя:
 
 ```python
-print(drone.fcu.get_position("map_aruco_1"))
+print(drone.get_position("map_aruco_1"))
 ```
 
 Результат:

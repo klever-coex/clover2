@@ -93,6 +93,9 @@ class Clover2(Node):
     ) -> bool:
         return self.offboard.navigate_wait(frame_id, x, y, z, yaw, speed)
 
+    def land(self) -> bool:
+        return self.offboard.land()
+
     @property
     def fcu(self) -> FCUClient:
         return self._fcu
@@ -110,7 +113,7 @@ class Clover2(Node):
         return self.fcu.flight_mode()
 
     def get_position(self, from_frame: str = "map") -> DronePosition:
-        return self._fcu.get_position(from_frame)
+        return self.fcu.get_position(from_frame)
 
     def camera(self, name: str = "main_camera") -> CameraClient | None:
         name_map = {
