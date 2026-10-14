@@ -1,6 +1,10 @@
 # clover2
 
-![Klever 5](docs/assets/common/klever5-code.webp)
+<p align="center">
+  <img src="docs/assets/common/klever5-dev.webp" alt="Klever 5 DEV" width="500">
+  <br>
+  <em>Klever 5 DEV</em>
+</p>
 
 [![ROS 2](https://img.shields.io/badge/ROS_2-Jazzy-blue?logo=ros)](https://docs.ros.org/en/jazzy)
 [![PX4](https://img.shields.io/badge/PX4-1.16+-purple)](https://px4.io)
@@ -13,7 +17,7 @@ Combining modern hardware and cutting-edge software stack, the platform features
 The upgraded Klever is optimized for the modern robotics ecosystem:
 
 - **ROS 2**: Building scalable, distributed, and reliable control systems.
-- **Docker**: Ensuring environment isolation and seamless deployment. 
+- **Docker**: Ensuring environment isolation and seamless deployment.
 - **Pre-built containers and project templates**: Immediate start.
 - **Open source**: Complete transparency with open-source code for customization and study.
 
