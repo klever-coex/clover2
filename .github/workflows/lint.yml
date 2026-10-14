@@ -19,6 +19,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+
       - name: Generate matrix
         id: generate
         uses: docker/bake-action/subaction/matrix@v7
@@ -35,6 +36,9 @@ jobs:
       matrix:
         include: ${{ fromJson(needs.prepare.outputs.matrix) }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
       - name: Validate
         uses: docker/bake-action@v7
         with:
