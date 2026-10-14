@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <sdf xmlns:xacro="http://www.ros.org/wiki/xacro" version="1.9">
   <!-- Sensor names are part of the PX4 Gazebo bridge interface. -->
-  <xacro:macro name="klever5_gazebo_sensors" params="">
+  <xacro:macro name="sdf_px4_sensors" params="">
     <sensor name="air_pressure_sensor" type="air_pressure">
       <always_on>1</always_on><update_rate>50</update_rate>
       <air_pressure><pressure><noise type="gaussian"><mean>0</mean><stddev>3</stddev></noise></pressure></air_pressure>
@@ -31,32 +31,6 @@
     </sensor>
     <sensor name="navsat_sensor" type="navsat">
       <always_on>1</always_on><update_rate>30</update_rate>
-    </sensor>
-    <sensor name="rangefinder" type="gpu_lidar">
-      <pose>0.025 0 -0.03 0 1.5707 3.1415926</pose>
-      <always_on>true</always_on>
-      <update_rate>10</update_rate>
-      <visualize>false</visualize>
-      <ray>
-        <scan>
-          <horizontal>
-            <samples>10</samples>
-            <resolution>1</resolution>
-            <min_angle>-0.0872</min_angle>
-            <max_angle>0.0872</max_angle>
-          </horizontal>
-        </scan>
-        <range>
-          <min>0.1</min>
-          <max>30</max>
-          <resolution>0.01</resolution>
-        </range>
-        <noise>
-          <type>gaussian</type>
-          <mean>0.0</mean>
-          <stddev>0.01</stddev>
-        </noise>
-      </ray>
     </sensor>
   </xacro:macro>
 </sdf>
