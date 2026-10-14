@@ -16,6 +16,7 @@
   <xacro:include filename="sensors.xacro"/>
 
   <xacro:include filename="modules.xacro"/>
+  <xacro:include filename="led_strip.xacro"/>
 
   <model name="klever5">
     <static>false</static>
@@ -60,10 +61,8 @@
       </xacro:sdf_component>
     </xacro:if>
     <xacro:if value="$(arg enable_led_strip)">
-      <xacro:sdf_component name="led_strip_link" parent="base_link" mount="${config['modules']['led_strip']}"
-        physics="${component_physics['led_strip']}" description_share="${description_share}">
-        <gravity>true</gravity>
-      </xacro:sdf_component>
+      <xacro:sdf_led_strip parent="base_link" mount="${config['modules']['led_strip']}"
+        physics="${component_physics['led_strip']}"/>
     </xacro:if>
   </model>
 </sdf>
