@@ -1,6 +1,6 @@
 # clover2
 
-![Klever 5](docs/assets/common/klever5-code.webp)
+![Klever 5](docs/assets/common/klever5-dev.webp)
 
 [![ROS 2](https://img.shields.io/badge/ROS_2-Jazzy-blue?logo=ros)](https://docs.ros.org/en/jazzy)
 [![PX4](https://img.shields.io/badge/PX4-1.16+-purple)](https://px4.io)
