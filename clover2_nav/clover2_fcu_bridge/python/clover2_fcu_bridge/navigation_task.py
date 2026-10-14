@@ -1,3 +1,5 @@
+"""Navigation task handling."""
+
 import uuid as uuid_lib
 from enum import Enum, auto
 from typing import Any
@@ -16,6 +18,8 @@ NAVIGATE_BOND_HEARTBEAT_TIMEOUT = 1.0
 
 
 class NavigationStatus(Enum):
+    """Navigation task status."""
+
     PENDING = auto()
     ACTIVE = auto()
     CANCELING = auto()
@@ -26,23 +30,23 @@ class NavigationStatus(Enum):
 
 
 class NavigationError(RuntimeError):
-    pass
+    """Base exception for navigation errors."""
 
 
 class NavigationRejectedError(NavigationError):
-    pass
+    """Raised when a navigation request is rejected."""
 
 
 class NavigationCanceledError(NavigationError):
-    pass
+    """Raised when a navigation request is canceled."""
 
 
 class NavigationAbortedError(NavigationError):
-    pass
+    """Raised when a navigation request is aborted."""
 
 
 class NavigationTimeoutError(NavigationError):
-    pass
+    """Raised when a navigation request times out."""
 
 
 _STATUS_MAP: dict[ActionStatus, NavigationStatus] = {
@@ -57,7 +61,10 @@ _STATUS_MAP: dict[ActionStatus, NavigationStatus] = {
 
 
 class NavigationTask:
+    """Asynchronous navigation task."""
+
     def __init__(self, node: Node, action: ActionClient, goal: Any):
+        """Initialize the navigation task."""
         self._logger = node.get_logger().get_child("navigation_task")
         self._bond_closed = False
 

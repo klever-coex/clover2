@@ -1,0 +1,12 @@
+FROM ubuntu:noble AS cpp-lint
+
+RUN apt-get update -y && \
+    apt-get install -y \
+    clang-format \
+    python3-pip
+
+WORKDIR /ws
+COPY . /ws
+
+RUN find . -type f \( -iname "*.hpp" -o -iname "*.cpp" \) ! -path "*/cpptui/*" | \
+    xargs clang-format --dry-run --Werror --style=file:.clang-format

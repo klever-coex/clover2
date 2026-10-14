@@ -1,3 +1,5 @@
+"""FCU bridge client package."""
+
 from .fcu_client import DronePosition, FCUClient
 from .navigation_task import (
     NavigationAbortedError,

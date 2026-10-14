@@ -1,13 +1,19 @@
+"""Onboard display client."""
+
 import numpy as np
-from clover2_common import wait_future
 from clover2_display_msgs.srv import GetDriverInfo
 from cv_bridge import CvBridge
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 
+from clover2_common import wait_future
+
 
 class DisplayClient:
+    """Client for the onboard display."""
+
     def __init__(self, node: Node, base_path: str = ""):
+        """Initialize the display client."""
         self._node = node
         self._logger = self._node.get_logger().get_child("display_client")
         self._base_path = base_path

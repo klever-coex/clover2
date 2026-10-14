@@ -1,8 +1,12 @@
-from clover2 import Clover2
+"""Display demo."""
+
 from sensor_msgs.msg import Image
+
+from clover2 import Clover2
 
 
 def make_test_image(width: int, height: int) -> Image:
+    """Create a test pattern image."""
     image = Image()
     image.width = width
     image.height = height
@@ -42,5 +46,6 @@ print(
     f'max_fps={display.max_fps:.1f}, '
     f'encodings={display.supported_encodings}'
 )
+
 display.send_image(make_test_image(display.width, display.height))
 print('Test image sent.')

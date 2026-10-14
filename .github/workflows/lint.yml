@@ -1,0 +1,41 @@
+name: Lint
+
+on:
+  push:
+    tags: ['v*']
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}
+    outputs:
+      matrix: ${{ steps.generate.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Generate matrix
+        id: generate
+        uses: docker/bake-action/subaction/matrix@v7
+        with:
+          target: lint
+
+  validate:
+    runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}
+    needs:
+      - prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    steps:
+      - name: Validate
+        uses: docker/bake-action@v7
+        with:
+          targets: ${{ matrix.target }}
+          push: false

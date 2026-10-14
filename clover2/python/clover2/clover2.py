@@ -1,3 +1,5 @@
+"""Clover2 drone client."""
+
 import atexit
 import threading
 from collections.abc import Callable
@@ -9,13 +11,13 @@ from rclpy.node import Node
 from . import utils
 from .clients import (
     CameraClient,
-    LEDClient,
     DisplayClient,
-    ThermalCameraClient,
-    FCUClient,
-    OffboardClient,
-    NavigationTask,
     DronePosition,
+    FCUClient,
+    LEDClient,
+    NavigationTask,
+    OffboardClient,
+    ThermalCameraClient,
 )
 
 T = TypeVar("T")
@@ -23,7 +25,10 @@ NAN = float("nan")
 
 
 class Clover2(Node):
+    """Main drone node."""
+
     def __init__(self, node_name: str = ""):
+        """Initialize the drone node."""
         if not node_name or len(node_name) == 0:
             node_name = "client_" + utils.generate_random_string(4)
 
@@ -109,8 +114,8 @@ class Clover2(Node):
 
     def camera(self, name: str = "main_camera") -> CameraClient | None:
         name_map = {
-            "main_camera": "/main_camera/camera",
-            "front_camera": "/front_camera/camera",
+            "main_camera": "main_camera/camera",
+            "front_camera": "front_camera/camera",
         }
 
         if name in name_map:
@@ -118,13 +123,15 @@ class Clover2(Node):
 
         return self._cached_client(f"{name}", lambda: CameraClient(self, name))
 
-    def thermal_camera(self, name: str = "/thermal_camera") -> ThermalCameraClient | None:
+    def thermal_camera(
+        self, name: str = "thermal_camera"
+    ) -> ThermalCameraClient | None:
         return self._cached_client(f"{name}", lambda: ThermalCameraClient(self, name))
 
-    def led(self, name: str = "/led_strip") -> LEDClient | None:
+    def led(self, name: str = "led_strip") -> LEDClient | None:
         return self._cached_client(name, lambda: LEDClient(self, name))
 
-    def display(self, name: str = "/display") -> DisplayClient | None:
+    def display(self, name: str = "display") -> DisplayClient | None:
         return self._cached_client(name, lambda: DisplayClient(self, name))
 
     def _ros_worker(self) -> None:

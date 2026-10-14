@@ -1,14 +1,13 @@
 """Validate the installed description across all module combinations."""
 import itertools
 import math
-from pathlib import Path
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
-from ament_index_python.packages import get_package_share_directory
 import pytest
 import xacro
 import yaml
-
+from ament_index_python.packages import get_package_share_directory
 
 SHARE = Path(get_package_share_directory('clover2_description'))
 MODULES = ('main_camera', 'front_camera', 'lidar', 'led_strip')
@@ -16,6 +15,7 @@ LINKS = ('main_camera_link', 'front_camera_link', 'laser', 'led_strip_link')
 
 
 def generate(values, config_file=None):
+    """Generate the robot URDF."""
     mappings = {
         'enable_' + module: str(value).lower()
         for module, value in zip(MODULES, values)
@@ -27,6 +27,7 @@ def generate(values, config_file=None):
 
 
 def generate_sdf(config_file=None, values=None):
+    """Generate the robot SDF."""
     mappings = {'description_share': str(SHARE)}
     if values is not None:
         mappings.update({'enable_' + m: str(v).lower()
@@ -37,8 +38,10 @@ def generate_sdf(config_file=None, values=None):
         str(SHARE / 'gazebo/klever5/klever5.sdf.xacro'), mappings=mappings).toxml())
 
 
-@pytest.mark.parametrize('values', itertools.product((False, True), repeat=len(MODULES)))
+@pytest.mark.parametrize(
+    'values', itertools.product((False, True), repeat=len(MODULES)))
 def test_configurations(values):
+    """Test robot description generation."""
     root = generate(values)
     names = [link.attrib['name'] for link in root.findall('link')]
     assert len(names) == len(set(names))
@@ -57,22 +60,26 @@ def test_configurations(values):
     assert reached == set(names)
     for enabled, link in zip(values, LINKS):
         assert (link in names) == enabled
-    assert len(names) == 5 + sum(n for n, enabled in zip((2, 2, 1, 1), values) if enabled)
+    assert len(names) == 5 + sum(
+        n for n, enabled in zip((2, 2, 1, 1), values) if enabled)
     for mesh in root.findall('.//mesh'):
         uri = mesh.attrib['filename']
         assert uri.startswith('package://clover2_description/')
         assert (SHARE / uri.removeprefix('package://clover2_description/')).is_file()
 
 
-@pytest.mark.parametrize('values', itertools.product((False, True), repeat=len(MODULES)))
+@pytest.mark.parametrize(
+    'values', itertools.product((False, True), repeat=len(MODULES)))
 def test_physics(values):
+    """Test robot physics properties."""
     root = generate(values)
     _, camera, lidar, led = values
     config = yaml.safe_load((SHARE / 'config/robots/klever5.yaml').read_text())
     body_mass = config['body']['mass']
     propeller_mass = config['propeller']['mass']
     masses = [float(m.get('value')) for m in root.findall('link/inertial/mass')]
-    expected_mass = body_mass + 4*propeller_mass + camera*.018 + lidar*.100 + led*.010
+    expected_mass = (body_mass + 4 * propeller_mass
+                     + camera * .018 + lidar * .100 + led * .010)
     assert sum(masses) == pytest.approx(expected_mass)
     for link in root.findall('link'):
         inertial = link.find('inertial')
@@ -84,15 +91,17 @@ def test_physics(values):
         inertia = inertial.find('inertia')
         diagonal = [float(inertia.get(k)) for k in ('ixx', 'iyy', 'izz')]
         assert all(math.isfinite(v) and v > 0 for v in diagonal)
-        assert 2*max(diagonal) <= sum(diagonal) + 1e-12
+        assert 2 * max(diagonal) <= sum(diagonal) + 1e-12
         size = list(map(float, link.find('collision/geometry/box').get('size').split()))
         assert all(v > 0 for v in size)
     # Internal camera and optical frames never add mass already counted in the body.
     assert root.find("link[@name='main_camera_link']/inertial") is None
 
 
-@pytest.mark.parametrize('values', itertools.product((False, True), repeat=len(MODULES)))
+@pytest.mark.parametrize(
+    'values', itertools.product((False, True), repeat=len(MODULES)))
 def test_sdf_modules_match_urdf(values):
+    """Test that SDF modules match the URDF."""
     urdf = generate(values)
     sdf = generate_sdf(values=values)
     model = sdf.find('model')

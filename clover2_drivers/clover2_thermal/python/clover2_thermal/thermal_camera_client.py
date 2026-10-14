@@ -1,62 +1,46 @@
-import threading
+"""Thermal camera client."""
+
 from collections.abc import Callable
 
 import numpy as np
 from cv_bridge import CvBridge
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from sensor_msgs.msg import Image
+
+from clover2_common import LatestSubscriber
+
+type ThermalCallback = Callable[[Image | np.ndarray], None] | None
 
 
 class ThermalCameraClient:
+    """Client for the thermal camera."""
+
     def __init__(self, node: Node, thermal_name: str = "thermal_camera"):
-        self._node = node
-        self._logger = node.get_logger().get_child("thermal_camera")
+        """Initialize the thermal camera client."""
         self._bridge = CvBridge()
         self._thermal_name = thermal_name
 
-        self._sub = None
-        self._latest_img: Image | None = None
-        self._event = threading.Event()
-        self._stream_callback: Callable[[Image], None] | None = None
+        self._temp = LatestSubscriber(node, Image, f"{thermal_name}/temperature")
 
-    def get_temperature(
-        self, camera_name: str = "thermal_camera", timeout: float = 5.0
-    ) -> np.ndarray:
-        msg = self.get_temperature_msg(camera_name, timeout)
-        return self._bridge.imgmsg_to_cv2(msg)
-
-    def get_temperature_msg(
-        self, camera_name: str = "thermal_camera", timeout: float = 5.0
-    ) -> Image:
-        topic = f"/{camera_name.strip('/')}/temperature"
-        with self._lock:
-            if topic not in self._subscriptions:
-                self._create_subscription(topic)
-            event = self._events[topic]
-
-        if not event.wait(timeout):
-            raise TimeoutError(
-                f"No temperature received from '{topic}' within {timeout}s"
+    def stream_temperature(
+        self,
+        callback: ThermalCallback = None,
+        desired_encoding: str = "bgr8",
+    ) -> None:
+        def on_image(msg: Image) -> None:
+            callback(
+                self._bridge.imgmsg_to_cv2(
+                    msg, desired_encoding=desired_encoding)
             )
 
-        with self._lock:
-            return self._latest[topic]
+        if callback is not None:
+            self._temp.stream_data(on_image)
+        else:
+            self._temp.stream_data(None)
 
-    def _create_subscription(self, topic: str) -> None:
-        event = threading.Event()
-        self._events[topic] = event
+    def get_temperature(self, timeout: float = 5.0) -> np.ndarray:
+        msg = self.get_temperature_msg(timeout)
+        return self._bridge.imgmsg_to_cv2(msg)
 
-        def callback(msg: Image) -> None:
-            with self._lock:
-                self._latest[topic] = msg
-                event.set()
-
-        qos = QoSProfile(
-            depth=1,
-            reliability=QoSReliabilityPolicy.BEST_EFFORT,
-        )
-        self._subscriptions[topic] = self._node.create_subscription(
-            Image, topic, callback, qos
-        )
-        self._logger.info(f"Subscribed to {topic}")
+    def get_temperature_msg(self, timeout: float = 5.0) -> Image:
+        return self._temp.get_data(timeout)

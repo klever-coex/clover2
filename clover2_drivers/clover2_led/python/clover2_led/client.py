@@ -1,7 +1,10 @@
-from clover2_common import wait_future
+"""LED strip client."""
+
 from clover2_led_msgs.msg import Color, LedFrame
 from clover2_led_msgs.srv import GetCurrentFrame, GetDriverInfo, StartAnimation
 from rclpy.node import Node
+
+from clover2_common import wait_future
 
 
 def _make_color(r: int, g: int, b: int) -> Color:
@@ -13,7 +16,10 @@ def _make_color(r: int, g: int, b: int) -> Color:
 
 
 class LEDClient:
+    """Client for the LED strip."""
+
     def __init__(self, node: Node, base_path: str = ""):
+        """Initialize the LED client."""
         self._node = node
         self._logger = self._node.get_logger().get_child("led_client")
         self._base_path = base_path
@@ -69,7 +75,8 @@ class LEDClient:
             )
             return [], 0.0
 
-        return [(color.r, color.g, color.b) for color in result.colors], result.brightness
+        return [(color.r, color.g, color.b) for color in result.colors], \
+            result.brightness
 
     def send_frame(self, colors: list[tuple[int, int, int]], brightness: float = 1.0):
         msg = LedFrame()

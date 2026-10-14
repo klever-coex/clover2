@@ -1,10 +1,13 @@
+"""Future waiting helper."""
+
 import threading
 from typing import Any
 
 from rclpy.task import Future
 
 
-def wait_future(future: Future, timeout: float | int) -> Any:
+def wait_future(future: Future, timeout: float) -> Any:
+    """Wait for a future and return its result."""
     event = threading.Event()
 
     def unblock(future: Future):

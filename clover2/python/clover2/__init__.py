@@ -1,3 +1,5 @@
+"""Clover2 drone client library."""
+
 from . import clients, config, utils
 from .clover2 import Clover2
 

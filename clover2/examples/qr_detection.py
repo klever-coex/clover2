@@ -1,4 +1,7 @@
+"""QR code detection demo."""
+
 import cv2
+
 from clover2 import Clover2
 
 drone = Clover2()

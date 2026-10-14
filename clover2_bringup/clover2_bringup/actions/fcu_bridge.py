@@ -1,5 +1,7 @@
+"""FCU bridge launch action."""
+
 from pathlib import Path
-from typing import Dict, List, Optional, cast
+from typing import cast
 
 from ament_index_python.packages import get_package_share_directory
 from launch.action import Action
@@ -26,47 +28,51 @@ FCU_URL_MAPPINGS = {
 
 @expose_action("fcu_bridge")
 class FCUBridgeAction(Action):
+    """Launch action for the FCU bridge node."""
+
     def __init__(
         self,
         *,
-        fcu_conn: SomeSubstitutionsType = TextSubstitution(text="udp"),
-        protocol: SomeSubstitutionsType = TextSubstitution(text="mavros"),
-        mavros_params_file: SomeSubstitutionsType = TextSubstitution(
+        fcu_conn: SomeSubstitutionsType | None = None,
+        protocol: SomeSubstitutionsType | None = None,
+        mavros_params_file: SomeSubstitutionsType | None = None,
+        backend: SomeSubstitutionsType | None = None,
+        namespace: SomeSubstitutionsType = "",
+        log_level: SomeSubstitutionsType = "info",
+        use_sim_time: SomeSubstitutionsType = "false",
+        params_files: list[str] | None = None,
+        parameters: SomeParameters | None = None,
+        **kwargs,
+    ) -> None:
+        """Initialize the action."""
+        super().__init__(**kwargs)
+
+        self.__fcu_conn = fcu_conn or TextSubstitution(text="udp")
+        self.__protocol = protocol or TextSubstitution(text="mavros")
+        self.__mavros_params_file = mavros_params_file or TextSubstitution(
             text=str(
                 Path(get_package_share_directory("clover2"))
                 / "params"
                 / "mavros_default.yaml"
             )
-        ),
-        backend: SomeSubstitutionsType = TextSubstitution(text="mavros"),
-        namespace: SomeSubstitutionsType = "",
-        log_level: SomeSubstitutionsType = "info",
-        use_sim_time: SomeSubstitutionsType = "false",
-        params_files: Optional[List[str]] = None,
-        parameters: Optional[SomeParameters] = None,
-        **kwargs,
-    ) -> None:
-        super().__init__(**kwargs)
-
-        self.__fcu_conn = fcu_conn
-        self.__protocol = protocol
-        self.__mavros_params_file = mavros_params_file
-        self.__backend = backend
+        )
+        self.__backend = backend or TextSubstitution(text="mavros")
         self.__namespace = namespace
         self.__log_level = log_level
         self.__use_sim_time = use_sim_time
         self.__params_files = params_files or []
 
-        self.__extra_parameters: List = []
+        self.__extra_parameters: list = []
         if parameters is not None:
             if is_substitution(parameters):
                 parameters = normalize_typed_substitution(parameters, dict)
-            ensure_argument_type(parameters, (list), "parameters", "FCUBridgeAction")
+            ensure_argument_type(parameters, (list),
+                                 "parameters", "FCUBridgeAction")
             self.__extra_parameters = cast(list, parameters)
 
     @classmethod
     def parse(cls, entity: Entity, parser: Parser):
-        kwargs: Dict = super().parse(entity, parser)[1]
+        kwargs: dict = super().parse(entity, parser)[1]
 
         for attr in (
             "fcu_conn",
@@ -86,13 +92,16 @@ class FCUBridgeAction(Action):
         if isinstance(use_sim_time_val, str):
             kwargs["use_sim_time"] = use_sim_time_val.split()
 
-        params_files_val = entity.get_attr("params_files", data_type=str, optional=True)
+        params_files_val = entity.get_attr(
+            "params_files", data_type=str, optional=True)
         if isinstance(params_files_val, str):
             kwargs["params_files"] = params_files_val.split()
 
-        param_entities = entity.get_attr("param", data_type=List[Entity], optional=True)
+        param_entities = entity.get_attr(
+            "param", data_type=list[Entity], optional=True)
         if param_entities is not None:
-            kwargs["parameters"] = Node.parse_nested_parameters(param_entities, parser)
+            kwargs["parameters"] = Node.parse_nested_parameters(
+                param_entities, parser)
 
         return cls, kwargs
 
@@ -103,8 +112,8 @@ class FCUBridgeAction(Action):
                 return True
         return False
 
-    def execute(self, context: LaunchContext) -> Optional[List[Action]]:
-        actions: List[Action] = []
+    def execute(self, context: LaunchContext) -> list[Action] | None:
+        actions: list[Action] = []
 
         fcu_conn = perform_typed_substitution(context, self.__fcu_conn, str)
         protocol = perform_typed_substitution(context, self.__protocol, str)
@@ -114,7 +123,7 @@ class FCUBridgeAction(Action):
         if protocol == "mavros":
             fcu_url = FCU_URL_MAPPINGS.get(fcu_conn, FCU_URL_MAPPINGS["uart"])
 
-            mavros_params: List = list(self.__params_files)
+            mavros_params: list = list(self.__params_files)
             mavros_params.append(self.__mavros_params_file)
             if not self._has_use_sim_time_in_extra():
                 mavros_params.append({"use_sim_time": self.__use_sim_time})
@@ -145,7 +154,7 @@ class FCUBridgeAction(Action):
                 )
             )
 
-        fcu_bridge_params: List = list(self.__params_files)
+        fcu_bridge_params: list = list(self.__params_files)
         fcu_bridge_params.append({"use_sim_time": self.__use_sim_time})
         fcu_bridge_params.append({"backend": backend})
         fcu_bridge_params.extend(self.__extra_parameters)

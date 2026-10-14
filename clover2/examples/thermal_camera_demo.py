@@ -1,11 +1,14 @@
+"""Thermal camera demo."""
+
 import numpy as np
+
 from clover2 import Clover2
 
 drone = Clover2()
 
 print("Waiting for thermal camera...")
 
-temperature = drone.thermal_camera.get_temperature()
+temperature = drone.thermal_camera().get_temperature()
 
 min_y, min_x = np.unravel_index(np.argmin(temperature), temperature.shape)
 max_y, max_x = np.unravel_index(np.argmax(temperature), temperature.shape)

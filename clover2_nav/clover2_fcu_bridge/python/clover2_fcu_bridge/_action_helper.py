@@ -43,7 +43,7 @@ class ActionHelper:
         try:
             goal_future: Future = action.send_goal_async(
                 goal, goal_uuid=goal_uuid)
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             self._complete(ActionStatus.ABORTED, message=str(error))
             return
 
@@ -93,7 +93,7 @@ class ActionHelper:
     def _on_goal_response(self, future: Future) -> None:
         try:
             goal_handle = future.result()
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             self._complete(ActionStatus.ABORTED, message=str(error))
             return
 
@@ -110,7 +110,7 @@ class ActionHelper:
 
         try:
             get_result = goal_handle.get_result_async()
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             self._complete(ActionStatus.ABORTED, message=str(error))
             return
 
@@ -121,7 +121,7 @@ class ActionHelper:
     def _on_result(self, future: Future) -> None:
         try:
             response = future.result()
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             self._complete(ActionStatus.ABORTED, message=str(error))
             return
 
@@ -142,7 +142,7 @@ class ActionHelper:
 
         try:
             goal_handle.cancel_goal_async()
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             self._complete(ActionStatus.ABORTED, message=str(error))
 
     def _complete(

@@ -1,12 +1,15 @@
+"""Offboard navigation client."""
+
 import math
 
-from clover2_common import wait_future
 from clover2_nav_msgs.action import NavigateAsync
 from clover2_nav_msgs.srv import Land, SetPosition
 from geometry_msgs.msg import Pose
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from tf_transformations import quaternion_from_euler
+
+from clover2_common import wait_future
 
 from .navigation_task import NavigationAbortedError, NavigationTask
 
@@ -15,7 +18,10 @@ NAVIGATE_ACTION_SERVER_TIMEOUT = 3.0
 
 
 class OffboardClient:
+    """Client for offboard navigation."""
+
     def __init__(self, node: Node):
+        """Initialize the offboard client."""
         self._logger = node.get_logger().get_child("offboard")
         self._node = node
         self._navigate_async_action_client = ActionClient(
@@ -92,11 +98,11 @@ class OffboardClient:
             pose.orientation.w = NAN
         return pose
 
-    def __wait_service_call(self, srv, request, timeout=1.0) -> bool:
+    def __wait_service_call(self, srv, request, timeout: float = 1.0) -> bool:
         result = wait_future(srv.call_async(request), timeout=timeout)
         if not result:
             self._logger.error("Service did not respond")
             return False
         if not result.success:
-            self._logger.error(f"`{srv.service_name}`: {result.message}")
+            self._logger.error("`%s`: %s", srv.service_name, result.message)
         return result.success

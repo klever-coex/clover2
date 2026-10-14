@@ -1,3 +1,5 @@
+"""LED demo."""
+
 import time
 
 from clover2 import Clover2

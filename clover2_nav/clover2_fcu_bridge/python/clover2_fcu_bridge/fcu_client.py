@@ -1,6 +1,7 @@
+"""FCU client."""
+
 from dataclasses import dataclass
 
-from clover2_common import wait_future
 from clover2_nav_msgs.msg import State
 from clover2_nav_msgs.srv import ArmDisarm
 from rclpy.node import Node
@@ -9,11 +10,15 @@ from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 from tf_transformations import euler_from_quaternion
 
+from clover2_common import wait_future
+
 NAN = float("nan")
 
 
 @dataclass
 class DronePosition:
+    """Drone position and orientation."""
+
     x: float = NAN
     y: float = NAN
     z: float = NAN
@@ -23,7 +28,10 @@ class DronePosition:
 
 
 class FCUClient:
+    """Client for the flight controller."""
+
     def __init__(self, node: Node):
+        """Initialize the FCU client."""
         self._logger = node.get_logger().get_child("fcu")
         self._node = node
         self._state = State()
