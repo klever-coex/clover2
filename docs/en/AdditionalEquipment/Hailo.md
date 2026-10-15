@@ -12,7 +12,7 @@ The **Hailo-8L** is a high-performance neural accelerator connected to the Raspb
 
 The Hailo-8L functions as a co-processor. The Raspberry Pi 5 receives an image from the camera, prepares the data, and processes the result, while the Hailo-8L performs the bulk of the neural network computations.
 
-Hailo utilizes the **Hailo Executable Format** (`.hef`). Standard PyTorch weight files (`.pt`) or ONNX models (`.onnx`) must first be compiled into a HEF file for the target Hailo architecture. For detailed instructions, refer to the section  [How to Convert YOLOv8 to HEF](Hailo/HailoModel.md).
+Hailo utilizes the **Hailo Executable Format** (`.hef`). Standard PyTorch weight files (`.pt`) or ONNX models (`.onnx`) must first be compiled into a `HEF` file for the target Hailo architecture. For detailed instructions, refer to the section  [How to Convert YOLOv8 to HEF](Hailo/HailoModel.md).
 
 ## Principle of Operation
 
@@ -107,7 +107,7 @@ hailortcli scan
 * `hailortcli --version` should display the installed HailoRT version.
 * `hailortcli scan` checks for available Hailo devices. The connected accelerator should appear in the output.
   
-```{caution}
+```{hint}
 If `hailortcli` is installed but `scan` fails to detect the device, the issue is likely related to the physical connection, the PCIe driver, or version compatibility, rather than the HEF file.
 ```
 
