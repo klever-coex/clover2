@@ -1,4 +1,4 @@
-# Thermal Imaging Camera
+# Thermal Imaging Camera User Guide
 
 You can connect a thermal imaging camera to the Raspberry Pi 5 on a quadcopter to build thermal images and determine precise temperatures at individual points within the frame.
 
