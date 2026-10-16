@@ -1,0 +1,13 @@
+# Request has no fields. It always applies to the single active session.
+
+---
+# Response
+
+# True only when an observation from the capture window was stored.
+bool accepted
+
+# Current number of observations stored in the calibration dataset.
+uint32 accepted_samples
+
+# Human-readable success or rejection reason.
+string message
