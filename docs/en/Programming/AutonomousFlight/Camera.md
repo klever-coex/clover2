@@ -21,8 +21,8 @@ drone = Clover2("my_drone")
 Use `get_image()` to retrieve the current camera frame as a NumPy array.
 
 ```python
-img = drone.camera.get_image()                      # Default: retrieves from 'main_camera' in 'bgr8' format
-img = drone.camera.get_image("main_camera", "rgb8") # Custom: specifying the camera name and encoding
+img = drone.camera().get_image()                      # Default: retrieves from 'main_camera' in 'bgr8' format
+img = drone.camera("main_camera").get_image("rgb8") # Custom: specifying the camera name and encoding
 ```
 
 If no parameters are provided, `get_image()` defaults to `main_camera` and `bgr8` format. You can customize the source and format using the `camera_name` and `encoding` parameters.
@@ -32,7 +32,7 @@ If no parameters are provided, `get_image()` defaults to `main_camera` and `bgr8
 If you need to pass images directly through ROS topics, use `get_image_msg()`.
 
 ```python
-img_msg = drone.camera.get_image_msg()
+img_msg = drone.camera().get_image_msg()
 ```
 
 This method is more efficient if your program runs on ROS 2 and you do not need to immediately convert the image into a NumPy array. 
@@ -42,7 +42,7 @@ This method is more efficient if your program runs on ROS 2 and you do not need 
 To get the camera calibration data, use `get_camera_info()`.
 
 ```python
-info = drone.camera.get_camera_info()
+info = drone.camera().get_camera_info()
 # info.width, info.height, info.k (matrix), info.d (distortion)
 ```
 
@@ -58,7 +58,7 @@ drone = Clover2()
 detector = cv2.QRCodeDetector()
 
 while True:
-    img = drone.camera.get_image()
+    img = drone.camera().get_image()
     data, bbox, _ = detector.detectAndDecode(img)
     if data:
         print(f"QR Code: {data}")
@@ -66,6 +66,6 @@ while True:
 ```
 
 `cv2.QRCodeDetector()` initializes a specialized detector object from the OpenCV library.
-The `while True` loop continuously retrieves the latest frame from the camera using `img = drone.camera.get_image()`.
+The `while True` loop continuously retrieves the latest frame from the camera using `img = drone.camera().get_image()`.
 The `detectAndDecode()` function scans the frame for a QR code and attempts to extract the encoded text data.
 Once a valid QR code is identified and its data is printed to the console, the `break` stops the capture process.

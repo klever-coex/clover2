@@ -13,10 +13,12 @@ find_package(Threads REQUIRED)
 
 ament_auto_find_build_dependencies()
 
-ament_auto_add_library(${PROJECT_NAME}_camera SHARED
-  src/thermal_camera.cpp
-  src/thermal_frame.cpp
+ament_python_install_package(${PROJECT_NAME}
+  PACKAGE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/python/${PROJECT_NAME}"
 )
+
+ament_auto_add_library(${PROJECT_NAME}_camera SHARED DIRECTORY "src")
+
 target_include_directories(${PROJECT_NAME}_camera PUBLIC ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME}_camera ${OpenCV_LIBS} Threads::Threads)
 rclcpp_components_register_node(${PROJECT_NAME}_camera

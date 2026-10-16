@@ -1,0 +1,38 @@
+preview = true
+
+extend-exclude = [
+    ".venv/*",
+    "build/*",
+    "docs/*",
+    "frontend/*",
+    "install/*",
+    "log/*",
+    "third_party/*",
+    "tooling/*",
+]
+
+[lint]
+select = ["I", "D", "E", "E261", "E225", "F"]
+
+ignore = [
+    "E203", # Whitespace before ':'
+    "D105", # Missing docstring in magic method
+    "D204", # 1 blank line required after class docstring
+    "D205", # 1 blank line required between summary line and description
+    "D200", # One-line docstring should fit on one line
+    "D102", # Missing docstring in public method
+    "D203", # 1 blank line required before class docstring (conflicts with D211)
+    "D213", # Multi-line summary should start on second line (conflicts with D212)
+    "D401", # First line of docstring should be in imperative mood
+    "D407", # Missing argument description in the docstring (handled by pydoclint)
+]
+
+fixable = ["ALL"]
+
+[lint.isort]
+extra-standard-library = ["pathlib"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"

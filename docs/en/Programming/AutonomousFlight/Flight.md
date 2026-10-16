@@ -51,11 +51,30 @@ Use `navigate_wait()` when subsequent command needs to be executed after the qua
 
 ## Flight Without Waiting
 
-The `navigate()` function operates similarly to `navigate_wait()`, but it is non-blocking. Once the command is sent, the program continues execution immediately without waiting for the quadcopter to reach the destination.
+The `navigate()` function operates similarly to `navigate_wait()`, but it is non-blocking. Once the command is sent, the program continues execution immediately. The function returns a task object, which can be used to wait for the flight to finish or to cancel the current goal early.
 
 ```python
-drone.navigate(frame_id="map", x=1.0, y=2.0, z=1.5, yaw=0.0, speed=0.5)
+from clover2.clients import NavigationCanceledError
+
+task = drone.navigate(
+    frame_id="map", x=1.0, y=2.0, z=1.5, yaw=0.0, speed=0.5
+)
+
+# wait no more than 10 seconds
+# if the timeout expires, the flight is not canceled automatically
+task.wait(timeout=10.0)
+
+# request a standard action cancel
+task.cancel()
+
+try:
+    # wait for completion
+    task.wait()
+except NavigationCanceledError:
+    print("Flight canceled")
 ```
+
+If `wait(timeout=...)` returns due to a timeout, the flight is not canceled automatically. To stop it, call `task.cancel()` explicitly.
 
 Use `navigate()` when your program needs to perform other tasks while the quadcopter is flying.
 

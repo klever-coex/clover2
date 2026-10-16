@@ -1,5 +1,6 @@
 .env
 
+/.ruff_cache
 /.venv
 /.vscode/
 /.cache/
