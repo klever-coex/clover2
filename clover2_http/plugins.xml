@@ -1,0 +1,9 @@
+<class_libraries>
+    <library path="clover2_http_plugins">
+        <class
+            name="ros_support"
+            type="clover2_http::plugins::ros_support"
+            base_class_type="clover2_http::base_plugin"
+        />
+    </library>
+</class_libraries>

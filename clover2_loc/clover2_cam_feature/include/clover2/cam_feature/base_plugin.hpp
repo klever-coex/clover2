@@ -1,7 +1,7 @@
 #pragma once
 
 // clover2
-#include <clover2/map/client.hpp>
+#include <clover2_map/client.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 #include <clover2_common/node_context.hpp>
 
@@ -37,7 +37,7 @@ public:
     void configure(
         const std::string& name,
         const std::shared_ptr<clover2_common::node_context>& node_context,
-        const std::shared_ptr<clover2::map::client>& map_client);
+        const std::shared_ptr<clover2_map::client>& map_client);
     void activate();
     void deactivate();
     void cleanup();
@@ -51,7 +51,7 @@ protected:
     virtual void on_configure(
         const std::string& name,
         const std::shared_ptr<clover2_common::node_context>& node,
-        const std::shared_ptr<clover2::map::client>& map_client) = 0;
+        const std::shared_ptr<clover2_map::client>& map_client) = 0;
     virtual void on_activate() = 0;
     virtual void on_deactivate() = 0;
     virtual void on_cleanup() = 0;

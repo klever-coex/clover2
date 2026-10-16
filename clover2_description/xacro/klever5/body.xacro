@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:include filename="../common/geometry.xacro"/>
+  <xacro:macro name="klever5_body" params="body xyz:='0 0 0' rpy:='0 0 0' name:=base_link">
+    <xacro:property name="physics" value="${dict(mass=body['mass'], inertia_size=body['inertia_size'], com=body['com'], collision_size=body['collision_size'], collision_xyz=body['collision_xyz'])}"/>
+    <xacro:mesh_link name="${name}" mesh="${body['mesh']}" physics="${physics}" xyz="${xyz}" rpy="${rpy}"/>
+  </xacro:macro>
+</robot>

@@ -1,0 +1,16 @@
+/front_camera/camera:
+  ros__parameters:
+    qos_overrides:
+      /front_camera/camera/image_raw:
+        publisher:
+          history: keep_last
+          depth: 1
+          reliability: best_effort
+          durability: volatile
+
+      /front_camera/camera/camera_info:
+        publisher:
+          history: keep_last
+          depth: 1
+          reliability: best_effort
+          durability: volatile

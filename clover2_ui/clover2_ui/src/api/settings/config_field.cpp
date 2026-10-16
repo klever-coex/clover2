@@ -2,6 +2,8 @@
 #include <clover2_ui/api/settings/config_field.hpp>
 #include <yaml-cpp/yaml.h>
 
+#include <charconv>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -72,6 +74,64 @@ bool config_field::set_enum(const std::string& val) {
     return false;
 }
 
+void config_field::set_from_string(const std::string& text) {
+    try {
+        if (is_enum()) {
+            if (!set_enum(text)) {
+                throw std::invalid_argument(
+                    "value is not one of the enum options");
+            }
+            return;
+        }
+
+        const auto* first = text.data();
+        const auto* last = first + text.size();
+
+        switch (m_type) {
+            case field_type::BOOL:
+                if (text == "true" || text == "1") {
+                    set(true);
+                } else if (text == "false" || text == "0") {
+                    set(false);
+                } else {
+                    throw std::invalid_argument("expected true or false");
+                }
+                return;
+
+            case field_type::INT: {
+                int64_t value = 0;
+                const auto [ptr, ec] = std::from_chars(first, last, value);
+                if (ec != std::errc() || ptr != last) {
+                    throw std::invalid_argument("expected an integer");
+                }
+                set(value);
+                return;
+            }
+
+            case field_type::FLOAT: {
+                double value = 0.0;
+                const auto [ptr, ec] = std::from_chars(first, last, value);
+                if (ec != std::errc() || ptr != last || !std::isfinite(value)) {
+                    throw std::invalid_argument("expected a number");
+                }
+                set(value);
+                return;
+            }
+
+            case field_type::STR:
+                set(text);
+                return;
+
+            default:
+                throw std::invalid_argument("field is not editable");
+        }
+    } catch (const std::invalid_argument&) {
+        throw;
+    } catch (const std::exception& e) {
+        throw std::invalid_argument(e.what());
+    }
+}
+
 std::shared_ptr<config_field> config_field::child(
     const std::string& name) const {
     for (const auto& c : m_children) {
@@ -124,12 +184,30 @@ YAML::Node config_field::to_yaml_value() const {
 }
 
 void config_field::save_to_file(const std::filesystem::path& file) const {
-    std::ofstream out(file);
+    const auto tmp_path = file.string() + ".tmp";
 
-    if (out) {
-        out << to_yaml_value();
-    } else {
-        throw std::runtime_error("File save failed");
+    try {
+        {
+            std::ofstream out(tmp_path);
+            if (!out) {
+                throw std::runtime_error("Cannot open " + tmp_path +
+                                         " for writing");
+            }
+
+            YAML::Emitter emitter;
+            emitter << to_yaml_value();
+            out << emitter.c_str() << '\n';
+
+            if (!out) {
+                throw std::runtime_error("Failed to write " + tmp_path);
+            }
+        }
+
+        std::filesystem::rename(tmp_path, file);
+    } catch (...) {
+        std::error_code ignored;
+        std::filesystem::remove(tmp_path, ignored);
+        throw;
     }
 }
 

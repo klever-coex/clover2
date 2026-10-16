@@ -1,5 +1,7 @@
+"""Map server launch action."""
+
 from pathlib import Path
-from typing import Dict, List, Optional, cast
+from typing import cast
 
 from ament_index_python.packages import get_package_share_directory
 from clover2.utils import find_file
@@ -21,28 +23,31 @@ from launch_ros.parameters_type import SomeParameters
 
 @expose_action("map_server")
 class MapServerAction(Action):
+    """Launch action for the map server node."""
+
     def __init__(
         self,
         *,
-        map_file: SomeSubstitutionsType = TextSubstitution(text="example-1.yaml"),
-        resource_paths: Optional[List[SomeSubstitutionsType]] = None,
+        map_file: SomeSubstitutionsType | None = None,
+        resource_paths: list[SomeSubstitutionsType] | None = None,
         namespace: SomeSubstitutionsType = "",
         log_level: SomeSubstitutionsType = "info",
         use_sim_time: SomeSubstitutionsType = "false",
-        params_files: Optional[List[str]] = None,
-        parameters: Optional[SomeParameters] = None,
+        params_files: list[str] | None = None,
+        parameters: SomeParameters | None = None,
         **kwargs,
     ) -> None:
+        """Initialize the action."""
         super().__init__(**kwargs)
         pkg_clover2_map = get_package_share_directory("clover2_map")
 
-        self.__map_file = map_file
+        self.__map_file = map_file or TextSubstitution(text="example-1.yaml")
         self.__namespace = namespace
         self.__log_level = log_level
         self.__use_sim_time = use_sim_time
         self.__params_files = params_files or []
 
-        self.__resource_paths: List[SomeSubstitutionsType] = (
+        self.__resource_paths: list[SomeSubstitutionsType] = (
             resource_paths
             if resource_paths is not None
             else [
@@ -50,7 +55,7 @@ class MapServerAction(Action):
             ]
         )
 
-        self.__extra_parameters: List = []
+        self.__extra_parameters: list = []
         if parameters is not None:
             if is_substitution(parameters):
                 parameters = normalize_typed_substitution(parameters, dict)
@@ -59,7 +64,7 @@ class MapServerAction(Action):
 
     @classmethod
     def parse(cls, entity: Entity, parser: Parser):
-        kwargs: Dict = super().parse(entity, parser)[1]
+        kwargs: dict = super().parse(entity, parser)[1]
 
         map_val = entity.get_attr("map", data_type=str, optional=True)
         if isinstance(map_val, str):
@@ -74,15 +79,15 @@ class MapServerAction(Action):
         if isinstance(params_files_val, str):
             kwargs["params_files"] = params_files_val.split()
 
-        param_entities = entity.get_attr("param", data_type=List[Entity], optional=True)
+        param_entities = entity.get_attr("param", data_type=list[Entity], optional=True)
         if param_entities is not None:
             kwargs["parameters"] = Node.parse_nested_parameters(param_entities, parser)
 
         resource_path_entities = entity.get_attr(
-            "resource_path", data_type=List[Entity], optional=True
+            "resource_path", data_type=list[Entity], optional=True
         )
         if resource_path_entities:
-            resource_paths: List[SomeSubstitutionsType] = []
+            resource_paths: list[SomeSubstitutionsType] = []
             for rp in resource_path_entities:
                 val = rp.get_attr("value", data_type=str, optional=False)
                 if isinstance(val, str):
@@ -91,8 +96,8 @@ class MapServerAction(Action):
 
         return cls, kwargs
 
-    def execute(self, context: LaunchContext) -> Optional[List[Action]]:
-        actions: List[Action] = []
+    def execute(self, context: LaunchContext) -> list[Action] | None:
+        actions: list[Action] = []
 
         map_file = perform_typed_substitution(context, self.__map_file, str)
         namespace = perform_typed_substitution(context, self.__namespace, str)
@@ -106,7 +111,7 @@ class MapServerAction(Action):
         if map_filename is not None:
             actions.append(LogInfo(msg=f"Using map file: {map_filename.as_posix()}"))
 
-        parameters: List = list(self.__params_files)
+        parameters: list = list(self.__params_files)
         if map_filename is not None:
             parameters.append({"map": str(map_filename)})
         parameters.append({"use_sim_time": self.__use_sim_time})

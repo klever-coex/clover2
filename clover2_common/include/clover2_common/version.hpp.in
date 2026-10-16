@@ -1,0 +1,19 @@
+/**
+ * @file version.hpp
+ * @brief Project version (GENERATED FILE, DO NOT EDIT).
+ */
+
+#pragma once
+
+// STL
+#include <string>
+#include <string_view>
+
+namespace clover2_common {
+
+inline constexpr std::string_view k_clover2_version =
+    "@CLOVER2_VERSION_COMPOSED@";
+
+inline std::string project_version() { return std::string(k_clover2_version); }
+
+}  // namespace clover2_common

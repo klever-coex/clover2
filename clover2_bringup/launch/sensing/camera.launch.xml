@@ -1,6 +1,8 @@
 <launch>
     <arg name="camera_id" description="Camera identificator (for libcamera numeretic or dts path)" />
     <arg name="camera_name" default="camera" />
+    <arg name="camera_link" default="" />
+    <arg name="camera_sensor" default="" />
     <arg name="container_name" default="camera_container" />
     <arg name="frame_id" default="$(var camera_name)_link" />
     <arg name="ns" default="" />
@@ -19,6 +21,7 @@
         <param name="frame_id" value="$(var frame_id)" />
 
         <param from="$(find-pkg-share clover2_bringup)/params/libcamera/default.yaml" />
+        <param from="$(find-pkg-share clover2_bringup)/params/libcamera/$(var camera_name).yaml" />
         <param from="$(var params_file)" />
     </node>
 
@@ -30,11 +33,13 @@
             namespace="$(var ns)"
             if="$(var use_composition)"
         >
+            <extra_arg name="use_intra_process_comms" value="true" />
 
             <param name="camera" value="$(var camera_id)" />
             <param name="frame_id" value="$(var frame_id)" />
 
             <param from="$(find-pkg-share clover2_bringup)/params/libcamera/default.yaml" />
+            <param from="$(find-pkg-share clover2_bringup)/params/libcamera/$(var camera_name).yaml" />
             <param from="$(var params_file)" />
         </composable_node>
     </load_composable_node>

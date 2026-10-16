@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<sdf xmlns:xacro="http://www.ros.org/wiki/xacro" version="1.9">
+  <xacro:include filename="../../xacro/common/common.xacro"/>
+  <xacro:macro name="sdf_component" params="name parent mount physics description_share *content">
+    <link name="${name}">
+      <pose relative_to="${parent}">${mount['xyz']} ${mount['rpy']}</pose>
+      <xacro:box_inertial physics="${physics}" format="sdf"/>
+      <visual name="visual">
+        <geometry><mesh><uri>file://${description_share}/meshes/${physics['mesh']}</uri></mesh></geometry>
+      </visual>
+      <collision name="collision">
+        <pose>${' '.join(str(v) for v in physics['collision_xyz'])} 0 0 0</pose>
+        <geometry><box><size>${' '.join(str(v) for v in physics['collision_size'])}</size></box></geometry>
+      </collision>
+      <xacro:insert_block name="content"/>
+    </link>
+    <joint name="${name}_mount_joint" type="fixed">
+      <parent>${parent}</parent><child>${name}</child>
+    </joint>
+  </xacro:macro>
+</sdf>

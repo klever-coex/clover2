@@ -6,20 +6,24 @@ inputs:
     description: Bake target name
     required: true
   build-mode:
-    description: Build mode (develop, master, release)
+    description: Build mode (develop, master, release, pre-release)
     required: true
     default: develop
   git-hash:
     description: Short git hash
     required: true
   version:
-    description: Version string for release builds
+    description: Full version string (from version_manager compose)
     required: false
     default: ''
   push:
     description: Whether to push images to registry
     required: false
     default: 'true'
+  cache-scope:
+    description: Cache scope suffix (defaults to the target name)
+    required: false
+    default: ''
 
 runs:
   using: composite
@@ -30,6 +34,10 @@ runs:
         ghcr-token: ${{ github.token }}
         login: ${{ inputs.push }}
 
+    - id: cache-epoch
+      shell: bash
+      run: echo "CACHE_EPOCH=$(cat docker/cache-epoch)" >> "$GITHUB_OUTPUT"
+
     - name: Build (no push) ${{ inputs.target }}
       if: ${{ inputs.push != 'true' }}
       uses: docker/bake-action@v7
@@ -38,14 +46,15 @@ runs:
         files: docker/docker-bake.hcl
         targets: ${{ inputs.target }}
         push: false
+        provenance: false
         builder: ${{ steps.setup.outputs.builder-name }}
         set: |
-          *.cache-from=type=gha,scope=clover2-${{ inputs.target }}
+          *.cache-from=type=gha,scope=clover2-${{ inputs.cache-scope || inputs.target }}-e${{ steps.cache-epoch.outputs.CACHE_EPOCH }}
         vars: |
           REGISTRY=ghcr.io/${{ github.repository_owner }}/clover2/
           BUILD_MODE=${{ inputs.build-mode }}
           CLOVER2_GIT_HASH=${{ inputs.git-hash }}
-          CLOVER2_VERSION=${{ inputs.version || inputs.git-hash }}
+          CLOVER2_VERSION=${{ inputs.version }}
 
     - name: Build and push ${{ inputs.target }}
       if: ${{ inputs.push == 'true' }}
@@ -57,10 +66,10 @@ runs:
         push: true
         builder: ${{ steps.setup.outputs.builder-name }}
         set: |
-          *.cache-from=type=gha,scope=clover2-${{ inputs.target }}
-          *.cache-to=type=gha,scope=clover2-${{ inputs.target }},mode=max
+          *.cache-from=type=gha,scope=clover2-${{ inputs.cache-scope || inputs.target }}-e${{ steps.cache-epoch.outputs.CACHE_EPOCH }}
+          *.cache-to=type=gha,scope=clover2-${{ inputs.cache-scope || inputs.target }}-e${{ steps.cache-epoch.outputs.CACHE_EPOCH }},mode=max
         vars: |
           REGISTRY=ghcr.io/${{ github.repository_owner }}/clover2/
           BUILD_MODE=${{ inputs.build-mode }}
           CLOVER2_GIT_HASH=${{ inputs.git-hash }}
-          CLOVER2_VERSION=${{ inputs.version || inputs.git-hash }}
+          CLOVER2_VERSION=${{ inputs.version }}

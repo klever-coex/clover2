@@ -19,7 +19,8 @@
   "empty_template": "no changes ;(",
   "label_extractor": [
     {
-      "pattern": "^(feature|feat|fix|bug|docs|documentation)(\\(.+\\))?:",
+      "pattern": "^(feature|feat|fix|bug|docs|documentation).*:*",
+      "on_property": "title",
       "target": "$1"
     }
   ]

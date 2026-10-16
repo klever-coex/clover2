@@ -1,5 +1,5 @@
 <launch>
-    <arg name="lidar_id" default="/dev/rplidar0" />
+    <arg name="lidar_id" default="/dev/rplidar" />
     <arg name="lidar_name" default="lidar" />
     <arg name="ns" default="" />
     <arg name="params_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />

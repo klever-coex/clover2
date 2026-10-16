@@ -294,7 +294,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
     TPU Foot
 ````
 
-
+<!--
 ## Wiring Diagram
 
 ```{figure} @assets@/en/assembly/clover5-fpv/layout.webp
@@ -302,7 +302,7 @@ Fasteners of various sizes are used during assembly. Installing screws or stando
 :width: 700px
 :align: center
 ```
-
+-->
 ## Frame Assembly
 
 1. Align the 4 arms between the middle and bottom plates, installing the spacer between them.

@@ -17,6 +17,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
     "sphinx.ext.autosectionlabel",
+    "sphinxcontrib.mermaid",
     "sphinx_copybutton",
     "sphinx_simplepdf",
     "breathe",

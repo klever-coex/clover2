@@ -13,10 +13,13 @@
 
     <arg name="front_camera.enable" default="false" />
 
-    <arg name="indication.led_strip" default="false" />
-    <arg name="2d_lidar.enable" default="false" />
+    <arg name="indication.led_strip" default="true" />
+    <arg name="indication.display" default="false" />
 
-    <arg name="display.display" default="false" />
+    <arg name="additional_sensors.2d_lidar" default="false" />
+    <arg name="additional_sensors.thermal_camera" default="false" />
+
+    <arg name="description_config_file" default="$(find-pkg-share clover2_description)/config/robots/klever5.yaml" />
 
     <!-- Launch common arguments -->
     <arg name="use_sim_time" default="false" />
@@ -24,7 +27,15 @@
     <arg name="root_ns" default="" description="Should starts with / or be empty" />
     <arg name="params_file" default="$(find-pkg-share clover2_bringup)/params/klever5.yaml" />
 
-    <include file="$(find-pkg-share clover2_bringup)/launch/description.launch.xml" />
+    <include file="$(find-pkg-share clover2_bringup)/launch/description.launch.xml">
+        <arg name="config_file" value="$(var description_config_file)" />
+        <arg name="use_sim_time" value="$(var use_sim_time)" />
+        <arg name="ns" value="$(var root_ns)" />
+        <arg name="enable_main_camera" value="$(var main_camera.enable)" />
+        <arg name="enable_front_camera" value="$(var front_camera.enable)" />
+        <arg name="enable_lidar" value="$(var additional_sensors.2d_lidar)" />
+        <arg name="enable_led_strip" value="$(var indication.led_strip)" />
+    </include>
 
     <include
         file="$(find-pkg-share clover2_bringup)/launch/vision/camera_pipeline.launch.xml"
@@ -35,6 +46,8 @@
 
         <arg name="camera_id" value="0" />
         <arg name="camera_name" value="main_camera" />
+        <arg name="camera_link" value="base_link" />
+        <arg name="camera_sensor" value="main_camera" />
         <arg name="ns" value="$(var root_ns)" />
         <arg name="sensing_pkg" value="$(var sensing_pkg)" />
 
@@ -52,6 +65,8 @@
 
         <arg name="camera_id" value="1" />
         <arg name="camera_name" value="front_camera" />
+        <arg name="camera_link" value="front_camera_body_link" />
+        <arg name="camera_sensor" value="front_camera" />
         <arg name="ns" value="$(var root_ns)" />
         <arg name="sensing_pkg" value="$(var sensing_pkg)" />
 
@@ -87,6 +102,7 @@
         <arg name="ns" value="$(var root_ns)" />
 
         <arg name="led_strip" value="$(var indication.led_strip)" />
+        <arg name="params_file" value="$(var params_file)" />
     </include>
 
     <include file="$(find-pkg-share clover2_bringup)/launch/snippets/display.launch.xml">
@@ -94,20 +110,19 @@
         <arg name="params_file" value="$(var params_file)" />
         <arg name="ns" value="$(var root_ns)" />
 
-        <arg name="display" value="$(var display.display)" />
-    </include>
-
-    <include file="$(find-pkg-share clover2_bringup)/launch/web_support.launch.xml">
-        <arg name="use_sim_time" value="$(var use_sim_time)" />
-        <arg name="params_file" value="$(var params_file)" />
-        <arg name="ns" value="$(var root_ns)" />
+        <arg name="display" value="$(var indication.display)" />
     </include>
 
     <include file="$(find-pkg-share clover2_ui)/launch/diagnostics.launch.xml">
         <arg name="use_sim_time" value="$(var use_sim_time)" />
     </include>
 
-    <include file="$(find-pkg-share $(var sensing_pkg))/launch/sensing/2d_lidar.launch.xml" if="$(var 2d_lidar.enable)">
+    <include file="$(find-pkg-share $(var sensing_pkg))/launch/sensing/thermal_camera.launch.xml" if="$(var additional_sensors.thermal_camera)">
+        <arg name="ns" value="$(var root_ns)" />
+    </include>
+
+    <include file="$(find-pkg-share $(var sensing_pkg))/launch/sensing/2d_lidar.launch.xml" if="$(var additional_sensors.2d_lidar)">
+        <arg name="use_sim_time" value="$(var use_sim_time)" />
         <arg name="params_file" value="$(var params_file)" />
         <arg name="ns" value="$(var root_ns)" />
     </include>

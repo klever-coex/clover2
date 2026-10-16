@@ -17,18 +17,13 @@ DOCKER_OUTPUT_DIR ?= $(BUILD_EXPTRAS_DIR)/docker
 UID ?= $(shell id -u)
 GID ?= $(shell id -g)
 
-# Calculate CLOVER2_VERSION based on BUILD_MODE
-CLOVER2_BASE_VERSION := $(shell python3 tooling/scripts/version_manager.py -d . print --main-only)
-CLOVER2_GIT_HASH := $(shell git -C $(PROJECT_DIR) rev-parse --short HEAD 2>/dev/null || echo "unknown")
+TOOLING ?= clover2
+COMPOSE := $(TOOLING) version compose --mode $(BUILD_MODE)
+CLOVER2_GIT_HASH := $(shell $(COMPOSE) --field git_hash)
+CLOVER2_VERSION := $(shell $(COMPOSE) --field version)
 
-ifeq ($(BUILD_MODE),release)
-	CLOVER2_VERSION := $(CLOVER2_BASE_VERSION)
-else ifeq ($(BUILD_MODE),master)
-	CLOVER2_VERSION := $(CLOVER2_BASE_VERSION)+$(CLOVER2_GIT_HASH)
-else ifeq ($(BUILD_MODE),develop)
-	CLOVER2_VERSION := $(CLOVER2_BASE_VERSION)+$(CLOVER2_GIT_HASH)
-else
-	$(error Unknown BUILD_MODE '$(BUILD_MODE)'. Expected one of: release, master, develop)
+ifeq ($(strip $(CLOVER2_VERSION)),)
+$(error clover2 version compose failed (check BUILD_MODE '$(BUILD_MODE)' and that the clover2 CLI is installed))
 endif
 
 export CLOVER2_VERSION
@@ -36,6 +31,7 @@ export REGISTRY
 export BUILD_MODE
 export PROJECT_DIR
 export DOCKER_OUTPUT_DIR
+export LOCAL_CACHE = 1
 
 ## help: Show this help message
 help:
@@ -55,7 +51,6 @@ help:
 
 ## clover2-bake-%: Build docker images using buildx bake
 clover2-bake-%:
-	@mkdir -p $(DOCKER_OUTPUT_DIR)
 	docker buildx bake \
 		$(if $(TARGET_ARCH),--set *.platform=linux/$(TARGET_ARCH)) \
 		-f docker/docker-bake.hcl \
@@ -89,37 +84,11 @@ clover2-docs-doxygen:
 	mkdir -p $(PROJECT_DIR)/docs/build/doxygen
 	doxygen
 
-## builder-download: Download base disk image for builder
-builder-download:
-	$(PROJECT_DIR)/tooling/builder/download.py \
-		--configuration clover2-ubuntu24 \
-		--output $(PROJECT_DIR)/build-clover2-image/clover2-$(CLOVER2_VERSION).img
+## clover2-frontend-%: Execute npm run command in frontend folder
+clover2-frontend-%:
+	cd $(PROJECT_DIR)/frontend && npm run $*
 
-## builder-build: Build the clover2 image locally
-builder-build:
-	$(PROJECT_DIR)/tooling/builder/builder.py \
-		--sudo \
-		--output $(PROJECT_DIR)/build-clover2-image/clover2-$(CLOVER2_VERSION).img
-
-## builder-image-setup: Setup image with secret server
-builder-image-setup: version
-	/bin/bash $(PROJECT_DIR)/tooling/builder/image-setup.sh
-
-## builder-in-docker: Run any builder task inside the clover2-builder docker image
-builder-%-in-docker:
-	docker run \
-		--rm \
-		-i \
-		--net=host \
-		--privileged \
-		--env REGISTRY=$(REGISTRY) \
-		--env BUILD_MODE=$(BUILD_MODE) \
-		-v /dev:/dev \
-		-v $(PROJECT_DIR):/builder \
-		-w /builder \
-		$(REGISTRY)clover2-builder:$(CLOVER2_GIT_HASH) \
-		sh -c "make builder-$*"
-
+## clover2-devtool-install-repos: install mainline ros2 repos to third party folder
 clover2-devtool-install-repos:
 	vcs import third_party < third_party/clover2.repos
 

@@ -1,5 +1,7 @@
 
 // clover2
+#include <clover2/cam_feature/data/aruco_pattern_pos.hpp>
+#include <clover2/cam_feature/data/solve_pnp_method.hpp>
 #include <clover2/cam_feature/detail/maker_base.hpp>
 
 // opencv
@@ -9,6 +11,8 @@
 // tf2
 #include <rclcpp/create_publisher.hpp>
 #include <tf2/LinearMath/Quaternion.h>
+
+// STL
 #include <memory>
 
 namespace clover2::cam_feature::detail {
@@ -20,8 +24,29 @@ maker_base::maker_base()
 void maker_base::_configure(
     [[maybe_unused]] const std::string& name,
     [[maybe_unused]] const std::shared_ptr<clover2_common::node_context>& node,
-    const std::shared_ptr<clover2::map::client>& map_client) {
+    const std::shared_ptr<clover2_map::client>& map_client) {
     m_map_client = map_client;
+
+    declare_and_watch_parameter<std::string>(
+        name + ".solve_pnp_method", "ippe_square",
+        [this](const rclcpp::Parameter& p) {
+            m_estimate_parameters.solvePnPMethod =
+                data::solve_pnp_method::from_str(p.as_string());
+        },
+        "SolvePnP method to use for pose estimation");
+
+    declare_and_watch_parameter<std::string>(
+        name + ".aruco_pattern_pos", "center",
+        [this](const rclcpp::Parameter& p) {
+            m_estimate_parameters.pattern =
+                data::aruco_pattern_pos::from_str(p.as_string());
+        },
+        "ARUCO pattern position to use for pose estimation");
+
+    declare_and_watch_parameter<double>(
+        name + ".reproj_max_px", m_reproj_max_px,
+        [this](const rclcpp::Parameter& p) { m_reproj_max_px = p.as_double(); },
+        "Maximum reprojection error[px]");
 }
 
 void maker_base::_activate() {
@@ -40,8 +65,7 @@ void maker_base::_cleanup() {  //
 }
 
 const std::vector<cv::Point3d>& maker_base::get_marker_obj_points(
-    int id, double length,
-    const cv::Ptr<cv::aruco::EstimateParameters>& params) {
+    int id, double length, const cv::aruco::EstimateParameters& params) {
     auto it = m_marker_obj_cache.find(id);
     if (it != m_marker_obj_cache.end()) {
         return it->second;
@@ -49,7 +73,7 @@ const std::vector<cv::Point3d>& maker_base::get_marker_obj_points(
 
     std::vector<cv::Point3d> pts(4);
 
-    if (params->pattern == cv::aruco::CW_top_left_corner) {
+    if (params.pattern == cv::aruco::CW_top_left_corner) {
         pts[0] = cv::Vec3d(0.f, 0.f, 0);
         pts[1] = cv::Vec3d(length, 0.f, 0);
         pts[2] = cv::Vec3d(length, length, 0);
@@ -129,67 +153,96 @@ std::list<clover2_pose_msgs::msg::Marker> maker_base::process(
         return result;
     }
 
-    geometry_msgs::msg::PoseArray debug_msg;
-    debug_msg.header = header;
+    m_debug_msg.poses.clear();
+    m_debug_msg.header = header;
 
-    std::vector<int> ids;
-    std::vector<std::vector<cv::Point2f>> corners;
-    detect_markers(image, ids, corners);
+    m_ids.clear();
+    m_corners.clear();
+    detect_markers(image, m_ids, m_corners);
 
-    std::vector<bool> pose_estimated(ids.size(), false);
-    std::vector<cv::Mat> marker_cov(ids.size());
-    std::vector<cv::Vec3d> marker_rot(ids.size()), marker_pose(ids.size());
+    std::vector<bool> pose_estimated(m_ids.size(), false);
+    std::vector<cv::Mat> marker_cov(m_ids.size());
+    std::vector<cv::Vec3d> marker_rot(m_ids.size()), marker_pose(m_ids.size());
 
-    if (!ids.empty()) {
-        auto estimate_parameters = cv::makePtr<cv::aruco::EstimateParameters>();
+    if (!m_ids.empty()) {
+        parallel_for_(
+            cv::Range(0, static_cast<int>(m_ids.size())),
+            [&](const cv::Range& range) {
+                for (int i = range.start; i < range.end; i++) {
+                    if (!m_map_client->has_marker(m_ids[i])) {
+                        continue;
+                    }
 
-        parallel_for_(cv::Range(0, static_cast<int>(ids.size())),
-                      [&](const cv::Range& range) {
-                          for (int i = range.start; i < range.end; i++) {
-                              if (!m_map_client->has_marker(ids[i])) {
-                                  continue;
-                              }
+                    const auto& map_marker = m_map_client->get_marker(m_ids[i]);
 
-                              const auto& obj_pts = get_marker_obj_points(
-                                  ids[i], m_map_client->get_marker_size(ids[i]),
-                                  estimate_parameters);
+                    const auto& obj_pts = get_marker_obj_points(
+                        m_ids[i], map_marker.size, m_estimate_parameters);
 
-                              cv::solvePnP(
-                                  obj_pts, cv::Mat(corners[i]), matrix,
-                                  distortion, marker_rot[i], marker_pose[i],
-                                  estimate_parameters->useExtrinsicGuess,
-                                  estimate_parameters->solvePnPMethod);
+                    bool valid =
+                        cv::solvePnP(obj_pts, cv::Mat(m_corners[i]), matrix,
+                                     distortion, marker_rot[i], marker_pose[i],
+                                     m_estimate_parameters.useExtrinsicGuess,
+                                     m_estimate_parameters.solvePnPMethod);
 
-                              compute_pose_covariance(
-                                  marker_rot[i], marker_pose[i], marker_cov[i]);
+                    if (valid) {
+                        std::vector<cv::Point2d> proj;
+                        cv::projectPoints(obj_pts, marker_rot[i],
+                                          marker_pose[i], matrix, distortion,
+                                          proj);
 
-                              pose_estimated[i] = true;
-                          }
-                      });
+                        double reproj_sq = 0;
+                        for (size_t j = 0; j < proj.size(); j++) {
+                            const cv::Point2d d =
+                                proj[j] - cv::Point2d(m_corners[i][j]);
+                            reproj_sq += d.x * d.x + d.y * d.y;
+                        }
+                        valid = std::sqrt(reproj_sq / proj.size()) <
+                                m_reproj_max_px;
+                    }
 
-        for (size_t i = 0; i < ids.size(); i++) {
+                    if (valid) {
+                        compute_pose_covariance(marker_rot[i], marker_pose[i],
+                                                marker_cov[i]);
+                        pose_estimated[i] = true;
+                    }
+                }
+            });
+
+        for (size_t i = 0; i < m_ids.size(); i++) {
             if (!pose_estimated[i]) {
                 continue;
             }
 
+            const auto& map_marker = m_map_client->get_marker(m_ids[i]);
+
             clover2_pose_msgs::msg::Marker marker;
-            marker.id = ids[i];
-            marker.size = m_map_client->get_marker_size(ids[i]);
-            marker.marker_frame_id = m_map_client->get_marker_frame_id(ids[i]);
+            marker.id = m_ids[i];
+            marker.type = static_cast<uint8_t>(map_marker.type);
+            marker.size = map_marker.size;
+            marker.marker_frame_id = map_marker.marker_frame_id;
+
             fill_pose_stamped(marker.pose, marker_rot[i], marker_pose[i],
                               marker_cov[i]);
+            marker.corner_px.reserve(m_corners[i].size());
+
+            for (const auto& corner : m_corners[i]) {
+                auto& point = marker.corner_px.emplace_back();
+                point.x = corner.x;
+                point.y = corner.y;
+            }
+
             result.push_back(std::move(marker));
 
-            debug_msg.poses.push_back(marker.pose.pose);
+            m_debug_msg.poses.push_back(marker.pose.pose);
         }
     }
 
     if (m_pose_array_debug_pub->get_subscription_count()) {
-        m_pose_array_debug_pub->publish(debug_msg);
+        m_pose_array_debug_pub->publish(m_debug_msg);
     }
 
     if (debug) {
-        cv::aruco::drawDetectedMarkers(*debug, corners, ids);
+        cv::aruco::drawDetectedMarkers(*debug, m_corners, m_ids);
     }
 
     return result;

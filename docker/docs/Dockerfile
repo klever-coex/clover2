@@ -12,10 +12,9 @@ RUN --mount=type=cache,id=apt-docs-${TARGETPLATFORM},target=/var/cache/apt,shari
 
 WORKDIR /app
 COPY Doxyfile /app
-COPY Makefile /app
 COPY --parents ./**/*.hpp /app
 
-RUN make clover2-docs-doxygen
+RUN mkdir -p /app/docs/build/doxygen && doxygen
 
 FROM --platform=${BUILDPLATFORM} python:3.11-slim AS builder
 ARG TARGETPLATFORM
@@ -35,7 +34,7 @@ WORKDIR /app
 COPY docs/requirements.txt /app/requirements.txt
 
 RUN --mount=type=cache,id=pip-docs,target=/root/.cache/pip \
-    pip3 install --no-cache-dir -r requirements.txt
+    pip3 install --break-system-packages -r requirements.txt
 
 COPY docs /app
 COPY --from=doxygen /app/docs/build/doxygen /app/build/doxygen
@@ -45,7 +44,7 @@ RUN make html
 
 FROM nginx:1.29.3-alpine-slim
 
-COPY --from=builder /app/build/html /usr/share/nginx/html
+COPY --from=docs-html /app/build/html /usr/share/nginx/html
 
 COPY docker/docs/nginx.conf /etc/nginx/nginx.conf
 

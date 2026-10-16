@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="klever5">
+  <xacro:arg name="config_file" default="$(find clover2_description)/config/robots/klever5.yaml"/>
+  <xacro:arg name="enable_main_camera" default="true"/>
+  <xacro:arg name="enable_front_camera" default="false"/>
+  <xacro:arg name="enable_lidar" default="false"/>
+  <xacro:arg name="enable_led_strip" default="false"/>
+  <xacro:property name="config" value="${xacro.load_yaml('$(arg config_file)')}"/>
+  <xacro:include filename="../common/geometry.xacro"/>
+  <xacro:include filename="body.xacro"/>
+  <xacro:include filename="propellers.xacro"/>
+  <xacro:include filename="../modules/camera.xacro"/>
+  <xacro:include filename="../modules/lidar.xacro"/>
+  <xacro:include filename="../modules/led_strip.xacro"/>
+  <xacro:klever5_body body="${config['body']}" xyz="${config['body']['xyz']}" rpy="${config['body']['rpy']}"/>
+  <xacro:klever5_propellers propeller="${config['propeller']}" rotors="${config['rotors']}"/>
+  <xacro:if value="$(arg enable_main_camera)">
+    <xacro:description_camera name="main_camera" parent="base_link" include_visual="false" include_physics="false" xyz="${config['modules']['main_camera']['xyz']}" rpy="${config['modules']['main_camera']['rpy']}"/>
+  </xacro:if>
+  <xacro:if value="$(arg enable_front_camera)">
+    <xacro:description_camera name="front_camera" parent="base_link" include_visual="true" include_physics="true" xyz="${config['modules']['front_camera']['xyz']}" rpy="${config['modules']['front_camera']['rpy']}"/>
+  </xacro:if>
+  <xacro:if value="$(arg enable_lidar)">
+    <xacro:description_lidar parent="base_link" xyz="${config['modules']['lidar']['xyz']}" rpy="${config['modules']['lidar']['rpy']}"/>
+  </xacro:if>
+  <xacro:if value="$(arg enable_led_strip)">
+    <xacro:description_led_strip parent="base_link" xyz="${config['modules']['led_strip']['xyz']}" rpy="${config['modules']['led_strip']['rpy']}"/>
+  </xacro:if>
+</robot>

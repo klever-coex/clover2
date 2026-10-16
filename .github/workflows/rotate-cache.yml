@@ -1,0 +1,35 @@
+name: Rotate build cache
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  bump-epoch:
+    runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: master
+
+      - name: Increment cache epoch
+        run: |
+          NEW=$(( $(< docker/cache-epoch) + 1 ))
+          echo "${NEW}" > docker/cache-epoch
+          echo "CACHE_EPOCH=${NEW}" >> "$GITHUB_ENV"
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docker/cache-epoch
+          git commit -m "update ci: rotate build cache (epoch ${CACHE_EPOCH})"
+          git push
+
+      - name: Rebuild to seed new cache
+        run: gh workflow run docker-build.yml --ref master
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -5,6 +5,16 @@
 /**/aruco_tracker:
   ros__parameters:
     tracking: "base_link"
+    tf:
+      send: true
+      child_frame_id: "vision_estimate"
+    solver: "global_pnp"
+    global_pnp:
+      ransac_iterations: 100
+      ransac_reproj_px: 2.5
+      min_markers: 1
+    average:
+      min_markers: 1
 
 /**/fcu_bridge:
   ros__parameters:
@@ -17,10 +27,6 @@
         error_percentage: 0.10
       sensors:
         stale_timeout_sec: 1.0
-
-/**/web_video_server:
-  ros__parameters:
-    port: 8081
 
 /**/led_strip:
   ros__parameters:

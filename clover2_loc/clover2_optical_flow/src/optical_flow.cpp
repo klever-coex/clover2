@@ -81,6 +81,8 @@ optical_flow::CallbackReturn optical_flow::on_activate(
     auto diagnostics = get_node_diagnostics_interface();
     diagnostics->add<diagnostics::flow_task>();
     diagnostics->get<diagnostics::flow_task>().set_clock(get_clock());
+    
+    auto camera_qos = rclcpp::QoS(1).best_effort().durability_volatile();
 
     // Create publishers
     m_flow_pub = this->create_publisher<mavros_msgs::msg::OpticalFlowRad>(
@@ -90,12 +92,12 @@ optical_flow::CallbackReturn optical_flow::on_activate(
 
     // Create subscribers
     m_camera_info_sub = this->create_subscription<sensor_msgs::msg::CameraInfo>(
-        "~/input/camera_info", rclcpp::SensorDataQoS(),
+        "~/input/camera_info", camera_qos,
         std::bind(&optical_flow::camera_info_callback, this,
                   std::placeholders::_1));
 
     m_image_sub = this->create_subscription<sensor_msgs::msg::Image>(
-        "~/input/image_raw", rclcpp::SensorDataQoS(),
+        "~/input/image_raw", camera_qos,
         std::bind(&optical_flow::flow_callback, this, std::placeholders::_1));
 
     RCLCPP_INFO(get_logger(), "Optical Flow activated");

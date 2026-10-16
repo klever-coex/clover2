@@ -67,7 +67,7 @@ private:
         if (m_first_pose) {
             m_first_pose = false;
             m_last_vio_position = p;
-            return false;
+            return true;
         }
 
         m_last_vio_position = p;
@@ -96,7 +96,7 @@ private:
         bool reset = is_vio_reset(tr.translation(), stamp);
 
         if (reset) {
-            RCLCPP_WARN(get_logger(), "VIO reset detected → updating offset");
+            RCLCPP_WARN(get_logger(), "VIO reset detected. Updating offset");
 
             m_offset = m_world_current * tr.inverse();
             ++m_reset_counter;
@@ -181,7 +181,7 @@ private:
 
     std::atomic<bool> m_first_pose = true;
 
-    Eigen::Affine3d m_world_current;
+    Eigen::Affine3d m_world_current = Eigen::Affine3d::Identity();
     Eigen::Affine3d m_offset = Eigen::Affine3d::Identity();
     Eigen::Vector3d m_last_vio_position = Eigen::Vector3d::Zero();
 
