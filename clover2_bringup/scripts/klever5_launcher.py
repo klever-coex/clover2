@@ -79,16 +79,14 @@ def main(args: argparse.Namespace):
     """Launch clover2 bringup."""
     configuration = parse_config_from_file(args.config)
 
-    ld = LaunchDescription(
-        [
-            IncludeLaunchDescription(
-                AnyLaunchDescriptionSource(
-                    PathJoinSubstitution([pkg_bringup, "launch", "klever5.launch.xml"])
-                ),
-                launch_arguments=configuration.items(),
-            )
-        ]
-    )
+    ld = LaunchDescription([
+        IncludeLaunchDescription(
+            AnyLaunchDescriptionSource(
+                PathJoinSubstitution([pkg_bringup, "launch", "klever5.launch.xml"])
+            ),
+            launch_arguments=configuration.items(),
+        )
+    ])
 
     ls = LaunchService(debug=False)
     ls.include_launch_description(ld)

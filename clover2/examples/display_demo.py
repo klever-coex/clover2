@@ -10,7 +10,7 @@ def make_test_image(width: int, height: int) -> Image:
     image = Image()
     image.width = width
     image.height = height
-    image.encoding = 'mono8'
+    image.encoding = "mono8"
     image.is_bigendian = False
     image.step = width
 
@@ -35,17 +35,15 @@ drone = Clover2()
 
 display = drone.display()
 if display is None:
-    raise RuntimeError('Display driver is not available')
-if 'mono8' not in display.supported_encodings:
-    raise RuntimeError(
-        f'Display does not support mono8: {display.supported_encodings}'
-    )
+    raise RuntimeError("Display driver is not available")
+if "mono8" not in display.supported_encodings:
+    raise RuntimeError(f"Display does not support mono8: {display.supported_encodings}")
 
 print(
-    f'Display: {display.width}x{display.height}, '
-    f'max_fps={display.max_fps:.1f}, '
-    f'encodings={display.supported_encodings}'
+    f"Display: {display.width}x{display.height}, "
+    f"max_fps={display.max_fps:.1f}, "
+    f"encodings={display.supported_encodings}"
 )
 
 display.send_image(make_test_image(display.width, display.height))
-print('Test image sent.')
+print("Test image sent.")

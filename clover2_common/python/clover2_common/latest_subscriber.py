@@ -38,14 +38,11 @@ class LatestSubscriber(Generic[MsgT]):
         self._stream_callback: Callable[[MsgT], None] | None = None
         self._lock = threading.Lock()
 
-        self._sub = node.create_subscription(
-            msg_type, topic, self._on_msg, qos
-        )
+        self._sub = node.create_subscription(msg_type, topic, self._on_msg, qos)
 
     def get_data(self, timeout: float = 5.0) -> MsgT:
         if not self._event.wait(timeout):
-            raise TimeoutError(
-                f"No message received on topic within {timeout}s")
+            raise TimeoutError(f"No message received on topic within {timeout}s")
 
         with self._lock:
             assert self._latest is not None

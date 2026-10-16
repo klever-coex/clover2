@@ -51,8 +51,7 @@ class Clover2(Node):
             try:
                 self._cached_clients[name] = factory()
             except Exception as e:  # noqa: BLE001
-                self.get_logger().warning(
-                    f"Failed to create client '{name}': {e}")
+                self.get_logger().warning(f"Failed to create client '{name}': {e}")
                 return None
 
         return self._cached_clients[name]

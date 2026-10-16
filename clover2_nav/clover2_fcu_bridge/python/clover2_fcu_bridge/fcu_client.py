@@ -62,9 +62,7 @@ class FCUClient:
         return self._state.mode
 
     def get_position(self, from_frame: str = "map") -> DronePosition:
-        transform = self._tf_buffer.lookup_transform(
-            from_frame, "base_link", Time()
-        )
+        transform = self._tf_buffer.lookup_transform(from_frame, "base_link", Time())
 
         rpy = euler_from_quaternion((
             transform.transform.rotation.x,

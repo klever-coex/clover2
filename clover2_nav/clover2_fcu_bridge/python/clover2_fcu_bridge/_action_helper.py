@@ -41,8 +41,7 @@ class ActionHelper:
         self._done_callbacks: list = []
 
         try:
-            goal_future: Future = action.send_goal_async(
-                goal, goal_uuid=goal_uuid)
+            goal_future: Future = action.send_goal_async(goal, goal_uuid=goal_uuid)
         except Exception as error:  # noqa: BLE001
             self._complete(ActionStatus.ABORTED, message=str(error))
             return

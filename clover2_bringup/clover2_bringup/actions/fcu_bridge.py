@@ -66,8 +66,7 @@ class FCUBridgeAction(Action):
         if parameters is not None:
             if is_substitution(parameters):
                 parameters = normalize_typed_substitution(parameters, dict)
-            ensure_argument_type(parameters, (list),
-                                 "parameters", "FCUBridgeAction")
+            ensure_argument_type(parameters, (list), "parameters", "FCUBridgeAction")
             self.__extra_parameters = cast(list, parameters)
 
     @classmethod
@@ -92,16 +91,13 @@ class FCUBridgeAction(Action):
         if isinstance(use_sim_time_val, str):
             kwargs["use_sim_time"] = use_sim_time_val.split()
 
-        params_files_val = entity.get_attr(
-            "params_files", data_type=str, optional=True)
+        params_files_val = entity.get_attr("params_files", data_type=str, optional=True)
         if isinstance(params_files_val, str):
             kwargs["params_files"] = params_files_val.split()
 
-        param_entities = entity.get_attr(
-            "param", data_type=list[Entity], optional=True)
+        param_entities = entity.get_attr("param", data_type=list[Entity], optional=True)
         if param_entities is not None:
-            kwargs["parameters"] = Node.parse_nested_parameters(
-                param_entities, parser)
+            kwargs["parameters"] = Node.parse_nested_parameters(param_entities, parser)
 
         return cls, kwargs
 
@@ -127,12 +123,10 @@ class FCUBridgeAction(Action):
             mavros_params.append(self.__mavros_params_file)
             if not self._has_use_sim_time_in_extra():
                 mavros_params.append({"use_sim_time": self.__use_sim_time})
-            mavros_params.append(
-                {
-                    "gcs_url": "tcp-l://0.0.0.0:5760",
-                    "fcu_url": fcu_url,
-                }
-            )
+            mavros_params.append({
+                "gcs_url": "tcp-l://0.0.0.0:5760",
+                "fcu_url": fcu_url,
+            })
             mavros_params.extend(self.__extra_parameters)
 
             actions.append(

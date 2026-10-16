@@ -28,10 +28,7 @@ class ThermalCameraClient:
         desired_encoding: str = "bgr8",
     ) -> None:
         def on_image(msg: Image) -> None:
-            callback(
-                self._bridge.imgmsg_to_cv2(
-                    msg, desired_encoding=desired_encoding)
-            )
+            callback(self._bridge.imgmsg_to_cv2(msg, desired_encoding=desired_encoding))
 
         if callback is not None:
             self._temp.stream_data(on_image)

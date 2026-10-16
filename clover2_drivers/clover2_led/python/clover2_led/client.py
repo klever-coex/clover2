@@ -28,8 +28,7 @@ class LEDClient:
         self._led_count = 0
         self._max_fps = 0.0
 
-        self._frame_pub = node.create_publisher(
-            LedFrame, self._topic("led_frame"), 5)
+        self._frame_pub = node.create_publisher(LedFrame, self._topic("led_frame"), 5)
         self._get_info_client = node.create_client(
             GetDriverInfo, self._service("get_driver_info")
         )
@@ -63,20 +62,18 @@ class LEDClient:
             )
 
         result = wait_future(
-            self._get_frame_client.call_async(
-                GetCurrentFrame.Request()), timeout
+            self._get_frame_client.call_async(GetCurrentFrame.Request()), timeout
         )
         if not result:
             self._node.get_logger().error("Service did not respond")
             return [], 0.0
         if not result.success:
-            self._node.get_logger().error(
-                f"`get_current_frame`: {result.message}"
-            )
+            self._node.get_logger().error(f"`get_current_frame`: {result.message}")
             return [], 0.0
 
-        return [(color.r, color.g, color.b) for color in result.colors], \
-            result.brightness
+        return [
+            (color.r, color.g, color.b) for color in result.colors
+        ], result.brightness
 
     def send_frame(self, colors: list[tuple[int, int, int]], brightness: float = 1.0):
         msg = LedFrame()
@@ -137,13 +134,11 @@ class LEDClient:
         if not self._start_animation_client.wait_for_service(1.0):
             raise RuntimeError("start_animation service not available")
 
-        result = wait_future(
-            self._start_animation_client.call_async(req), timeout=1.0)
+        result = wait_future(self._start_animation_client.call_async(req), timeout=1.0)
         if not result:
             self._node.get_logger().error("Service did not respond")
         elif not result.success:
-            self._node.get_logger().error(
-                f"`start_animation`: {result.message}")
+            self._node.get_logger().error(f"`start_animation`: {result.message}")
 
     def _update_driver_info(self):
         if not self._get_info_client.wait_for_service(1.0):
@@ -158,8 +153,7 @@ class LEDClient:
             self._node.get_logger().error("Service did not respond")
             return
         if not result.success:
-            self._node.get_logger().error(
-                f"`get_driver_info`: {result.message}")
+            self._node.get_logger().error(f"`get_driver_info`: {result.message}")
             return
 
         self._led_count = result.led_count

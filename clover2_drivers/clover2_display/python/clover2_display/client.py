@@ -55,9 +55,7 @@ class DisplayClient:
     def send_image(self, image: Image) -> None:
         self._image_pub.publish(image)
 
-    def send_cv_image(
-        self, image: np.ndarray, encoding: str = "passthrough"
-    ) -> None:
+    def send_cv_image(self, image: np.ndarray, encoding: str = "passthrough") -> None:
         self.send_image(self._bridge.cv2_to_imgmsg(image, encoding=encoding))
 
     def _topic(self, name: str) -> str:
@@ -79,8 +77,7 @@ class DisplayClient:
             self._node.get_logger().error("Service did not respond")
             return
         if not result.success:
-            self._node.get_logger().error(
-                f"`get_driver_info`: {result.message}")
+            self._node.get_logger().error(f"`get_driver_info`: {result.message}")
             return
 
         self._width = result.width
