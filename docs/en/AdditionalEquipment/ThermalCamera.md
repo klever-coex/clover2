@@ -75,7 +75,7 @@ The thermal imaging camera can be mounted on the quadcopter using one of two met
 2. Secure the mount to the bottom deck using M3x8 screws, as shown in the figure.
 
 
-   ```{figure} @assets@/ru/programming/sensors/thermal-camera/thermal-mount-2.webp
+   ```{figure} @assets@/en/programming/sensors/thermal-camera/thermal-mount-2.webp
    :alt: Установка камеры на нижнюю деку
    :width: 700px
    :align: center

@@ -86,7 +86,7 @@ distance = ranges[i]
 
 1. Attach the plastic mounting deck using M2.5x6 screws.
 
-   ```{figure} @assets@/ru/programming/sensors/rplidar/assemble-lidar-1.webp
+   ```{figure} @assets@/en/programming/sensors/rplidar/assemble-lidar-1.webp
    :alt: Установка RPLidar C1
    :width: 700px
    :align: center
@@ -100,7 +100,7 @@ distance = ranges[i]
 2. Install the M3x40 aluminum standoffs onto the mounting deck using M3x6 screws.
 
 
-   ```{figure} @assets@/ru/programming/sensors/rplidar/assemble-lidar-2.webp
+   ```{figure} @assets@/en/programming/sensors/rplidar/assemble-lidar-2.webp
    :alt: Установка алюминиевых стоек
    :width: 700px
    :align: center
@@ -112,7 +112,7 @@ distance = ranges[i]
 
 3. Mount the prepared RPLiDAR C1 onto the aluminum standoffs using M3x6 screws.
 
-   ```{figure} @assets@/ru/programming/sensors/rplidar/assemble-lidar-3.webp
+   ```{figure} @assets@/en/programming/sensors/rplidar/assemble-lidar-3.webp
    :alt: Установка RPLidar C1 на алюминиевые стойки
    :width: 700px
    :align: center
