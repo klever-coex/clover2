@@ -21,13 +21,70 @@ MicoAir743v2 flight controller
 
 ## Required Software and Files
 
-Download and install the following items before proceeding:
+Prepare the following before proceeding:
 
-- [Betaflight Configurator](https://github.com/betaflight/betaflight-configurator/releases) — software used to configure your flight controller settings.
+- [Betaflight App](https://app.betaflight.com/) — the app used to build firmware and configure your flight controller.
 - [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html) — utility required to clear the controller memory and flash new firmware.
-- [Betaflight for MicoAir743v2](https://drive.google.com/file/d/1gaLgiCqa-gUa-vJtmGSQhVh7zwCFcqFN/view?usp=drive_link) — firmware file `MicoAir743v2_Betaflight-4.5.2.hex`.
+- Betaflight firmware for **MicoAir743v2** in `.hex` format — build and save it as described below.
 
 Ensure **STM32CubeProgrammer** is fully installed before flashing the device.
+
+## Building and Saving the HEX File
+
+1. Open [Betaflight App](https://app.betaflight.com/) and select `Firmware Flasher`.
+
+    ```{figure} @assets@/en/assembly/clover5-fpv/firmware/build-open-flasher.webp
+    :alt: Opening the Betaflight firmware flasher
+    :width: 700px
+    :align: center
+    Opening the Betaflight firmware flasher
+    ```
+
+    <br>
+
+2. In `Board & Build`, select the `MICOAIR743V2` board and the required firmware release.
+
+    ```{figure} @assets@/en/assembly/clover5-fpv/firmware/build-board-selection.webp
+    :alt: Selecting the board and firmware release
+    :width: 700px
+    :align: center
+    Selecting the board and firmware release
+    ```
+
+    <br>
+
+3. Set `OSD Protocol` to `Analog`.
+
+    ```{figure} @assets@/en/assembly/clover5-fpv/firmware/build-osd-protocol.webp
+    :alt: Selecting the Analog OSD protocol
+    :width: 700px
+    :align: center
+    Selecting the Analog OSD protocol
+    ```
+
+    <br>
+
+4. Click `Load Firmware [Online]` and wait for the build to complete.
+
+    ```{figure} @assets@/en/assembly/clover5-fpv/firmware/build-load-firmware.webp
+    :alt: Starting the firmware build
+    :width: 700px
+    :align: center
+    Starting the firmware build
+    ```
+
+    <br>
+
+5. Open the `Flash` tab. Once the build succeeds, click `Save` to save the HEX file to your computer. You will use this file in STM32CubeProgrammer.
+
+    ```{figure} @assets@/en/assembly/clover5-fpv/firmware/build-save-hex.webp
+    :alt: Saving the built HEX file
+    :width: 700px
+    :align: center
+    Saving the built HEX file
+    ```
+
+    <br>
 
 (clover5-fpv-dfu-mode)=
 
@@ -42,9 +99,9 @@ To flash the firmware, you must first put the flight controller into DFU (Device
 
 ## How to Install Betaflight Firmware
 
-1. Open **STM32CubeProgrammer** and select the connection interface. The default is often set to `UART`.
+1. Open **STM32CubeProgrammer** and select the connection interface.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/select-connection-interface.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/firmware/select-connection-interface.webp
     :alt: Выбор интерфейса подключения в STM32CubeProgrammer
     :width: 700px
     :align: center
@@ -55,7 +112,7 @@ To flash the firmware, you must first put the flight controller into DFU (Device
 
 2. Select the `USB` interface.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/select-usb-interface.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/firmware/select-usb-interface.webp
     :alt: Выбор интерфейса USB
     :width: 700px
     :align: center
@@ -66,7 +123,7 @@ To flash the firmware, you must first put the flight controller into DFU (Device
 
 3. Click the Refresh button located to the right of the `Port` list. **STM32CubeProgrammer** should detect the controller in DFU mode. If the device does not appear, revisit the  {ref}`How to Enter DFU Mode<clover5-fpv-dfu-mode>` section.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/refresh-dfu-device.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/firmware/refresh-dfu-device.webp
     :alt: Поиск DFU-устройства
     :width: 700px
     :align: center
@@ -77,7 +134,7 @@ To flash the firmware, you must first put the flight controller into DFU (Device
 
 4. Click `Connect` to establish a link with the controller.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/connect-dfu-device.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/firmware/connect-dfu-device.webp
     :alt: Подключение к контроллеру в режиме DFU
     :width: 700px
     :align: center
@@ -88,7 +145,7 @@ To flash the firmware, you must first put the flight controller into DFU (Device
 
 5. Perform a full memory erase: Click the Eraser icon in the lower-left corner of the window, confirm the action in the pop-up, and wait for the process to finish.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/full-chip-erase.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/firmware/full-chip-erase.webp
     :alt: Полная очистка памяти контроллера
     :width: 700px
     :align: center
@@ -97,9 +154,9 @@ To flash the firmware, you must first put the flight controller into DFU (Device
 
     <br>
 
-6. Click `Open file` and select `MicoAir743v2_Betaflight-4.5.2.hex`.
+6. Click `Open file` and select the downloaded `.hex` firmware file for **MicoAir743v2**. The filename depends on the firmware version.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/open-firmware-file.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/firmware/open-firmware-file.webp
     :alt: Выбор файла прошивки Betaflight
     :width: 700px
     :align: center
@@ -110,7 +167,7 @@ To flash the firmware, you must first put the flight controller into DFU (Device
 
 7. Click `Download` and wait for the writing process to complete.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/download-firmware.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/firmware/download-firmware.webp
     :alt: Загрузка прошивки Betaflight
     :width: 700px
     :align: center
@@ -121,7 +178,7 @@ To flash the firmware, you must first put the flight controller into DFU (Device
 
 8. Once the writing is successful, click `Disconnect`.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/disconnect-programmer.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/firmware/disconnect-programmer.webp
     :alt: Отключение контроллера от STM32CubeProgrammer
     :width: 700px
     :align: center
@@ -130,9 +187,9 @@ To flash the firmware, you must first put the flight controller into DFU (Device
 
     <br>
 
-9. Disconnect the controller from the USB cable. Reconnect it without pressing the `BOOT` button. Open **Betaflight Configurator**.
+9. Disconnect the controller from the USB cable. Reconnect it without pressing the `BOOT` button. Open **Betaflight App**.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/betaflight-configurator.webp
+    ```{figure} @assets@/en/assembly/clover5-fpv/firmware/betaflight-configurator.webp
     :alt: Полётный контроллер в Betaflight Configurator
     :width: 700px
     :align: center
