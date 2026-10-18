@@ -6,6 +6,7 @@
 :hidden:
 
 Simulator/VirtualMachine
+Simulator/DevContainer
 ```
 
 ```{figure} @assets@/common/simulator/sim-screenshot.webp
