@@ -5,7 +5,6 @@
 :maxdepth: 2
 :hidden:
 
-Simulator/DevContainer
 Simulator/VirtualMachine
 ```
 
@@ -46,4 +45,4 @@ Simulator/VirtualMachine
 
 ## Попробуйте сами
 
-Инструкция по запуску симулятора [Gazebo в Dev Container](Simulator/GazeboDevContainer).
+Выберите вариант {doc}`установки и запуска симулятора <Simulator/VirtualMachine>`: Dev Container на Linux, VMware на Windows или UTM на macOS.

@@ -11,7 +11,7 @@ VirtualMachine/UTM
 
 Виртуальная машина позволяет запустить Linux со средой симуляции внутри другой операционной системы, например Windows или macOS.
 
-```{warning}
+```{important}
 Для компьютеров с ОС Linux можно использовать VMware Workstation Pro и `.ova` образ, но этот вариант не тестировался. Для Linux рекомендуется использовать [Dev Container](./DevContainer).
 ```
 
