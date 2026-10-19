@@ -2,6 +2,10 @@
 
 ## Установка VMware
 
+Скачайте [установщик VMware Workstation Pro для Windows](https://downloads.klevercoex.ru/vmware_exe/VMware-Workstation-Full-26H1u1-25688693.exe), запустите файл `.exe` и завершите установку по подсказкам мастера. Перезагрузите компьютер, если установщик предложит это сделать.
+
+<!-- Инструкция Broadcom сохранена для перевода на английский.
+
 Скачайте актуальный **VMware Workstation Pro для Windows** из [официального каталога Broadcom](https://support.broadcom.com/group/ecx/productdownloads?freeDownloads=true&subfamily=VMware+Workstation+Pro). Ссылка ведёт к каталогу версий, чтобы можно было выбрать свежий выпуск.
 
 1. Войдите в учётную запись Broadcom или зарегистрируйтесь.
@@ -10,6 +14,8 @@
 4. Скачайте установщик `.exe`, запустите его и завершите установку по подсказкам мастера. Перезагрузите компьютер, если установщик предложит это сделать.
 
 VMware Workstation Pro бесплатен для личного, учебного и коммерческого использования; лицензионный ключ не требуется. Подробности доступны в [инструкции Broadcom по загрузке и лицензированию](https://knowledge.broadcom.com/external/article/368667/download-and-license-information-for-vmw.html).
+
+-->
 
 ## Импорт OVA в Workstation
 
@@ -44,7 +50,18 @@ VMware Workstation Pro бесплатен для личного, учебног�
 
    <br>
 
-2. В разделе **Display** увеличте объем видеопамяти минимум до 1гб.
+2. В разделе **Processors → Virtualization Engine** выключите **Virtualize Intel VT-x/EPT or AMD-V/RVI**.
+
+   ```{figure} @assets@/common/simulator/vmware/processor-virtualization.webp
+   :alt: Выключение вложенной виртуализации в настройках процессора VMware
+   :width: 90%
+   :align: center
+   Выключение Virtualize Intel VT-x/EPT or AMD-V/RVI
+   ```
+
+   <br>
+
+3. В разделе **Display** увеличте объем видеопамяти минимум до 1гб.
 
    ```{figure} @assets@/common/simulator/vmware/display-acceleration.webp
    :alt: Увеличение объема видеопамяти

@@ -6,7 +6,7 @@
 :hidden:
 
 Simulator/VirtualMachine
-Simulator/DevContainer
+Simulator/Usage
 ```
 
 ```{figure} @assets@/common/simulator/sim-screenshot.webp
@@ -46,4 +46,4 @@ Simulator/DevContainer
 
 ## Попробуйте сами
 
-Выберите вариант {doc}`установки и запуска симулятора <Simulator/VirtualMachine>`: Dev Container на Linux, VMware на Windows или UTM на macOS.
+Выберите вариант {doc}`установки <Simulator/VirtualMachine>`: Dev Container на Linux, VMware на Windows или UTM на macOS. Затем перейдите к разделу {doc}`Использование <Simulator/Usage>`.
