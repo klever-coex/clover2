@@ -1,13 +1,13 @@
-# Виртуальная машина
+# Установка
 
 ```{toctree}
 :titlesonly:
 :maxdepth: 1
 :hidden:
 
-VirtualMachine/DevContainer
-VirtualMachine/VmWare
-VirtualMachine/UTM
+Installation/DevContainer
+Installation/VmWare
+Installation/UTM
 ```
 
 Виртуальная машина позволяет запустить Linux со средой симуляции внутри другой операционной системы, например Windows или macOS.

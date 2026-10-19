@@ -161,17 +161,27 @@ colcon build --symlink-install
 
 ### Подключение собранных пакетов
 
-В том же терминале выполните:
+В терминале выполните:
 
 ```bash
 source ./install/setup.bash
 ros2 pkg list | grep clover
 ```
 
+Вы должны увидеть список пакетов Clover2, например:
+
 ```{figure} @assets@/common/simulator/gazebo-dev-container/list-builded-packages.webp
 :alt: Пакеты Clover2 в собранном workspace
 :width: 90%
 :align: center
+
+Пакеты Clover2 в собранном workspace
+```
+
+Рекомедуется добавить команды подключения в `~/.bashrc`, иначе в каждом новом терминале  собранный workspace нужно будет подключать заново:
+
+```bash
+echo "source ~/clover2-dev/install/setup.bash" >> ~/.bashrc
 ```
 
 <br>

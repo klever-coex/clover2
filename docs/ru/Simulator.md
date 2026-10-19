@@ -5,7 +5,7 @@
 :maxdepth: 2
 :hidden:
 
-Simulator/VirtualMachine
+Simulator/Installation
 Simulator/Usage
 ```
 
