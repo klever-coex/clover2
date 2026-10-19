@@ -6,19 +6,15 @@
 #pragma once
 
 // clover2
+#include <clover2_fcu/backend/backend_base.hpp>
+#include <clover2_fcu/capability/base_interface.hpp>
 #include <clover2_fcu/capability/all.hpp>
 #include <clover2_fcu/capability/battery_interface.hpp>
 #include <clover2_fcu/capability/commands_interface.hpp>
 #include <clover2_fcu/capability/odometry_interface.hpp>
 #include <clover2_fcu/capability/parameters_interface.hpp>
-#include <clover2_fcu/capability/setpoint_attitude_interface.hpp>
 #include <clover2_fcu/capability/setpoint_base.hpp>
-#include <clover2_fcu/capability/setpoint_position_interface.hpp>
-#include <clover2_fcu/capability/setpoint_rates_interface.hpp>
-#include <clover2_fcu/capability/setpoint_velocity_interface.hpp>
 #include <clover2_fcu/capability/system_state_interface.hpp>
-#include <clover2_fcu/context.hpp>
-#include <clover2_fcu/backend/backend_base.hpp>
 #include <clover2_fcu_msgs/msg/fcu_config.hpp>
 #include <clover2_fcu_msgs/srv/get_config.hpp>
 
@@ -31,7 +27,6 @@
 
 // STL
 #include <chrono>
-#include <concepts>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -39,20 +34,7 @@
 
 namespace clover2_fcu {
 
-/**
- * @brief Setpoint capability contract served by this client build.
- *
- * Requires the type to derive from @ref capability::setpoint_base and be
- * one of the supported setpoint contracts, so unsupported types are
- * rejected at the call site with a constraint violation.
- */
-template <typename T>
-concept setpoint_type =
-    std::derived_from<T, capability::setpoint_base> &&
-    (std::same_as<T, capability::setpoint_position_interface> ||
-     std::same_as<T, capability::setpoint_velocity_interface> ||
-     std::same_as<T, capability::setpoint_attitude_interface> ||
-     std::same_as<T, capability::setpoint_rates_interface>);
+class mode_base;
 
 /**
  * @brief Flight stack interface client.
@@ -61,22 +43,24 @@ concept setpoint_type =
  * — the single configuration point (the constructor blocks until the
  * bridge answers or the wait timeout expires, @ref exception on failure).
  *
- * The client applies the capability resolution itself: an explicit
- * override per capability if the bridge configures one, otherwise the
- * default protocol. The resolved capability-to-factory map is cached.
+ * The client owns the @ref base_interface implementation and one backend
+ * factory instance. Capability providers are cached singletons: the
+ * factory creates a provider on the first get() and serves the same
+ * instance afterwards, so the provider lives as long as the client and
+ * telemetry subscriptions are released via the RAII token returned by
+ * on_update():
  *
- * Capability providers are created by get(): the factory is resolved,
- * initialized once (backend environment) and asked for a new provider
- * instance on every call — callers own the returned handles:
+ *   auto odometry = fcu.get<odometry_interface>();  // cached handle
  *
- *   auto odometry = fcu.odometry();   // shared_ptr, keep it
+ * Setpoints are the exception: they are bound to a flight mode and can be
+ * created only inside mode_base (create_setpoint() is private, mode_base
+ * is a friend; setpoint providers are not cached).
  *
  * Accessors throw @ref exception when the capability is not served by the
- * resolved factory; check with @ref has (may instantiate the factory,
- * creates no providers) or declare requirements via
- * client::settings::require (validated at construction).
+ * backend; check with @ref has (creates nothing) or declare requirements
+ * via client::settings::require (validated at construction).
  */
-class client : public context {
+class client {
 public:
     /**
      * @brief Client construction settings (fluent).
@@ -100,7 +84,7 @@ public:
         }
 
         /// @brief Require a capability: construction fails when its
-        ///        resolved factory does not serve it.
+        ///        backend does not serve it.
         template <capability::contract T>
         settings& require() {
             m_required.push_back(T::name);
@@ -126,8 +110,9 @@ public:
      */
     template <typename NodeT>
     explicit client(NodeT& node, settings s = {})
-        : context(node)
-        , m_settings(std::move(s)) {
+        : m_settings(std::move(s))
+        , m_base(std::make_shared<capability::base_interface_impl>(
+              node, m_settings.bridge_node())) {
         m_callback_group = node.create_callback_group(
             rclcpp::CallbackGroupType::MutuallyExclusive);
 
@@ -143,11 +128,19 @@ public:
     client& operator=(const client&) = delete;
     ~client() = default;
 
+    /**
+     * @brief The cached provider for the capability contract.
+     *
+     * The same instance is returned on every call; the provider lives as
+     * long as the client.
+     * @throws clover2_fcu::exception when the capability is not served.
+     */
     template <capability::contract CapabilityT>
     CapabilityT::shared_ptr get() {
-        return std::static_pointer_cast<CapabilityT>(get(CapabilityT::name));
+        return backend()->template get<CapabilityT>();
     }
 
+    /// @brief The cached provider for the capability name.
     std::shared_ptr<void> get(const std::string& capability);
 
     capability::system_state_interface::shared_ptr state() {
@@ -170,39 +163,19 @@ public:
         return get<capability::parameters_interface>();
     }
 
-    /**
-     * @brief Setpoint capability accessor.
-     * @tparam T supported setpoint contract
-     *         (capability::setpoint_position_interface, ...).
-     * @return a new provider handle; callers own it.
-     */
-    template <setpoint_type T>
-    T::shared_ptr setpoint() {
-        if constexpr (std::same_as<T,
-                                   capability::setpoint_position_interface>) {
-            return get<capability::setpoint_position_interface>();
-        } else if constexpr (std::same_as<
-                                 T, capability::setpoint_velocity_interface>) {
-            return get<capability::setpoint_velocity_interface>();
-        } else if constexpr (std::same_as<
-                                 T, capability::setpoint_attitude_interface>) {
-            return get<capability::setpoint_attitude_interface>();
-        } else if constexpr (std::same_as<
-                                 T, capability::setpoint_rates_interface>) {
-            return get<capability::setpoint_rates_interface>();
-        }
-    }
-
-    /// @brief Whether the capability is served by its resolved factory.
+    /// @brief Whether the capability is served by the backend.
     ///
-    /// Resolves the factory (may instantiate it; creates no providers).
+    /// Reads the backend capability list; creates nothing.
     template <capability::contract T>
     bool has() {
         return has(T::name);
     }
 
-    /// @brief Whether the capability is served by its resolved factory.
+    /// @brief Whether the capability is served by the backend.
     bool has(const std::string& capability);
+
+    /// @brief The client runtime environment (providers, mode_base).
+    capability::base_interface& base() { return *m_base; }
 
     /// @brief The client callback group (used by mode_base for its own
     ///        clients/subscriptions/timers).
@@ -211,6 +184,15 @@ public:
     }
 
 private:
+    /// @brief Create a setpoint provider bound to the mode.
+    ///
+    /// Only mode_base may call this: a setpoint provider cannot exist
+    /// outside a mode, so none of the muted-outside-mode cases exist.
+    template <capability::setpoint_contract SetpointT>
+    SetpointT::shared_ptr create_setpoint(mode_token token) {
+        return backend()->template create_setpoint<SetpointT>(token);
+    }
+
     /// @brief Blocking bridge connection.
     /// @throws clover2_fcu::exception on failure.
     void connect();
@@ -230,7 +212,10 @@ private:
     backend::backend_base::shared_ptr ensure_backend(
         const std::string& plugin_name);
 
+    friend class mode_base;
+
     settings m_settings;
+    std::shared_ptr<capability::base_interface_impl> m_base;
 
     rclcpp::CallbackGroup::SharedPtr m_callback_group;
     rclcpp::Client<clover2_fcu_msgs::srv::GetConfig>::SharedPtr m_config_client;

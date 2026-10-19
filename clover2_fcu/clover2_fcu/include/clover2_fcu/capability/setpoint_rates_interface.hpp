@@ -29,8 +29,8 @@ public:
 
     static constexpr const char* name = "setpoint_rates";
 
-    explicit setpoint_rates_interface(context& ctx)
-        : setpoint_base(ctx) {}
+    explicit setpoint_rates_interface(base_interface& base, mode_token token)
+        : setpoint_base(base, token) {}
 
     /**
      * @brief Rates setpoint update.

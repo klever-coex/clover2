@@ -6,13 +6,14 @@
 #pragma once
 
 // clover2
+#include <clover2_common/util/shared_callback.hpp>
+#include <clover2_fcu/capability/base_interface.hpp>
 #include <clover2_fcu/common/exception.hpp>
-#include <clover2_fcu/context.hpp>
 
 // STL
 #include <chrono>
 #include <functional>
-#include <list>
+#include <memory>
 
 namespace clover2_fcu {
 
@@ -24,27 +25,39 @@ namespace clover2_fcu {
  * Plugin implementations call @ref update_data from their transport
  * callbacks; consumers use last()/last_valid()/on_update().
  *
+ * Providers are cached singletons of one client (they live as long as the
+ * client), so callbacks are released with the RAII token returned by
+ * on_update(); the token may safely outlive the provider. Callbacks run
+ * on the executor thread of the hosting node.
+ *
  * Assumes a single-threaded executor (callback registration and data
  * updates happen on the same thread).
  *
  * @tparam T Snapshot type (e.g. clover2_fcu::data::odometry).
  */
 template <typename T>
-class telemetry_interface {
+class telemetry_interface
+    : public std::enable_shared_from_this<telemetry_interface<T>> {
 public:
     using update_callback = std::function<void(const T&)>;
+    using callbacks = clover2_common::util::shared_callback<void(const T&)>;
+    using token = typename callbacks::token;
 
-    explicit telemetry_interface(context& ctx)
-        : m_clock(ctx.clock()) {}
+    explicit telemetry_interface(capability::base_interface& base)
+        : m_clock(base.clock()) {}
 
     virtual ~telemetry_interface() = default;
 
     /**
-     * @brief Add a callback executed on every new snapshot.
+     * @brief Subscribe a callback executed on every new snapshot.
      * @param callback the callback function.
+     * @returns RAII token; keep it while subscribed.
+     *
+     * The provider must be owned by a shared_ptr (it always is: handles
+     * come from the client capability cache).
      */
-    void on_update(update_callback callback) {
-        m_callbacks.push_back(std::move(callback));
+    token on_update(update_callback callback) {
+        return m_callbacks.add(this->shared_from_this(), std::move(callback));
     }
 
     /**
@@ -89,9 +102,7 @@ protected:
         m_last_time = m_clock->now();
         m_has_data = true;
 
-        for (const auto& callback : m_callbacks) {
-            callback(m_last);
-        }
+        m_callbacks.invoke(m_last);
     }
 
 private:
@@ -101,7 +112,7 @@ private:
     rclcpp::Time m_last_time{};
     bool m_has_data{false};
 
-    std::list<update_callback> m_callbacks;
+    callbacks m_callbacks;
 };
 
 }  // namespace clover2_fcu

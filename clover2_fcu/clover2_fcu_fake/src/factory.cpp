@@ -5,10 +5,9 @@
 
 // clover2
 #include <clover2_fcu_fake/factory.hpp>
-
-// clover2
 #include <clover2_fcu/capability/battery_interface.hpp>
 #include <clover2_fcu/capability/commands_interface.hpp>
+#include <clover2_fcu/capability/estimator_interface.hpp>
 #include <clover2_fcu/capability/odometry_interface.hpp>
 #include <clover2_fcu/capability/parameters_interface.hpp>
 #include <clover2_fcu/capability/setpoint_attitude_interface.hpp>
@@ -27,32 +26,32 @@ namespace clover2_fcu::fake {
 
 class fake_system_state : public capability::system_state_interface {
 public:
-    fake_system_state(context& ctx, const YAML::Node&)
-        : capability::system_state_interface(ctx) {}
+    fake_system_state(capability::base_interface& base)
+        : capability::system_state_interface(base) {}
 
     void inject(const data::system_state& state) { update_data(state); }
 };
 
 class fake_odometry : public capability::odometry_interface {
 public:
-    fake_odometry(context& ctx, const YAML::Node&)
-        : capability::odometry_interface(ctx) {}
+    fake_odometry(capability::base_interface& base)
+        : capability::odometry_interface(base) {}
 
     void inject(const data::odometry& odom) { update_data(odom); }
 };
 
 class fake_battery : public capability::battery_interface {
 public:
-    fake_battery(context& ctx, const YAML::Node&)
-        : capability::battery_interface(ctx) {}
+    fake_battery(capability::base_interface& base)
+        : capability::battery_interface(base) {}
 
     void inject(const data::battery& battery) { update_data(battery); }
 };
 
 class fake_commands : public capability::commands_interface {
 public:
-    explicit fake_commands(context& ctx, const YAML::Node&)
-        : m_registry(ctx.get<fake_env>()->registry) {}
+    explicit fake_commands(registry& reg)
+        : m_registry(reg) {}
 
     result arm() override { return m_registry.log_command("arm"); }
     result disarm() override { return m_registry.log_command("disarm"); }
@@ -68,10 +67,38 @@ private:
     registry& m_registry;
 };
 
+class fake_estimator : public capability::estimator_interface {
+public:
+    fake_estimator(capability::base_interface& base, registry& reg)
+        : capability::estimator_interface(base), m_registry(reg) {}
+
+    result reset(capability::estimator_reset scope) override {
+        return m_registry.log_reset(scope);
+    }
+
+    result set_origin(const data::geo_point& origin) override {
+        return m_registry.record_origin(origin);
+    }
+
+    void publish_odometry(const data::odometry& odometry,
+                          capability::estimator_source source) override {
+        const std::scoped_lock lock(m_registry.m_mutex);
+        m_registry.odometry_updates.push_back(
+            registry::recorded_odometry{odometry, source});
+    }
+
+    void inject(const data::estimator_status& status) {
+        update_data(status);
+    }
+
+private:
+    registry& m_registry;
+};
+
 class fake_parameters : public capability::parameters_interface {
 public:
-    explicit fake_parameters(context& ctx, const YAML::Node&)
-        : m_registry(ctx.get<fake_env>()->registry) {}
+    explicit fake_parameters(registry& reg)
+        : m_registry(reg) {}
 
     result get(const std::string& name,
                capability::parameter_value& out) override {
@@ -97,9 +124,10 @@ private:
 
 class fake_position_setpoint : public capability::setpoint_position_interface {
 public:
-    fake_position_setpoint(context& ctx, const YAML::Node&)
-        : capability::setpoint_position_interface(ctx),
-          m_registry(ctx.get<fake_env>()->registry) {}
+    fake_position_setpoint(capability::base_interface& base, mode_token token,
+                           registry& reg)
+        : capability::setpoint_position_interface(base, token),
+          m_registry(reg) {}
 
     void update(const Eigen::Vector3d& position,
                 std::optional<double> heading = {}) override {
@@ -119,9 +147,10 @@ private:
 
 class fake_velocity_setpoint : public capability::setpoint_velocity_interface {
 public:
-    fake_velocity_setpoint(context& ctx, const YAML::Node&)
-        : capability::setpoint_velocity_interface(ctx),
-          m_registry(ctx.get<fake_env>()->registry) {}
+    fake_velocity_setpoint(capability::base_interface& base, mode_token token,
+                           registry& reg)
+        : capability::setpoint_velocity_interface(base, token),
+          m_registry(reg) {}
 
     void update(const Eigen::Vector3d& velocity,
                 std::optional<double> yaw_rate = {}) override {
@@ -141,9 +170,10 @@ private:
 
 class fake_attitude_setpoint : public capability::setpoint_attitude_interface {
 public:
-    fake_attitude_setpoint(context& ctx, const YAML::Node&)
-        : capability::setpoint_attitude_interface(ctx),
-          m_registry(ctx.get<fake_env>()->registry) {}
+    fake_attitude_setpoint(capability::base_interface& base, mode_token token,
+                           registry& reg)
+        : capability::setpoint_attitude_interface(base, token),
+          m_registry(reg) {}
 
     void update(const Eigen::Quaterniond& attitude, double thrust) override {
         const bool streaming = stream_allowed();
@@ -162,9 +192,9 @@ private:
 
 class fake_rates_setpoint : public capability::setpoint_rates_interface {
 public:
-    fake_rates_setpoint(context& ctx, const YAML::Node&)
-        : capability::setpoint_rates_interface(ctx),
-          m_registry(ctx.get<fake_env>()->registry) {}
+    fake_rates_setpoint(capability::base_interface& base, mode_token token, registry& reg)
+        : capability::setpoint_rates_interface(base, token),
+          m_registry(reg) {}
 
     void update(const Eigen::Vector3d& body_rates, double thrust) override {
         const bool streaming = stream_allowed();
@@ -189,12 +219,16 @@ registry& registry::instance() {
 void registry::reset() {
     const std::scoped_lock lock(m_mutex);
     parameters.clear();
+    estimator_origin.reset();
+    odometry_updates.clear();
     position_updates.clear();
     velocity_updates.clear();
     attitude_updates.clear();
     rates_updates.clear();
     m_command_log.clear();
     m_command_result = result::value::success;
+    m_reset_log.clear();
+    m_reset_result = result::value::success;
 }
 
 void registry::publish_system_state(const data::system_state& state) {
@@ -224,6 +258,16 @@ void registry::publish_battery(const data::battery& battery) {
     }
 }
 
+void registry::publish_estimator_status(
+    const data::estimator_status& status) {
+    const std::scoped_lock lock(m_mutex);
+    for (const auto& weak_iface : m_estimators) {
+        if (const auto iface = weak_iface.lock()) {
+            iface->inject(status);
+        }
+    }
+}
+
 void registry::register_system_state(
     const std::shared_ptr<fake_system_state>& iface) {
     const std::scoped_lock lock(m_mutex);
@@ -238,6 +282,12 @@ void registry::register_odometry(const std::shared_ptr<fake_odometry>& iface) {
 void registry::register_battery(const std::shared_ptr<fake_battery>& iface) {
     const std::scoped_lock lock(m_mutex);
     m_batteries.emplace_back(iface);
+}
+
+void registry::register_estimator(
+    const std::shared_ptr<fake_estimator>& iface) {
+    const std::scoped_lock lock(m_mutex);
+    m_estimators.emplace_back(iface);
 }
 
 void registry::set_command_result(result value) {
@@ -256,41 +306,91 @@ result registry::log_command(std::string name) {
     return m_command_result;
 }
 
+void registry::set_reset_result(result value) {
+    const std::scoped_lock lock(m_mutex);
+    m_reset_result = value;
+}
+
+const std::vector<capability::estimator_reset> registry::reset_log() const {
+    const std::scoped_lock lock(m_mutex);
+    return m_reset_log;
+}
+
+result registry::log_reset(capability::estimator_reset scope) {
+    const std::scoped_lock lock(m_mutex);
+    m_reset_log.push_back(scope);
+    return m_reset_result;
+}
+
+result registry::record_origin(const data::geo_point& origin) {
+    const std::scoped_lock lock(m_mutex);
+    estimator_origin = origin;
+    return result::value::success;
+}
+
 factory::factory() {
-    // Telemetry providers register into the shared test registry after
-    // construction: custom creators are used instead of the standard add().
-    add<fake_system_state>(
-        [](context& ctx, const YAML::Node& params) -> std::shared_ptr<void> {
-            auto impl = std::make_shared<fake_system_state>(ctx, params);
+    // Telemetry providers register into the shared test registry at
+    // creation; the environment and the registry are injected by the
+    // builders like any other dependency.
+    add<capability::system_state_interface>(
+        [this] {
+            auto impl = std::make_shared<fake_system_state>(
+                *get<capability::base_interface>());
             registry::instance().register_system_state(impl);
             return impl;
         });
-    add<fake_odometry>(
-        [](context& ctx, const YAML::Node& params) -> std::shared_ptr<void> {
-            auto impl = std::make_shared<fake_odometry>(ctx, params);
-            registry::instance().register_odometry(impl);
-            return impl;
-        });
-    add<fake_battery>(
-        [](context& ctx, const YAML::Node& params) -> std::shared_ptr<void> {
-            auto impl = std::make_shared<fake_battery>(ctx, params);
-            registry::instance().register_battery(impl);
-            return impl;
-        });
+    add<capability::odometry_interface>([this] {
+        auto impl =
+            std::make_shared<fake_odometry>(*get<capability::base_interface>());
+        registry::instance().register_odometry(impl);
+        return impl;
+    });
+    add<capability::battery_interface>([this] {
+        auto impl =
+            std::make_shared<fake_battery>(*get<capability::base_interface>());
+        registry::instance().register_battery(impl);
+        return impl;
+    });
 
-    add<fake_commands>();
-    add<fake_parameters>();
-    add<fake_position_setpoint>();
-    add<fake_velocity_setpoint>();
-    add<fake_attitude_setpoint>();
-    add<fake_rates_setpoint>();
+    add<capability::commands_interface>([] {
+        return std::make_shared<fake_commands>(registry::instance());
+    });
+    add<capability::parameters_interface>([] {
+        return std::make_shared<fake_parameters>(registry::instance());
+    });
+    add<capability::estimator_interface>([this] {
+        auto impl = std::make_shared<fake_estimator>(
+            *get<capability::base_interface>(), registry::instance());
+        registry::instance().register_estimator(impl);
+        return impl;
+    });
+
+    add_setpoint<capability::setpoint_position_interface>(
+        [this](mode_token token) {
+            return std::make_shared<fake_position_setpoint>(
+                *get<capability::base_interface>(), token, registry::instance());
+        });
+    add_setpoint<capability::setpoint_velocity_interface>(
+        [this](mode_token token) {
+            return std::make_shared<fake_velocity_setpoint>(
+                *get<capability::base_interface>(), token, registry::instance());
+        });
+    add_setpoint<capability::setpoint_attitude_interface>(
+        [this](mode_token token) {
+            return std::make_shared<fake_attitude_setpoint>(
+                *get<capability::base_interface>(), token, registry::instance());
+        });
+    add_setpoint<capability::setpoint_rates_interface>(
+        [this](mode_token token) {
+            return std::make_shared<fake_rates_setpoint>(*get<capability::base_interface>(),
+                                                         token,
+                                                         registry::instance());
+        });
 }
 
 std::string factory::protocol() const { return "fake"; }
 
-void factory::do_initialize(context& ctx, const YAML::Node& params) {
-    ctx.provide(std::make_shared<fake_env>(ctx, params));
-}
+void factory::do_initialize(std::shared_ptr<capability::base_interface>) {}
 
 }  // namespace clover2_fcu::fake
 

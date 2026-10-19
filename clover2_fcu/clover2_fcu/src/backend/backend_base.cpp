@@ -1,3 +1,8 @@
+/**
+ * @file backend_base.cpp
+ * @brief Provides the backend base class implementation.
+ */
+
 // clover2
 #include <clover2_fcu/backend/backend_base.hpp>
 
@@ -5,40 +10,69 @@ namespace clover2_fcu::backend {
 
 std::vector<std::string> backend_base::capabilities() const {
     std::vector<std::string> names;
-    names.reserve(m_builders.size());
+    names.reserve(m_builders.size() + m_setpoint_builders.size());
 
     for (const auto& [name, builder] : m_builders) {
+        names.push_back(name);
+    }
+    for (const auto& [name, builder] : m_setpoint_builders) {
         names.push_back(name);
     }
 
     return names;
 }
 
-void backend_base::initialize(context& ctx, const YAML::Node& params) {
+void backend_base::initialize(std::shared_ptr<capability::base_interface> base) {
     if (m_loaded) {
         return;
     }
 
-    do_initialize(ctx, params);
+    m_cache.emplace(capability::base_interface::name, base);
+    do_initialize(base);
     m_loaded = true;
 }
 
-std::shared_ptr<void> backend_base::create(const std::string& capability,
-                                           context& ctx,
-                                           const YAML::Node& params) const {
+std::shared_ptr<void> backend_base::get(const std::string& capability) const {
     if (!m_loaded) {
         throw exception(
-            "factory '{}' is not initialized (initialize() must be called "
-            "before create())",
+            "backend '{}' is not initialized (initialize() must be called "
+            "before get())",
             protocol());
     }
 
-    const auto it = m_builders.find(capability);
-    if (it == m_builders.end()) {
-        throw exception("factory '{}' does not serve capability '{}'",
+    const auto cached = m_cache.find(capability);
+    if (cached != m_cache.end()) {
+        return cached->second;
+    }
+
+    const auto builder = m_builders.find(capability);
+    if (builder == m_builders.end()) {
+        throw exception("backend '{}' does not serve capability '{}'",
                         protocol(), capability);
     }
-    return it->second(ctx, params);
+
+    auto provider = builder->second();
+    m_cache.emplace(capability, provider);
+
+    return provider;
+}
+
+std::shared_ptr<void> backend_base::create_setpoint(
+    const std::string& setpoint, mode_token token) const {
+    if (!m_loaded) {
+        throw exception(
+            "backend '{}' is not initialized (initialize() must be called "
+            "before create_setpoint())",
+            protocol());
+    }
+
+    const auto builder = m_setpoint_builders.find(setpoint);
+    if (builder == m_setpoint_builders.end()) {
+        throw exception("backend '{}' does not serve setpoint '{}'",
+                        protocol(), setpoint);
+    }
+
+    return builder->second(token);
 }
 
 }  // namespace clover2_fcu::backend

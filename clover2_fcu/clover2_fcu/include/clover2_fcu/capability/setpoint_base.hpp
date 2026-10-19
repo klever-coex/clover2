@@ -1,27 +1,30 @@
 /**
  * @file setpoint_base.hpp
- * @brief Provides the setpoint capability base and the mode gate.
+ * @brief Provides the setpoint capability base, the mode gate and the
+ *        setpoint contract concept.
  */
 
 #pragma once
 
 // clover2
-#include <clover2_fcu/common/exception.hpp>
-#include <clover2_fcu/context.hpp>
+#include <clover2_fcu/capability/base_interface.hpp>
 #include <clover2_fcu_msgs/msg/mode_state.hpp>
 
 // ROS2
 #include <rclcpp/rclcpp.hpp>
 
 // STL
+#include <concepts>
 #include <memory>
 
 namespace clover2_fcu {
 
 /**
- * @brief Mode token: published into the context by mode_base at
- *        construction; a setpoint provider created while a token is
- *        present is bound to that mode.
+ * @brief Mode binding of a setpoint provider.
+ *
+ * Issued by mode_base, which is the only place allowed to create setpoint
+ * providers: the token is a mandatory constructor argument, so a provider
+ * cannot exist outside a mode.
  */
 struct mode_token {
     uint32_t mode_id{0};
@@ -29,54 +32,70 @@ struct mode_token {
 
 namespace capability {
 
+class setpoint_position_interface;
+class setpoint_velocity_interface;
+class setpoint_attitude_interface;
+class setpoint_rates_interface;
+
 /**
  * @brief Base class for setpoint capability contracts and providers.
  *
- * Creating a setpoint provider is always allowed (px4 parity: px4 lets you
- * construct setpoint types anywhere too), publishing is not:
- *
- * - a provider created inside a mode (mode_base publishes a @ref mode_token
- *   into the context) streams only while that mode holds the bridge lease;
- * - a provider created outside any mode is permanently muted.
+ * A setpoint provider is bound to a flight mode at construction (the
+ * mandatory @ref mode_token) and streams only while that mode holds the
+ * bridge activation lease — the counterpart of px4's "the FMU consumes
+ * only the active mode's stream" arbitration.
  *
  * Backend providers must check stream_allowed() before every publish and
- * silently skip the publication when it is false (mute, not an exception) —
- * this is the counterpart of px4's "the FMU consumes only the active
- * mode's stream" arbitration.
+ * silently skip the publication when it is false (mute, not an exception);
+ * @ref warn_muted logs a throttled hint when that happens.
  */
 class setpoint_base {
 public:
-    explicit setpoint_base(context& ctx);
+    setpoint_base(base_interface& base, mode_token token);
     setpoint_base(const setpoint_base&) = delete;
     setpoint_base& operator=(const setpoint_base&) = delete;
     virtual ~setpoint_base() = default;
 
-    /// @brief Whether publishing is currently allowed for this provider.
+    /// @brief Whether publishing is currently allowed for this provider:
+    ///        the bound mode holds the bridge activation lease.
     bool stream_allowed() const noexcept {
-        return m_mode_id != 0 && m_active_mode_id == m_mode_id;
+        return m_active_mode_id == m_mode_id;
     }
 
     /// @brief Log a throttled warning when publishing is attempted while
-    /// muted. Call when stream_allowed() returned false.
+    ///        the mode is not active. Call when stream_allowed() returned
+    ///        false.
     void warn_muted() const {
         RCLCPP_WARN_THROTTLE(
             m_logger, *m_clock, 5000,
-            "setpoint provider is muted (%s); stream setpoints via "
-            "clover2_fcu::mode_base",
-            m_mode_id == 0 ? "created outside a mode" : "mode not active");
+            "setpoint provider of the mode %u is muted: the mode does not "
+            "hold the activation lease",
+            m_mode_id);
     }
 
 protected:
-    context& m_ctx;
+    base_interface& m_base;
 
 private:
-    rclcpp::Logger m_logger{rclcpp::get_logger("clover2_fcu_setpoint")};
+    rclcpp::Logger m_logger;
     rclcpp::Clock::SharedPtr m_clock;
     uint32_t m_mode_id{0};
     uint32_t m_active_mode_id{0};
     rclcpp::Subscription<clover2_fcu_msgs::msg::ModeState>::SharedPtr
         m_mode_state_sub;
 };
+
+/**
+ * @brief Supported setpoint contracts (backend_base::add_setpoint /
+ *        client::create_setpoint).
+ */
+template <typename T>
+concept setpoint_contract =
+    std::derived_from<T, setpoint_base> &&
+    (std::same_as<T, setpoint_position_interface> ||
+     std::same_as<T, setpoint_velocity_interface> ||
+     std::same_as<T, setpoint_attitude_interface> ||
+     std::same_as<T, setpoint_rates_interface>);
 
 }  // namespace capability
 

@@ -6,8 +6,10 @@
 #pragma once
 
 // clover2
+#include <clover2_fcu/capability/base_interface.hpp>
 #include <clover2_fcu/capability/battery_interface.hpp>
 #include <clover2_fcu/capability/commands_interface.hpp>
+#include <clover2_fcu/capability/estimator_interface.hpp>
 #include <clover2_fcu/capability/odometry_interface.hpp>
 #include <clover2_fcu/capability/parameters_interface.hpp>
 #include <clover2_fcu/capability/setpoint_attitude_interface.hpp>
@@ -41,12 +43,18 @@ concept contract = requires {
  * place enumerating them. Adding a capability = new contract header plus
  * one line here; the compile-time uniqueness check below then guards the
  * whole list.
+ *
+ * @ref base_interface is listed too: it is provided by the client rather
+ * than served by backend builders, but its name is a key in the same
+ * factory cache namespace, so it belongs in the uniqueness check.
  */
-using all = std::tuple<system_state_interface,       //
+using all = std::tuple<base_interface,               //
+                       system_state_interface,       //
                        odometry_interface,           //
                        battery_interface,            //
                        commands_interface,           //
                        parameters_interface,         //
+                       estimator_interface,          //
                        setpoint_position_interface,  //
                        setpoint_velocity_interface,  //
                        setpoint_attitude_interface,  //

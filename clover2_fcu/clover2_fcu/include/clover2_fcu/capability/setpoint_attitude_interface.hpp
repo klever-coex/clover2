@@ -28,8 +28,8 @@ public:
 
     static constexpr const char* name = "setpoint_attitude";
 
-    explicit setpoint_attitude_interface(context& ctx)
-        : setpoint_base(ctx) {}
+    explicit setpoint_attitude_interface(base_interface& base, mode_token token)
+        : setpoint_base(base, token) {}
 
     /**
      * @brief Attitude setpoint update.

@@ -21,8 +21,8 @@ public:
 
     static constexpr const char* name = "system_state";
 
-    explicit system_state_interface(context& ctx)
-        : telemetry_interface<data::system_state>(ctx) {}
+    explicit system_state_interface(base_interface& base)
+        : telemetry_interface<data::system_state>(base) {}
 };
 
 }  // namespace clover2_fcu::capability

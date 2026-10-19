@@ -115,15 +115,16 @@ void bridge::handle_activate_mode(
     uint32_t target_mode_id = 0;
     if (!request->name.empty()) {
         const auto it = std::find_if(
-            m_modes.begin(), m_modes.end(),
-            [&request](const auto& entry) {
+            m_modes.begin(), m_modes.end(), [&request](const auto& entry) {
                 return entry.second.name == request->name;
             });
+
         if (it == m_modes.end() || it->second.broken) {
             response->ok = false;
             response->error = "mode '" + request->name + "' is not registered";
             return;
         }
+
         target_mode_id = it->first;
     }
 
@@ -131,6 +132,7 @@ void bridge::handle_activate_mode(
         m_active_mode_id = target_mode_id;
         publish_mode_state();
     }
+
     response->ok = true;
 }
 
@@ -139,8 +141,10 @@ void bridge::handle_mode_bond_broken(uint32_t mode_id) {
     if (it == m_modes.end() || it->second.broken) {
         return;
     }
+
     RCLCPP_WARN(get_logger(), "mode '%s' (id=%u) bond broken, unregistering",
                 it->second.name.c_str(), mode_id);
+
     it->second.broken = true;
 
     if (m_active_mode_id == mode_id) {
@@ -156,6 +160,7 @@ void bridge::publish_mode_state() {
         const auto it = m_modes.find(m_active_mode_id);
         state.name = (it != m_modes.end()) ? it->second.name : "";
     }
+
     m_mode_state_pub->publish(state);
 }
 

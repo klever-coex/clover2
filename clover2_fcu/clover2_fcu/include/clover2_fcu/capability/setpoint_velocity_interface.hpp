@@ -30,8 +30,8 @@ public:
 
     static constexpr const char* name = "setpoint_velocity";
 
-    explicit setpoint_velocity_interface(context& ctx)
-        : setpoint_base(ctx) {}
+    explicit setpoint_velocity_interface(base_interface& base, mode_token token)
+        : setpoint_base(base, token) {}
 
     /**
      * @brief Velocity setpoint update.

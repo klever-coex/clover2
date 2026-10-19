@@ -5,7 +5,6 @@
 
 // clover2
 #include <clover2_common/util/sync_service.hpp>
-#include <clover2_fcu/capability/all.hpp>
 #include <clover2_fcu/client.hpp>
 
 // STL
@@ -16,8 +15,7 @@ namespace clover2_fcu {
 using clover2_common::util::call_sync;
 
 void client::connect() {
-    const std::string service_name =
-        m_settings.bridge_node() + "/get_config";
+    const std::string service_name = m_settings.bridge_node() + "/get_config";
 
     if (!m_config_client->wait_for_service(m_settings.wait_timeout())) {
         throw exception("fcu bridge is not available: {}", service_name);
@@ -42,7 +40,7 @@ void client::connect() {
 }
 
 std::shared_ptr<void> client::get(const std::string& capability) {
-    return backend()->create(capability, *this, m_params);
+    return backend()->get(capability);
 }
 
 void client::apply_config(const clover2_fcu_msgs::msg::FcuConfig& config) {
@@ -50,7 +48,7 @@ void client::apply_config(const clover2_fcu_msgs::msg::FcuConfig& config) {
         try {
             m_params = YAML::Load(config.plugin_params);
         } catch (const YAML::Exception& e) {
-            throw exception("invalid plugin params yaml: ", e.what());
+            throw exception("invalid plugin params yaml: {}", e.what());
         }
 
         if (!m_params.IsNull() && !m_params.IsMap()) {
@@ -61,14 +59,13 @@ void client::apply_config(const clover2_fcu_msgs::msg::FcuConfig& config) {
 
     m_config = config;
 
-    // Publish the client runtime so providers reach the same bridge (e.g.
-    // the setpoint gate subscribes to <bridge>/mode_state).
-    provide<client_runtime>(std::make_shared<client_runtime>(
-        client_runtime{m_settings.bridge_node()}));
+    // Publish the client config into the runtime environment (providers
+    // read their subtree via base_interface::params(name)).
+    m_base->params(m_params);
 
     check_requirements();
 
-    RCLCPP_INFO(get_logger(), "fcu client connected: protocol='%s'",
+    RCLCPP_INFO(m_base->logger(), "fcu client connected: protocol='%s'",
                 m_config.protocol.c_str());
 }
 
@@ -103,7 +100,7 @@ bool client::has(const std::string& capability) {
 
 backend::backend_base::shared_ptr client::backend() {
     auto backend_instance = ensure_backend(m_config.protocol);
-    backend_instance->initialize(*this, m_params);
+    backend_instance->initialize(m_base);
 
     return backend_instance;
 }

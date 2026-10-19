@@ -24,8 +24,8 @@ public:
 
     static constexpr const char* name = "odometry";
 
-    explicit odometry_interface(context& ctx)
-        : telemetry_interface<data::odometry>(ctx) {}
+    explicit odometry_interface(base_interface& base)
+        : telemetry_interface<data::odometry>(base) {}
 };
 
 }  // namespace clover2_fcu::capability

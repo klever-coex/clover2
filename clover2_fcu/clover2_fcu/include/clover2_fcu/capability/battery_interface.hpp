@@ -22,8 +22,8 @@ public:
 
     static constexpr const char* name = "battery";
 
-    explicit battery_interface(context& ctx)
-        : telemetry_interface<data::battery>(ctx) {}
+    explicit battery_interface(base_interface& base)
+        : telemetry_interface<data::battery>(base) {}
 };
 
 }  // namespace clover2_fcu::capability
