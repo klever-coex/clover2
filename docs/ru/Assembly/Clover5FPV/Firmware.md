@@ -36,13 +36,13 @@
 
     <br>
 
-2. На вкладке `Плата и сборка` *(Board & Build)* выберите плату `MICOAIR743V2` и нужный релиз прошивки.
+2. На вкладке `Плата и сборка` *(Board & Build)* выберите плату `MICOAIR743V2` и нужную версию прошивки.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/build-board-selection.webp
     :alt: Выбор платы и релиза прошивки
     :width: 700px
     :align: center
-    Выбор платы и релиза прошивки
+    Выбор платы и версии прошивки
     ```
 
     <br>
@@ -58,7 +58,7 @@
 
     <br>
 
-4. Нажмите `Загрузить прошивку [Online]` *(Load Firmware [Online])* и дождитесь завершения сборки.
+4. Нажмите `Загрузить прошивку [Online]` *(Load Firmware [Online])* и дождитесь завершения сборки прошивки.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/build-load-firmware.webp
     :alt: Запуск сборки прошивки
@@ -69,7 +69,7 @@
 
     <br>
 
-5. Перейдите на вкладку `Прошивка` *(Flash)*. После успешной сборки нажмите `Save` и сохраните HEX-файл на компьютер. Этот файл потребуется в STM32CubeProgrammer.
+5. Перейдите на вкладку `Прошивка` *(Flash)*. Нажмите `Save`, чтобы сохранить собранную прошивку в формате `HEX` на компьютер. Этот файл потребуется в STM32CubeProgrammer.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/build-save-hex.webp
     :alt: Сохранение собранного HEX-файла
