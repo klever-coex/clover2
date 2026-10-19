@@ -29,9 +29,9 @@ Prepare the following before proceeding:
 
 Ensure **STM32CubeProgrammer** is fully installed before flashing the device.
 
-## Building and Saving the HEX File
+## How to Build and Save the HEX File
 
-1. Open [Betaflight App](https://app.betaflight.com/) and select `Firmware Flasher`.
+1. Open the [Betaflight App](https://app.betaflight.com/) and navigate to `Firmware Flasher` tab.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/firmware/build-open-flasher.webp
     :alt: Opening the Betaflight firmware flasher
@@ -42,7 +42,7 @@ Ensure **STM32CubeProgrammer** is fully installed before flashing the device.
 
     <br>
 
-2. In `Board & Build`, select the `MICOAIR743V2` board and the required firmware release.
+2. In the `Board & Build` section, select the `MICOAIR743V2` board and choose the required firmware release.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/firmware/build-board-selection.webp
     :alt: Selecting the board and firmware release
@@ -75,7 +75,7 @@ Ensure **STM32CubeProgrammer** is fully installed before flashing the device.
 
     <br>
 
-5. Open the `Flash` tab. Once the build succeeds, click `Save` to save the HEX file to your computer. You will use this file in STM32CubeProgrammer.
+5. Open the `Flash` tab. Once the build is successfully completed, click `Save` to download the HEX file to your computer. You will use this file in STM32CubeProgrammer.
 
     ```{figure} @assets@/en/assembly/clover5-fpv/firmware/build-save-hex.webp
     :alt: Saving the built HEX file
