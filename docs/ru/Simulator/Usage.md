@@ -1,6 +1,6 @@
 # Использование
 
-Сначала подготовьте среду по {doc}`инструкции установки <VirtualMachine>`. Команды ниже выполняются внутри Dev Container или гостевой Linux в VMware/UTM. Workspace готового образа находится в `~/clover2-dev`.
+Сначала подготовьте среду по {doc}`инструкции установки <Installation>`. Команды ниже выполняются внутри Dev Container или гостевой Linux в VMware/UTM. Workspace готового образа находится в `~/clover2-dev`.
 
 (simulator-launch)=
 

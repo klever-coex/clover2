@@ -46,4 +46,4 @@ Simulator/Usage
 
 ## Попробуйте сами
 
-Выберите вариант {doc}`установки <Simulator/VirtualMachine>`: Dev Container на Linux, VMware на Windows или UTM на macOS. Затем перейдите к разделу {doc}`Использование <Simulator/Usage>`.
+Выберите вариант {doc}`установки <Simulator/Installation>`: Dev Container на Linux, VMware на Windows или UTM на macOS. Затем перейдите к разделу {doc}`Использование <Simulator/Usage>`.

@@ -13,18 +13,18 @@ Installation/UTM
 Виртуальная машина позволяет запустить Linux со средой симуляции внутри другой операционной системы, например Windows или macOS.
 
 ```{important}
-Для компьютеров с ОС Linux можно использовать VMware Workstation Pro и `.ova` образ, но этот вариант не тестировался. Для Linux рекомендуется использовать [Dev Container](./VirtualMachine/DevContainer).
+Для компьютеров с ОС Linux можно использовать VMware Workstation Pro и `.ova` образ, но этот вариант не тестировался. Для Linux рекомендуется использовать [Dev Container](./Installation/DevContainer).
 ```
 
 ## Выбор программы и формата образа
 
 Для запуска готового образа выберите программу и формат образа в зависимости от компьютера.
 
-Для Linux используйте [Dev Container](./VirtualMachine/DevContainer) — среду разработки внутри Docker.
+Для Linux используйте [Dev Container](./Installation/DevContainer) — среду разработки внутри Docker.
 
-Для Windows с процессором Intel или AMD (x86_64) используйте [VMware Workstation Pro](./VirtualMachine/VmWare) и образ в формате OVA.
+Для Windows с процессором Intel или AMD (x86_64) используйте [VMware Workstation Pro](./Installation/VmWare) и образ в формате OVA.
 
-Для Mac с процессором Apple Silicon (ARM64, серия M) используйте [UTM](./VirtualMachine/UTM) и образ в формате QCOW2.
+Для Mac с процессором Apple Silicon (ARM64, серия M) используйте [UTM](./Installation/UTM) и образ в формате QCOW2.
 
 ## Скачивание образа
 
