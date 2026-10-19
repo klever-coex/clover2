@@ -29,7 +29,6 @@ target_link_libraries(${PROJECT_NAME}_component
 rclcpp_components_register_node(${PROJECT_NAME}_component
   PLUGIN "clover2_camera_utils::camera_calibration_node"
   EXECUTABLE camera_calibration
-  EXECUTOR MultiThreadedExecutor
 )
 
 if(BUILD_TESTING)

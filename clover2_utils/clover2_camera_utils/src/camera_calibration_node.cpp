@@ -19,8 +19,6 @@ namespace {
 
 constexpr auto k_timeout_check_period = std::chrono::milliseconds(100);
 constexpr const char* k_image_message_type = "sensor_msgs/msg/Image";
-constexpr const char* k_capture_timeout_message =
-    "Timed out waiting for a chessboard during capture";
 
 }  // namespace
 
@@ -28,16 +26,12 @@ camera_calibration_node::camera_calibration_node(
     const rclcpp::NodeOptions& options)
     : clover2_common::node("camera_calibration", options) {
     image_timeout_s_ = declare_parameter<double>("image_timeout", 5.0);
-    capture_timeout_s_ = declare_parameter<double>("capture_timeout", 2.0);
     const auto minimum_samples = declare_parameter<int>(
         "minimum_samples_for_completion",
         static_cast<int>(
             sample_selector_config_.minimum_samples_for_completion));
     if (image_timeout_s_ <= 0.0) {
         throw std::invalid_argument("image_timeout must be positive");
-    }
-    if (capture_timeout_s_ <= 0.0) {
-        throw std::invalid_argument("capture_timeout must be positive");
     }
     if (minimum_samples < 3) {
         throw std::invalid_argument(
@@ -56,11 +50,6 @@ camera_calibration_node::camera_calibration_node(
         std::bind(&camera_calibration_node::handle_goal, this, _1, _2),
         std::bind(&camera_calibration_node::handle_cancel, this, _1),
         std::bind(&camera_calibration_node::handle_accepted, this, _1));
-    capture_sample_service_ = create_service<capture_calibration_sample>(
-        "~/capture_sample",
-        std::bind(&camera_calibration_node::handle_capture_sample, this, _1,
-                  _2),
-        rclcpp::ServicesQoS(), session_callback_group_);
     finish_calibration_service_ = create_service<finish_calibration>(
         "~/finish",
         std::bind(&camera_calibration_node::handle_finish_calibration, this, _1,
@@ -74,9 +63,6 @@ camera_calibration_node::camera_calibration_node(
 }
 
 camera_calibration_node::~camera_calibration_node() {
-    if (calibration_worker_.joinable()) {
-        calibration_worker_.join();
-    }
     std::scoped_lock lock(session_mutex_);
     cleanup_active_session();
     action_server_.reset();
@@ -116,13 +102,6 @@ rclcpp_action::CancelResponse camera_calibration_node::handle_cancel(
     if (!is_active_goal(goal_handle)) {
         return rclcpp_action::CancelResponse::REJECT;
     }
-
-    {
-        std::scoped_lock lock(session_mutex_);
-        if (active_goal_ == goal_handle && capture_pending_) {
-            complete_capture_locked(false, "Calibration session canceled");
-        }
-    }
     return rclcpp_action::CancelResponse::ACCEPT;
 }
 
@@ -140,10 +119,6 @@ void camera_calibration_node::handle_accepted(
         sample_selector_ =
             calibration::sample_selector(sample_selector_config_);
         calibrating_ = false;
-        capture_pending_ = false;
-        capture_completed_ = false;
-        capture_accepted_ = false;
-        capture_message_.clear();
         last_image_received_at_ = std::chrono::steady_clock::now();
 
         debug_publisher_ = create_publisher<sensor_msgs::msg::Image>(
@@ -212,40 +187,27 @@ void camera_calibration_node::image_callback(
                              error.what());
     }
 
-    if (is_active_goal(goal_handle)) {
-        uint8_t stage = board_detected
-                            ? calibrate_camera::Feedback::BOARD_DETECTED
-                            : calibrate_camera::Feedback::WAITING_FOR_BOARD;
-        {
-            std::scoped_lock lock(session_mutex_);
-            if (active_goal_ != goal_handle) {
-                return;
-            }
-            if (capture_pending_) {
-                stage = calibrate_camera::Feedback::READY_TO_CAPTURE;
-                if (observation) {
-                    const auto selection = sample_selector_.try_add(
-                        std::move(*observation), board_);
-                    if (selection.accepted) {
-                        stage =
-                            selection.progress.data_sufficient
-                                ? calibrate_camera::Feedback::DATA_SUFFICIENT
-                                : calibrate_camera::Feedback::SAMPLE_ACCEPTED;
-                        complete_capture_locked(true,
-                                                "Calibration sample accepted");
-                    } else {
-                        complete_capture_locked(
-                            false,
-                            selection.rejection_reason ==
-                                    data::sample_rejection_reason::duplicate
-                                ? "Calibration sample is a duplicate"
-                                : "Calibration sample is invalid");
-                    }
-                }
-            }
-        }
-        publish_feedback(goal_handle, board_detected, stage);
+    if (!is_active_goal(goal_handle)) {
+        return;
     }
+
+    uint8_t stage = board_detected
+                        ? calibrate_camera::Feedback::BOARD_DETECTED
+                        : calibrate_camera::Feedback::WAITING_FOR_BOARD;
+    if (observation) {
+        std::scoped_lock lock(session_mutex_);
+        if (active_goal_ != goal_handle || calibrating_) {
+            return;
+        }
+        const auto selection =
+            sample_selector_.try_add(std::move(*observation), board);
+        stage = selection.progress.data_sufficient
+                    ? calibrate_camera::Feedback::DATA_SUFFICIENT
+                : selection.accepted
+                    ? calibrate_camera::Feedback::SAMPLE_ACCEPTED
+                    : calibrate_camera::Feedback::BOARD_DETECTED;
+    }
+    publish_feedback(goal_handle, board_detected, stage);
 }
 
 void camera_calibration_node::check_image_timeout() {
@@ -278,56 +240,6 @@ void camera_calibration_node::check_image_timeout() {
     }
 }
 
-void camera_calibration_node::handle_capture_sample(
-    [[maybe_unused]] const capture_calibration_sample::Request::SharedPtr
-        request,
-    const capture_calibration_sample::Response::SharedPtr response) {
-    std::unique_lock lock(session_mutex_);
-    if (!active_goal_) {
-        response->accepted = false;
-        response->accepted_samples = 0;
-        response->message = "No active calibration session";
-        return;
-    }
-    if (calibrating_) {
-        response->accepted = false;
-        response->accepted_samples =
-            static_cast<uint32_t>(sample_selector_.accepted_count());
-        response->message = "Calibration is already running";
-        return;
-    }
-    if (capture_pending_) {
-        response->accepted = false;
-        response->accepted_samples =
-            static_cast<uint32_t>(sample_selector_.accepted_count());
-        response->message = "Calibration sample capture is already in progress";
-        return;
-    }
-
-    capture_pending_ = true;
-    capture_completed_ = false;
-    capture_accepted_ = false;
-    capture_message_.clear();
-    capture_timeout_timer_ = create_wall_timer(
-        std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::duration<double>(capture_timeout_s_)),
-        std::bind(&camera_calibration_node::handle_capture_timeout, this),
-        session_callback_group_);
-
-    capture_condition_.wait(lock, [this]() { return capture_completed_; });
-    response->accepted = capture_accepted_;
-    response->accepted_samples =
-        static_cast<uint32_t>(sample_selector_.accepted_count());
-    response->message = capture_message_;
-}
-
-void camera_calibration_node::handle_capture_timeout() {
-    std::scoped_lock lock(session_mutex_);
-    if (capture_pending_) {
-        complete_capture_locked(false, k_capture_timeout_message);
-    }
-}
-
 void camera_calibration_node::handle_finish_calibration(
     [[maybe_unused]] const finish_calibration::Request::SharedPtr request,
     const finish_calibration::Response::SharedPtr response) {
@@ -345,11 +257,6 @@ void camera_calibration_node::handle_finish_calibration(
             response->message = "Calibration is already running";
             return;
         }
-        if (capture_pending_) {
-            response->accepted = false;
-            response->message = "Calibration sample capture is in progress";
-            return;
-        }
         if (!sample_selector_.progress().data_sufficient) {
             response->accepted = false;
             response->message = "Calibration dataset is not sufficient";
@@ -363,16 +270,11 @@ void camera_calibration_node::handle_finish_calibration(
         debug_publisher_.reset();
     }
 
-    if (calibration_worker_.joinable()) {
-        calibration_worker_.join();
-    }
-    calibration_worker_ =
-        std::thread(&camera_calibration_node::run_calibration, this,
-                    goal_handle, std::move(observations));
     response->accepted = true;
     response->message = "Calibration started";
     publish_feedback(goal_handle, false,
                      calibrate_camera::Feedback::CALIBRATING);
+    run_calibration(goal_handle, std::move(observations));
 }
 
 void camera_calibration_node::run_calibration(
@@ -396,19 +298,19 @@ void camera_calibration_node::run_calibration(
     result->rms_reprojection_error = calibration_result->rms_reprojection_error;
     result->used_observations = static_cast<uint32_t>(observations.size());
 
-    bool cancel_after_worker = false;
+    bool cancel_after_calibration = false;
     {
         std::scoped_lock lock(session_mutex_);
         if (active_goal_ != goal_handle || !calibrating_) {
             return;
         }
         if (goal_handle->is_canceling()) {
-            cancel_after_worker = true;
+            cancel_after_calibration = true;
         } else {
             cleanup_active_session();
         }
     }
-    if (cancel_after_worker) {
+    if (cancel_after_calibration) {
         cancel_active_session(goal_handle);
         return;
     }
@@ -483,19 +385,16 @@ void camera_calibration_node::publish_feedback(
     feedback->progress_skew = static_cast<float>(progress.skew);
     feedback->data_sufficient = progress.data_sufficient;
     feedback->stage = stage;
-    if (stage == calibrate_camera::Feedback::READY_TO_CAPTURE) {
-        feedback->hint = "Waiting for a chessboard to capture a sample.";
-    } else if (stage == calibrate_camera::Feedback::SAMPLE_ACCEPTED) {
+    if (stage == calibrate_camera::Feedback::SAMPLE_ACCEPTED) {
         feedback->hint = "Calibration sample accepted.";
     } else if (stage == calibrate_camera::Feedback::DATA_SUFFICIENT) {
         feedback->hint = "Calibration dataset is sufficient.";
     } else if (stage == calibrate_camera::Feedback::CALIBRATING) {
         feedback->hint = "Computing camera calibration.";
     } else {
-        feedback->hint =
-            board_detected
-                ? "Chessboard detected. Request capture to store a sample."
-                : "Show the configured chessboard to the camera.";
+        feedback->hint = board_detected
+                             ? "Chessboard detected. Evaluating the sample."
+                             : "Show the configured chessboard to the camera.";
     }
     try {
         goal_handle->publish_feedback(feedback);
@@ -555,26 +454,12 @@ void camera_calibration_node::abort_active_session(const std::string& reason) {
 
 void camera_calibration_node::cleanup_active_session() {
     image_timeout_timer_.reset();
-    if (capture_pending_) {
-        complete_capture_locked(false, "Calibration session ended");
-    }
-    capture_timeout_timer_.reset();
     image_subscription_.reset();
     debug_publisher_.reset();
     sample_selector_ = calibration::sample_selector(sample_selector_config_);
     calibrating_ = false;
     active_goal_.reset();
     goal_reserved_ = false;
-}
-
-void camera_calibration_node::complete_capture_locked(const bool accepted,
-                                                      std::string message) {
-    capture_timeout_timer_.reset();
-    capture_pending_ = false;
-    capture_completed_ = true;
-    capture_accepted_ = accepted;
-    capture_message_ = std::move(message);
-    capture_condition_.notify_all();
 }
 
 sensor_msgs::msg::CameraInfo camera_calibration_node::make_camera_info(

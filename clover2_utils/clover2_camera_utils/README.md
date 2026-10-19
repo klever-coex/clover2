@@ -3,7 +3,10 @@
 Запустить calibration node:
 
 ```bash
-ros2 run clover2_camera_utils camera_calibration
+ros2 run clover2_camera_utils camera_calibration \
+  --ros-args \
+  -p capture_timeout:=5.0 \
+  -p image_timeout:=10.0
 ```
 
 Запуск с feedback:
@@ -23,16 +26,10 @@ ros2 action send_goal \
   }"
 ```
 
-При корректном распознавании, выполнять:
-
-```bash
-ros2 service call \
-  /camera_calibration/capture_sample \
-  clover2_camera_utils_msgs/srv/CaptureCalibrationSample \
-  "{}"
-```
-
-Когда feedback показывает `data_sufficient: true` для завершения калибровки:
+Нода автоматически оценивает каждый кадр с найденной доской и добавляет только
+полезные недублирующиеся observations. Перемещайте доску по кадру, меняя её
+положение, размер и наклон. Когда feedback показывает `data_sufficient: true`,
+завершите калибровку:
 
 ```bash
 ros2 service call \
