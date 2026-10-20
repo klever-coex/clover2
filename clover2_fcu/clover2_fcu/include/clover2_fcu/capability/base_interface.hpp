@@ -72,6 +72,18 @@ public:
 
     /** @brief Node interfaces for creating subscriptions/timers/clients. */
     virtual clover2_common::node_context& node() = 0;
+
+    /**
+     * @brief The fcu callback group of the owning client.
+     *
+     * All ROS plumbing created by the layer and its providers
+     * (subscriptions, service clients, timers) must join this
+     * MutuallyExclusive group: under any executor — single- or
+     * multi-threaded — layer callbacks then never overlap and keep a
+     * total order (lease updates before setpoint gating, telemetry
+     * before command completion, ...).
+     */
+    virtual rclcpp::CallbackGroup::SharedPtr callback_group() = 0;
 };
 
 /**
@@ -88,10 +100,12 @@ public:
      * @tparam node_t Node type (clover2_common::node, lifecycle node, ...).
      * @param node the hosting node (must be spun while this runs).
      * @param bridge_node the bridge node name (absolute).
+     * @param group the fcu callback group (see callback_group()).
      */
     template <typename node_t>
-    base_interface_impl(node_t& node, std::string bridge_node)
-        : m_ctx(node), m_bridge_node(std::move(bridge_node)) {}
+    base_interface_impl(node_t& node, std::string bridge_node,
+                        rclcpp::CallbackGroup::SharedPtr group)
+        : m_ctx(node), m_bridge_node(std::move(bridge_node)), m_group(std::move(group)) {}
 
     rclcpp::Logger logger() const override {
         return m_ctx.get_logger();
@@ -114,9 +128,14 @@ public:
         return m_ctx;
     }
 
+    rclcpp::CallbackGroup::SharedPtr callback_group() override {
+        return m_group;
+    }
+
 private:
     clover2_common::node_context m_ctx;
     std::string m_bridge_node;
+    rclcpp::CallbackGroup::SharedPtr m_group;
     YAML::Node m_params = YAML::Load("{}");
 };
 

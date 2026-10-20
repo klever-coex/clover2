@@ -1,8 +1,3 @@
-/**
- * @file backend_base.cpp
- * @brief Provides the backend base class implementation.
- */
-
 // clover2
 #include <clover2_fcu/backend/backend_base.hpp>
 
@@ -22,7 +17,9 @@ std::vector<std::string> backend_base::capabilities() const {
     return names;
 }
 
-void backend_base::initialize(std::shared_ptr<capability::base_interface> base) {
+void backend_base::initialize(
+    std::shared_ptr<capability::base_interface> base) {
+    const std::lock_guard<std::recursive_mutex> lock(m_mutex);
     if (m_loaded) {
         return;
     }
@@ -33,6 +30,7 @@ void backend_base::initialize(std::shared_ptr<capability::base_interface> base) 
 }
 
 std::shared_ptr<void> backend_base::get(const std::string& capability) const {
+    const std::lock_guard<std::recursive_mutex> lock(m_mutex);
     if (!m_loaded) {
         throw exception(
             "backend '{}' is not initialized (initialize() must be called "
@@ -51,14 +49,17 @@ std::shared_ptr<void> backend_base::get(const std::string& capability) const {
                         protocol(), capability);
     }
 
+    // Runs under the recursive lock: the builder may call get() for its
+    // dependencies; concurrent callers block until it finishes.
     auto provider = builder->second();
     m_cache.emplace(capability, provider);
 
     return provider;
 }
 
-std::shared_ptr<void> backend_base::create_setpoint(
-    const std::string& setpoint, mode_token token) const {
+std::shared_ptr<void> backend_base::create_setpoint(const std::string& setpoint,
+                                                    mode_token token) const {
+    const std::lock_guard<std::recursive_mutex> lock(m_mutex);
     if (!m_loaded) {
         throw exception(
             "backend '{}' is not initialized (initialize() must be called "
@@ -68,10 +69,12 @@ std::shared_ptr<void> backend_base::create_setpoint(
 
     const auto builder = m_setpoint_builders.find(setpoint);
     if (builder == m_setpoint_builders.end()) {
-        throw exception("backend '{}' does not serve setpoint '{}'",
-                        protocol(), setpoint);
+        throw exception("backend '{}' does not serve setpoint '{}'", protocol(),
+                        setpoint);
     }
 
+    // Not cached; the builder may call get() for its dependencies
+    // (recursive lock).
     return builder->second(token);
 }
 

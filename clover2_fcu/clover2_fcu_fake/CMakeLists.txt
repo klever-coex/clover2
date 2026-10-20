@@ -23,6 +23,9 @@ target_link_libraries(${PROJECT_NAME} yaml-cpp Eigen3::Eigen)
 pluginlib_export_plugin_description_file(clover2_fcu fake_plugins.xml)
 
 if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_auto_add_gtest(test_commands test/test_commands.cpp)
+
   find_package(ament_lint_auto REQUIRED)
   set(ament_cmake_copyright_FOUND TRUE)
   set(ament_cmake_cpplint_FOUND TRUE)

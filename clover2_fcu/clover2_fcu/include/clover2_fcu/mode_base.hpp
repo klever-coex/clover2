@@ -1,8 +1,3 @@
-/**
- * @file mode_base.hpp
- * @brief Provides the flight mode base class.
- */
-
 #pragma once
 
 // clover2
@@ -24,6 +19,7 @@
 #include <bondcpp/bond.hpp>
 
 // STL
+#include <atomic>
 #include <chrono>
 #include <memory>
 #include <string>
@@ -146,7 +142,7 @@ private:
     rclcpp::Time m_last_update;
 
     uint32_t m_mode_id{0};
-    bool m_active{false};
+    std::atomic<bool> m_active{false};
 
     capability::setpoint_position_interface::shared_ptr m_position;
     capability::setpoint_velocity_interface::shared_ptr m_velocity;

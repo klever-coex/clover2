@@ -26,24 +26,24 @@ namespace clover2_fcu::fake {
 
 class fake_system_state : public capability::system_state_interface {
 public:
-    fake_system_state(capability::base_interface& base)
-        : capability::system_state_interface(base) {}
+    fake_system_state(capability::base_interface::shared_ptr base)
+        : capability::system_state_interface(std::move(base)) {}
 
     void inject(const data::system_state& state) { update_data(state); }
 };
 
 class fake_odometry : public capability::odometry_interface {
 public:
-    fake_odometry(capability::base_interface& base)
-        : capability::odometry_interface(base) {}
+    fake_odometry(capability::base_interface::shared_ptr base)
+        : capability::odometry_interface(std::move(base)) {}
 
     void inject(const data::odometry& odom) { update_data(odom); }
 };
 
 class fake_battery : public capability::battery_interface {
 public:
-    fake_battery(capability::base_interface& base)
-        : capability::battery_interface(base) {}
+    fake_battery(capability::base_interface::shared_ptr base)
+        : capability::battery_interface(std::move(base)) {}
 
     void inject(const data::battery& battery) { update_data(battery); }
 };
@@ -53,24 +53,27 @@ public:
     explicit fake_commands(registry& reg)
         : m_registry(reg) {}
 
-    result arm() override { return m_registry.log_command("arm"); }
-    result disarm() override { return m_registry.log_command("disarm"); }
-    result set_mode(data::flight_mode mode) override {
-        return m_registry.log_command("set_mode:" +
-                                      std::string(mode.to_string()));
+    command_handle::shared_ptr arm() override { return issue("arm"); }
+    command_handle::shared_ptr disarm() override { return issue("disarm"); }
+    command_handle::shared_ptr set_mode(data::flight_mode mode) override {
+        return issue("set_mode:" + std::string(mode.to_string()));
     }
-    result takeoff() override { return m_registry.log_command("takeoff"); }
-    result land() override { return m_registry.log_command("land"); }
-    result rtl() override { return m_registry.log_command("rtl"); }
+    command_handle::shared_ptr takeoff() override { return issue("takeoff"); }
+    command_handle::shared_ptr land() override { return issue("land"); }
+    command_handle::shared_ptr rtl() override { return issue("rtl"); }
 
 private:
+    command_handle::shared_ptr issue(std::string name) {
+        return m_registry.issue_command(std::move(name));
+    }
+
     registry& m_registry;
 };
 
 class fake_estimator : public capability::estimator_interface {
 public:
-    fake_estimator(capability::base_interface& base, registry& reg)
-        : capability::estimator_interface(base), m_registry(reg) {}
+    fake_estimator(capability::base_interface::shared_ptr base, registry& reg)
+        : capability::estimator_interface(std::move(base)), m_registry(reg) {}
 
     result reset(capability::estimator_reset scope) override {
         return m_registry.log_reset(scope);
@@ -124,9 +127,9 @@ private:
 
 class fake_position_setpoint : public capability::setpoint_position_interface {
 public:
-    fake_position_setpoint(capability::base_interface& base, mode_token token,
+    fake_position_setpoint(capability::base_interface::shared_ptr base, mode_token token,
                            registry& reg)
-        : capability::setpoint_position_interface(base, token),
+        : capability::setpoint_position_interface(std::move(base), token),
           m_registry(reg) {}
 
     void update(const Eigen::Vector3d& position,
@@ -147,9 +150,9 @@ private:
 
 class fake_velocity_setpoint : public capability::setpoint_velocity_interface {
 public:
-    fake_velocity_setpoint(capability::base_interface& base, mode_token token,
+    fake_velocity_setpoint(capability::base_interface::shared_ptr base, mode_token token,
                            registry& reg)
-        : capability::setpoint_velocity_interface(base, token),
+        : capability::setpoint_velocity_interface(std::move(base), token),
           m_registry(reg) {}
 
     void update(const Eigen::Vector3d& velocity,
@@ -170,9 +173,9 @@ private:
 
 class fake_attitude_setpoint : public capability::setpoint_attitude_interface {
 public:
-    fake_attitude_setpoint(capability::base_interface& base, mode_token token,
+    fake_attitude_setpoint(capability::base_interface::shared_ptr base, mode_token token,
                            registry& reg)
-        : capability::setpoint_attitude_interface(base, token),
+        : capability::setpoint_attitude_interface(std::move(base), token),
           m_registry(reg) {}
 
     void update(const Eigen::Quaterniond& attitude, double thrust) override {
@@ -192,8 +195,8 @@ private:
 
 class fake_rates_setpoint : public capability::setpoint_rates_interface {
 public:
-    fake_rates_setpoint(capability::base_interface& base, mode_token token, registry& reg)
-        : capability::setpoint_rates_interface(base, token),
+    fake_rates_setpoint(capability::base_interface::shared_ptr base, mode_token token, registry& reg)
+        : capability::setpoint_rates_interface(std::move(base), token),
           m_registry(reg) {}
 
     void update(const Eigen::Vector3d& body_rates, double thrust) override {
@@ -226,7 +229,7 @@ void registry::reset() {
     attitude_updates.clear();
     rates_updates.clear();
     m_command_log.clear();
-    m_command_result = result::value::success;
+    m_pending.clear();
     m_reset_log.clear();
     m_reset_result = result::value::success;
 }
@@ -290,20 +293,41 @@ void registry::register_estimator(
     m_estimators.emplace_back(iface);
 }
 
-void registry::set_command_result(result value) {
-    const std::scoped_lock lock(m_mutex);
-    m_command_result = value;
-}
-
 const std::vector<std::string> registry::command_log() const {
     const std::scoped_lock lock(m_mutex);
     return m_command_log;
 }
 
-result registry::log_command(std::string name) {
+std::size_t registry::pending_count(const std::string& name) const {
     const std::scoped_lock lock(m_mutex);
+    const auto it = m_pending.find(name);
+    return it == m_pending.end() ? 0u : it->second.size();
+}
+
+command_handle::shared_ptr registry::issue_command(std::string name) {
+    auto handle = std::make_shared<command_handle>();
+    const std::scoped_lock lock(m_mutex);
+    m_pending[name].push_back(handle);
     m_command_log.push_back(std::move(name));
-    return m_command_result;
+    return handle;
+}
+
+void registry::resolve_pending(const std::string& name, result value) {
+    // Copy out under the lock: complete() fires user callbacks that may
+    // re-enter the registry (command_log etc.).
+    std::vector<command_handle::shared_ptr> to_resolve;
+    {
+        const std::scoped_lock lock(m_mutex);
+        const auto it = m_pending.find(name);
+        if (it != m_pending.end()) {
+            to_resolve = std::move(it->second);
+            m_pending.erase(it);
+        }
+    }
+
+    for (const auto& handle : to_resolve) {
+        handle->complete(value);
+    }
 }
 
 void registry::set_reset_result(result value) {
@@ -335,19 +359,19 @@ factory::factory() {
     add<capability::system_state_interface>(
         [this] {
             auto impl = std::make_shared<fake_system_state>(
-                *get<capability::base_interface>());
+                get<capability::base_interface>());
             registry::instance().register_system_state(impl);
             return impl;
         });
     add<capability::odometry_interface>([this] {
         auto impl =
-            std::make_shared<fake_odometry>(*get<capability::base_interface>());
+            std::make_shared<fake_odometry>(get<capability::base_interface>());
         registry::instance().register_odometry(impl);
         return impl;
     });
     add<capability::battery_interface>([this] {
         auto impl =
-            std::make_shared<fake_battery>(*get<capability::base_interface>());
+            std::make_shared<fake_battery>(get<capability::base_interface>());
         registry::instance().register_battery(impl);
         return impl;
     });
@@ -360,7 +384,7 @@ factory::factory() {
     });
     add<capability::estimator_interface>([this] {
         auto impl = std::make_shared<fake_estimator>(
-            *get<capability::base_interface>(), registry::instance());
+            get<capability::base_interface>(), registry::instance());
         registry::instance().register_estimator(impl);
         return impl;
     });
@@ -368,21 +392,21 @@ factory::factory() {
     add_setpoint<capability::setpoint_position_interface>(
         [this](mode_token token) {
             return std::make_shared<fake_position_setpoint>(
-                *get<capability::base_interface>(), token, registry::instance());
+                get<capability::base_interface>(), token, registry::instance());
         });
     add_setpoint<capability::setpoint_velocity_interface>(
         [this](mode_token token) {
             return std::make_shared<fake_velocity_setpoint>(
-                *get<capability::base_interface>(), token, registry::instance());
+                get<capability::base_interface>(), token, registry::instance());
         });
     add_setpoint<capability::setpoint_attitude_interface>(
         [this](mode_token token) {
             return std::make_shared<fake_attitude_setpoint>(
-                *get<capability::base_interface>(), token, registry::instance());
+                get<capability::base_interface>(), token, registry::instance());
         });
     add_setpoint<capability::setpoint_rates_interface>(
         [this](mode_token token) {
-            return std::make_shared<fake_rates_setpoint>(*get<capability::base_interface>(),
+            return std::make_shared<fake_rates_setpoint>(get<capability::base_interface>(),
                                                          token,
                                                          registry::instance());
         });

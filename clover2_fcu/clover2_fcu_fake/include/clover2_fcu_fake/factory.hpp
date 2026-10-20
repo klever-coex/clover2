@@ -9,6 +9,7 @@
 #include <clover2_fcu/backend/backend_base.hpp>
 #include <clover2_fcu/capability/estimator_interface.hpp>
 #include <clover2_fcu/capability/parameters_interface.hpp>
+#include <clover2_fcu/common/command_handle.hpp>
 #include <clover2_fcu/data/battery.hpp>
 #include <clover2_fcu/data/odometry.hpp>
 #include <clover2_fcu/data/system_state.hpp>
@@ -83,11 +84,15 @@ public:
 
     // Commands behavior and observation.
 
-    /// @brief Sticky result returned by subsequent fake command calls.
-    void set_command_result(result value);
-
     /// @brief Command names in call order ("arm", "land", ...).
     const std::vector<std::string> command_log() const;
+
+    /// @brief Number of not-yet-resolved handles of the command.
+    std::size_t pending_count(const std::string& name) const;
+
+    /// @brief Resolve every pending handle of the command with the
+    ///        result (test scripting; fires on_done callbacks).
+    void resolve_pending(const std::string& name, result value);
 
     // Parameters storage (shared by the fake parameters provider).
 
@@ -138,9 +143,12 @@ private:
     void register_battery(const std::shared_ptr<fake_battery>& iface);
     void register_estimator(const std::shared_ptr<fake_estimator>& iface);
 
-    result log_command(std::string name);
     result log_reset(capability::estimator_reset scope);
     result record_origin(const data::geo_point& origin);
+
+    /// @brief Log the command and register its pending handle
+    ///        (fake_commands::issue).
+    command_handle::shared_ptr issue_command(std::string name);
 
     mutable std::mutex m_mutex;
     std::vector<std::weak_ptr<fake_system_state>> m_system_states;
@@ -148,7 +156,7 @@ private:
     std::vector<std::weak_ptr<fake_battery>> m_batteries;
     std::vector<std::weak_ptr<fake_estimator>> m_estimators;
     std::vector<std::string> m_command_log;
-    result m_command_result{result::value::success};
+    std::map<std::string, std::vector<command_handle::shared_ptr>> m_pending;
     std::vector<capability::estimator_reset> m_reset_log;
     result m_reset_result{result::value::success};
 };

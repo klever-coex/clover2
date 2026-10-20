@@ -1,9 +1,3 @@
-/**
- * @file backend_base.hpp
- * @brief Provides the backend base class (pluginlib base) with the
- *        capability cache.
- */
-
 #pragma once
 
 // clover2
@@ -16,9 +10,9 @@
 #include <yaml-cpp/yaml.h>
 
 // STL
-#include <concepts>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -57,7 +51,10 @@ namespace clover2_fcu::backend {
  * reads only protocol()/capabilities() and never initializes the backend.
  *
  * One factory instance per client (each client loads its own), so the
- * cache is per client. Single-threaded executor is assumed.
+ * cache is per client. Thread-safe: the lazy provider cache and the
+ * loaded flag are guarded by a recursive mutex (builders resolve their
+ * dependencies via get() re-entrantly, under the same lock); the
+ * builder maps are immutable after construction and read lock-free.
  */
 class backend_base {
 public:
@@ -195,6 +192,10 @@ private:
         std::function<std::shared_ptr<void>(mode_token)>>
         m_setpoint_builders;
     mutable std::unordered_map<std::string, std::shared_ptr<void>> m_cache;
+
+    /// @brief Guards m_cache, m_loaded and running builders (recursive:
+    ///        builders call get() for their dependencies).
+    mutable std::recursive_mutex m_mutex;
 
     bool m_loaded{false};
 };

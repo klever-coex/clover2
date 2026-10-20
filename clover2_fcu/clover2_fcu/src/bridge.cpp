@@ -1,8 +1,3 @@
-/**
- * @file bridge.cpp
- * @brief Provides the FCU configuration bridge node implementation.
- */
-
 // clover2
 #include <clover2_fcu/bridge.hpp>
 #include <clover2_fcu/common/exception.hpp>
@@ -51,7 +46,9 @@ bridge::bridge(const rclcpp::NodeOptions& options)
                       std::placeholders::_1, std::placeholders::_2));
 }
 
-bridge::~bridge() = default;
+bridge::~bridge() {
+    m_factory.reset();
+}
 
 void bridge::handle_get_config(
     const std::shared_ptr<clover2_fcu_msgs::srv::GetConfig::Request>,
@@ -63,14 +60,12 @@ void bridge::handle_get_config(
 void bridge::handle_register_mode(
     const std::shared_ptr<clover2_fcu_msgs::srv::RegisterMode::Request> request,
     std::shared_ptr<clover2_fcu_msgs::srv::RegisterMode::Response> response) {
-    // Cleanup pass: broken modes are never erased from inside their own
-    // bond callback (destroying a Bond within its callback is unsafe);
-    // here it is safe to release them.
     std::erase_if(m_modes, [this](const auto& entry) {
         if (entry.second.broken) {
             m_factory->unregister_mode(entry.second.name);
             return true;
         }
+
         return false;
     });
 
@@ -89,8 +84,6 @@ void bridge::handle_register_mode(
         }
     }
 
-    // The backend may duplicate the registration into the FCU (px4); for
-    // transports without native mode registration this is a no-op.
     const uint32_t native_mode_id = m_factory->register_mode(request->name);
 
     const uint32_t mode_id = m_next_mode_id++;

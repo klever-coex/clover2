@@ -1,8 +1,3 @@
-/**
- * @file battery_interface.hpp
- * @brief Provides the battery capability contract.
- */
-
 #pragma once
 
 // clover2
@@ -11,18 +6,13 @@
 
 namespace clover2_fcu::capability {
 
-/**
- * @brief Battery telemetry capability contract.
- *
- * Served by a backend provider.
- */
 class battery_interface : public telemetry_interface<data::battery> {
 public:
     using shared_ptr = std::shared_ptr<battery_interface>;
 
     static constexpr const char* name = "battery";
 
-    explicit battery_interface(base_interface& base)
+    explicit battery_interface(base_interface::shared_ptr base)
         : telemetry_interface<data::battery>(base) {}
 };
 

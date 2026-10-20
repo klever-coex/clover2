@@ -1,8 +1,3 @@
-/**
- * @file mode_base.cpp
- * @brief Provides the flight mode base class implementation.
- */
-
 // clover2
 #include <clover2_common/util/sync_service.hpp>
 #include <clover2_fcu/common/exception.hpp>
@@ -16,7 +11,8 @@ namespace clover2_fcu {
 using clover2_common::util::call_sync;
 
 mode_base::mode_base(client& fcu, const settings& s)
-    : m_fcu(fcu), m_settings(s) {
+    : m_fcu(fcu)
+    , m_settings(s) {
     if (m_settings.name.empty()) {
         throw exception("mode name must not be empty");
     }
@@ -26,18 +22,17 @@ mode_base::mode_base(client& fcu, const settings& s)
     const std::string& bridge_node = m_fcu.base().bridge_node();
     auto& node = m_fcu.base().node();
 
-    m_register_mode_client = rclcpp::create_client<
-        clover2_fcu_msgs::srv::RegisterMode>(
-        node.get_node_base_interface(), node.get_node_graph_interface(),
-        node.get_node_services_interface(), bridge_node + "/register_mode",
-        rclcpp::ServicesQoS(), m_callback_group);
-    m_activate_mode_client = rclcpp::create_client<
-        clover2_fcu_msgs::srv::ActivateMode>(
-        node.get_node_base_interface(), node.get_node_graph_interface(),
-        node.get_node_services_interface(), bridge_node + "/activate_mode",
-        rclcpp::ServicesQoS(), m_callback_group);
+    m_register_mode_client =
+        rclcpp::create_client<clover2_fcu_msgs::srv::RegisterMode>(
+            node.get_node_base_interface(), node.get_node_graph_interface(),
+            node.get_node_services_interface(), bridge_node + "/register_mode",
+            rclcpp::ServicesQoS(), m_callback_group);
+    m_activate_mode_client =
+        rclcpp::create_client<clover2_fcu_msgs::srv::ActivateMode>(
+            node.get_node_base_interface(), node.get_node_graph_interface(),
+            node.get_node_services_interface(), bridge_node + "/activate_mode",
+            rclcpp::ServicesQoS(), m_callback_group);
 
-    // 1. Register with the bridge, receive the mode id.
     auto request =
         std::make_shared<clover2_fcu_msgs::srv::RegisterMode::Request>();
     request->name = m_settings.name;
@@ -57,29 +52,23 @@ mode_base::mode_base(client& fcu, const settings& s)
     }
     m_mode_id = response->mode_id;
 
-    // 2. Setpoint providers are bound to this mode at creation: the
-    //    handlers below pass the mode token to create_setpoint().
-
-    // 3. Bond with the bridge: the lease dies with this node.
     m_bond = std::make_shared<bond::Bond>(
         "bond", std::to_string(m_mode_id), node.get_node_base_interface(),
-        node.get_node_logging_interface(),
-        node.get_node_parameters_interface(),
+        node.get_node_logging_interface(), node.get_node_parameters_interface(),
         node.get_node_timers_interface(), node.get_node_topics_interface(),
         [this]() { handle_mode_bond_broken(); });
     m_bond->setHeartbeatPeriod(0.10);
     m_bond->start();
 
-    // 4. Follow the lease.
     rclcpp::SubscriptionOptions options;
     options.callback_group = m_callback_group;
-    m_mode_state_sub = rclcpp::create_subscription<
-        clover2_fcu_msgs::msg::ModeState>(
-        node, bridge_node + "/mode_state", rclcpp::QoS(1).transient_local(),
-        [this](clover2_fcu_msgs::msg::ModeState::UniquePtr msg) {
-            handle_mode_state(std::move(msg));
-        },
-        options);
+    m_mode_state_sub =
+        rclcpp::create_subscription<clover2_fcu_msgs::msg::ModeState>(
+            node, bridge_node + "/mode_state", rclcpp::QoS(1).transient_local(),
+            [this](clover2_fcu_msgs::msg::ModeState::UniquePtr msg) {
+                handle_mode_state(std::move(msg));
+            },
+            options);
 
     RCLCPP_INFO(m_fcu.base().logger(), "mode '%s' registered (id=%u)",
                 m_settings.name.c_str(), m_mode_id);
@@ -92,11 +81,9 @@ mode_base::~mode_base() {
 
 void mode_base::completed(result r) {
     RCLCPP_INFO(m_fcu.base().logger(), "mode '%s' completed: %.*s",
-                m_settings.name.c_str(),
-                static_cast<int>(r.to_string().size()), r.to_string().data());
+                m_settings.name.c_str(), static_cast<int>(r.to_string().size()),
+                r.to_string().data());
 
-    // Fire-and-forget: completed() is typically called from update_setpoint,
-    // i.e. from inside the executor — a blocking call would deadlock.
     auto request =
         std::make_shared<clover2_fcu_msgs::srv::ActivateMode::Request>();
     request->name = "";
@@ -132,8 +119,10 @@ void mode_base::handle_mode_bond_broken() {
     if (!m_active) {
         return;
     }
+
     RCLCPP_WARN(m_fcu.base().logger(), "mode '%s' bond broken, stopping",
                 m_settings.name.c_str());
+
     stop_streaming();
     on_deactivate();
 }
@@ -164,6 +153,7 @@ void mode_base::stop_streaming() {
     if (!m_active) {
         return;
     }
+
     m_active = false;
     stop_update_timer();
 }
@@ -174,6 +164,7 @@ std::shared_ptr<capability::setpoint_position_interface> mode_base::position() {
             m_fcu.create_setpoint<capability::setpoint_position_interface>(
                 mode_token{m_mode_id});
     }
+
     return m_position;
 }
 
@@ -183,6 +174,7 @@ std::shared_ptr<capability::setpoint_velocity_interface> mode_base::velocity() {
             m_fcu.create_setpoint<capability::setpoint_velocity_interface>(
                 mode_token{m_mode_id});
     }
+
     return m_velocity;
 }
 
@@ -192,6 +184,7 @@ std::shared_ptr<capability::setpoint_attitude_interface> mode_base::attitude() {
             m_fcu.create_setpoint<capability::setpoint_attitude_interface>(
                 mode_token{m_mode_id});
     }
+
     return m_attitude;
 }
 
@@ -200,6 +193,7 @@ std::shared_ptr<capability::setpoint_rates_interface> mode_base::rates() {
         m_rates = m_fcu.create_setpoint<capability::setpoint_rates_interface>(
             mode_token{m_mode_id});
     }
+
     return m_rates;
 }
 

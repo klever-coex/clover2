@@ -1,8 +1,3 @@
-/**
- * @file client.cpp
- * @brief Provides the FCU interface client implementation.
- */
-
 // clover2
 #include <clover2_common/util/sync_service.hpp>
 #include <clover2_fcu/client.hpp>
@@ -59,8 +54,6 @@ void client::apply_config(const clover2_fcu_msgs::msg::FcuConfig& config) {
 
     m_config = config;
 
-    // Publish the client config into the runtime environment (providers
-    // read their subtree via base_interface::params(name)).
     m_base->params(m_params);
 
     check_requirements();
@@ -99,6 +92,7 @@ bool client::has(const std::string& capability) {
 }
 
 backend::backend_base::shared_ptr client::backend() {
+    const std::lock_guard<std::mutex> lock(m_backend_mutex);
     auto backend_instance = ensure_backend(m_config.protocol);
     backend_instance->initialize(m_base);
 

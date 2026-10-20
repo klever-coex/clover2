@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<library path="clover2_fcu_mavros">
+  <class name="mavros"
+         type="clover2_fcu::mavros::factory"
+         base_class_type="clover2_fcu::backend::backend_base">
+    <description>Mavros FCU backend factory</description>
+  </class>
+</library>

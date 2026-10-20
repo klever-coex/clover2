@@ -1,14 +1,9 @@
-/**
- * @file client.hpp
- * @brief Provides the FCU interface client.
- */
-
 #pragma once
 
 // clover2
 #include <clover2_fcu/backend/backend_base.hpp>
-#include <clover2_fcu/capability/base_interface.hpp>
 #include <clover2_fcu/capability/all.hpp>
+#include <clover2_fcu/capability/base_interface.hpp>
 #include <clover2_fcu/capability/battery_interface.hpp>
 #include <clover2_fcu/capability/commands_interface.hpp>
 #include <clover2_fcu/capability/odometry_interface.hpp>
@@ -28,6 +23,7 @@
 // STL
 #include <chrono>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -111,11 +107,10 @@ public:
     template <typename NodeT>
     explicit client(NodeT& node, settings s = {})
         : m_settings(std::move(s))
+        , m_callback_group(node.create_callback_group(
+              rclcpp::CallbackGroupType::MutuallyExclusive))
         , m_base(std::make_shared<capability::base_interface_impl>(
-              node, m_settings.bridge_node())) {
-        m_callback_group = node.create_callback_group(
-            rclcpp::CallbackGroupType::MutuallyExclusive);
-
+              node, m_settings.bridge_node(), m_callback_group)) {
         m_config_client =
             node.template create_client<clover2_fcu_msgs::srv::GetConfig>(
                 m_settings.bridge_node() + "/get_config", rclcpp::ServicesQoS(),
@@ -215,13 +210,16 @@ private:
     friend class mode_base;
 
     settings m_settings;
+    rclcpp::CallbackGroup::SharedPtr m_callback_group;
     std::shared_ptr<capability::base_interface_impl> m_base;
 
-    rclcpp::CallbackGroup::SharedPtr m_callback_group;
     rclcpp::Client<clover2_fcu_msgs::srv::GetConfig>::SharedPtr m_config_client;
 
     YAML::Node m_params;
     clover2_fcu_msgs::msg::FcuConfig m_config;
+
+    /// @brief Guards the lazy backend creation (thread-safe client).
+    std::mutex m_backend_mutex;
 
     pluginlib::ClassLoader<backend::backend_base> m_loader{
         "clover2_fcu", "clover2_fcu::backend::backend_base"};

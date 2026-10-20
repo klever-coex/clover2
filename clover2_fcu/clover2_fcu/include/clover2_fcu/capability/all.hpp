@@ -19,9 +19,7 @@
 #include <clover2_fcu/capability/system_state_interface.hpp>
 
 // STL
-#include <concepts>
 #include <string>
-#include <tuple>
 #include <vector>
 
 namespace clover2_fcu::capability {

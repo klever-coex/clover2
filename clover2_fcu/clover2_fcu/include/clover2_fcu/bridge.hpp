@@ -1,8 +1,3 @@
-/**
- * @file bridge.hpp
- * @brief Provides the FCU configuration bridge node.
- */
-
 #pragma once
 
 // clover2

@@ -9,6 +9,7 @@
 #include <functional>
 #include <list>
 #include <memory>
+#include <mutex>
 #include <utility>
 
 namespace clover2_common::util {
@@ -26,10 +27,12 @@ namespace clover2_common::util {
  * be kept alive by its tokens. The callback point is neither copyable
  * nor movable (tokens are bound to one instance).
  *
- * Assumes a single-threaded executor (registration and invocation on the
- * same thread). A callback must not unregister itself from the callback
- * point it is invoked from (the iteration would break); it may
- * unregister other callbacks.
+ * Thread-safe: add() and token release may run concurrently with
+ * invoke() from any number of threads. invoke() snapshots the callback
+ * list under the internal mutex and fires the snapshot without holding
+ * it, so a callback may add callbacks and unregister any callback —
+ * including itself — re-entrantly (a callback added during an invoke
+ * fires on the next one, one unregistered during it still fires in it).
  *
  * @tparam Signature callback signature, default void().
  */
@@ -38,18 +41,6 @@ class shared_callback {
 public:
     using callback_type = std::function<Signature>;
 
-    /**
-     * @brief Move-only RAII token of a registration.
-     *
-     * Destruction (or move assignment) unregisters the callback — but
-     * only while the owning object is still alive: the token holds a
-     * weak guard, so it may safely outlive the owner (unregistering
-     * becomes a no-op). The release action receives the proven-alive
-     * owner pointer, so it never touches a dangling object and cannot
-     * extend the owner lifetime.
-     *
-     * Default-constructed tokens are empty (destruction is a no-op).
-     */
     class token {
     public:
         token() = default;
@@ -129,11 +120,14 @@ public:
      */
     template <typename Owner>
     token add(const std::shared_ptr<Owner>& owner, callback_type callback) {
+        const std::lock_guard<std::mutex> lock(m_mutex);
         const auto iterator =
             m_callbacks.insert(m_callbacks.end(), std::move(callback));
 
-        return token::make(
-            owner, [this, iterator](Owner*) { m_callbacks.erase(iterator); });
+        return token::make(owner, [this, iterator](Owner*) {
+            const std::lock_guard<std::mutex> lock(m_mutex);
+            m_callbacks.erase(iterator);
+        });
     }
 
     /**
@@ -142,13 +136,22 @@ public:
      */
     template <typename... Args>
     void invoke(Args&&... args) {
-        for (const auto& callback : m_callbacks) {
+        // Snapshot under the lock, fire outside it: callbacks may
+        // re-enter add()/release() (and the mutex) re-entrantly.
+        std::list<callback_type> snapshot;
+        {
+            const std::lock_guard<std::mutex> lock(m_mutex);
+            snapshot = m_callbacks;
+        }
+
+        for (const auto& callback : snapshot) {
             callback(args...);
         }
     }
 
 private:
     std::list<callback_type> m_callbacks;
+    mutable std::mutex m_mutex;
 };
 
 }  // namespace clover2_common::util

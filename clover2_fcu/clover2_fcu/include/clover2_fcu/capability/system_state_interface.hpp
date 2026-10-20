@@ -1,8 +1,3 @@
-/**
- * @file system_state_interface.hpp
- * @brief Provides the system state capability contract.
- */
-
 #pragma once
 
 // clover2
@@ -11,17 +6,13 @@
 
 namespace clover2_fcu::capability {
 
-/**
- * @brief System state telemetry capability contract
- *        (connected/armed/mode/failsafe).
- */
 class system_state_interface : public telemetry_interface<data::system_state> {
 public:
     using shared_ptr = std::shared_ptr<system_state_interface>;
 
     static constexpr const char* name = "system_state";
 
-    explicit system_state_interface(base_interface& base)
+    explicit system_state_interface(base_interface::shared_ptr base)
         : telemetry_interface<data::system_state>(base) {}
 };
 
