@@ -314,15 +314,16 @@ void camera_calibration_node::handle_finish_calibration(
 void camera_calibration_node::run_calibration(
     std::shared_ptr<goal_handle> goal_handle,
     std::vector<data::observation> observations) {
-    calibration::pinhole_calibration_algorithm algorithm;
-    const auto calibration_result = algorithm.calibrate(observations);
+    const auto algorithm = calibration::factory::instance().create(
+        goal_handle->get_goal()->calibration_method);
+    const auto calibration_result = algorithm->calibrate(observations);
 
     if (goal_handle->is_canceling()) {
         cancel_active_session(goal_handle);
         return;
     }
     if (!calibration_result) {
-        abort_active_session("Pinhole calibration failed");
+        abort_active_session("Camera calibration failed");
         return;
     }
 
@@ -421,8 +422,9 @@ bool camera_calibration_node::is_valid_goal(
         rejection_reason = "camera_namespace must be an absolute ROS namespace";
         return false;
     }
-    if (goal.calibration_method != "pinhole") {
-        rejection_reason = "only the pinhole calibration_method is supported";
+    if (!calibration::factory::instance().contains(goal.calibration_method)) {
+        rejection_reason = "unsupported calibration_method '" +
+                           goal.calibration_method + "'";
         return false;
     }
     if (goal.board_type != "chessboard") {
@@ -559,7 +561,7 @@ sensor_msgs::msg::CameraInfo camera_calibration_node::make_camera_info(
     sensor_msgs::msg::CameraInfo camera_info;
     camera_info.width = static_cast<uint32_t>(result.image_size.width);
     camera_info.height = static_cast<uint32_t>(result.image_size.height);
-    camera_info.distortion_model = "plumb_bob";
+    camera_info.distortion_model = result.distortion_model;
     for (size_t row = 0; row < 3; ++row) {
         for (size_t column = 0; column < 3; ++column) {
             camera_info.k[row * 3 + column] = result.camera_matrix.at<double>(

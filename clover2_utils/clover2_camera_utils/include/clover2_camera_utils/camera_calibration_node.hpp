@@ -1,6 +1,6 @@
 #pragma once
 #include <clover2_camera_utils/calibration/chessboard_detector.hpp>
-#include <clover2_camera_utils/calibration/pinhole_calibration_algorithm.hpp>
+#include <clover2_camera_utils/calibration/factory.hpp>
 #include <clover2_camera_utils/calibration/sample_selector.hpp>
 #include <clover2_camera_utils/data/board_config.hpp>
 #include <clover2_camera_utils/data/calibration_result.hpp>
