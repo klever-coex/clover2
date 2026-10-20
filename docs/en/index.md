@@ -8,6 +8,7 @@
 Assembly
 Setup
 Programming
+Simulator
 AdditionalEquipment
 UsefulInformation
 ```
