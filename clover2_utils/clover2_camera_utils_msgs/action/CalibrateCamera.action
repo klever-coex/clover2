@@ -1,7 +1,7 @@
 # Goal
 
-# Absolute ROS topic of sensor_msgs/msg/Image.
-string image_topic
+# Absolute namespace of the camera driver. 
+string camera_namespace
 
 # Canonical lowercase identifier. Supported values: "pinhole", "fisheye".
 string calibration_method
@@ -22,7 +22,6 @@ float64 square_size_m
 bool success
 
 sensor_msgs/CameraInfo camera_info
-float64 rms_reprojection_error
 uint32 used_observations
 
 # Empty on success; explains failure otherwise.

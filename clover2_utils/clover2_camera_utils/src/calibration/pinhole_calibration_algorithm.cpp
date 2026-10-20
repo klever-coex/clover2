@@ -50,14 +50,13 @@ pinhole_calibration_algorithm::calibrate(
     std::vector<cv::Mat> translation_vectors;
 
     try {
-        const double rms = cv::calibrateCamera(
-            object_points, image_points, image_size, camera_matrix,
-            distortion_coefficients, rotation_vectors, translation_vectors);
+        cv::calibrateCamera(object_points, image_points, image_size,
+                            camera_matrix, distortion_coefficients,
+                            rotation_vectors, translation_vectors);
         return data::calibration_result{
             .image_size = image_size,
             .camera_matrix = std::move(camera_matrix),
             .distortion_coefficients = std::move(distortion_coefficients),
-            .rms_reprojection_error = rms,
             .rotation_vectors = std::move(rotation_vectors),
             .translation_vectors = std::move(translation_vectors),
         };

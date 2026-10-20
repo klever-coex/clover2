@@ -5,8 +5,8 @@
 ```bash
 ros2 run clover2_camera_utils camera_calibration \
   --ros-args \
-  -p capture_timeout:=5.0 \
-  -p image_timeout:=10.0
+  -p image_timeout:=10.0 \
+  -p processing_rate:=5.0
 ```
 
 Запуск с feedback:
@@ -17,7 +17,7 @@ ros2 action send_goal \
   /camera_calibration/calibrate \
   clover2_camera_utils_msgs/action/CalibrateCamera \
   "{
-    image_topic: '/webcam/camera/image_raw',
+    camera_namespace: '/webcam',
     calibration_method: 'pinhole',
     board_type: 'chessboard',
     board_rows: 6,
@@ -26,11 +26,13 @@ ros2 action send_goal \
   }"
 ```
 
-Нода автоматически оценивает каждый кадр с найденной доской и добавляет только
-полезные недублирующиеся observations. Перемещайте доску по кадру, меняя её
-положение, размер и наклон. Когда feedback показывает `data_sufficient: true`,
-завершите калибровку:
+После успешного завершения нода передаёт результат в
+`/camera_namespace/set_camera_info` (`sensor_msgs/srv/SetCameraInfo`). 
 
+Нода автоматически анализирует входной поток с частотой `processing_rate`
+(по умолчанию 5 Гц) и добавляет только полезные недублирующиеся кадры.
+
+Завершение
 ```bash
 ros2 service call \
   /camera_calibration/finish \

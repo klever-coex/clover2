@@ -10,7 +10,6 @@ struct calibration_result {
     cv::Size image_size;
     cv::Mat camera_matrix;
     cv::Mat distortion_coefficients;
-    double rms_reprojection_error{0.0};
     std::vector<cv::Mat> rotation_vectors;
     std::vector<cv::Mat> translation_vectors;
 };

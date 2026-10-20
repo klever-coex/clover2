@@ -13,6 +13,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <sensor_msgs/msg/image.hpp>
+#include <sensor_msgs/srv/set_camera_info.hpp>
 
 #include <chrono>
 #include <memory>
@@ -27,6 +28,7 @@ public:
     using goal_handle = rclcpp_action::ServerGoalHandle<calibrate_camera>;
     using finish_calibration =
         clover2_camera_utils_msgs::srv::FinishCalibration;
+    using set_camera_info = sensor_msgs::srv::SetCameraInfo;
 
     explicit camera_calibration_node(
         const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
@@ -47,6 +49,10 @@ private:
         finish_calibration::Response::SharedPtr response);
     void run_calibration(std::shared_ptr<goal_handle> goal_handle,
                          std::vector<data::observation> observations);
+    void handle_set_camera_info_response(
+        const std::shared_ptr<goal_handle>& goal_handle,
+        const std::shared_ptr<calibrate_camera::Result>& result,
+        rclcpp::Client<set_camera_info>::SharedFuture future);
 
     bool is_valid_goal(const calibrate_camera::Goal& goal,
                        std::string& rejection_reason) const;
@@ -63,6 +69,7 @@ private:
     mutable std::mutex session_mutex_;
     bool goal_reserved_{false};
     double image_timeout_s_{5.0};
+    double processing_rate_hz_{5.0};
     data::sample_selector_config sample_selector_config_;
 
     data::board_config board_;
@@ -74,10 +81,12 @@ private:
     rclcpp::Service<finish_calibration>::SharedPtr finish_calibration_service_;
     std::shared_ptr<goal_handle> active_goal_;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr debug_publisher_;
+    rclcpp::Client<set_camera_info>::SharedPtr set_camera_info_client_;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr
         image_subscription_;
     rclcpp::TimerBase::SharedPtr image_timeout_timer_;
     std::chrono::steady_clock::time_point last_image_received_at_;
+    std::chrono::steady_clock::time_point last_image_processed_at_;
 };
 
 }  // namespace clover2_camera_utils
