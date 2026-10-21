@@ -119,6 +119,8 @@ rclcpp_action::CancelResponse camera_calibration_node::handle_cancel(
 void camera_calibration_node::handle_accepted(
     const std::shared_ptr<goal_handle> goal_handle) {
     const auto goal = goal_handle->get_goal();
+    const auto detector = calibration::board_detector_factory::instance().create(
+        goal->board_type);
     const auto image_topic =
         goal->camera_namespace == "/"
             ? std::string("/") + k_image_topic_name
@@ -135,6 +137,7 @@ void camera_calibration_node::handle_accepted(
         board_.rows = goal->board_rows;
         board_.columns = goal->board_columns;
         board_.square_size_m = goal->square_size_m;
+        detector_ = detector;
         sample_selector_ =
             calibration::sample_selector(sample_selector_config_);
         calibrating_ = false;
@@ -171,6 +174,7 @@ void camera_calibration_node::image_callback(
     data::board_config board;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr debug_publisher;
     std::shared_ptr<goal_handle> goal_handle;
+    std::shared_ptr<const calibration::board_detector> detector;
     {
         std::scoped_lock lock(session_mutex_);
         if (!active_goal_ || calibrating_) {
@@ -187,6 +191,7 @@ void camera_calibration_node::image_callback(
         }
         last_image_processed_at_ = now;
         board = board_;
+        detector = detector_;
         debug_publisher = debug_publisher_;
         goal_handle = active_goal_;
     }
@@ -196,7 +201,7 @@ void camera_calibration_node::image_callback(
     try {
         const auto input =
             cv_bridge::toCvShare(message, sensor_msgs::image_encodings::BGR8);
-        observation = detector_.detect(input->image, board);
+        observation = detector->detect(input->image, board);
         board_detected = observation.has_value();
 
         if (debug_publisher && debug_publisher->get_subscription_count() > 0 &&
@@ -427,8 +432,9 @@ bool camera_calibration_node::is_valid_goal(
                            goal.calibration_method + "'";
         return false;
     }
-    if (goal.board_type != "chessboard") {
-        rejection_reason = "only the chessboard board_type is supported";
+    if (!calibration::board_detector_factory::instance().contains(
+            goal.board_type)) {
+        rejection_reason = "unsupported board_type '" + goal.board_type + "'";
         return false;
     }
     if (goal.board_rows < 2 || goal.board_columns < 2 ||
@@ -550,6 +556,7 @@ void camera_calibration_node::cleanup_active_session() {
     image_subscription_.reset();
     debug_publisher_.reset();
     set_camera_info_client_.reset();
+    detector_.reset();
     sample_selector_ = calibration::sample_selector(sample_selector_config_);
     calibrating_ = false;
     active_goal_.reset();

@@ -1,5 +1,6 @@
 #pragma once
-#include <clover2_camera_utils/calibration/chessboard_detector.hpp>
+#include <clover2_camera_utils/calibration/board_detector.hpp>
+#include <clover2_camera_utils/calibration/board_detector_factory.hpp>
 #include <clover2_camera_utils/calibration/factory.hpp>
 #include <clover2_camera_utils/calibration/sample_selector.hpp>
 #include <clover2_camera_utils/data/board_config.hpp>
@@ -73,7 +74,7 @@ private:
     data::sample_selector_config sample_selector_config_;
 
     data::board_config board_;
-    clover2_camera_utils::calibration::chessboard_detector detector_;
+    std::shared_ptr<const calibration::board_detector> detector_;
     calibration::sample_selector sample_selector_;
     bool calibrating_{false};
     rclcpp_action::Server<calibrate_camera>::SharedPtr action_server_;
