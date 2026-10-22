@@ -6,8 +6,8 @@ PROJECT_DIR = pathlib.Path(__file__).absolute().parent
 
 project = "clover2"
 author = "Lapin Matvey"
-copyright = f"{date.today().year}, Lapin Matvey. {os.environ["CLOVER2_VERSION"]}"
 version = os.environ["CLOVER2_VERSION"] or "unknown"
+copyright = f"{date.today().year}, Lapin Matvey. Version: {version}"
 
 extensions = [
     "myst_parser",
