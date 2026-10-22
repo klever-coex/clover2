@@ -18,7 +18,6 @@
 
 #include <chrono>
 #include <memory>
-#include <mutex>
 #include <string>
 
 namespace clover2_camera_utils {
@@ -58,7 +57,6 @@ private:
     bool is_valid_goal(const calibrate_camera::Goal& goal,
                        std::string& rejection_reason) const;
     bool has_image_publisher(const std::string& topic) const;
-    bool is_active_goal(const std::shared_ptr<goal_handle>& goal_handle) const;
     void publish_feedback(const std::shared_ptr<goal_handle>& goal_handle,
                           bool board_detected, uint8_t stage) const;
     void cancel_active_session(const std::shared_ptr<goal_handle>& goal_handle);
@@ -67,7 +65,6 @@ private:
     static sensor_msgs::msg::CameraInfo make_camera_info(
         const data::calibration_result& result);
 
-    mutable std::mutex session_mutex_;
     bool goal_reserved_{false};
     double image_timeout_s_{5.0};
     double processing_rate_hz_{5.0};
