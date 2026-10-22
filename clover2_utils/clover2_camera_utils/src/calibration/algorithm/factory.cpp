@@ -1,17 +1,17 @@
-#include <clover2_camera_utils/calibration/factory.hpp>
+#include <clover2_camera_utils/calibration/algorithm/factory.hpp>
 
-#include <clover2_camera_utils/calibration/fisheye_calibration_algorithm.hpp>
-#include <clover2_camera_utils/calibration/pinhole_calibration_algorithm.hpp>
+#include <clover2_camera_utils/calibration/algorithm/fisheye.hpp>
+#include <clover2_camera_utils/calibration/algorithm/pinhole.hpp>
 
 #include <algorithm>
 #include <sstream>
 #include <stdexcept>
 
-namespace clover2_camera_utils::calibration {
+namespace clover2_camera_utils::calibration::algorithm {
 
 factory::factory() {
-    add<pinhole_calibration_algorithm>("pinhole");
-    add<fisheye_calibration_algorithm>("fisheye");
+    add<pinhole>("pinhole");
+    add<fisheye>("fisheye");
 }
 
 factory& factory::instance() {
@@ -47,4 +47,4 @@ std::vector<std::string> factory::list_methods() const {
     return methods;
 }
 
-}  // namespace clover2_camera_utils::calibration
+}  // namespace clover2_camera_utils::calibration::algorithm

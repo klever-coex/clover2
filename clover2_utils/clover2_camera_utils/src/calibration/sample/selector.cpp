@@ -1,10 +1,10 @@
-#include <clover2_camera_utils/calibration/sample_selector.hpp>
+#include <clover2_camera_utils/calibration/sample/selector.hpp>
 
 #include <algorithm>
 #include <cmath>
 #include <utility>
 
-namespace clover2_camera_utils::calibration {
+namespace clover2_camera_utils::calibration::sample {
 namespace {
 
 double distance(const data::sample_features& first,
@@ -16,12 +16,12 @@ double distance(const data::sample_features& first,
 
 }  // namespace
 
-sample_selector::sample_selector(data::sample_selector_config config)
+selector::selector(data::sample_selector_config config)
     : m_config(std::move(config)) {}
 
-data::sample_selection_result sample_selector::try_add(
+data::sample_selection_result selector::try_add(
     data::observation observation, const data::board_config& board) {
-    const auto candidate = sample_features_calculator{}.compute(
+    const auto candidate = features_calculator{}.compute(
         observation.image_points, board, observation.image_size);
     if (!candidate.has_value()) {
         return data::sample_selection_result{
@@ -46,25 +46,25 @@ data::sample_selection_result sample_selector::try_add(
     };
 }
 
-size_t sample_selector::accepted_count() const noexcept {
+size_t selector::accepted_count() const noexcept {
     return m_observations.size();
 }
 
-const std::vector<data::observation>& sample_selector::observations()
+const std::vector<data::observation>& selector::observations()
     const noexcept {
     return m_observations;
 }
 
-const std::vector<data::sample_features>& sample_selector::features()
+const std::vector<data::sample_features>& selector::features()
     const noexcept {
     return m_features;
 }
 
-data::coverage_progress sample_selector::progress() const {
+data::coverage_progress selector::progress() const {
     return compute_progress();
 }
 
-data::coverage_progress sample_selector::compute_progress() const {
+data::coverage_progress selector::compute_progress() const {
     if (m_features.empty()) {
         return {};
     }
@@ -111,7 +111,7 @@ data::coverage_progress sample_selector::compute_progress() const {
     return result;
 }
 
-bool sample_selector::is_duplicate(
+bool selector::is_duplicate(
     const data::sample_features& candidate) const {
     return std::any_of(m_features.begin(), m_features.end(),
                        [this, &candidate](const auto& existing) {
@@ -120,4 +120,4 @@ bool sample_selector::is_duplicate(
                        });
 }
 
-}  // namespace clover2_camera_utils::calibration
+}  // namespace clover2_camera_utils::calibration::sample

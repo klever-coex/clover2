@@ -1,6 +1,6 @@
 #pragma once
 
-#include <clover2_camera_utils/calibration/sample_features.hpp>
+#include <clover2_camera_utils/calibration/sample/features.hpp>
 #include <clover2_camera_utils/data/board_config.hpp>
 #include <clover2_camera_utils/data/coverage_progress.hpp>
 #include <clover2_camera_utils/data/observation.hpp>
@@ -10,11 +10,11 @@
 
 #include <vector>
 
-namespace clover2_camera_utils::calibration {
+namespace clover2_camera_utils::calibration::sample {
 
-class sample_selector {
+class selector {
 public:
-    explicit sample_selector(data::sample_selector_config config = {});
+    explicit selector(data::sample_selector_config config = {});
 
     data::sample_selection_result try_add(data::observation observation,
                                           const data::board_config& board);
@@ -33,4 +33,4 @@ private:
     std::vector<data::sample_features> m_features;
 };
 
-}  // namespace clover2_camera_utils::calibration
+}  // namespace clover2_camera_utils::calibration::sample

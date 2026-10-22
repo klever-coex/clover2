@@ -1,8 +1,8 @@
 #pragma once
-#include <clover2_camera_utils/calibration/board_detector.hpp>
-#include <clover2_camera_utils/calibration/board_detector_factory.hpp>
-#include <clover2_camera_utils/calibration/factory.hpp>
-#include <clover2_camera_utils/calibration/sample_selector.hpp>
+#include <clover2_camera_utils/calibration/detector/base.hpp>
+#include <clover2_camera_utils/calibration/detector/factory.hpp>
+#include <clover2_camera_utils/calibration/algorithm/factory.hpp>
+#include <clover2_camera_utils/calibration/sample/selector.hpp>
 #include <clover2_camera_utils/data/board_config.hpp>
 #include <clover2_camera_utils/data/calibration_result.hpp>
 #include <clover2_camera_utils/data/observation.hpp>
@@ -22,7 +22,7 @@
 
 namespace clover2_camera_utils {
 
-class camera_calibration_node : public clover2_common::node {
+class camera_calibration : public clover2_common::node {
 public:
     using calibrate_camera = clover2_camera_utils_msgs::action::CalibrateCamera;
     using goal_handle = rclcpp_action::ServerGoalHandle<calibrate_camera>;
@@ -30,9 +30,9 @@ public:
         clover2_camera_utils_msgs::srv::FinishCalibration;
     using set_camera_info = sensor_msgs::srv::SetCameraInfo;
 
-    explicit camera_calibration_node(
+    explicit camera_calibration(
         const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
-    ~camera_calibration_node() override;
+    ~camera_calibration() override;
 
 private:
     rclcpp_action::GoalResponse handle_goal(
@@ -71,8 +71,8 @@ private:
     data::sample_selector_config sample_selector_config_;
 
     data::board_config board_;
-    std::shared_ptr<const calibration::board_detector> detector_;
-    calibration::sample_selector sample_selector_;
+    std::shared_ptr<const calibration::detector::base> detector_;
+    calibration::sample::selector sample_selector_;
     bool calibrating_{false};
     rclcpp_action::Server<calibrate_camera>::SharedPtr action_server_;
     rclcpp::CallbackGroup::SharedPtr session_callback_group_;

@@ -1,4 +1,4 @@
-#include <clover2_camera_utils/camera_calibration_node.hpp>
+#include <clover2_camera_utils/camera_calibration.hpp>
 
 #include <cv_bridge/cv_bridge.hpp>
 #include <opencv2/calib3d.hpp>
@@ -25,7 +25,7 @@ constexpr const char* k_set_camera_info_service_name = "set_camera_info";
 
 }  // namespace
 
-camera_calibration_node::camera_calibration_node(
+camera_calibration::camera_calibration(
     const rclcpp::NodeOptions& options)
     : clover2_common::node("camera_calibration", options) {
     image_timeout_s_ = declare_parameter<double>("image_timeout", 5.0);
@@ -54,13 +54,13 @@ camera_calibration_node::camera_calibration_node(
     using std::placeholders::_2;
     action_server_ = rclcpp_action::create_server<calibrate_camera>(
         this, "~/calibrate",
-        std::bind(&camera_calibration_node::handle_goal, this, _1, _2),
-        std::bind(&camera_calibration_node::handle_cancel, this, _1),
-        std::bind(&camera_calibration_node::handle_accepted, this, _1),
+        std::bind(&camera_calibration::handle_goal, this, _1, _2),
+        std::bind(&camera_calibration::handle_cancel, this, _1),
+        std::bind(&camera_calibration::handle_accepted, this, _1),
         rcl_action_server_get_default_options(), session_callback_group_);
     finish_calibration_service_ = create_service<finish_calibration>(
         "~/finish",
-        std::bind(&camera_calibration_node::handle_finish_calibration, this, _1,
+        std::bind(&camera_calibration::handle_finish_calibration, this, _1,
                   _2),
         rclcpp::ServicesQoS(), session_callback_group_);
 
@@ -70,12 +70,12 @@ camera_calibration_node::camera_calibration_node(
         image_timeout_s_);
 }
 
-camera_calibration_node::~camera_calibration_node() {
+camera_calibration::~camera_calibration() {
     cleanup_active_session();
     action_server_.reset();
 }
 
-rclcpp_action::GoalResponse camera_calibration_node::handle_goal(
+rclcpp_action::GoalResponse camera_calibration::handle_goal(
     [[maybe_unused]] const rclcpp_action::GoalUUID& uuid,
     const std::shared_ptr<const calibrate_camera::Goal> goal) {
     std::string rejection_reason;
@@ -107,7 +107,7 @@ rclcpp_action::GoalResponse camera_calibration_node::handle_goal(
     return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 }
 
-rclcpp_action::CancelResponse camera_calibration_node::handle_cancel(
+rclcpp_action::CancelResponse camera_calibration::handle_cancel(
     const std::shared_ptr<goal_handle> goal_handle) {
     if (active_goal_ != goal_handle) {
         return rclcpp_action::CancelResponse::REJECT;
@@ -115,11 +115,11 @@ rclcpp_action::CancelResponse camera_calibration_node::handle_cancel(
     return rclcpp_action::CancelResponse::ACCEPT;
 }
 
-void camera_calibration_node::handle_accepted(
+void camera_calibration::handle_accepted(
     const std::shared_ptr<goal_handle> goal_handle) {
     const auto goal = goal_handle->get_goal();
     const auto detector =
-        calibration::board_detector_factory::instance().create(
+        calibration::detector::factory::instance().create(
             goal->board_type);
     const auto image_topic =
         goal->camera_namespace == "/"
@@ -136,7 +136,7 @@ void camera_calibration_node::handle_accepted(
     board_.columns = goal->board_columns;
     board_.square_size_m = goal->square_size_m;
     detector_ = detector;
-    sample_selector_ = calibration::sample_selector(sample_selector_config_);
+    sample_selector_ = calibration::sample::selector(sample_selector_config_);
     calibrating_ = false;
     last_image_received_at_ = std::chrono::steady_clock::now();
     last_image_processed_at_ = std::chrono::steady_clock::time_point{};
@@ -151,12 +151,12 @@ void camera_calibration_node::handle_accepted(
     subscription_options.callback_group = session_callback_group_;
     image_subscription_ = create_subscription<sensor_msgs::msg::Image>(
         image_topic, image_qos,
-        std::bind(&camera_calibration_node::image_callback, this,
+        std::bind(&camera_calibration::image_callback, this,
                   std::placeholders::_1),
         subscription_options);
     image_timeout_timer_ = create_wall_timer(
         k_timeout_check_period,
-        std::bind(&camera_calibration_node::check_image_timeout, this),
+        std::bind(&camera_calibration::check_image_timeout, this),
         session_callback_group_);
 
     RCLCPP_INFO(get_logger(),
@@ -165,7 +165,7 @@ void camera_calibration_node::handle_accepted(
                 image_topic.c_str(), set_camera_info_service.c_str());
 }
 
-void camera_calibration_node::image_callback(
+void camera_calibration::image_callback(
     const sensor_msgs::msg::Image::ConstSharedPtr message) {
     if (!active_goal_ || calibrating_) {
         return;
@@ -225,7 +225,7 @@ void camera_calibration_node::image_callback(
     publish_feedback(active_goal_, board_detected, stage);
 }
 
-void camera_calibration_node::check_image_timeout() {
+void camera_calibration::check_image_timeout() {
     bool timed_out = false;
     if (!active_goal_) {
         return;
@@ -247,7 +247,7 @@ void camera_calibration_node::check_image_timeout() {
     }
 }
 
-void camera_calibration_node::handle_finish_calibration(
+void camera_calibration::handle_finish_calibration(
     [[maybe_unused]] const finish_calibration::Request::SharedPtr request,
     const finish_calibration::Response::SharedPtr response) {
     std::shared_ptr<goal_handle> goal_handle;
@@ -281,10 +281,10 @@ void camera_calibration_node::handle_finish_calibration(
     run_calibration(goal_handle, std::move(observations));
 }
 
-void camera_calibration_node::run_calibration(
+void camera_calibration::run_calibration(
     std::shared_ptr<goal_handle> goal_handle,
     std::vector<data::observation> observations) {
-    const auto algorithm = calibration::factory::instance().create(
+    const auto algorithm = calibration::algorithm::factory::instance().create(
         goal_handle->get_goal()->calibration_method);
     const auto calibration_result = algorithm->calibrate(observations);
 
@@ -324,7 +324,7 @@ void camera_calibration_node::run_calibration(
     }
 }
 
-void camera_calibration_node::handle_set_camera_info_response(
+void camera_calibration::handle_set_camera_info_response(
     const std::shared_ptr<goal_handle>& goal_handle,
     const std::shared_ptr<calibrate_camera::Result>& result,
     rclcpp::Client<set_camera_info>::SharedFuture future) {
@@ -365,18 +365,18 @@ void camera_calibration_node::handle_set_camera_info_response(
     }
 }
 
-bool camera_calibration_node::is_valid_goal(
+bool camera_calibration::is_valid_goal(
     const calibrate_camera::Goal& goal, std::string& rejection_reason) const {
     if (goal.camera_namespace.empty() || goal.camera_namespace.front() != '/') {
         rejection_reason = "camera_namespace must be an absolute ROS namespace";
         return false;
     }
-    if (!calibration::factory::instance().contains(goal.calibration_method)) {
+    if (!calibration::algorithm::factory::instance().contains(goal.calibration_method)) {
         rejection_reason =
             "unsupported calibration_method '" + goal.calibration_method + "'";
         return false;
     }
-    if (!calibration::board_detector_factory::instance().contains(
+    if (!calibration::detector::factory::instance().contains(
             goal.board_type)) {
         rejection_reason = "unsupported board_type '" + goal.board_type + "'";
         return false;
@@ -391,7 +391,7 @@ bool camera_calibration_node::is_valid_goal(
     return true;
 }
 
-bool camera_calibration_node::has_image_publisher(
+bool camera_calibration::has_image_publisher(
     const std::string& topic) const {
     const auto publishers = get_publishers_info_by_topic(topic);
     return std::any_of(
@@ -400,7 +400,7 @@ bool camera_calibration_node::has_image_publisher(
         });
 }
 
-void camera_calibration_node::publish_feedback(
+void camera_calibration::publish_feedback(
     const std::shared_ptr<goal_handle>& goal_handle, const bool board_detected,
     const uint8_t stage) const {
     data::coverage_progress progress;
@@ -438,7 +438,7 @@ void camera_calibration_node::publish_feedback(
     }
 }
 
-void camera_calibration_node::cancel_active_session(
+void camera_calibration::cancel_active_session(
     const std::shared_ptr<goal_handle>& goal_handle) {
     if (active_goal_ != goal_handle) {
         return;
@@ -458,7 +458,7 @@ void camera_calibration_node::cancel_active_session(
     }
 }
 
-void camera_calibration_node::abort_active_session(const std::string& reason) {
+void camera_calibration::abort_active_session(const std::string& reason) {
     if (!active_goal_) {
         return;
     }
@@ -479,19 +479,19 @@ void camera_calibration_node::abort_active_session(const std::string& reason) {
     }
 }
 
-void camera_calibration_node::cleanup_active_session() {
+void camera_calibration::cleanup_active_session() {
     image_timeout_timer_.reset();
     image_subscription_.reset();
     debug_publisher_.reset();
     set_camera_info_client_.reset();
     detector_.reset();
-    sample_selector_ = calibration::sample_selector(sample_selector_config_);
+    sample_selector_ = calibration::sample::selector(sample_selector_config_);
     calibrating_ = false;
     active_goal_.reset();
     goal_reserved_ = false;
 }
 
-sensor_msgs::msg::CameraInfo camera_calibration_node::make_camera_info(
+sensor_msgs::msg::CameraInfo camera_calibration::make_camera_info(
     const data::calibration_result& result) {
     sensor_msgs::msg::CameraInfo camera_info;
     camera_info.width = static_cast<uint32_t>(result.image_size.width);
@@ -524,4 +524,4 @@ sensor_msgs::msg::CameraInfo camera_calibration_node::make_camera_info(
 
 }  // namespace clover2_camera_utils
 
-RCLCPP_COMPONENTS_REGISTER_NODE(clover2_camera_utils::camera_calibration_node)
+RCLCPP_COMPONENTS_REGISTER_NODE(clover2_camera_utils::camera_calibration)

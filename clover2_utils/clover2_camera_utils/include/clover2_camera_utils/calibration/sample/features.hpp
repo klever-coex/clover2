@@ -9,9 +9,9 @@
 #include <optional>
 #include <vector>
 
-namespace clover2_camera_utils::calibration {
+namespace clover2_camera_utils::calibration::sample {
 
-class sample_features_calculator {
+class features_calculator {
 public:
     std::optional<data::sample_features> compute(
         const std::vector<cv::Point2f>& corners,
@@ -25,4 +25,4 @@ private:
         const std::array<cv::Point2f, 4>& corners);
 };
 
-}  // namespace clover2_camera_utils::calibration
+}  // namespace clover2_camera_utils::calibration::sample

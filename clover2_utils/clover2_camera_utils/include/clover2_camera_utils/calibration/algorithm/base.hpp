@@ -6,14 +6,14 @@
 #include <optional>
 #include <vector>
 
-namespace clover2_camera_utils::calibration {
+namespace clover2_camera_utils::calibration::algorithm {
 
-class calibration_algorithm {
+class base {
 public:
-    virtual ~calibration_algorithm() = default;
+    virtual ~base() = default;
 
     virtual std::optional<data::calibration_result> calibrate(
         const std::vector<data::observation>& observations) const = 0;
 };
 
-}  // namespace clover2_camera_utils::calibration
+}  // namespace clover2_camera_utils::calibration::algorithm

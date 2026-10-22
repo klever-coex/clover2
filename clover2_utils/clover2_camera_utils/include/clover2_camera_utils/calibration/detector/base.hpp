@@ -7,14 +7,14 @@
 
 #include <optional>
 
-namespace clover2_camera_utils::calibration {
+namespace clover2_camera_utils::calibration::detector {
 
-class board_detector {
+class base {
 public:
-    virtual ~board_detector() = default;
+    virtual ~base() = default;
 
     virtual std::optional<data::observation> detect(
         const cv::Mat& image, const data::board_config& board) const = 0;
 };
 
-}  // namespace clover2_camera_utils::calibration
+}  // namespace clover2_camera_utils::calibration::detector

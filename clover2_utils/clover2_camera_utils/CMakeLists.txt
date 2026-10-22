@@ -19,7 +19,7 @@ ament_auto_add_library(${PROJECT_NAME}_core SHARED DIRECTORY "src/calibration")
 target_link_libraries(${PROJECT_NAME}_core ${OpenCV_LIBS})
 
 ament_auto_add_library(${PROJECT_NAME}_component SHARED
-  src/camera_calibration_node.cpp
+  src/camera_calibration.cpp
 )
 target_link_libraries(${PROJECT_NAME}_component
   ${PROJECT_NAME}_core
@@ -27,7 +27,7 @@ target_link_libraries(${PROJECT_NAME}_component
 )
 
 rclcpp_components_register_node(${PROJECT_NAME}_component
-  PLUGIN "clover2_camera_utils::camera_calibration_node"
+  PLUGIN "clover2_camera_utils::camera_calibration"
   EXECUTABLE camera_calibration
 )
 
@@ -35,13 +35,15 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
 
   file(GLOB test_source RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "test/*.cpp")
-  ament_auto_add_gtest(test_${PROJECT_NAME}
-    ${test_source}
-  )
-  target_link_libraries(test_${PROJECT_NAME}
-    ${PROJECT_NAME}_core
-    ${PROJECT_NAME}_component
-  )
+  if(test_source)
+    ament_auto_add_gtest(test_${PROJECT_NAME}
+      ${test_source}
+    )
+    target_link_libraries(test_${PROJECT_NAME}
+      ${PROJECT_NAME}_core
+      ${PROJECT_NAME}_component
+    )
+  endif()
 endif()
 
 ament_auto_package(

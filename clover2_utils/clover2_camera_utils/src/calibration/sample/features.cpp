@@ -1,4 +1,4 @@
-#include <clover2_camera_utils/calibration/sample_features.hpp>
+#include <clover2_camera_utils/calibration/sample/features.hpp>
 
 #include <opencv2/imgproc.hpp>
 
@@ -6,9 +6,9 @@
 #include <cmath>
 #include <numbers>
 
-namespace clover2_camera_utils::calibration {
+namespace clover2_camera_utils::calibration::sample {
 
-std::optional<data::sample_features> sample_features_calculator::compute(
+std::optional<data::sample_features> features_calculator::compute(
     const std::vector<cv::Point2f>& corners, const data::board_config& board,
     const cv::Size image_size) const {
     if (image_size.width <= 0 || image_size.height <= 0 || board.rows < 2 ||
@@ -62,7 +62,7 @@ std::optional<data::sample_features> sample_features_calculator::compute(
     };
 }
 
-double sample_features_calculator::calculate_area(
+double features_calculator::calculate_area(
     const std::array<cv::Point2f, 4>& corners) {
     const auto& up_left = corners[0];
     const auto& up_right = corners[1];
@@ -79,7 +79,7 @@ double sample_features_calculator::calculate_area(
            2.0;
 }
 
-std::optional<double> sample_features_calculator::calculate_skew(
+std::optional<double> features_calculator::calculate_skew(
     const std::array<cv::Point2f, 4>& corners) {
     const auto& up_left = corners[0];
     const auto& up_right = corners[1];
@@ -98,4 +98,4 @@ std::optional<double> sample_features_calculator::calculate_skew(
     return std::min(1.0, 2.0 * std::abs(std::numbers::pi / 2.0 - angle));
 }
 
-}  // namespace clover2_camera_utils::calibration
+}  // namespace clover2_camera_utils::calibration::sample

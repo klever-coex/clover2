@@ -1,10 +1,10 @@
-#include <clover2_camera_utils/calibration/fisheye_calibration_algorithm.hpp>
+#include <clover2_camera_utils/calibration/algorithm/pinhole.hpp>
 
 #include <opencv2/calib3d.hpp>
 
 #include <vector>
 
-namespace clover2_camera_utils::calibration {
+namespace clover2_camera_utils::calibration::algorithm {
 namespace {
 
 constexpr size_t k_minimum_observations = 3;
@@ -12,14 +12,15 @@ constexpr size_t k_minimum_points_per_observation = 4;
 
 bool is_valid(const data::observation& observation, const cv::Size image_size) {
     return observation.image_size == image_size &&
-           observation.image_points.size() == observation.object_points.size() &&
+           observation.image_points.size() ==
+               observation.object_points.size() &&
            observation.image_points.size() >= k_minimum_points_per_observation;
 }
 
 }  // namespace
 
 std::optional<data::calibration_result>
-fisheye_calibration_algorithm::calibrate(
+pinhole::calibrate(
     const std::vector<data::observation>& observations) const {
     if (observations.size() < k_minimum_observations) {
         return std::nullopt;
@@ -43,27 +44,25 @@ fisheye_calibration_algorithm::calibrate(
         image_points.push_back(observation.image_points);
     }
 
-    cv::Mat camera_matrix = cv::Mat::eye(3, 3, CV_64F);
-    cv::Mat distortion_coefficients = cv::Mat::zeros(4, 1, CV_64F);
+    cv::Mat camera_matrix;
+    cv::Mat distortion_coefficients;
     std::vector<cv::Mat> rotation_vectors;
     std::vector<cv::Mat> translation_vectors;
 
     try {
-        cv::fisheye::calibrate(
-            object_points, image_points, image_size, camera_matrix,
-            distortion_coefficients, rotation_vectors, translation_vectors,
-            cv::fisheye::CALIB_RECOMPUTE_EXTRINSIC);
+        cv::calibrateCamera(object_points, image_points, image_size,
+                            camera_matrix, distortion_coefficients,
+                            rotation_vectors, translation_vectors);
         return data::calibration_result{
             .image_size = image_size,
             .camera_matrix = std::move(camera_matrix),
             .distortion_coefficients = std::move(distortion_coefficients),
             .rotation_vectors = std::move(rotation_vectors),
             .translation_vectors = std::move(translation_vectors),
-            .distortion_model = "equidistant",
         };
     } catch (const cv::Exception&) {
         return std::nullopt;
     }
 }
 
-}  // namespace clover2_camera_utils::calibration
+}  // namespace clover2_camera_utils::calibration::algorithm

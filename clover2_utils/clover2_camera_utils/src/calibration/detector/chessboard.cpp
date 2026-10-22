@@ -1,11 +1,11 @@
-#include <clover2_camera_utils/calibration/chessboard_detector.hpp>
+#include <clover2_camera_utils/calibration/detector/chessboard.hpp>
 
 #include <opencv2/calib3d.hpp>
 #include <opencv2/imgproc.hpp>
 
 #include <vector>
 
-namespace clover2_camera_utils::calibration {
+namespace clover2_camera_utils::calibration::detector {
 namespace {
 
 bool is_valid(const data::board_config& board) {
@@ -45,7 +45,7 @@ std::vector<cv::Point3f> make_object_points(const data::board_config& board) {
 
 }  // namespace
 
-std::optional<data::observation> chessboard_detector::detect(
+std::optional<data::observation> chessboard::detect(
     const cv::Mat& image, const data::board_config& board) const {
     if (!is_valid(board)) {
         return std::nullopt;
@@ -77,4 +77,4 @@ std::optional<data::observation> chessboard_detector::detect(
     };
 }
 
-}  // namespace clover2_camera_utils::calibration
+}  // namespace clover2_camera_utils::calibration::detector

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <clover2_camera_utils/calibration/calibration_algorithm.hpp>
+#include <clover2_camera_utils/calibration/algorithm/base.hpp>
 
 #include <functional>
 #include <memory>
@@ -9,19 +9,19 @@
 #include <unordered_map>
 #include <vector>
 
-namespace clover2_camera_utils::calibration {
+namespace clover2_camera_utils::calibration::algorithm {
 
 class factory {
 public:
-    using value_type = std::unique_ptr<calibration_algorithm>;
+    using value_type = std::unique_ptr<base>;
     using builder_type = std::function<value_type()>;
 
     static factory& instance();
 
     template <typename T>
     void add(const std::string& method) {
-        static_assert(std::is_base_of_v<calibration_algorithm, T>,
-                      "T must be derived from calibration_algorithm");
+        static_assert(std::is_base_of_v<base, T>,
+                      "T must be derived from base");
         builders_[method] = []() { return std::make_unique<T>(); };
     }
 
@@ -35,4 +35,4 @@ private:
     std::unordered_map<std::string, builder_type> builders_;
 };
 
-}  // namespace clover2_camera_utils::calibration
+}  // namespace clover2_camera_utils::calibration::algorithm
