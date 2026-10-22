@@ -34,7 +34,7 @@ For optimal performance, restart the simulator if it has been inactive for an ex
 :::
 
 ```{figure} @assets@/common/simulator/vmware/gazebo-running.webp
-:alt:Gazebo
+:alt: Gazebo
 :width: 90%
 :align: center
 Gazebo simulator
