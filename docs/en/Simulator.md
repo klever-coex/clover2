@@ -53,7 +53,7 @@ Always verify program compatibility, configuration settings, and algorithm behav
 
 To get started, select the appropriate {doc}`installation <Simulator/Installation>` option for your operating system:: 
 * Dev Container — for Linux.
-* VMware — fow Windows.
+* VMware — for Windows.
 * UTM — for macOS.
   
 Once installation is complete, refer to the {doc}`Usage <Simulator/Usage>` section to launch the simulator and begin interacting with your virtual quadcopter.
