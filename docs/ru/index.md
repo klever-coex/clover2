@@ -1,4 +1,4 @@
-# Clover2
+# clover2
 
 ```{toctree}
 :titlesonly:
