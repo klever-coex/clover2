@@ -1,24 +1,25 @@
-# Usage Guide
+# Simulator Usage Guide
 
-First, prepare the environment by following the {doc}`инструкции установки <Installation>`. Все команды из этой статьи выполняйте в терминале Dev Container или гостевой системы Linux, запущенной в VMware/UTM. В готовом образе рабочая директория проекта (workspace) находится по пути `~/clover2-dev`.
+First, prepare the environment by following the {doc}`Installation Guide <Installation>`. 
+All commands provided in this guide should be executed within the **Dev Container** terminal or the guest **Linux** system running via VMware/UTM. In the pre-configured images, your project workspace is located at  `~/clover2-dev`.
 
 (simulator-launch)=
 
-## Запуск симулятора
+## How to Launch the Simulator
 
 :::{important}
-В готовом образе для VMware/UTM среда уже подготовлена, поэтому можно сразу запускать симулятор.
-Если используете Dev Container впервые, сначала выполните {doc}`загрузку зависимостей и сборку проекта <Installation/DevContainer>`. После этого запускайте симулятор в терминале контейнера с подключенным workspace.
+In VMware/UTM, the environment is pre-configured; you can launch the simulator immediately.
+In Dev Container, if it is the first time you use it, complete the {doc}`dependency download and project build <Installation/DevContainer>`. Once complete, launch the simulator from the container terminal with the workspace attached.
 :::
 
-Откройте терминал внутри гостевой Linux и выполните команду:
+Open a terminal within your guest Linux system or Dev Container. Run the following command:
 
 ```bash
 ros2 launch clover2_sim gz_simple.launch.py
 ```
 
 ```{figure} @assets@/common/simulator/vmware/launch-simulator.webp
-:alt: Запуск симулятора
+:alt: Simulator launch
 :width: 90%
 :align: center
 Simulator launch
@@ -26,16 +27,14 @@ Simulator launch
 
 <br>
 
-После запуска откроется графическое окно Gazebo с виртуальной моделью квадрокоптера. В терминале появятся сообщения ROS 2. Не закрывайте этот терминал, пока работает симулятор.
-
-Для остановки симулятора нажмите `Ctrl+C` в том же терминале, из которого вы его запустили.
+Once the command is executed, a **Gazebo** graphical window will open displaying the virtual quadcopter model, and ROS 2 messages will begin streaming in your terminal. Do not close the terminal while the simulator is active. To safely shut down the simulator, return to that terminal and press `Ctrl+C`.
 
 :::{tip}
-Рекомендуется перезапускать симулятор после долгого простоя.
+For optimal performance, restart the simulator if it has been inactive for an extended period.
 :::
 
 ```{figure} @assets@/common/simulator/vmware/gazebo-running.webp
-:alt: Симулятор Gazebo
+:alt:Gazebo
 :width: 90%
 :align: center
 Gazebo simulator
@@ -43,85 +42,91 @@ Gazebo simulator
 
 <br>
 
-## Программирование в симуляторе
+## How to Program in the Simulator
 
-В симуляторе можно разрабатывать и тестировать код для управления виртуальным квадрокоптером. Для этого используется тот же [фреймворк](../Programming/AutonomousFlight), что и на настоящем квадрокоптере.
+The simulator provides a robust environment to develop and test control code for your virtual quadcopter. Because the simulator mirrors real-world operations, you will use the exact same [framework](../Programming/AutonomousFlight) required for a physical quadcopter.
 
-Для удобства программирования в VMware/UTM установлен редактор кода VS Code.
+To streamline your development workflow, VS Code is pre-installed within the VMware/UTM environments.
 
-## Повторный запуск
+## How to Restart the Simulator
 
-После перезагрузки компьютера не нужно заново устанавливать среду или пересобирать проект, если его исходный код и зависимости не изменились.
+If you restart your computer, you do not need to reinstall the environment or rebuild the project, provided that your source code and dependencies remain unchanged.
 
-Чтобы снова запустить симулятор, выполните следующие действия:
+To resume your work, follow these steps:
 
-1. Запустите виртуальную машину в VMware/UTM. Если вы используете Dev Container, откройте папку `clover2-dev` в VS Code и выберите `Dev Containers: Reopen in Container`.
-2. Откройте терминал внутри запущенной виртуальной машины или Dev Container.
-3. В готовом образе с настроенным окружением выполните команду запуска симулятора:
+1. Start your virtual machine in VMware/UTM. For Dev Container, open the `clover2-dev` folder in VS Code and select `Dev Containers: Reopen in Container`.
+2. Open a terminal inside the active virtual machine or Dev Container.
+3. Execute the launch command:
    ```bash
    ros2 launch clover2_sim gz_simple.launch.py
    ```
 
-### Когда нужно пересобирать проект
+### When to Rebuild the Project
 
-Пересоберите проект, если выполняется хотя бы одно из следующих условий:
+To ensure your environment remains stable, rebuild the project if any of the following conditions apply:
 
-- Вы впервые скачали исходный код проекта;
-- Вы изменили код на C++;
-- Вы изменили файлы `CMakeLists.txt` или `package.xml`;
-- Вы добавили новые ROS 2-пакеты;
-- Команда запуска не находит нужный пакет;
-- После выполнения `vcs import` вы обновили репозитории.
+- You are downloading the project source code for the first time.
+- You have moved to C++ code.
+- You have updated `CMakeLists.txt` or `package.xml` files.
+- You have added new ROS 2 packages.
+- The launch command returns an error stating it cannot find a required package.
+- You have updated repositories using `vcs import`.
 
-Для пересборки выполните команды:
+To rebuild the project, run the following commands:
 
 ```bash
 cd ~/clover2-dev
 colcon build --symlink-install
 ```
 
-Дождитесь завершения сборки. Если в терминале появились ошибки, сначала устраните их. После успешной сборки запустите симулятор командой:
+Wait for the build process to finish. If errors appear in the terminal, resolve them before proceeding. Once the build is successful, launch the simulator using:
+
    ```bash
    ros2 launch clover2_sim gz_simple.launch.py
    ```
 
 ## QGroundControl
 
-Для работы с симулятором, как и с настоящим квадрокоптером, можно использовать QGroundControl для управления параметрами полетного контроллера и просмотра телеметрии.
+Just like a physical quadcopter, you can use QGroundControl to manage flight controller parameters and monitor real-time telemetry.
 
-В готовых образах VMware/UTM уже установлен QGroundControl. Найдите и запустите его через меню приложений.
+In VMware/UTM, QGroundControl is pre-installed. You can find and launch it directly from the applications menu.
 
-При использовании Dev Container установите QGroundControl на основной операционной системе компьютера (хостовой системе) и запустите его отдельно от контейнера.
+For Dev Container, install QGroundControl on your host operating system (your main computer) and run it as a separate application from the container.
 
-Соединение с симулятором выполняется автоматически при запуске. Если соединение не устанавливается,  проверьте, включен ли параметр `Autoconnect to UDP` в настройках QGroundControl.
+The connection to the simulator is established automatically upon launch. If you are unable to connect, verify that the `Autoconnect to UDP` parameter is enabled in the QGroundControl settings.
+
 
 ## Render Engine
 
-**Gazebo** поддерживает несколько движков визуализации (Render Engine). Они отвечают за отображение виртуального мира: объектов, освещения, текстур и других графических элементов.
+**Gazebo** utilizes various rendering engines to handle the visual elements of the virtual world, including objects, lighting, and textures.
 
-В готовых образах VMware/UTM используется движок `ogre1`. Он выбран с учетом особенностей графической эмуляции и совместимости с виртуальной машиной.
+In VMware/UTM, these images use the `ogre1` engine, which was selected to ensure maximum compatibility and stability within a virtual machine environment.
 
-В Dev Container по умолчанию используется `ogre2`, который поддерживает более современные графические эффекты, но может быть несовместим с некоторыми видеокартами.
+In Dev Container, the `ogre2` engine is used by default. While it offers more modern graphical effects, it may cause compatibility issues with certain graphics cards.
 
-Если в Gazebo возникают проблемы с отображением, попробуйте переключиться на `ogre1`.
+If you encounter graphical glitches or display problems in Gazebo, try to switch to the `ogre1` engine using one of the following methods:
 
-Способ 1. Установите переменную окружения перед запуском симулятора:
+Method 1: Environment Variable
+
+Set the engine via an environment variable before launching the simulator:
 
 ```bash
 export CLOVER2_GZ_SIM_RENDER_ENGINE=ogre
 ros2 launch clover2_sim gz_simple.launch.py
 ```
 
-Если вы хотите применять настройку автоматически при каждом запуске терминала, добавьте строку в файл `~/.bashrc`:
+To make this change permanent so that it applies automatically every time you open a terminal, add the export command to your `~/.bashrc` file:
 
 ```bash
 export CLOVER2_GZ_SIM_RENDER_ENGINE=ogre
 ```
 
-Способ 2. Укажите движок непосредственно в команде запуска:
+Method 2: Launch Argument
+
+You can specify the engine directly within the launch command:
 
 ```bash
 ros2 launch clover2_sim gz_simple.launch.py render_engine:=ogre
 ```
 
-Используйте один из этих способов. Если проблема сохраняется, проверьте сообщения в терминале и настройки графики виртуальной машины.
+If display issues persist after trying these methods, review the terminal output for error messages and check your virtual machine graphics settings.
