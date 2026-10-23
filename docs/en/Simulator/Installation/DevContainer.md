@@ -58,74 +58,75 @@ sudo apt install -f ./path-to-file/code_*.deb
 
 ---
 
-## 2. Клонирование проекта
+## 2. Cloning the Project
 
-Команды из этого раздела выполняйте на своем компьютере, а не внутри контейнера.
+Perform these steps on your local host computer.
 
-### 2.1. Перейдите в папку для проектов
+### 2.1. Set Up Your Project Directory
 
-Создайте папку для проектов и перейдите в нее. Например, используйте папку `~/projects`:
+Create a dedicated folder to organize your projects. For example, to create and enter a `~/projects` folder, run:
 
 ```bash
 mkdir -p ~/projects
 cd ~/projects
 ```
 
-* Команда `mkdir -p` создает папку, если она еще не существует.
-* Команда `cd` открывает эту папку в терминале.
+* `mkdir -p` creates the folder if it doesn't yet exist.
+* `cd` navigates into the newly created folder.
 
 ---
 
-### 2.2. Клонируйте `clover2-dev`
+### 2.2. Clone the `clover2-dev` Repository
 
-Скачайте исходный код проекта из репозитория GitHub. Для этого выполните команды:
+Download the project source code from GitHub by running:
 
 ```bash
 git clone https://github.com/klever-coex/clover2-dev.git
 cd clover2-dev
 ```
 
-* Команда `git clone` скачивает репозиторий на ваш компьютер. 
-* Команда `cd` переходит в созданную папку `clover2-dev`.
+* `git clone` downloads the repository to your local machine. 
+* `cd` moves your terminal session into the `clover2-dev` directory.
 
 ---
 
-## 3. Первый запуск Dev Container
+## 3. First Launch of the Dev Container
 
-Команды и действия из этого раздела выполняйте на своем компьютере в VS Code.
+All following actions must be performed within Visual Studio Code on your local machine.
 
-### 3.1. Откройте проект в VS Code
+## 3.1. Open the Project in VS Code
 
-Если вы находитесь в папке `clover2-dev`, откройте проект командой:
+If your terminal is already in the `clover2-dev`, you can open the project quickly by running:
 
 ```bash
 code .
 ```
 
-Если команда `code` не работает, откройте VS Code вручную и выберите `File` → `Open Folder`. Укажите папку `clover2-dev`.
+If the `code` command is not recognized, launch Visual Studio Code manually, go to `File` → `Open Folder`, and select the  `clover2-dev` folder.
 
 ---
 
-### 3.2. Запустите Dev Container
+### 3.2. Launch the Dev Container
 
-В VS Code выполните следующие действия:
+In VS Code, follow these steps:
 
-1. Нажмите `Ctrl+Shift+P`, чтобы открыть палитру команд.
-2. Введите `Reopen in Container`.
-3. Выберите команду `Dev Containers: Reopen in Container`.
-4. Если VS Code предложит выбрать конфигурацию контейнера, выберите один из вариантов:
+1. Press `Ctrl+Shift+P` to open the Command Palette.
+2. Type `Reopen in Container` into the search bar.
+3. Select the `Dev Containers: Reopen in Container`.
+4. If prompted to select a specific configuration, choose the one that matches your hardware:
 
-   - `clover2-dev:universe-devel` — стандартная конфигурация;
-   - `clover2-dev:universe-devel (NVIDIA)` — конфигурация для компьютеров с видеокартой NVIDIA.
+   - `clover2-dev:universe-devel` — standard configuration for most users.
+   - `clover2-dev:universe-devel (NVIDIA)` — specifically for systems equipped with an NVIDIA graphics card.
 
-:::{important}
-При первом запуске VS Code скачает необходимые зависимости, это может занять 5-10 минут.
+
+::: {important} 
+During the initial launch, VS Code will download all necessary dependencies. This process can take 5–10 minutes depending on your internet connection. 
 :::
 
-Когда VS Code подключится к контейнеру, в левом нижнем углу окна появится индикатор удаленной среды разработки. Это означает, что вы работаете внутри Dev Container.
+Once the connection is established, you will see a remote development indicator in the lower-left corner of the VS Code window. This confirms you are now working inside the Dev Container.
 
 ```{figure} @assets@/common/simulator/gazebo-dev-container/runned-dev-container.webp
-:alt: Запущенный Dev Container
+:alt: Dev Container
 :width: 90%
 :align: center
 ```
@@ -134,73 +135,72 @@ code .
 
 (simulator-first-build)=
 
-## Загрузка зависимостей и первая сборка
+## Downloading Dependencies and the First Build
 
-Все команды из этого раздела выполняйте  в терминале Dev Container, открытом в корне проекта `clover2-dev`. Это папка, в которой находится каталог `src` с исходным кодом.
+All commands in this section must be executed within the Dev Container terminal. 
+Ensure the terminal is opened at the root of the `clover2-dev` project (the directory containing the `src` folder).
 
-### Загрузка зависимостей
+### Downloading Dependencies
 
-В файле `repos/simulation.yaml` перечислены репозитории, необходимые для работы симулятора, в том числе исходный код `clover2` и `clover2-sim`. Чтобы скачать исходный код этих проектов и других указанных зависимостей в папку `src`, выполните команду:
+The `repos/simulation.yaml` contains a list of all required repositories, including the source code for `clover2` and `clover2-sim`. 
+To download these dependencies into your `src` folder, run:
 
 ```bash
 vcs import src --recursive < repos/simulation.yaml
 ```
 
 ```{important}
-Загрузка может занять продолжительное время, так как скачивается исходный код PX4. Не закрывайте терминал, пока команда не завершится.
+This process may take a significant amount of time because it includes downloading the large PX4 source code. Do not close the terminal until the command has fully completed. 
 ```
 
-### Сборка workspace
+### Building the Workspace
 
-После загрузки зависимостей соберите проект. Выполните следующие команды в корне `clover2-dev`:
+Once the dependencies are downloaded, you need to build the project. Execute the following commands in the `clover2-dev` root directory:
 
 ```bash
 source /opt/ros/jazzy/setup.bash
 colcon build --symlink-install
 ```
 
-* Первая команда подключает установленную среду `ROS 2 Jazzy`.
-* Вторая команда собирает пакеты проекта и размещает результаты сборки в каталоге `install`.
+* The first command loads the pre-installed `ROS 2 Jazzy` environment.
+* The second command complies the project packages and stores the build artifacts in the `install` directory.
 
-При успешном завершении вывод будет выглядеть примерно так:
 
 ```{figure} @assets@/common/simulator/gazebo-dev-container/build-success.webp
-:alt: Успешная сборка workspace
+:alt: workspace build success
 :width: 90%
 :align: center
 ```
 
 <br>
 
-### Подключение собранных пакетов
+### Sourcing the Built Packages
 
-Чтобы ROS 2 мог находить собранные пакеты Clover2, выполните в терминале:
+To ensure ROS 2 can locate and use your newly built Clover2 packages, you must source the workspace in your current terminal:
 
 ```bash
 source ./install/setup.bash
 ros2 pkg list | grep clover
 ```
 
-* Первая команда подключает результаты сборки текущего проекта.
-* Вторая команда выводит названия доступных пакетов, содержащих clover.
-  
-Если команда вывела список пакетов Clover2, значит ROS 2 обнаруживает их в текущем терминале.
-Вы должны увидеть список пакетов Clover2, например:
+* The first command applies the build results to your current session.
+* The second command searches the list of available ROS 2 packages for any containing the word `clover`.
+
+If the setup was successful, you should see a list of Clover2 packages in the output.  
 
 ```{figure} @assets@/common/simulator/gazebo-dev-container/list-builded-packages.webp
-:alt: Пакеты Clover2 в собранном workspace
+:alt: Clover2 packages in the workspace
 :width: 90%
 :align: center
 
-Пакеты Clover2 в собранном workspace
+Clover2 packages in the workspace
 ```
 
-Чтобы не подключать результаты сборки вручную при каждом открытии нового терминала, можно добавить команды подключения в `~/.bashrc`:
+To avoid manually sourcing the workspace every time you open a new terminal, you can automate this by adding the command to your `~/.bashrc`:
 
 ```bash
 echo "source ~/clover2-dev/install/setup.bash" >> ~/.bashrc
 ```
 
 <br>
-
-После завершения настройки перейдите к инструкции по {ref}`запуску симулятора <simulator-launch>`.
+After completing these steps, you are ready to proceed to the {ref}`Simulator Launch <simulator-launch>`.
