@@ -1,0 +1,52 @@
+# Goal
+
+# Absolute namespace of the camera driver. 
+string camera_namespace
+
+# Canonical lowercase identifier. Supported values: "pinhole", "fisheye".
+string calibration_method
+
+# Canonical lowercase identifier. First version supports only "chessboard".
+string board_type
+
+# Number of internal chessboard corners.
+uint32 board_rows
+uint32 board_columns
+
+# Side length of one checkerboard square, in metres.
+float64 square_size_m
+
+---
+# Result
+
+bool success
+
+sensor_msgs/CameraInfo camera_info
+uint32 used_observations
+
+# Empty on success; explains failure otherwise.
+string message
+
+---
+# Feedback
+
+# Number of observations accepted into the calibration dataset.
+uint32 accepted_samples
+
+# Coverage progress in the range [0.0, 1.0].
+float32 progress_x
+float32 progress_y
+float32 progress_size
+float32 progress_skew
+
+bool data_sufficient
+
+uint8 WAITING_FOR_BOARD=0
+uint8 BOARD_DETECTED=1
+uint8 SAMPLE_ACCEPTED=3
+uint8 DATA_SUFFICIENT=4
+uint8 CALIBRATING=5
+uint8 stage
+
+# Human-readable instruction for the operator.
+string hint
