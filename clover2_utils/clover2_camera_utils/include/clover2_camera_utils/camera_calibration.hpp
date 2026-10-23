@@ -31,8 +31,9 @@ namespace clover2_camera_utils {
  * @brief Performs interactive camera calibration using board observations.
  *
  * The component accepts an action goal, receives images from the camera
- * namespace, selects non-duplicate observations, and sends the computed
- * `CameraInfo` to the camera driver through the `set_camera_info` service.
+ * namespace, selects non-duplicate observations, saves the computed parameters
+ * to a YAML file, and optionally sends the resulting `CameraInfo` to the camera
+ * driver through the `set_camera_info` service.
  */
 class camera_calibration : public clover2_common::node {
 public:
@@ -104,17 +105,6 @@ private:
                          std::vector<data::observation> observations);
 
     /**
-     * @brief Handles the `set_camera_info` service response.
-     * @param goal_handle Handle of the active goal.
-     * @param result Result sent to the action client.
-     * @param future Future containing the `set_camera_info` service response.
-     */
-    void handle_set_camera_info_response(
-        const std::shared_ptr<goal_handle>& goal_handle,
-        const std::shared_ptr<calibrate_camera::Result>& result,
-        rclcpp::Client<set_camera_info>::SharedFuture future);
-
-    /**
      * @brief Validates calibration goal parameters.
      * @param goal Goal to validate.
      * @param rejection_reason Rejection reason for an invalid goal.
@@ -157,12 +147,13 @@ private:
     /**
      * @brief Converts a calibration result to a `CameraInfo` message.
      * @param result Camera calibration result.
-     * @return `CameraInfo` prepared for the `set_camera_info` service.
+     * @return `CameraInfo` prepared for output and the `set_camera_info` service.
      */
     static sensor_msgs::msg::CameraInfo make_camera_info(
         const data::calibration_result& result);
 
     // Configuration
+    std::string m_calibration_file;
     double m_image_timeout_s{5.0};
     double m_processing_rate_hz{5.0};
     data::sample_selector_config m_sample_selector_config;

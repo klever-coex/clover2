@@ -20,6 +20,7 @@ target_link_libraries(${PROJECT_NAME}_core ${OpenCV_LIBS})
 
 ament_auto_add_library(${PROJECT_NAME}_component SHARED
   src/camera_calibration.cpp
+  src/io/camera_info_yaml.cpp
 )
 target_link_libraries(${PROJECT_NAME}_component
   ${PROJECT_NAME}_core
