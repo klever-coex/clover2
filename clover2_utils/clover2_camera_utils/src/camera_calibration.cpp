@@ -25,54 +25,52 @@ constexpr const char* k_set_camera_info_service_name = "set_camera_info";
 
 }  // namespace
 
-camera_calibration::camera_calibration(
-    const rclcpp::NodeOptions& options)
+camera_calibration::camera_calibration(const rclcpp::NodeOptions& options)
     : clover2_common::node("camera_calibration", options) {
-    image_timeout_s_ = declare_parameter<double>("image_timeout", 5.0);
-    processing_rate_hz_ = declare_parameter<double>("processing_rate", 5.0);
+    m_image_timeout_s = declare_parameter<double>("image_timeout", 5.0);
+    m_processing_rate_hz = declare_parameter<double>("processing_rate", 5.0);
     const auto minimum_samples = declare_parameter<int>(
         "minimum_samples_for_completion",
         static_cast<int>(
-            sample_selector_config_.minimum_samples_for_completion));
-    if (image_timeout_s_ <= 0.0) {
+            m_sample_selector_config.minimum_samples_for_completion));
+    if (m_image_timeout_s <= 0.0) {
         throw std::invalid_argument("image_timeout must be positive");
     }
-    if (processing_rate_hz_ <= 0.0) {
+    if (m_processing_rate_hz <= 0.0) {
         throw std::invalid_argument("processing_rate must be positive");
     }
     if (minimum_samples < 3) {
         throw std::invalid_argument(
             "minimum_samples_for_completion must be at least 3");
     }
-    sample_selector_config_.minimum_samples_for_completion =
+    m_sample_selector_config.minimum_samples_for_completion =
         static_cast<size_t>(minimum_samples);
 
-    session_callback_group_ =
+    m_session_callback_group =
         create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
     using std::placeholders::_1;
     using std::placeholders::_2;
-    action_server_ = rclcpp_action::create_server<calibrate_camera>(
+    m_action_server = rclcpp_action::create_server<calibrate_camera>(
         this, "~/calibrate",
         std::bind(&camera_calibration::handle_goal, this, _1, _2),
         std::bind(&camera_calibration::handle_cancel, this, _1),
         std::bind(&camera_calibration::handle_accepted, this, _1),
-        rcl_action_server_get_default_options(), session_callback_group_);
-    finish_calibration_service_ = create_service<finish_calibration>(
+        rcl_action_server_get_default_options(), m_session_callback_group);
+    m_finish_calibration_service = create_service<finish_calibration>(
         "~/finish",
-        std::bind(&camera_calibration::handle_finish_calibration, this, _1,
-                  _2),
-        rclcpp::ServicesQoS(), session_callback_group_);
+        std::bind(&camera_calibration::handle_finish_calibration, this, _1, _2),
+        rclcpp::ServicesQoS(), m_session_callback_group);
 
     RCLCPP_INFO(
         get_logger(),
         "Camera calibration Action server is ready; image timeout is %.3f s",
-        image_timeout_s_);
+        m_image_timeout_s);
 }
 
 camera_calibration::~camera_calibration() {
     cleanup_active_session();
-    action_server_.reset();
+    m_action_server.reset();
 }
 
 rclcpp_action::GoalResponse camera_calibration::handle_goal(
@@ -96,20 +94,20 @@ rclcpp_action::GoalResponse camera_calibration::handle_goal(
         return rclcpp_action::GoalResponse::REJECT;
     }
 
-    if (goal_reserved_ || active_goal_) {
+    if (m_goal_reserved || m_active_goal) {
         RCLCPP_WARN(get_logger(),
                     "Rejecting calibration goal: another calibration session "
                     "is active");
         return rclcpp_action::GoalResponse::REJECT;
     }
 
-    goal_reserved_ = true;
+    m_goal_reserved = true;
     return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 }
 
 rclcpp_action::CancelResponse camera_calibration::handle_cancel(
     const std::shared_ptr<goal_handle> goal_handle) {
-    if (active_goal_ != goal_handle) {
+    if (m_active_goal != goal_handle) {
         return rclcpp_action::CancelResponse::REJECT;
     }
     return rclcpp_action::CancelResponse::ACCEPT;
@@ -118,9 +116,6 @@ rclcpp_action::CancelResponse camera_calibration::handle_cancel(
 void camera_calibration::handle_accepted(
     const std::shared_ptr<goal_handle> goal_handle) {
     const auto goal = goal_handle->get_goal();
-    const auto detector =
-        calibration::detector::factory::instance().create(
-            goal->board_type);
     const auto image_topic =
         goal->camera_namespace == "/"
             ? std::string("/") + k_image_topic_name
@@ -130,34 +125,35 @@ void camera_calibration::handle_accepted(
             ? std::string("/") + k_set_camera_info_service_name
             : goal->camera_namespace + "/" + k_set_camera_info_service_name;
 
-    active_goal_ = goal_handle;
-    goal_reserved_ = false;
-    board_.rows = goal->board_rows;
-    board_.columns = goal->board_columns;
-    board_.square_size_m = goal->square_size_m;
-    detector_ = detector;
-    sample_selector_ = calibration::sample::selector(sample_selector_config_);
-    calibrating_ = false;
-    last_image_received_at_ = std::chrono::steady_clock::now();
-    last_image_processed_at_ = std::chrono::steady_clock::time_point{};
+    m_active_goal = goal_handle;
+    m_goal_reserved = false;
+    m_board.rows = goal->board_rows;
+    m_board.columns = goal->board_columns;
+    m_board.square_size_m = goal->square_size_m;
+    m_detector =
+        calibration::detector::factory::instance().create(goal->board_type);
+    m_sample_selector = calibration::sample::selector(m_sample_selector_config);
+    m_calibrating = false;
+    m_last_image_received_at = std::chrono::steady_clock::now();
+    m_last_image_processed_at = std::chrono::steady_clock::time_point{};
 
     const auto image_qos = rclcpp::SensorDataQoS().keep_last(1);
-    debug_publisher_ = create_publisher<sensor_msgs::msg::Image>(
+    m_debug_publisher = create_publisher<sensor_msgs::msg::Image>(
         "~/output/debug", rclcpp::SystemDefaultsQoS());
-    set_camera_info_client_ = create_client<set_camera_info>(
+    m_set_camera_info_client = create_client<set_camera_info>(
         set_camera_info_service, rclcpp::ServicesQoS(),
-        session_callback_group_);
+        m_session_callback_group);
     rclcpp::SubscriptionOptions subscription_options;
-    subscription_options.callback_group = session_callback_group_;
-    image_subscription_ = create_subscription<sensor_msgs::msg::Image>(
+    subscription_options.callback_group = m_session_callback_group;
+    m_image_subscription = create_subscription<sensor_msgs::msg::Image>(
         image_topic, image_qos,
         std::bind(&camera_calibration::image_callback, this,
                   std::placeholders::_1),
         subscription_options);
-    image_timeout_timer_ = create_wall_timer(
+    m_image_timeout_timer = create_wall_timer(
         k_timeout_check_period,
         std::bind(&camera_calibration::check_image_timeout, this),
-        session_callback_group_);
+        m_session_callback_group);
 
     RCLCPP_INFO(get_logger(),
                 "Calibration session started for image topic '%s'; calibration "
@@ -167,42 +163,43 @@ void camera_calibration::handle_accepted(
 
 void camera_calibration::image_callback(
     const sensor_msgs::msg::Image::ConstSharedPtr message) {
-    if (!active_goal_ || calibrating_) {
+    if (!m_active_goal || m_calibrating) {
         return;
     }
     const auto now = std::chrono::steady_clock::now();
-    last_image_received_at_ = now;
+    m_last_image_received_at = now;
     const auto processing_period =
-        std::chrono::duration<double>(1.0 / processing_rate_hz_);
-    if (last_image_processed_at_ != std::chrono::steady_clock::time_point{} &&
-        now - last_image_processed_at_ < processing_period) {
+        std::chrono::duration<double>(1.0 / m_processing_rate_hz);
+    if (m_last_image_processed_at != std::chrono::steady_clock::time_point{} &&
+        now - m_last_image_processed_at < processing_period) {
         return;
     }
-    last_image_processed_at_ = now;
+    m_last_image_processed_at = now;
 
     bool board_detected = false;
     std::optional<data::observation> observation;
     try {
         const auto input =
             cv_bridge::toCvShare(message, sensor_msgs::image_encodings::BGR8);
-        observation = detector_->detect(input->image, board_);
+        observation = m_detector->detect(input->image, m_board);
         board_detected = observation.has_value();
 
-        if (debug_publisher_ &&
-            debug_publisher_->get_subscription_count() > 0) {
+        if (m_debug_publisher &&
+            m_debug_publisher->get_subscription_count() > 0) {
             cv::Mat debug_image = input->image.clone();
-            cv::drawChessboardCorners(debug_image,
-                                      cv::Size(static_cast<int>(board_.columns),
-                                               static_cast<int>(board_.rows)),
-                                      observation ? observation->image_points
-                                                  : std::vector<cv::Point2f>{},
-                                      board_detected);
+            cv::drawChessboardCorners(
+                debug_image,
+                cv::Size(static_cast<int>(m_board.columns),
+                         static_cast<int>(m_board.rows)),
+                observation ? observation->image_points
+                            : std::vector<cv::Point2f>{},
+                board_detected);
 
             cv_bridge::CvImage output;
             output.header = message->header;
             output.encoding = sensor_msgs::image_encodings::BGR8;
             output.image = std::move(debug_image);
-            debug_publisher_->publish(*output.toImageMsg());
+            m_debug_publisher->publish(*output.toImageMsg());
         }
     } catch (const std::exception& error) {
         RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 5000,
@@ -215,32 +212,32 @@ void camera_calibration::image_callback(
                         : calibrate_camera::Feedback::WAITING_FOR_BOARD;
     if (observation) {
         const auto selection =
-            sample_selector_.try_add(std::move(*observation), board_);
+            m_sample_selector.try_add(std::move(*observation), m_board);
         stage = selection.progress.data_sufficient
                     ? calibrate_camera::Feedback::DATA_SUFFICIENT
                 : selection.accepted
                     ? calibrate_camera::Feedback::SAMPLE_ACCEPTED
                     : calibrate_camera::Feedback::BOARD_DETECTED;
     }
-    publish_feedback(active_goal_, board_detected, stage);
+    publish_feedback(m_active_goal, board_detected, stage);
 }
 
 void camera_calibration::check_image_timeout() {
     bool timed_out = false;
-    if (!active_goal_) {
+    if (!m_active_goal) {
         return;
     }
-    if (active_goal_->is_canceling()) {
-        cancel_active_session(active_goal_);
+    if (m_active_goal->is_canceling()) {
+        cancel_active_session(m_active_goal);
         return;
     }
     const auto elapsed =
-        std::chrono::steady_clock::now() - last_image_received_at_;
+        std::chrono::steady_clock::now() - m_last_image_received_at;
     timed_out =
-        !calibrating_ &&
+        !m_calibrating &&
         elapsed >
             std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-                std::chrono::duration<double>(image_timeout_s_));
+                std::chrono::duration<double>(m_image_timeout_s));
 
     if (timed_out) {
         abort_active_session("Timed out waiting for an image");
@@ -252,27 +249,27 @@ void camera_calibration::handle_finish_calibration(
     const finish_calibration::Response::SharedPtr response) {
     std::shared_ptr<goal_handle> goal_handle;
     std::vector<data::observation> observations;
-    if (!active_goal_) {
+    if (!m_active_goal) {
         response->accepted = false;
         response->message = "No active calibration session";
         return;
     }
-    if (calibrating_) {
+    if (m_calibrating) {
         response->accepted = false;
         response->message = "Calibration is already running";
         return;
     }
-    if (!sample_selector_.progress().data_sufficient) {
+    if (!m_sample_selector.progress().data_sufficient) {
         response->accepted = false;
         response->message = "Calibration dataset is not sufficient";
         return;
     }
 
-    goal_handle = active_goal_;
-    observations = sample_selector_.observations();
-    calibrating_ = true;
-    image_subscription_.reset();
-    debug_publisher_.reset();
+    goal_handle = m_active_goal;
+    observations = m_sample_selector.observations();
+    m_calibrating = true;
+    m_image_subscription.reset();
+    m_debug_publisher.reset();
 
     response->accepted = true;
     response->message = "Calibration started";
@@ -298,11 +295,11 @@ void camera_calibration::run_calibration(
     result->camera_info = make_camera_info(*calibration_result);
     result->used_observations = static_cast<uint32_t>(observations.size());
 
-    if (active_goal_ != goal_handle || !calibrating_) {
+    if (m_active_goal != goal_handle || !m_calibrating) {
         return;
     }
-    if (!set_camera_info_client_ ||
-        !set_camera_info_client_->service_is_ready()) {
+    if (!m_set_camera_info_client ||
+        !m_set_camera_info_client->service_is_ready()) {
         abort_active_session("Camera set_camera_info service is not available");
         return;
     }
@@ -310,7 +307,7 @@ void camera_calibration::run_calibration(
     auto request = std::make_shared<set_camera_info::Request>();
     request->camera_info = result->camera_info;
     try {
-        set_camera_info_client_->async_send_request(
+        m_set_camera_info_client->async_send_request(
             request, [this, goal_handle, result](
                          rclcpp::Client<set_camera_info>::SharedFuture future) {
                 handle_set_camera_info_response(goal_handle, result,
@@ -350,7 +347,7 @@ void camera_calibration::handle_set_camera_info_response(
         return;
     }
 
-    if (active_goal_ != goal_handle || !calibrating_) {
+    if (m_active_goal != goal_handle || !m_calibrating) {
         return;
     }
     cleanup_active_session();
@@ -365,19 +362,19 @@ void camera_calibration::handle_set_camera_info_response(
     }
 }
 
-bool camera_calibration::is_valid_goal(
-    const calibrate_camera::Goal& goal, std::string& rejection_reason) const {
+bool camera_calibration::is_valid_goal(const calibrate_camera::Goal& goal,
+                                       std::string& rejection_reason) const {
     if (goal.camera_namespace.empty() || goal.camera_namespace.front() != '/') {
         rejection_reason = "camera_namespace must be an absolute ROS namespace";
         return false;
     }
-    if (!calibration::algorithm::factory::instance().contains(goal.calibration_method)) {
+    if (!calibration::algorithm::factory::instance().contains(
+            goal.calibration_method)) {
         rejection_reason =
             "unsupported calibration_method '" + goal.calibration_method + "'";
         return false;
     }
-    if (!calibration::detector::factory::instance().contains(
-            goal.board_type)) {
+    if (!calibration::detector::factory::instance().contains(goal.board_type)) {
         rejection_reason = "unsupported board_type '" + goal.board_type + "'";
         return false;
     }
@@ -391,8 +388,7 @@ bool camera_calibration::is_valid_goal(
     return true;
 }
 
-bool camera_calibration::has_image_publisher(
-    const std::string& topic) const {
+bool camera_calibration::has_image_publisher(const std::string& topic) const {
     const auto publishers = get_publishers_info_by_topic(topic);
     return std::any_of(
         publishers.begin(), publishers.end(), [](const auto& publisher) {
@@ -403,13 +399,12 @@ bool camera_calibration::has_image_publisher(
 void camera_calibration::publish_feedback(
     const std::shared_ptr<goal_handle>& goal_handle, const bool board_detected,
     const uint8_t stage) const {
-    data::coverage_progress progress;
-    size_t accepted_samples = 0;
-    if (active_goal_ != goal_handle) {
+    if (m_active_goal != goal_handle) {
         return;
     }
-    progress = sample_selector_.progress();
-    accepted_samples = sample_selector_.accepted_count();
+
+    const auto progress = m_sample_selector.progress();
+    const auto accepted_samples = m_sample_selector.accepted_count();
 
     auto feedback = std::make_shared<calibrate_camera::Feedback>();
     feedback->accepted_samples = static_cast<uint32_t>(accepted_samples);
@@ -440,7 +435,7 @@ void camera_calibration::publish_feedback(
 
 void camera_calibration::cancel_active_session(
     const std::shared_ptr<goal_handle>& goal_handle) {
-    if (active_goal_ != goal_handle) {
+    if (m_active_goal != goal_handle) {
         return;
     }
     cleanup_active_session();
@@ -459,10 +454,10 @@ void camera_calibration::cancel_active_session(
 }
 
 void camera_calibration::abort_active_session(const std::string& reason) {
-    if (!active_goal_) {
+    if (!m_active_goal) {
         return;
     }
-    const auto goal_handle = active_goal_;
+    const auto goal_handle = m_active_goal;
     cleanup_active_session();
 
     auto result = std::make_shared<calibrate_camera::Result>();
@@ -480,15 +475,15 @@ void camera_calibration::abort_active_session(const std::string& reason) {
 }
 
 void camera_calibration::cleanup_active_session() {
-    image_timeout_timer_.reset();
-    image_subscription_.reset();
-    debug_publisher_.reset();
-    set_camera_info_client_.reset();
-    detector_.reset();
-    sample_selector_ = calibration::sample::selector(sample_selector_config_);
-    calibrating_ = false;
-    active_goal_.reset();
-    goal_reserved_ = false;
+    m_image_timeout_timer.reset();
+    m_image_subscription.reset();
+    m_debug_publisher.reset();
+    m_set_camera_info_client.reset();
+    m_detector.reset();
+    m_sample_selector = calibration::sample::selector(m_sample_selector_config);
+    m_calibrating = false;
+    m_active_goal.reset();
+    m_goal_reserved = false;
 }
 
 sensor_msgs::msg::CameraInfo camera_calibration::make_camera_info(

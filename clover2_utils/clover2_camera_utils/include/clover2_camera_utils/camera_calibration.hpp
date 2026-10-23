@@ -1,7 +1,12 @@
+/**
+ * @file camera_calibration.hpp
+ * @brief Provides a ROS component for camera calibration.
+ */
+
 #pragma once
+#include <clover2_camera_utils/calibration/algorithm/factory.hpp>
 #include <clover2_camera_utils/calibration/detector/base.hpp>
 #include <clover2_camera_utils/calibration/detector/factory.hpp>
-#include <clover2_camera_utils/calibration/algorithm/factory.hpp>
 #include <clover2_camera_utils/calibration/sample/selector.hpp>
 #include <clover2_camera_utils/data/board_config.hpp>
 #include <clover2_camera_utils/data/calibration_result.hpp>
@@ -22,6 +27,13 @@
 
 namespace clover2_camera_utils {
 
+/**
+ * @brief Performs interactive camera calibration using board observations.
+ *
+ * The component accepts an action goal, receives images from the camera
+ * namespace, selects non-duplicate observations, and sends the computed
+ * `CameraInfo` to the camera driver through the `set_camera_info` service.
+ */
 class camera_calibration : public clover2_common::node {
 public:
     using calibrate_camera = clover2_camera_utils_msgs::action::CalibrateCamera;
@@ -30,61 +42,152 @@ public:
         clover2_camera_utils_msgs::srv::FinishCalibration;
     using set_camera_info = sensor_msgs::srv::SetCameraInfo;
 
+    /**
+     * @brief Constructs the camera calibration component.
+     * @param options ROS node construction options.
+     */
     explicit camera_calibration(
         const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
+
+    /** @brief Ends the active session and releases its resources. */
     ~camera_calibration() override;
 
 private:
+    /**
+     * @brief Validates and accepts a new action goal.
+     * @param uuid Unique goal identifier.
+     * @param goal Requested calibration parameters.
+     * @return Decision to accept or reject the goal.
+     */
     rclcpp_action::GoalResponse handle_goal(
         const rclcpp_action::GoalUUID& uuid,
         std::shared_ptr<const calibrate_camera::Goal> goal);
+
+    /**
+     * @brief Handles a request to cancel the active goal.
+     * @param goal_handle Handle of the goal to cancel.
+     * @return Decision to accept or reject cancellation.
+     */
     rclcpp_action::CancelResponse handle_cancel(
         const std::shared_ptr<goal_handle> goal_handle);
+
+    /**
+     * @brief Starts processing an accepted goal.
+     * @param goal_handle Handle of the accepted goal.
+     */
     void handle_accepted(const std::shared_ptr<goal_handle> goal_handle);
 
+    /**
+     * @brief Processes an image during the active calibration session.
+     * @param message Received image message.
+     */
     void image_callback(const sensor_msgs::msg::Image::ConstSharedPtr message);
+
+    /** @brief Aborts the active session if no images arrive before timeout. */
     void check_image_timeout();
+
+    /**
+     * @brief Handles a request to finish the active calibration session.
+     * @param request Request of the `finish` service.
+     * @param response Response of the `finish` service.
+     */
     void handle_finish_calibration(
         const finish_calibration::Request::SharedPtr request,
         finish_calibration::Response::SharedPtr response);
+
+    /**
+     * @brief Performs calibration using selected observations.
+     * @param goal_handle Handle of the active goal.
+     * @param observations Calibration dataset observations.
+     */
     void run_calibration(std::shared_ptr<goal_handle> goal_handle,
                          std::vector<data::observation> observations);
+
+    /**
+     * @brief Handles the `set_camera_info` service response.
+     * @param goal_handle Handle of the active goal.
+     * @param result Result sent to the action client.
+     * @param future Future containing the `set_camera_info` service response.
+     */
     void handle_set_camera_info_response(
         const std::shared_ptr<goal_handle>& goal_handle,
         const std::shared_ptr<calibrate_camera::Result>& result,
         rclcpp::Client<set_camera_info>::SharedFuture future);
 
+    /**
+     * @brief Validates calibration goal parameters.
+     * @param goal Goal to validate.
+     * @param rejection_reason Rejection reason for an invalid goal.
+     * @return `true` if the goal is valid, otherwise `false`.
+     */
     bool is_valid_goal(const calibrate_camera::Goal& goal,
                        std::string& rejection_reason) const;
+
+    /**
+     * @brief Checks whether an image topic has a publisher.
+     * @param topic Full image topic name.
+     * @return `true` if the topic has at least one publisher, otherwise `false`.
+     */
     bool has_image_publisher(const std::string& topic) const;
+
+    /**
+     * @brief Publishes feedback for the active goal.
+     * @param goal_handle Handle of the active goal.
+     * @param board_detected Whether a board was detected in the last image.
+     * @param stage Current calibration stage.
+     */
     void publish_feedback(const std::shared_ptr<goal_handle>& goal_handle,
                           bool board_detected, uint8_t stage) const;
+
+    /**
+     * @brief Cancels the active session for the specified goal.
+     * @param goal_handle Handle of the goal to cancel.
+     */
     void cancel_active_session(const std::shared_ptr<goal_handle>& goal_handle);
+
+    /**
+     * @brief Aborts the active session with the specified reason.
+     * @param reason Session abort reason.
+     */
     void abort_active_session(const std::string& reason);
+
+    /** @brief Releases resources of the active calibration session. */
     void cleanup_active_session();
+
+    /**
+     * @brief Converts a calibration result to a `CameraInfo` message.
+     * @param result Camera calibration result.
+     * @return `CameraInfo` prepared for the `set_camera_info` service.
+     */
     static sensor_msgs::msg::CameraInfo make_camera_info(
         const data::calibration_result& result);
 
-    bool goal_reserved_{false};
-    double image_timeout_s_{5.0};
-    double processing_rate_hz_{5.0};
-    data::sample_selector_config sample_selector_config_;
+    // Configuration
+    double m_image_timeout_s{5.0};
+    double m_processing_rate_hz{5.0};
+    data::sample_selector_config m_sample_selector_config;
 
-    data::board_config board_;
-    std::shared_ptr<const calibration::detector::base> detector_;
-    calibration::sample::selector sample_selector_;
-    bool calibrating_{false};
-    rclcpp_action::Server<calibrate_camera>::SharedPtr action_server_;
-    rclcpp::CallbackGroup::SharedPtr session_callback_group_;
-    rclcpp::Service<finish_calibration>::SharedPtr finish_calibration_service_;
-    std::shared_ptr<goal_handle> active_goal_;
-    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr debug_publisher_;
-    rclcpp::Client<set_camera_info>::SharedPtr set_camera_info_client_;
+    // Active calibration session
+    bool m_goal_reserved{false};
+    bool m_calibrating{false};
+    std::shared_ptr<goal_handle> m_active_goal;
+    data::board_config m_board;
+    std::shared_ptr<const calibration::detector::base> m_detector;
+    calibration::sample::selector m_sample_selector;
+
+    // ROS interfaces
+    rclcpp_action::Server<calibrate_camera>::SharedPtr m_action_server;
+    rclcpp::CallbackGroup::SharedPtr m_session_callback_group;
+    rclcpp::Service<finish_calibration>::SharedPtr m_finish_calibration_service;
+    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr m_debug_publisher;
+    rclcpp::Client<set_camera_info>::SharedPtr m_set_camera_info_client;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr
-        image_subscription_;
-    rclcpp::TimerBase::SharedPtr image_timeout_timer_;
-    std::chrono::steady_clock::time_point last_image_received_at_;
-    std::chrono::steady_clock::time_point last_image_processed_at_;
+        m_image_subscription;
+    rclcpp::TimerBase::SharedPtr m_image_timeout_timer;
+
+    // Image processing timestamps
+    std::chrono::steady_clock::time_point m_last_image_received_at;
+    std::chrono::steady_clock::time_point m_last_image_processed_at;
 };
 
 }  // namespace clover2_camera_utils
