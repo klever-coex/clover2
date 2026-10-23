@@ -39,7 +39,7 @@
 
    <br>
 
-2. Откройте раздел `Processors` → `Virtualization Engine` и снимите флжок `Virtualize Intel VT-x/EPT or AMD-V/RVI`.
+2. Откройте раздел `Processors` → `Virtualization Engine` и снимите флажок `Virtualize Intel VT-x/EPT or AMD-V/RVI`.
 
    ```{figure} @assets@/common/simulator/vmware/processor-virtualization.webp
    :alt: Выключение вложенной виртуализации в настройках процессора VMware
