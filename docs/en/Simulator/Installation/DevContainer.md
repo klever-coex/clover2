@@ -19,7 +19,11 @@ If you have already installed Docker, VS Code, and the Dev Containers extension,
 
 ### 1.1. Installing Docker
 
-Follow the [official Docker installation instructions](../../UsefulInformation/Docker) to set up Docker on your system.
+Follow the Docker installation instructions to set up Docker on your system.
+
+<!--
+Follow the [Docker installation instructions](../../UsefulInformation/Docker) to set up Docker on your system.
+-->
 
 ---
 
