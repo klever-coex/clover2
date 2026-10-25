@@ -16,6 +16,8 @@ To manage frames on Klever quadcopters, we utilize the ROS package [tf2](https:/
 Example of frame arrangement in space
 ```
 
+<br>
+
 The primary frames in the `clover2` package follow the [REP 105](https://reps.openrobotics.org/rep-0105/) convention:
 
 * `base_link` — Coordinate system attached to the quadcopter body

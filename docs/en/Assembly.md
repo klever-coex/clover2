@@ -1,4 +1,4 @@
-# Assembly
+# Assembly Guide
 
 ```{toctree}
 :titlesonly:
@@ -18,21 +18,21 @@ Select the quadcopter version you want to assemble:
 
 * - Version
   - Image
-* - {doc}`Clover 5 CODE <Assembly/Clover5>`
+* - {doc}`Klever 5 CODE <Assembly/Clover5>`
   - ```{image} @assets@/common/assembly/clover5-code.webp
-    :alt: Clover 5 CODE
+    :alt: Klever 5 CODE
     :width: 300px
     :align: center
     ```
-* - {doc}`Clover 5 DEV <Assembly/Clover5Dev>`
+* - {doc}`Klever 5 DEV <Assembly/Clover5Dev>`
   - ```{image} @assets@/common/assembly/clover5-dev.webp
-    :alt: Clover 5 DEV
+    :alt: Klever 5 DEV
     :width: 300px
     :align: center
     ```
-* - {doc}`Clover 5 FPV <Assembly/Clover5FPV>`
+* - {doc}`Klever 5 FPV <Assembly/Clover5FPV>`
   - ```{image} @assets@/common/assembly/clover5-fpv.webp
-    :alt: Clover 5 FPV
+    :alt: Klever 5 FPV
     :width: 300px
     :align: center
     ```

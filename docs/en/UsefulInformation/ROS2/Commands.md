@@ -17,12 +17,6 @@ While the terminal does not replace a code editor, it is indispensable for gaini
 
 This guide provides a collection of essential Linux and ROS 2 commands frequently used during development and debugging.
 
-```{contents}
-:depth: 2
-:local:
-:class: custom-toc
-```
-
 ## Basic Linux Commands
 
 Linux commands are used to navigate directories, manage files, launch programs, and monitor system processes.
@@ -96,6 +90,8 @@ The `ros2` command is organized into subcommands. For example, `ros2 topic list`
 
 Example of `ros2 node` and `ros2 topic` commands
 ```
+
+<br>
 
 ### Help
 

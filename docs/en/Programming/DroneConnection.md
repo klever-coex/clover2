@@ -40,6 +40,8 @@ Creating a new terminal via the Web IDE menu
 Active terminal window in the Web IDE
 ```
 
+<br>
+
 ## Method 2: Using SSH
 
 If you prefer working in your own environment, you can connect via SSH.
@@ -71,3 +73,5 @@ Connecting via SSH
 
 Logging into the terminal
 ```
+
+<br>

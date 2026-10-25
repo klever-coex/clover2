@@ -8,13 +8,13 @@ Flight modes define the control algorithms used by the flight controller and det
 2. Select `Flight Modes` from the left-hand menu.
 3. In the `Mode Channel` field, select the channel used to toggle between modes. Recommended: Assign the SwC switch (Channel 6).
 4. To ensure safety, assign the SwA switch to the Emergency Kill Switch Channel.
-5. Assign specific flight modes to the different switch positions in the Flight Mode 1–6 fields.
+5. Assign specific flight modes to the different switch positions in the `Flight Mode 1–6` fields.
 
 Recommended Mode Mapping:
 
-* *Flight Mode 1*: **Stabilized**
-* *Flight Mode 4*: **Altitude**
-* *Flight Mode 6*: **Position**
+* `Flight Mode 1`: `Stabilized`
+* `Flight Mode 4`: `Altitude`
+* `Flight Mode 6`: `Position`
 
 6. Once configured, use your physical remote control to toggle the SwC switch.
 7. Confirm that the mode name displayed in QGroundControl matches the position of your switch.
@@ -49,7 +49,7 @@ Ensure you are confident in your ability to fly manually before attempting these
 * 
 ## Automatic Flight Modes
 
-В автоматических режимах конструктор квадрокоптера выполняет заданную программу полета. Пилот не управляет им непосредственно с помощью стиков аппаратуры управления.
+In automatic modes, the vehicle executes a predefined flight program. During these operations, the pilot does not provide direct stick input via the transmitter.
 
 * **OFFBOARD** enables control from an external computer (e.g., Raspberry Pi). This is the primary mode for autonomous research and robotics, including integration with ROS 2.
 * **AUTO.MISSION** executes a preloaded flight path. Missions can be uploaded via QGroundControl or through the MAVLink protocol.

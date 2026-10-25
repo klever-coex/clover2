@@ -7,6 +7,7 @@
 
 UsefulInformation/YAML
 UsefulInformation/ROS2
+UsefulInformation/Docker
 ```
 
 This series of articles is dedicated to the core technologies and industry-standard tools used in robotics software development.
@@ -18,3 +19,6 @@ By mastering these tools, you will gain the expertise needed to configure your q
 - **{doc}`YAML <UsefulInformation/YAML>`** — Industry-standard, human-readable data format. In the `Clover2` ecosystem, YAML is used for defining ArUco marker maps, camera configurations, and other critical system parameters. 
 
 - **{doc}`ROS 2 <UsefulInformation/ROS2>`** — Powerful suite of software libraries and tools that form the backbone of the `Clover2` architecture. `ROS 2` guides provide a base for understanding how large-scale, distributed robotic systems are engineered and controlled.
+
+- **{doc}`Docker <UsefulInformation/Docker>`** — Virtualization tool that automates the deployment of applications within lightweight containers, enabling them to run consistently across different computing environments.
+    

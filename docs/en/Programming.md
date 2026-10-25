@@ -1,4 +1,4 @@
-# Programming
+# Programming Guide
 
 ```{toctree}
 :titlesonly:

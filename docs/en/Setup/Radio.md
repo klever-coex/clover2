@@ -1,4 +1,4 @@
-# Control Equipment Setup
+# Radio Controller Setup Guide
 
 This section details how to prepare your transmitter and pair it with an ExpressLRS (ELRS) receiver.
 
@@ -8,20 +8,25 @@ Remove all propellers before starting this setup. This prevents accidental motor
 
 ## Hardware Preparation
 
-```{figure} @assets@/ru/setup/radio/rc-pocket-front-part.webp
-:alt: Аппаратура управления, вид спереди
+```{figure} @assets@/en/setup/radio/rc-pocket-front-part.webp
+:alt: RadioMaster Pocket, front view
 :width: 90%
 :align: center
 
 Transmitter front view
 ```
-```{figure} @assets@/ru/setup/radio/rc-pocket-back-part.webp
-:alt: Аппаратура управления, вид сзади
+
+<br>
+
+```{figure} @assets@/en/setup/radio/rc-pocket-back-part.webp
+:alt: RadioMaster Pocket, rear view
 :width: 90%
 :align: center
 
 Transmitter rear view
 ```
+
+<br>
 
 1. Remove the black rubber pads from the rear of the transmitter.
 2. Install the battery, ensuring correct polarity.
@@ -39,6 +44,9 @@ If the screen displays a WARNING message, immediately move the Throttle stick to
 
 Warning
 ```
+
+<br>
+
 5. Once the warning is cleared, proceed to the main menu.
 
 ```{figure} @assets@/common/setup/radio/main-menu-no-signal.webp
@@ -48,6 +56,8 @@ Warning
 
 Main menu
 ```
+
+<br>
 
 ## Pairing via Binding Phrase (Recommended)
 
@@ -64,6 +74,8 @@ Main menu
     ExpressLRS
     ```
 
+    <br>
+
 3. Select `WiFi Connectivity`.
   
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-wifi-connectivity-menu.webp
@@ -73,6 +85,8 @@ Main menu
    WiFi Connectivity in ExpressLRS 
     ```
 
+    <br>
+
 4. Select `Enable WiFi`.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-enable-wifi.webp
@@ -81,6 +95,9 @@ Main menu
     :align: center
     Wi-Fi enabled
     ```
+
+    <br>
+
 5. Wait for the `WiFi Running` message.
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-wifi-running.webp
     :alt: Передатчик ExpressLRS в режиме Wi-Fi
@@ -88,6 +105,8 @@ Main menu
     :align: center
     WiFi Running
     ```
+
+    <br>
 
 6. On your computer or smartphone, connect to the `ExpressLRS TX` network (Default password: `expresslrs`).
 
@@ -98,6 +117,8 @@ Main menu
     ExpressLRS TX
     ```
 
+    <br>
+
 7. Open a web browser and go to http://10.0.0.1 (http://10.0.0.1/).
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/tx-web-interface.webp
@@ -106,6 +127,8 @@ Main menu
     :align: center
     ExpressLRS web interface
     ```
+
+    <br>
 
 8. Enter your chosen phrase in the `Binding Phrase` field and click `SAVE`.
 
@@ -116,6 +139,8 @@ Main menu
     Binding Phrase 
     ```
 
+    <br>
+
 9. Click `REBOOT` to apply changes.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/web-interface-reboot.webp
@@ -124,6 +149,8 @@ Main menu
     :align: center
     ExpressLRS Reboot
     ```
+
+    <br>
 
 ### Receiver (RX) Setup
 
@@ -142,6 +169,8 @@ If your Video Transmitter (VTX) powers on with the flight controller, ensure an 
     ExpressLRS RX
     ```
 
+    <br>
+
 4. Open http://10.0.0.1 (http://10.0.0.1/) in your browser.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/rx-web-interface.webp
@@ -150,6 +179,8 @@ If your Video Transmitter (VTX) powers on with the flight controller, ensure an 
     :align: center
     ExpressLRS web interface
     ```
+
+    <br>
 
 5. Enter the exact same phrase used on the transmitter. 
 
@@ -160,6 +191,8 @@ If your Video Transmitter (VTX) powers on with the flight controller, ensure an 
     Binding Phrase 
     ```
 
+    <br>
+
 6. Click `SAVE & REBOOT`, then confirm by clicking `REBOOT`.
 
     ```{figure} @assets@/common/setup/radio/bind-phrase/web-interface-reboot.webp
@@ -169,6 +202,8 @@ If your Video Transmitter (VTX) powers on with the flight controller, ensure an 
     Receiver reboot
     ```
 
+    <br>
+
 7. Turn on your transmitter. A connection indicator should now appear on the transmitter's main screen.
 
     ```{figure} @assets@/common/setup/radio/main-menu.webp
@@ -177,6 +212,8 @@ If your Video Transmitter (VTX) powers on with the flight controller, ensure an 
     :align: center
    Main menu
     ```
+
+    <br>
 
 ### Alternative Pairing: Manual Bind Mode
 
@@ -192,6 +229,8 @@ Use this method if you are unable to configure a Binding Phrase.
    ExpressLRS menu
     ```
 
+    <br>
+
 3. Set `TX Power` to `100 mW`.
 
     ```{figure} @assets@/common/setup/radio/rx/elrs-step-2.webp
@@ -200,6 +239,8 @@ Use this method if you are unable to configure a Binding Phrase.
     :align: center
    TX Power setting
     ```
+
+    <br>
 
 4. Select the `Bind` command and wait for the process to complete.
 
@@ -210,6 +251,8 @@ Use this method if you are unable to configure a Binding Phrase.
     ExpressLRS menu
     ```
 
+    <br>
+
 5. Once the connection status is displayed, press and hold `RTN` to return to the main menu.
   
     ```{figure} @assets@/common/setup/radio/rx/elrs-bind.webp
@@ -219,11 +262,15 @@ Use this method if you are unable to configure a Binding Phrase.
     Binding
     ```
 
+    <br>
+
 6. Verify that the connection indicator is visible on the main screen.
 
     ```{figure} @assets@/common/setup/radio/main-menu.webp
     :alt: Главное меню после успешного сопряжения
     :width: 55%
     :align: center
-   Binded
+   Bound
     ```
+
+    <br>

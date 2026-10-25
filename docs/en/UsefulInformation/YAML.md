@@ -18,9 +18,12 @@ YAML does not support block comments (/* */). You can place a comment at the end
 
 * **Indentation:** Use spaces for indentation (2 or 4). Do not use tabs.
 * **Strings:** You cany write strings without quotes. If a value contains special characters or could be interpreted as another YAML data type, use double  `" "` or single `' '` quotes.
-* **Numbers:** Write integers and decimal numbers without quotes: `42`, `3.14`, `-1.5`, `1e-3`
-* **Booleans:** `true` / `false`, `yes` / `no`, `on` / `off`
-* **Null values:** `~`, `null`, or an empty field
+* **Numbers:** Write integers and decimal numbers without quotes: `42`, `3.14`, `-1.5`, `1e-3`.
+* **Booleans:** `true` / `false`, `yes` / `no`, `on` / `off`.
+* **Null values:** `~`, `null`, or an empty field.
+
+## Lists and Dictionaries
+
 * **Lists (block style):** Each list item starts with `- ` (dash + space):
 
   ```yaml
