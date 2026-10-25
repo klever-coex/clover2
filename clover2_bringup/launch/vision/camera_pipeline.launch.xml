@@ -5,6 +5,8 @@
 
     <arg name="camera_id" default="0" />
     <arg name="camera_name" default="main_camera" />
+    <arg name="camera_link" default="base_link" />
+    <arg name="camera_sensor" default="main_camera" />
     <arg name="ns" default="" description="Should starts with / or be empty" />
     <arg name="sensing_pkg" />
     <arg name="use_sim_time" default="false" />
@@ -18,6 +20,8 @@
         <arg name="params_file" value="$(var params_file)" />
 
         <arg name="camera_id" value="$(var camera_id)" />
+        <arg name="camera_link" value="$(var camera_link)" />
+        <arg name="camera_sensor" value="$(var camera_sensor)" />
         <arg name="frame_id" value="$(var camera_name)_link" />
         <arg name="container_name" value="$(var local_ns)/container" />
         <arg name="use_composition" value="true" />

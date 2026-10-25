@@ -1,0 +1,9 @@
+FROM ghcr.io/astral-sh/uv:alpine AS python-lint
+
+RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv,sharing=locked \
+    uv tool install ruff
+
+WORKDIR /ws
+COPY . /ws
+
+RUN ruff check

@@ -1,126 +1,231 @@
 """Validate the installed description across all module combinations."""
+
 import itertools
 import math
-from pathlib import Path
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
-from ament_index_python.packages import get_package_share_directory
 import pytest
 import xacro
 import yaml
+from ament_index_python.packages import get_package_share_directory
 
-
-SHARE = Path(get_package_share_directory('clover2_description'))
-MODULES = ('main_camera', 'front_camera', 'lidar', 'led_strip')
-LINKS = ('main_camera_link', 'front_camera_link', 'laser', 'led_strip_link')
+SHARE = Path(get_package_share_directory("clover2_description"))
+MODULES = ("main_camera", "front_camera", "lidar", "led_strip")
+LINKS = ("main_camera_link", "front_camera_link", "laser", "led_strip_link")
 
 
 def generate(values, config_file=None):
+    """Generate the robot URDF."""
     mappings = {
-        'enable_' + module: str(value).lower()
-        for module, value in zip(MODULES, values)
+        "enable_" + module: str(value).lower() for module, value in zip(MODULES, values)
     }
     if config_file is not None:
-        mappings['config_file'] = str(config_file)
-    return ET.fromstring(xacro.process_file(
-        str(SHARE / 'xacro/klever5/klever5.xacro'), mappings=mappings).toxml())
+        mappings["config_file"] = str(config_file)
+    return ET.fromstring(
+        xacro.process_file(
+            str(SHARE / "xacro/klever5/klever5.xacro"), mappings=mappings
+        ).toxml()
+    )
 
 
-def generate_sdf(config_file=None, values=None):
-    mappings = {'description_share': str(SHARE)}
+def generate_sdf(config_file=None, values=None, rangefinder_type=None):
+    """Generate the robot SDF."""
+    mappings = {"description_share": str(SHARE)}
+    if rangefinder_type is not None:
+        mappings["rangefinder_type"] = rangefinder_type
     if values is not None:
-        mappings.update({'enable_' + m: str(v).lower()
-                         for m, v in zip(MODULES, values)})
+        mappings.update({
+            "enable_" + m: str(v).lower() for m, v in zip(MODULES, values)
+        })
     if config_file is not None:
-        mappings['config_file'] = str(config_file)
-    return ET.fromstring(xacro.process_file(
-        str(SHARE / 'gazebo/klever5/klever5.sdf.xacro'), mappings=mappings).toxml())
+        mappings["config_file"] = str(config_file)
+    return ET.fromstring(
+        xacro.process_file(
+            str(SHARE / "gazebo/klever5/klever5.sdf.xacro"), mappings=mappings
+        ).toxml()
+    )
 
 
-@pytest.mark.parametrize('values', itertools.product((False, True), repeat=len(MODULES)))
+@pytest.mark.parametrize(
+    "values", itertools.product((False, True), repeat=len(MODULES))
+)
 def test_configurations(values):
+    """Test robot description generation."""
     root = generate(values)
-    names = [link.attrib['name'] for link in root.findall('link')]
+    names = [link.attrib["name"] for link in root.findall("link")]
     assert len(names) == len(set(names))
-    joints = root.findall('joint')
-    assert len({j.attrib['name'] for j in joints}) == len(joints)
-    children = [j.find('child').attrib['link'] for j in joints]
+    joints = root.findall("joint")
+    assert len({j.attrib["name"] for j in joints}) == len(joints)
+    children = [j.find("child").attrib["link"] for j in joints]
     assert len(children) == len(set(children))
-    assert set(names) - set(children) == {'base_link'}
-    reached = {'base_link'}
+    assert set(names) - set(children) == {"base_link"}
+    reached = {"base_link"}
     while True:
-        expanded = reached | {j.find('child').attrib['link'] for j in joints
-                              if j.find('parent').attrib['link'] in reached}
+        expanded = reached | {
+            j.find("child").attrib["link"]
+            for j in joints
+            if j.find("parent").attrib["link"] in reached
+        }
         if expanded == reached:
             break
         reached = expanded
     assert reached == set(names)
     for enabled, link in zip(values, LINKS):
         assert (link in names) == enabled
-    assert len(names) == 5 + sum(n for n, enabled in zip((2, 2, 1, 1), values) if enabled)
-    for mesh in root.findall('.//mesh'):
-        uri = mesh.attrib['filename']
-        assert uri.startswith('package://clover2_description/')
-        assert (SHARE / uri.removeprefix('package://clover2_description/')).is_file()
+    assert len(names) == 5 + sum(
+        n for n, enabled in zip((2, 2, 1, 1), values) if enabled
+    )
+    for mesh in root.findall(".//mesh"):
+        uri = mesh.attrib["filename"]
+        assert uri.startswith("package://clover2_description/")
+        assert (SHARE / uri.removeprefix("package://clover2_description/")).is_file()
 
 
-@pytest.mark.parametrize('values', itertools.product((False, True), repeat=len(MODULES)))
+@pytest.mark.parametrize(
+    "values", itertools.product((False, True), repeat=len(MODULES))
+)
 def test_physics(values):
+    """Test robot physics properties."""
     root = generate(values)
     _, camera, lidar, led = values
-    config = yaml.safe_load((SHARE / 'config/robots/klever5.yaml').read_text())
-    body_mass = config['body']['mass']
-    propeller_mass = config['propeller']['mass']
-    masses = [float(m.get('value')) for m in root.findall('link/inertial/mass')]
-    expected_mass = body_mass + 4*propeller_mass + camera*.018 + lidar*.100 + led*.010
+    config = yaml.safe_load((SHARE / "config/robots/klever5.yaml").read_text())
+    body_mass = config["body"]["mass"]
+    propeller_mass = config["propeller"]["mass"]
+    masses = [float(m.get("value")) for m in root.findall("link/inertial/mass")]
+    expected_mass = (
+        body_mass + 4 * propeller_mass + camera * 0.018 + lidar * 0.100 + led * 0.010
+    )
     assert sum(masses) == pytest.approx(expected_mass)
-    for link in root.findall('link'):
-        inertial = link.find('inertial')
+    for link in root.findall("link"):
+        inertial = link.find("inertial")
         if inertial is None:
-            assert link.get('name') in ('main_camera_body_link', 'main_camera_link',
-                                        'front_camera_link')
+            assert link.get("name") in (
+                "main_camera_body_link",
+                "main_camera_link",
+                "front_camera_link",
+            )
             continue
-        assert float(inertial.find('mass').get('value')) > 0
-        inertia = inertial.find('inertia')
-        diagonal = [float(inertia.get(k)) for k in ('ixx', 'iyy', 'izz')]
+        assert float(inertial.find("mass").get("value")) > 0
+        inertia = inertial.find("inertia")
+        diagonal = [float(inertia.get(k)) for k in ("ixx", "iyy", "izz")]
         assert all(math.isfinite(v) and v > 0 for v in diagonal)
-        assert 2*max(diagonal) <= sum(diagonal) + 1e-12
-        size = list(map(float, link.find('collision/geometry/box').get('size').split()))
+        assert 2 * max(diagonal) <= sum(diagonal) + 1e-12
+        size = list(map(float, link.find("collision/geometry/box").get("size").split()))
         assert all(v > 0 for v in size)
     # Internal camera and optical frames never add mass already counted in the body.
     assert root.find("link[@name='main_camera_link']/inertial") is None
 
 
-@pytest.mark.parametrize('values', itertools.product((False, True), repeat=len(MODULES)))
+@pytest.mark.parametrize(
+    "values", itertools.product((False, True), repeat=len(MODULES))
+)
 def test_sdf_modules_match_urdf(values):
+    """Test that SDF modules match the URDF."""
     urdf = generate(values)
     sdf = generate_sdf(values=values)
-    model = sdf.find('model')
-    assert sum(float(v.get('value')) for v in urdf.findall('.//inertial/mass')) == \
-        pytest.approx(sum(float(v.text) for v in sdf.findall('.//inertial/mass')))
-    sensors = {v.get('name') for v in sdf.findall('.//sensor')}
-    for enabled, name in zip(values[:3], ('main_camera', 'front_camera', 'lidar')):
+    model = sdf.find("model")
+    assert sum(
+        float(v.get("value")) for v in urdf.findall(".//inertial/mass")
+    ) == pytest.approx(sum(float(v.text) for v in sdf.findall(".//inertial/mass")))
+    sensors = {v.get("name") for v in sdf.findall(".//sensor")}
+    for enabled, name in zip(values[:3], ("main_camera", "front_camera", "lidar")):
         assert (name in sensors) == enabled
     for enabled, name in zip(values, LINKS):
-        assert (model.find(f"link[@name='{name}']") is not None or
-                model.find(f"frame[@name='{name}']") is not None) == enabled
-    for mesh in sdf.findall('.//mesh/uri'):
-        assert mesh.text.startswith('file://')
-        assert Path(mesh.text.removeprefix('file://')).is_file()
-    for joint in urdf.findall('joint'):
-        assert joint.get('type') == 'fixed'
+        assert (
+            model.find(f"link[@name='{name}']") is not None
+            or model.find(f"frame[@name='{name}']") is not None
+        ) == enabled
+    for mesh in sdf.findall(".//mesh/uri"):
+        assert mesh.text.startswith("file://")
+        assert Path(mesh.text.removeprefix("file://")).is_file()
+    for joint in urdf.findall("joint"):
+        assert joint.get("type") == "fixed"
     for joint in model.findall("joint[@type='revolute']"):
-        assert joint.findtext('axis/xyz') == '0 0 1'
+        assert joint.findtext("axis/xyz") == "0 0 1"
     for enabled, name, urdf_joint in zip(
-            values, MODULES, ('main_camera_mount_joint', 'front_camera_mount_joint',
-                              'laser_joint', 'led_strip_link_joint')):
+        values,
+        MODULES,
+        (
+            "main_camera_mount_joint",
+            "front_camera_mount_joint",
+            "laser_joint",
+            "led_strip_link_joint",
+        ),
+    ):
         if not enabled:
             continue
-        link = {'main_camera': 'main_camera_body_link',
-                'front_camera': 'front_camera_body_link', 'lidar': 'laser',
-                'led_strip': 'led_strip_link'}[name]
+        link = {
+            "main_camera": "main_camera_body_link",
+            "front_camera": "front_camera_body_link",
+            "lidar": "laser",
+            "led_strip": "led_strip_link",
+        }[name]
         element = model.find(f"link[@name='{link}']")
         if element is None:
             element = model.find(f"frame[@name='{link}']")
         origin = urdf.find(f"joint[@name='{urdf_joint}']/origin")
-        assert element.findtext('pose') == origin.get('xyz') + ' ' + origin.get('rpy')
+        assert element.findtext("pose") == origin.get("xyz") + " " + origin.get("rpy")
+
+
+@pytest.mark.parametrize("rangefinder_type", ("raycast", "gpu_lidar"))
+@pytest.mark.parametrize(
+    "values", tuple(itertools.product((False, True), repeat=len(MODULES)))
+)
+def test_sdf_rangefinder_choice(rangefinder_type, values):
+    """Test rangefinder sensor generation for each module set and type."""
+    model = generate_sdf(values=values, rangefinder_type=rangefinder_type).find("model")
+    sensors = model.findall("link/sensor[@name='rangefinder']")
+    assert len(sensors) == 1
+    assert model.find("plugin[@name='clover2::sim::RangefinderSystem']") is None
+    sensor = sensors[0]
+    assert sensor.findtext("pose") == "0.025 0 -0.03 0 1.5707 3.1415926"
+    assert sensor.findtext("update_rate") == "10"
+    # An absent topic selects the scoped sensor scan topic used by the bridge.
+    assert sensor.find("topic") is None
+    if rangefinder_type == "gpu_lidar":
+        assert sensor.get("type") == "gpu_lidar"
+        assert sensor.find("plugin") is None
+        assert sensor.findtext("ray/range/max") == "30"
+    else:
+        assert sensor.get("type") == "custom"
+        plugin = sensor.find("plugin[@name='clover2::sim::RangefinderSystem']")
+        assert plugin is not None
+        assert plugin.get("filename") == "clover2_gz_sim_rangefinder_system"
+        assert plugin.find("link_name") is None
+        assert plugin.find("pose") is None
+        assert plugin.find("update_rate") is None
+        assert plugin.findtext("max_range") == "30"
+
+
+def test_sdf_rangefinder_default():
+    """Test the default rangefinder type."""
+    model = generate_sdf().find("model")
+    assert (
+        model.find("link/sensor[@name='rangefinder'][@type='custom']/plugin")
+        is not None
+    )
+    assert model.find("plugin[@name='clover2::sim::RangefinderSystem']") is None
+
+
+def test_sdf_raycast_rangefinder_other_link(tmp_path):
+    """Test the raycast rangefinder mounted in a custom link."""
+    source = tmp_path / "rangefinder.sdf.xacro"
+    source.write_text(f'''<sdf xmlns:xacro="http://www.ros.org/wiki/xacro"
+      version="1.9">
+      <xacro:include filename="{SHARE}/gazebo/klever5/sensors/rangefinder.xacro"/>
+      <model name="test"><link name="sensor_mount">
+        <xacro:sdf_raycast_rangefinder_sensor/>
+      </link></model>
+    </sdf>''')
+    model = ET.fromstring(xacro.process_file(str(source)).toxml()).find("model")
+    sensor = model.find("link[@name='sensor_mount']/sensor[@name='rangefinder']")
+    assert sensor is not None
+    assert sensor.get("type") == "custom"
+    assert sensor.find("plugin/link_name") is None
+
+
+def test_sdf_rangefinder_invalid_choice():
+    """Test that an invalid rangefinder type is rejected."""
+    with pytest.raises(xacro.XacroException, match="not in list"):
+        generate_sdf(rangefinder_type="invalid")

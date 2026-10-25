@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Klever5 launcher script."""
 
 import argparse
 import pathlib
@@ -14,6 +15,7 @@ pkg_bringup = get_package_share_directory("clover2_bringup")
 
 
 def flatten_dict(d: dict, sep: str = ".") -> dict:
+    """Flatten a nested dict."""
     flat_dict = {}
     stack = [(d, "")]
     while stack:
@@ -29,12 +31,14 @@ def flatten_dict(d: dict, sep: str = ".") -> dict:
 
 
 def sanitize_dict(data: dict) -> dict:
-    for k in data.keys():
-        data[k] = str(data[k]).lower() if isinstance(data[k], bool) else data[k]
+    """Stringify boolean values in a dict."""
+    for k, v in data.items():
+        data[k] = str(v).lower() if isinstance(v, bool) else v
     return data
 
 
 def parse_config_from_file(file: pathlib.Path) -> dict:
+    """Parse a YAML configuration file."""
     with open(file, "r") as f:
         data = yaml.safe_load(f)
 
@@ -43,6 +47,7 @@ def parse_config_from_file(file: pathlib.Path) -> dict:
 
 
 def valid_file(param) -> pathlib.Path:
+    """Check that the path is an existing file."""
     path = pathlib.Path(param)
     if not path.exists():
         raise argparse.ArgumentTypeError(f"The file '{param}' does not exist.")
@@ -54,6 +59,7 @@ def valid_file(param) -> pathlib.Path:
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments."""
     parser = argparse.ArgumentParser(
         description="Launch clover2 bringup",
     )
@@ -70,18 +76,17 @@ def parse_args() -> argparse.Namespace:
 
 
 def main(args: argparse.Namespace):
+    """Launch clover2 bringup."""
     configuration = parse_config_from_file(args.config)
 
-    ld = LaunchDescription(
-        [
-            IncludeLaunchDescription(
-                AnyLaunchDescriptionSource(
-                    PathJoinSubstitution([pkg_bringup, "launch", "klever5.launch.xml"])
-                ),
-                launch_arguments=configuration.items(),
-            )
-        ]
-    )
+    ld = LaunchDescription([
+        IncludeLaunchDescription(
+            AnyLaunchDescriptionSource(
+                PathJoinSubstitution([pkg_bringup, "launch", "klever5.launch.xml"])
+            ),
+            launch_arguments=configuration.items(),
+        )
+    ])
 
     ls = LaunchService(debug=False)
     ls.include_launch_description(ld)

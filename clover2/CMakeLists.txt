@@ -9,7 +9,11 @@ find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_auto REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 
-ament_python_install_package(${PROJECT_NAME})
+ament_auto_find_build_dependencies()
+
+ament_python_install_package(${PROJECT_NAME}
+  PACKAGE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/python/${PROJECT_NAME}"
+)
 
 install(
   DIRECTORY examples

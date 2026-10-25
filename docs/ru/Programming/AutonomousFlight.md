@@ -16,19 +16,31 @@ AutonomousFlight/Display
 
 Краткий обзор возможностей фреймворка.
 
-## **{doc}`Полет <AutonomousFlight/Flight>`**
+## **{doc}`Полёт <AutonomousFlight/Flight>`**
+- `fcu.arm()` / `fcu.disarm()` — запуск / остановка электродвигателей
+- `fcu.is_armed()` / `fcu.flight_mode()` — состояние квадрокоптера
+- `offboard.land()` — посадка
+- `offboard.navigate_wait(frame_id, x, y, z, speed, yaw)` — полет в заданную точку с ожиданием прибытия
+- `offboard.navigate(...)` — полет в заданную точку без ожидания завершения команды, возвращает `NavigationTask`
+  - `task.status` — состояние задачи: `PENDING`, `ACTIVE`, `CANCELING`, `REJECTED`, `SUCCEEDED`, `CANCELED` или `ABORTED`
+  - `task.wait(timeout=None)` — дождаться результата; возвращает `True` при успешном прибытии
+  - `task.cancel()` — штатно отменить текущую навигационную цель, без посадки
+  - `task.result` / `task.message` — результат action и сообщение bridge
+  - `NavigationTimeoutError` — истекло время локального ожидания; полёт продолжается
+  - `NavigationRejectedError` — bridge не принял новую цель
+  - `NavigationCanceledError` — цель была отменена
+  - `NavigationAbortedError` — навигация прервана ошибкой либо action server недоступен
 
-- `arm()` / `disarm()` — запуск / остановка электродвигателей
-- `land()` — посадка
-- `is_armed()` / `flight_mode()` — состояние квадрокоптера
-- `navigate_wait(frame_id, x, y, z, speed, yaw)` — полет в заданную точку с ожиданием прибытия
-- `navigate(...)` — полет в заданную точку без ожидания завершения команды
+`wait(timeout=...)` ограничивает только ожидание результата и не отменяет полёт. Для штатной остановки текущей навигации вызовите `task.cancel()`.
 
 ## **{doc}`Камера <AutonomousFlight/Camera>`**
 
-- `get_image(camera_name, encoding)` — получение изображения с камеры в виде массива NumPy
-- `get_image_msg(camera_name)` — получение исходного сообщения ROS Image
-- `get_camera_info(camera_name)` — получение данных о калибровке камеры
+- `camera(name)` — получение клиента камеры
+- `get_image(encoding)` — получение изображения с камеры в виде массива NumPy
+- `get_image_msg()` — получение исходного сообщения ROS Image
+- `get_camera_info()` — получение данных о калибровке камеры
+- `stream(callback)` — устанавливливание callback, который вызывается для каждого нового изображения с камеры в виде массива NumPy  
+- `stream_msg(callback)` — устанавливливание callback, который вызывается для каждого нового сообщения ROS Image
 
 ## **{doc}`LED-лента <AutonomousFlight/LED>`**
 

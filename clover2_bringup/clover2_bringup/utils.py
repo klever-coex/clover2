@@ -1,9 +1,12 @@
+"""Bringup helpers."""
+
+from collections.abc import Sequence
 from dataclasses import is_dataclass
-from typing import Any, Optional, Sequence, get_type_hints
+from typing import Any, get_type_hints
 
 
 def from_dict(cls, data: dict):
-
+    """Build a dataclass instance from a dict."""
     if not isinstance(data, dict):
         return data
     hints = get_type_hints(cls)
@@ -18,6 +21,7 @@ def from_dict(cls, data: dict):
 
 
 def resolve_params_files(context) -> list:
+    """Resolve the params_files launch argument."""
     from launch.substitutions import LaunchConfiguration
 
     raw = LaunchConfiguration("params_files").perform(context)
@@ -34,7 +38,8 @@ def _ns_segments(ns: Any) -> Sequence[str]:
     return []
 
 
-def parent_namespace(ns: Any, name: Optional[str] = None) -> str:
+def parent_namespace(ns: Any, name: str | None = None) -> str:
+    """Return the parent namespace of a node."""
     segs = _ns_segments(ns)
     if name and segs and segs[-1] == name:
         segs = segs[:-1]
@@ -42,6 +47,7 @@ def parent_namespace(ns: Any, name: Optional[str] = None) -> str:
 
 
 def join_fqn(namespace: str, node_name: str) -> str:
+    """Join a namespace and node name into a full name."""
     ns = namespace if namespace.startswith("/") else "/" + namespace
     ns = ns.rstrip("/")
     if not node_name:

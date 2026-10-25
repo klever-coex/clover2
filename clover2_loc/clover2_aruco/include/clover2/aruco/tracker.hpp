@@ -5,6 +5,7 @@
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
 // Clover2 includes
+#include <clover2/aruco/solver/base_solver.hpp>
 #include <clover2_map/client.hpp>
 #include <clover2_common/lifecycle_node.hpp>
 
@@ -15,7 +16,7 @@
 #include <tf2_ros/transform_listener.h>
 
 // Msgs includes
-#include <clover2_pose_msgs/msg/marker_array.hpp>
+#include <clover2_pose_msgs/msg/marker_frame.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 
@@ -42,7 +43,7 @@ public:
 
 private:
     void markers_callback(
-        const clover2_pose_msgs::msg::MarkerArray::SharedPtr msg);
+        const clover2_pose_msgs::msg::MarkerFrame::SharedPtr msg);
 
     void publish_tf(const std_msgs::msg::Header& header,
                     Eigen::Isometry3d pose);
@@ -52,6 +53,10 @@ private:
 
     // Publish parameters
     double m_xy_variation{0.4}, m_z_variation{0.4};
+
+    // Pose fusion solver
+    std::string m_solver_id;
+    solver::base_solver::UniquePtr m_solver;
 
     // Detection parameters
     std::shared_ptr<clover2_map::client> m_map_client;
@@ -65,15 +70,13 @@ private:
 
     // Publishers and subscribers
     rclcpp::CallbackGroup::SharedPtr m_callback_group;
-    rclcpp::Subscription<clover2_pose_msgs::msg::MarkerArray>::SharedPtr
+    rclcpp::Subscription<clover2_pose_msgs::msg::MarkerFrame>::SharedPtr
         m_markers_sub;
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr m_pose_pub;
     rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr
         m_pose_cov_pub;
     rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr
         m_poses_debug_pub;
-    rclcpp::Publisher<clover2_pose_msgs::msg::MarkerArray>::SharedPtr
-        m_tags_pub;
 };
 
 }  // namespace clover2::aruco

@@ -176,6 +176,20 @@ target "clover2-px4-sitl" {
   tags = tagged("clover2-px4-sitl")
 }
 
+target "lint" {
+  dockerfile = "docker/lint/Dockerfile.${lint-name}"
+  name = lint-name
+
+  inherits = ["base"]
+
+  matrix = {
+    lint-name = [
+      # "cpp-lint",
+      "python-lint"
+    ]
+  }
+}
+
 #      ___       _ __   __  _____
 #     / _ )__ __(_) /__/ / / ___/______  __ _____  ___
 #    / _  / // / / / _  / / (_ / __/ _ \/ // / _ \(_-<

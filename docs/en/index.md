@@ -12,7 +12,7 @@ AdditionalEquipment
 UsefulInformation
 ```
 
-```{figure} @assets@/common/klever5-code.webp
+```{figure} @assets@/common/klever5-dev.webp
 :alt: Klever 5 CODE
 :width: 90%
 :align: center
