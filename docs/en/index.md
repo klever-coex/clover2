@@ -1,4 +1,4 @@
-# clover2 documentation
+# clover2
 
 ```{toctree}
 :titlesonly:
@@ -8,6 +8,7 @@
 Assembly
 Setup
 Programming
+Simulator
 AdditionalEquipment
 UsefulInformation
 ```
