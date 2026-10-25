@@ -56,7 +56,7 @@ jobs:
           if [[ "$CHANNEL" == "pre-release" ]]; then
             BUMP_JSON=$($VM bump rc --base "$BUMP" --json)
           elif [[ -n "$PROMOTE_FROM" ]]; then
-            VERSION=$($VM compose --ref "$PROMOTE_FROM" --field version)
+            VERSION=$($VM compose --ref "$PROMOTE_FROM" --field base_version)
             BUMP_JSON=$(jq -n --arg v "$VERSION" '{tag: ("v" + $v), stores_changed: false}')
           else
             BUMP_JSON=$($VM bump "$BUMP" --json)
