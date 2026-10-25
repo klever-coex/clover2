@@ -15,10 +15,10 @@ on:
         type: choice
         options: [major, minor, patch]
         default: patch
-      promote_from:
-        description: 'Promote this validated rc tag (e.g. v0.2.0-rc.2) to a stable release instead of bumping'
-        type: string
-        default: ''
+      promote_rc:
+        description: 'Stable release of the latest rc series base from the current HEAD (no bump)'
+        type: boolean
+        default: false
       dry_run:
         description: 'Dry run (no push, no tag)'
         type: boolean
@@ -33,7 +33,7 @@ concurrency:
 
 jobs:
   prepare-release:
-    if: github.ref == 'refs/heads/master' || inputs.dry_run
+    if: startsWith(github.ref, 'refs/heads/support/') || github.ref == 'refs/heads/master' || inputs.dry_run
     environment: release
     runs-on: ubuntu-latest
     steps:
@@ -49,16 +49,27 @@ jobs:
         env:
           CHANNEL: ${{ inputs.channel }}
           BUMP: ${{ inputs.bump }}
-          PROMOTE_FROM: ${{ inputs.promote_from }}
+          PROMOTE_RC: ${{ inputs.promote_rc }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
           VM="clover2 version --root ."
 
           if [[ "$CHANNEL" == "pre-release" ]]; then
             BUMP_JSON=$($VM bump rc --base "$BUMP" --json)
-          elif [[ -n "$PROMOTE_FROM" ]]; then
-            VERSION=$($VM compose --ref "$PROMOTE_FROM" --field base_version)
+          elif [[ "$PROMOTE_RC" == "true" ]]; then
+            RC_TAG=$($VM compose --latest-rc --field tag)
+            VERSION=$($VM compose --latest-rc --field version)
             BUMP_JSON=$(jq -n --arg v "$VERSION" '{tag: ("v" + $v), stores_changed: false}')
+
+            echo "Promoting ${RC_TAG}; commits included after it:"
+            git log --oneline "${RC_TAG}..HEAD" || true
           else
+            CURRENT=$($VM compose --mode develop --field base_version)
+            if [[ "$GITHUB_REF" == "refs/heads/master" ]] && [[ -n "$(git tag --list "v${CURRENT}-rc.*")" ]]; then
+              echo "RC series for v${CURRENT} already exists;" >&2
+              echo "run with promote_rc=true, or cut a new rc (channel=pre-release)" >&2
+              exit 1
+            fi
             BUMP_JSON=$($VM bump "$BUMP" --json)
           fi
           echo "prepare: ${BUMP_JSON}"
@@ -66,7 +77,7 @@ jobs:
           echo "tag=$(echo "${BUMP_JSON}" | jq -r .tag)" >> "$GITHUB_OUTPUT"
           echo "changed=$(echo "${BUMP_JSON}" | jq -r .stores_changed)" >> "$GITHUB_OUTPUT"
           echo "previous_tag=$($VM compose --latest-stable --field tag)" >> "$GITHUB_OUTPUT"
-          echo "to_tag=${PROMOTE_FROM:-HEAD}" >> "$GITHUB_OUTPUT"
+          echo "to_tag=HEAD" >> "$GITHUB_OUTPUT"
 
       - name: Generate changelog
         id: changelog
@@ -81,7 +92,6 @@ jobs:
         env:
           TAG: ${{ steps.prepare.outputs.tag }}
           CHANGED: ${{ steps.prepare.outputs.changed }}
-          PROMOTE_FROM: ${{ inputs.promote_from }}
         run: |
           if git rev-parse -q --verify "refs/tags/${TAG}" > /dev/null; then
             echo "Tag ${TAG} already exists" >&2
@@ -95,15 +105,24 @@ jobs:
             git commit -m "release: ${TAG}"
           fi
 
-          if [[ -n "$PROMOTE_FROM" ]]; then
-            # stable tag goes on the exact validated rc commit
-            git tag -a "${TAG}" "${PROMOTE_FROM}^{commit}" -m "Release ${TAG}"
-          else
-            git tag -a "${TAG}" -m "Release ${TAG}"
-          fi
+          git tag -a "${TAG}" -m "Release ${TAG}"
 
-          git push origin HEAD:master
+          git push origin "HEAD:${{ github.ref_name }}"
           git push origin "refs/tags/${TAG}"
+
+      - name: Create support branch
+        if: ${{ !inputs.dry_run && inputs.channel == 'stable' }}
+        env:
+          TAG: ${{ steps.prepare.outputs.tag }}
+        run: |
+          VERSION="${TAG#v}"
+          BRANCH="support/$(echo "${VERSION}" | cut -d. -f1-2)"
+
+          if git ls-remote --exit-code --heads origin "refs/heads/${BRANCH}" > /dev/null; then
+            echo "Branch ${BRANCH} already exists, skipping"
+          else
+            git push origin "HEAD:refs/heads/${BRANCH}"
+          fi
 
       - name: Create GitHub Release
         if: ${{ !inputs.dry_run }}
@@ -124,4 +143,3 @@ jobs:
           status: failure
           project: clover2
           tag: ${{ steps.prepare.outputs.tag }}
-
