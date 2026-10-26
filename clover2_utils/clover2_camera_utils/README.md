@@ -6,7 +6,6 @@
 ros2 run clover2_camera_utils camera_calibration \
   --ros-args \
   -p calibration_file:=/tmp/camera_calibration.yaml \
-  -p image_timeout:=10.0 \
   -p processing_rate:=5.0
 ```
 

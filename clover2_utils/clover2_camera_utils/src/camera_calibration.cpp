@@ -21,7 +21,6 @@
 namespace clover2_camera_utils {
 namespace {
 
-constexpr auto k_timeout_check_period = std::chrono::milliseconds(100);
 constexpr const char* k_image_message_type = "sensor_msgs/msg/Image";
 constexpr const char* k_image_topic_name = "image_raw";
 constexpr const char* k_set_camera_info_service_name = "set_camera_info";
@@ -32,7 +31,6 @@ camera_calibration::camera_calibration(const rclcpp::NodeOptions& options)
     : clover2_common::node("camera_calibration", options) {
     m_calibration_file =
         declare_parameter<std::string>("calibration_file", "camera_calibration.yaml");
-    m_image_timeout_s = declare_parameter<double>("image_timeout", 5.0);
     m_processing_rate_hz = declare_parameter<double>("processing_rate", 5.0);
     const auto minimum_samples = declare_parameter<int>(
         "minimum_samples_for_completion",
@@ -40,9 +38,6 @@ camera_calibration::camera_calibration(const rclcpp::NodeOptions& options)
             m_sample_selector_config.minimum_samples_for_completion));
     if (m_calibration_file.empty()) {
         throw std::invalid_argument("calibration_file must not be empty");
-    }
-    if (m_image_timeout_s <= 0.0) {
-        throw std::invalid_argument("image_timeout must be positive");
     }
     if (m_processing_rate_hz <= 0.0) {
         throw std::invalid_argument("processing_rate must be positive");
@@ -72,9 +67,8 @@ camera_calibration::camera_calibration(const rclcpp::NodeOptions& options)
 
     RCLCPP_INFO(
         get_logger(),
-        "Camera calibration Action server is ready; results will be saved to '%s'; "
-        "image timeout is %.3f s",
-        m_calibration_file.c_str(), m_image_timeout_s);
+        "Camera calibration Action server is ready; results will be saved to '%s'",
+        m_calibration_file.c_str());
 }
 
 camera_calibration::~camera_calibration() {
@@ -143,7 +137,6 @@ void camera_calibration::handle_accepted(
         calibration::detector::factory::instance().create(goal->board_type);
     m_sample_selector = calibration::sample::selector(m_sample_selector_config);
     m_calibrating = false;
-    m_last_image_received_at = std::chrono::steady_clock::now();
     m_last_image_processed_at = std::chrono::steady_clock::time_point{};
 
     const auto image_qos = rclcpp::SensorDataQoS().keep_last(1);
@@ -159,10 +152,6 @@ void camera_calibration::handle_accepted(
         std::bind(&camera_calibration::image_callback, this,
                   std::placeholders::_1),
         subscription_options);
-    m_image_timeout_timer = create_wall_timer(
-        k_timeout_check_period,
-        std::bind(&camera_calibration::check_image_timeout, this),
-        m_session_callback_group);
 
     RCLCPP_INFO(get_logger(),
                 "Calibration session started for image topic '%s'; results will "
@@ -177,7 +166,6 @@ void camera_calibration::image_callback(
         return;
     }
     const auto now = std::chrono::steady_clock::now();
-    m_last_image_received_at = now;
     const auto processing_period =
         std::chrono::duration<double>(1.0 / m_processing_rate_hz);
     if (m_last_image_processed_at != std::chrono::steady_clock::time_point{} &&
@@ -230,28 +218,6 @@ void camera_calibration::image_callback(
                     : calibrate_camera::Feedback::BOARD_DETECTED;
     }
     publish_feedback(m_active_goal, board_detected, stage);
-}
-
-void camera_calibration::check_image_timeout() {
-    bool timed_out = false;
-    if (!m_active_goal) {
-        return;
-    }
-    if (m_active_goal->is_canceling()) {
-        cancel_active_session(m_active_goal);
-        return;
-    }
-    const auto elapsed =
-        std::chrono::steady_clock::now() - m_last_image_received_at;
-    timed_out =
-        !m_calibrating &&
-        elapsed >
-            std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-                std::chrono::duration<double>(m_image_timeout_s));
-
-    if (timed_out) {
-        abort_active_session("Timed out waiting for an image");
-    }
 }
 
 void camera_calibration::handle_finish_calibration(
@@ -504,7 +470,6 @@ void camera_calibration::abort_active_session(const std::string& reason) {
 }
 
 void camera_calibration::cleanup_active_session() {
-    m_image_timeout_timer.reset();
     m_image_subscription.reset();
     m_debug_publisher.reset();
     m_set_camera_info_client.reset();

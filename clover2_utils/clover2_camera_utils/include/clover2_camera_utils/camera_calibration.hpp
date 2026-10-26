@@ -84,9 +84,6 @@ private:
      */
     void image_callback(const sensor_msgs::msg::Image::ConstSharedPtr message);
 
-    /** @brief Aborts the active session if no images arrive before timeout. */
-    void check_image_timeout();
-
     /**
      * @brief Handles a request to finish the active calibration session.
      * @param request Request of the `finish` service.
@@ -154,7 +151,6 @@ private:
 
     // Configuration
     std::string m_calibration_file;
-    double m_image_timeout_s{5.0};
     double m_processing_rate_hz{5.0};
     data::sample_selector_config m_sample_selector_config;
 
@@ -174,10 +170,8 @@ private:
     rclcpp::Client<set_camera_info>::SharedPtr m_set_camera_info_client;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr
         m_image_subscription;
-    rclcpp::TimerBase::SharedPtr m_image_timeout_timer;
 
-    // Image processing timestamps
-    std::chrono::steady_clock::time_point m_last_image_received_at;
+    // Image processing timestamp
     std::chrono::steady_clock::time_point m_last_image_processed_at;
 };
 
