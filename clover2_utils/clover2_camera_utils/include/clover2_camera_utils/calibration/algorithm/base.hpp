@@ -32,6 +32,16 @@ public:
 
 protected:
     /**
+     * @brief Checks whether an observation is suitable for calibration.
+     * @param observation Calibration board observation.
+     * @param image_size Expected image size.
+     * @return `true` if image and object points are paired, sufficiently
+     * numerous, and match the expected image size.
+     */
+    static bool is_valid_observation(const data::observation& observation,
+                                     const cv::Size& image_size);
+
+    /**
      * @brief Creates camera information from OpenCV calibration output.
      * @param image_size Calibrated image size.
      * @param camera_matrix Camera matrix.

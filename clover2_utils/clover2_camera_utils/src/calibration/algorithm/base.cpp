@@ -4,6 +4,14 @@
 
 namespace clover2_camera_utils::calibration::algorithm {
 
+bool base::is_valid_observation(const data::observation& observation,
+                                const cv::Size& image_size) {
+    constexpr size_t k_minimum_points_per_observation = 4;
+    return observation.image_size == image_size &&
+           observation.image_points.size() == observation.object_points.size() &&
+           observation.image_points.size() >= k_minimum_points_per_observation;
+}
+
 sensor_msgs::msg::CameraInfo base::make_camera_info(
     const cv::Size& image_size, const cv::Mat& camera_matrix,
     const cv::Mat& distortion_coefficients, std::string distortion_model) {

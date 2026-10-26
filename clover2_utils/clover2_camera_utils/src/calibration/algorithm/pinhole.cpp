@@ -8,14 +8,6 @@ namespace clover2_camera_utils::calibration::algorithm {
 namespace {
 
 constexpr size_t k_minimum_observations = 3;
-constexpr size_t k_minimum_points_per_observation = 4;
-
-bool is_valid(const data::observation& observation, const cv::Size image_size) {
-    return observation.image_size == image_size &&
-           observation.image_points.size() ==
-               observation.object_points.size() &&
-           observation.image_points.size() >= k_minimum_points_per_observation;
-}
 
 }  // namespace
 
@@ -37,7 +29,7 @@ pinhole::calibrate(
     image_points.reserve(observations.size());
 
     for (const auto& observation : observations) {
-        if (!is_valid(observation, image_size)) {
+        if (!is_valid_observation(observation, image_size)) {
             return std::nullopt;
         }
         object_points.push_back(observation.object_points);
