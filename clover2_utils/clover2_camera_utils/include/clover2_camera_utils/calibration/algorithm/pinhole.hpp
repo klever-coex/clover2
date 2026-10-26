@@ -15,10 +15,10 @@ public:
     /**
      * @brief Performs calibration using observations.
      * @param observations Calibration board observations.
-     * @return Calibration result or `std::nullopt` if observations are invalid
+     * @return Camera information or `std::nullopt` if observations are invalid
      * or calculation fails.
      */
-    std::optional<data::calibration_result> calibrate(
+    std::optional<sensor_msgs::msg::CameraInfo> calibrate(
         const std::vector<data::observation>& observations) const override;
 };
 

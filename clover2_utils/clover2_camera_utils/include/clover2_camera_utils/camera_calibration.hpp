@@ -9,7 +9,6 @@
 #include <clover2_camera_utils/calibration/detector/factory.hpp>
 #include <clover2_camera_utils/calibration/sample/selector.hpp>
 #include <clover2_camera_utils/data/board_config.hpp>
-#include <clover2_camera_utils/data/calibration_result.hpp>
 #include <clover2_camera_utils/data/observation.hpp>
 #include <clover2_camera_utils/data/sample_selector_config.hpp>
 #include <clover2_camera_utils_msgs/action/calibrate_camera.hpp>
@@ -133,14 +132,6 @@ private:
 
     /** @brief Releases resources of the active calibration session. */
     void cleanup_active_session();
-
-    /**
-     * @brief Converts a calibration result to a `CameraInfo` message.
-     * @param result Camera calibration result.
-     * @return `CameraInfo` prepared for output and the `set_camera_info` service.
-     */
-    static sensor_msgs::msg::CameraInfo make_camera_info(
-        const data::calibration_result& result);
 
     // Configuration
     std::string m_calibration_file;

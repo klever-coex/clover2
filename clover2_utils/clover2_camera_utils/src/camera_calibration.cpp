@@ -247,16 +247,16 @@ void camera_calibration::run_calibration(
     std::vector<data::observation> observations) {
     const auto algorithm = calibration::algorithm::factory::instance().create(
         goal_handle->get_goal()->calibration_method);
-    const auto calibration_result = algorithm->calibrate(observations);
+    const auto camera_info = algorithm->calibrate(observations);
 
-    if (!calibration_result) {
+    if (!camera_info) {
         abort_active_session("Camera calibration failed");
         return;
     }
 
     auto result = std::make_shared<calibrate_camera::Result>();
     result->success = true;
-    result->camera_info = make_camera_info(*calibration_result);
+    result->camera_info = *camera_info;
     result->used_observations = static_cast<uint32_t>(observations.size());
 
     std::string save_error;
@@ -458,37 +458,6 @@ void camera_calibration::cleanup_active_session() {
     m_calibrating = false;
     m_active_goal.reset();
     m_goal_reserved = false;
-}
-
-sensor_msgs::msg::CameraInfo camera_calibration::make_camera_info(
-    const data::calibration_result& result) {
-    sensor_msgs::msg::CameraInfo camera_info;
-    camera_info.width = static_cast<uint32_t>(result.image_size.width);
-    camera_info.height = static_cast<uint32_t>(result.image_size.height);
-    camera_info.distortion_model = result.distortion_model;
-    for (size_t row = 0; row < 3; ++row) {
-        for (size_t column = 0; column < 3; ++column) {
-            camera_info.k[row * 3 + column] = result.camera_matrix.at<double>(
-                static_cast<int>(row), static_cast<int>(column));
-        }
-    }
-    camera_info.r[0] = 1.0;
-    camera_info.r[4] = 1.0;
-    camera_info.r[8] = 1.0;
-    camera_info.p[0] = camera_info.k[0];
-    camera_info.p[2] = camera_info.k[2];
-    camera_info.p[5] = camera_info.k[4];
-    camera_info.p[6] = camera_info.k[5];
-    camera_info.p[10] = 1.0;
-    camera_info.d.reserve(result.distortion_coefficients.total());
-    for (int row = 0; row < result.distortion_coefficients.rows; ++row) {
-        for (int column = 0; column < result.distortion_coefficients.cols;
-             ++column) {
-            camera_info.d.push_back(
-                result.distortion_coefficients.at<double>(row, column));
-        }
-    }
-    return camera_info;
 }
 
 }  // namespace clover2_camera_utils

@@ -19,7 +19,7 @@ bool is_valid(const data::observation& observation, const cv::Size image_size) {
 
 }  // namespace
 
-std::optional<data::calibration_result>
+std::optional<sensor_msgs::msg::CameraInfo>
 pinhole::calibrate(
     const std::vector<data::observation>& observations) const {
     if (observations.size() < k_minimum_observations) {
@@ -53,13 +53,9 @@ pinhole::calibrate(
         cv::calibrateCamera(object_points, image_points, image_size,
                             camera_matrix, distortion_coefficients,
                             rotation_vectors, translation_vectors);
-        return data::calibration_result{
-            .image_size = image_size,
-            .camera_matrix = std::move(camera_matrix),
-            .distortion_coefficients = std::move(distortion_coefficients),
-            .rotation_vectors = std::move(rotation_vectors),
-            .translation_vectors = std::move(translation_vectors),
-        };
+
+        return make_camera_info(image_size, camera_matrix,
+                                distortion_coefficients, "plumb_bob");
     } catch (const cv::Exception&) {
         return std::nullopt;
     }
