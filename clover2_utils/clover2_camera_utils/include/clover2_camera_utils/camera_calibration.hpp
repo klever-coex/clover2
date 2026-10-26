@@ -111,13 +111,6 @@ private:
                        std::string& rejection_reason) const;
 
     /**
-     * @brief Checks whether an image topic has a publisher.
-     * @param topic Full image topic name.
-     * @return `true` if the topic has at least one publisher, otherwise `false`.
-     */
-    bool has_image_publisher(const std::string& topic) const;
-
-    /**
      * @brief Publishes feedback for the active goal.
      * @param goal_handle Handle of the active goal.
      * @param board_detected Whether a board was detected in the last image.

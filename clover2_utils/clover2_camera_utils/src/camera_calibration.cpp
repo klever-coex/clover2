@@ -21,7 +21,6 @@
 namespace clover2_camera_utils {
 namespace {
 
-constexpr const char* k_image_message_type = "sensor_msgs/msg/Image";
 constexpr const char* k_image_topic_name = "image_raw";
 constexpr const char* k_set_camera_info_service_name = "set_camera_info";
 
@@ -83,17 +82,6 @@ rclcpp_action::GoalResponse camera_calibration::handle_goal(
     if (!is_valid_goal(*goal, rejection_reason)) {
         RCLCPP_WARN(get_logger(), "Rejecting calibration goal: %s",
                     rejection_reason.c_str());
-        return rclcpp_action::GoalResponse::REJECT;
-    }
-
-    const auto image_topic =
-        goal->camera_namespace == "/"
-            ? std::string("/") + k_image_topic_name
-            : goal->camera_namespace + "/" + k_image_topic_name;
-    if (!has_image_publisher(image_topic)) {
-        RCLCPP_WARN(get_logger(),
-                    "Rejecting calibration goal: no %s publisher on '%s'",
-                    k_image_message_type, image_topic.c_str());
         return rclcpp_action::GoalResponse::REJECT;
     }
 
@@ -381,14 +369,6 @@ bool camera_calibration::is_valid_goal(const calibrate_camera::Goal& goal,
         return false;
     }
     return true;
-}
-
-bool camera_calibration::has_image_publisher(const std::string& topic) const {
-    const auto publishers = get_publishers_info_by_topic(topic);
-    return std::any_of(
-        publishers.begin(), publishers.end(), [](const auto& publisher) {
-            return publisher.topic_type() == k_image_message_type;
-        });
 }
 
 void camera_calibration::publish_feedback(
