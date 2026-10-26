@@ -30,9 +30,8 @@ namespace clover2_camera_utils {
  * @brief Performs interactive camera calibration using board observations.
  *
  * The component accepts an action goal, receives images from the camera
- * namespace, selects non-duplicate observations, saves the computed parameters
- * to a YAML file, and optionally sends the resulting `CameraInfo` to the camera
- * driver through the `set_camera_info` service.
+ * namespace, selects non-duplicate observations, and sends the resulting
+ * `CameraInfo` to the camera driver through the `set_camera_info` service.
  */
 class camera_calibration : public clover2_common::node {
 public:
@@ -134,7 +133,6 @@ private:
     void cleanup_active_session();
 
     // Configuration
-    std::string m_calibration_file;
     double m_processing_rate_hz{5.0};
     data::sample_selector_config m_sample_selector_config;
 

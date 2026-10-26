@@ -1,5 +1,4 @@
 #include <clover2_camera_utils/camera_calibration.hpp>
-#include <clover2_camera_utils/io/camera_info_yaml.hpp>
 
 #include <cv_bridge/cv_bridge.hpp>
 #include <opencv2/calib3d.hpp>
@@ -28,16 +27,11 @@ constexpr const char* k_set_camera_info_service_name = "set_camera_info";
 
 camera_calibration::camera_calibration(const rclcpp::NodeOptions& options)
     : clover2_common::node("camera_calibration", options) {
-    m_calibration_file =
-        declare_parameter<std::string>("calibration_file", "camera_calibration.yaml");
     m_processing_rate_hz = declare_parameter<double>("processing_rate", 5.0);
     const auto minimum_samples = declare_parameter<int>(
         "minimum_samples_for_completion",
         static_cast<int>(
             m_sample_selector_config.minimum_samples_for_completion));
-    if (m_calibration_file.empty()) {
-        throw std::invalid_argument("calibration_file must not be empty");
-    }
     if (m_processing_rate_hz <= 0.0) {
         throw std::invalid_argument("processing_rate must be positive");
     }
@@ -64,10 +58,7 @@ camera_calibration::camera_calibration(const rclcpp::NodeOptions& options)
         std::bind(&camera_calibration::handle_finish_calibration, this, _1, _2),
         rclcpp::ServicesQoS(), m_session_callback_group);
 
-    RCLCPP_INFO(
-        get_logger(),
-        "Camera calibration Action server is ready; results will be saved to '%s'",
-        m_calibration_file.c_str());
+    RCLCPP_INFO(get_logger(), "Camera calibration Action server is ready");
 }
 
 camera_calibration::~camera_calibration() {
@@ -142,10 +133,9 @@ void camera_calibration::handle_accepted(
         subscription_options);
 
     RCLCPP_INFO(get_logger(),
-                "Calibration session started for image topic '%s'; results will "
-                "be saved to '%s' and sent to '%s' when available",
-                image_topic.c_str(), m_calibration_file.c_str(),
-                set_camera_info_service.c_str());
+                "Calibration session started for image topic '%s'; calculated "
+                "parameters will be sent to '%s' when available",
+                image_topic.c_str(), set_camera_info_service.c_str());
 }
 
 void camera_calibration::image_callback(
@@ -259,13 +249,6 @@ void camera_calibration::run_calibration(
     result->camera_info = *camera_info;
     result->used_observations = static_cast<uint32_t>(observations.size());
 
-    std::string save_error;
-    if (!io::save_camera_info_yaml(result->camera_info, m_calibration_file,
-                                   save_error)) {
-        abort_active_session("Failed to save camera calibration: " + save_error);
-        return;
-    }
-
     std::ostringstream distortion_coefficients;
     distortion_coefficients << std::setprecision(17);
     for (size_t index = 0; index < result->camera_info.d.size(); ++index) {
@@ -276,11 +259,11 @@ void camera_calibration::run_calibration(
     }
     RCLCPP_INFO(
         get_logger(),
-        "Calibration calculated from %u observations and saved to '%s': "
+        "Calibration calculated from %u observations: "
         "image=%ux%u, distortion_model='%s', K=[%.17g, %.17g, %.17g; "
         "%.17g, %.17g, %.17g; %.17g, %.17g, %.17g], D=[%s]",
-        result->used_observations, m_calibration_file.c_str(),
-        result->camera_info.width, result->camera_info.height,
+        result->used_observations, result->camera_info.width,
+        result->camera_info.height,
         result->camera_info.distortion_model.c_str(), result->camera_info.k[0],
         result->camera_info.k[1], result->camera_info.k[2],
         result->camera_info.k[3], result->camera_info.k[4],
@@ -305,10 +288,8 @@ void camera_calibration::run_calibration(
     if (!set_camera_info_client || !set_camera_info_client->service_is_ready()) {
         RCLCPP_WARN(
             get_logger(),
-            "Calibration was saved to '%s', but camera set_camera_info service "
-            "is not available; calculated parameters are available in the action "
-            "result",
-            m_calibration_file.c_str());
+            "Camera set_camera_info service is not available; calculated "
+            "parameters are available in the action result");
         return;
     }
 
@@ -325,21 +306,22 @@ void camera_calibration::run_calibration(
                     if (!response->success) {
                         RCLCPP_WARN(
                             logger,
-                            "Camera set_camera_info rejected saved calibration: %s",
+                            "Camera set_camera_info rejected calculated "
+                            "calibration: %s",
                             response->status_message.empty()
                                 ? "no reason provided"
                                 : response->status_message.c_str());
                     }
                 } catch (const std::exception& error) {
                     RCLCPP_WARN(logger,
-                                "Camera set_camera_info failed after calibration "
-                                "was saved: %s",
+                                "Camera set_camera_info failed for calculated "
+                                "calibration: %s",
                                 error.what());
                 }
             });
     } catch (const std::runtime_error& error) {
         RCLCPP_WARN(logger,
-                    "Could not send saved calibration to camera "
+                    "Could not send calculated calibration to camera "
                     "set_camera_info service: %s",
                     error.what());
     }

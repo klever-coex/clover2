@@ -10,8 +10,8 @@
 namespace clover2_camera_utils::calibration::algorithm {
 
 factory::factory() {
-    add<pinhole>("pinhole");
-    add<fisheye>("fisheye");
+    add<pinhole>();
+    add<fisheye>();
 }
 
 factory& factory::instance() {

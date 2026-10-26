@@ -15,19 +15,10 @@ find_package(OpenCV REQUIRED COMPONENTS calib3d core imgproc)
 
 ament_auto_find_build_dependencies()
 
-ament_auto_add_library(${PROJECT_NAME}_core SHARED DIRECTORY "src/calibration")
-target_link_libraries(${PROJECT_NAME}_core ${OpenCV_LIBS})
+ament_auto_add_library(${PROJECT_NAME} SHARED DIRECTORY "src")
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 
-ament_auto_add_library(${PROJECT_NAME}_component SHARED
-  src/camera_calibration.cpp
-  src/io/camera_info_yaml.cpp
-)
-target_link_libraries(${PROJECT_NAME}_component
-  ${PROJECT_NAME}_core
-  ${OpenCV_LIBS}
-)
-
-rclcpp_components_register_node(${PROJECT_NAME}_component
+rclcpp_components_register_node(${PROJECT_NAME}
   PLUGIN "clover2_camera_utils::camera_calibration"
   EXECUTABLE camera_calibration
 )
@@ -41,8 +32,7 @@ if(BUILD_TESTING)
       ${test_source}
     )
     target_link_libraries(test_${PROJECT_NAME}
-      ${PROJECT_NAME}_core
-      ${PROJECT_NAME}_component
+      ${PROJECT_NAME}
     )
   endif()
 endif()

@@ -12,6 +12,8 @@ namespace clover2_camera_utils::calibration::algorithm {
 /** @brief Performs camera calibration for the fisheye model. */
 class fisheye final : public base {
 public:
+    static constexpr const char* name = "fisheye";
+
     /**
      * @brief Performs calibration using observations.
      * @param observations Calibration board observations.

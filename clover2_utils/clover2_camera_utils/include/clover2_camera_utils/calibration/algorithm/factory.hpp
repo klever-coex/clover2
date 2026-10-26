@@ -26,15 +26,14 @@ public:
     static factory& instance();
 
     /**
-     * @brief Registers an algorithm for the specified method.
+     * @brief Registers an algorithm using its class method identifier.
      * @tparam T Algorithm type derived from base.
-     * @param method Calibration method identifier.
      */
     template <typename T>
-    void add(const std::string& method) {
+    void add() {
         static_assert(std::is_base_of_v<base, T>,
                       "T must be derived from base");
-        builders_[method] = []() { return std::make_unique<T>(); };
+        builders_[std::string(T::name)] = []() { return std::make_unique<T>(); };
     }
 
     /**

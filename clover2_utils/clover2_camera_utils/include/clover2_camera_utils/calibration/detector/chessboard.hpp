@@ -16,6 +16,8 @@ namespace clover2_camera_utils::calibration::detector {
 /** @brief Detects inner corners of a chessboard. */
 class chessboard final : public base {
 public:
+    static constexpr const char* name = "chessboard";
+
     /**
      * @brief Detects a chessboard in an image.
      * @param image Camera image.

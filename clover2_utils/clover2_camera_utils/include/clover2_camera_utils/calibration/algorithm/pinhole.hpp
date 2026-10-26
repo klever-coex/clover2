@@ -12,6 +12,8 @@ namespace clover2_camera_utils::calibration::algorithm {
 /** @brief Performs camera calibration for the pinhole model. */
 class pinhole final : public base {
 public:
+    static constexpr const char* name = "pinhole";
+
     /**
      * @brief Performs calibration using observations.
      * @param observations Calibration board observations.

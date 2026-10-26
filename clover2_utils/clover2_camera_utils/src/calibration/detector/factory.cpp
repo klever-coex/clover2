@@ -9,7 +9,7 @@
 namespace clover2_camera_utils::calibration::detector {
 
 factory::factory() {
-    add<chessboard>("chessboard");
+    add<chessboard>();
 }
 
 factory& factory::instance() {

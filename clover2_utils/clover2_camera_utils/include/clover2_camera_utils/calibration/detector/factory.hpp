@@ -26,15 +26,14 @@ public:
     static factory& instance();
 
     /**
-     * @brief Registers a detector for the specified board type.
+     * @brief Registers a detector using its class board type identifier.
      * @tparam T Detector type derived from base.
-     * @param board_type Board type identifier.
      */
     template <typename T>
-    void add(const std::string& board_type) {
+    void add() {
         static_assert(std::is_base_of_v<base, T>,
                       "T must be derived from base");
-        builders_[board_type] = []() { return std::make_shared<T>(); };
+        builders_[std::string(T::name)] = []() { return std::make_shared<T>(); };
     }
 
     /**
