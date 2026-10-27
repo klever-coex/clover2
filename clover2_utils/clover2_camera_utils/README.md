@@ -1,6 +1,6 @@
 # Camera calibration
 
-Запустить calibration node:
+Start the calibration node:
 
 ```bash
 ros2 run clover2_camera_utils camera_calibration \
@@ -8,7 +8,9 @@ ros2 run clover2_camera_utils camera_calibration \
   -p processing_rate:=5.0
 ```
 
-Запуск с feedback:
+`processing_rate` specifies how often the board detector processes image frames.
+
+Start calibration with feedback:
 
 ```bash
 ros2 action send_goal \
@@ -25,18 +27,21 @@ ros2 action send_goal \
   }"
 ```
 
-После успешного завершения нода передаёт рассчитанные параметры в
-`/camera_namespace/set_camera_info` (`sensor_msgs/srv/SetCameraInfo`). Если
-сервис драйвера недоступен или отклоняет запрос, калибровка всё равно завершается
-успешно: рассчитанные параметры возвращаются в result action и печатаются в лог.
+After successful completion, the node sends the calculated parameters to
+`/camera_namespace/set_camera_info` (`sensor_msgs/srv/SetCameraInfo`). If the
+camera driver service is unavailable or rejects the request, calibration still
+succeeds: the calculated parameters are returned in the action result and
+printed to the log.
 
-Нода автоматически анализирует входной поток с частотой `processing_rate`
-(по умолчанию 5 Гц) и добавляет только полезные недублирующиеся кадры.
+## Finish calibration
 
-Завершение
 ```bash
 ros2 service call \
   /camera_calibration/finish \
   clover2_camera_utils_msgs/srv/FinishCalibration \
-  "{}"
+  "{goal_id: 'GOAL_ID_FROM_FEEDBACK'}"
 ```
+
+The goal ID is included in the action feedback. Copy it into the `finish`
+service request to complete the corresponding calibration session. Multiple
+sessions can run concurrently.

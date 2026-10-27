@@ -30,6 +30,9 @@ string message
 ---
 # Feedback
 
+# UUID identifying the calibration session.
+string goal_id
+
 # Number of observations accepted into the calibration dataset.
 uint32 accepted_samples
 

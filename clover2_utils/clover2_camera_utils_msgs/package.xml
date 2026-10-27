@@ -12,6 +12,7 @@
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
 
   <depend>sensor_msgs</depend>
+  <depend>unique_identifier_msgs</depend>
 
   <exec_depend>rosidl_default_runtime</exec_depend>
 

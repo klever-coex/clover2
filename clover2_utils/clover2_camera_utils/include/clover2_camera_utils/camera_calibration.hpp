@@ -23,6 +23,8 @@
 #include <chrono>
 #include <memory>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace clover2_camera_utils {
 
@@ -48,7 +50,7 @@ public:
     explicit camera_calibration(
         const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
 
-    /** @brief Ends the active session and releases its resources. */
+    /** @brief Ends all active sessions and releases their resources. */
     ~camera_calibration() override;
 
 private:
@@ -63,7 +65,7 @@ private:
         std::shared_ptr<const calibrate_camera::Goal> goal);
 
     /**
-     * @brief Handles a request to cancel the active goal.
+     * @brief Handles a request to cancel a calibration goal.
      * @param goal_handle Handle of the goal to cancel.
      * @return Decision to accept or reject cancellation.
      */
@@ -77,10 +79,12 @@ private:
     void handle_accepted(const std::shared_ptr<goal_handle> goal_handle);
 
     /**
-     * @brief Processes an image during the active calibration session.
+     * @brief Processes an image for the specified calibration session.
+     * @param goal_id String representation of the action goal UUID.
      * @param message Received image message.
      */
-    void image_callback(const sensor_msgs::msg::Image::ConstSharedPtr message);
+    void image_callback(const std::string& goal_id,
+                        const sensor_msgs::msg::Image::ConstSharedPtr message);
 
     /**
      * @brief Handles a request to finish the active calibration session.
@@ -93,10 +97,12 @@ private:
 
     /**
      * @brief Performs calibration using selected observations.
-     * @param goal_handle Handle of the active goal.
+     * @param goal_id String representation of the action goal UUID.
+     * @param goal_handle Handle of the calibration goal.
      * @param observations Calibration dataset observations.
      */
-    void run_calibration(std::shared_ptr<goal_handle> goal_handle,
+    void run_calibration(const std::string& goal_id,
+                         std::shared_ptr<goal_handle> goal_handle,
                          std::vector<data::observation> observations);
 
     /**
@@ -109,52 +115,58 @@ private:
                        std::string& rejection_reason) const;
 
     /**
-     * @brief Publishes feedback for the active goal.
-     * @param goal_handle Handle of the active goal.
+     * @brief Publishes feedback for a calibration session.
+     * @param goal_id String representation of the action goal UUID.
      * @param board_detected Whether a board was detected in the last image.
      * @param stage Current calibration stage.
      */
-    void publish_feedback(const std::shared_ptr<goal_handle>& goal_handle,
+    void publish_feedback(const std::string& goal_id,
                           bool board_detected, uint8_t stage) const;
 
     /**
-     * @brief Cancels the active session for the specified goal.
+     * @brief Cancels the session for the specified goal.
      * @param goal_handle Handle of the goal to cancel.
      */
-    void cancel_active_session(const std::shared_ptr<goal_handle>& goal_handle);
+    void cancel_session(const std::string& goal_id,
+                        const std::shared_ptr<goal_handle>& goal_handle);
 
     /**
-     * @brief Aborts the active session with the specified reason.
+     * @brief Aborts the specified session with the specified reason.
+     * @param goal_id String representation of the action goal UUID.
      * @param reason Session abort reason.
      */
-    void abort_active_session(const std::string& reason);
+    void abort_session(const std::string& goal_id, const std::string& reason);
 
-    /** @brief Releases resources of the active calibration session. */
-    void cleanup_active_session();
+    /** @brief Releases resources of the specified calibration session. */
+    void cleanup_session(const std::string& goal_id);
+
+    struct session {
+        std::shared_ptr<goal_handle> action_goal_handle;
+        bool calibrating{false};
+        data::board_config board;
+        std::shared_ptr<const calibration::detector::base> detector;
+        calibration::sample::selector sample_selector;
+        rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr debug_publisher;
+        rclcpp::Client<set_camera_info>::SharedPtr set_camera_info_client;
+        rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_subscription;
+        std::chrono::steady_clock::time_point last_image_processed_at;
+
+        explicit session(data::sample_selector_config sample_selector_config)
+            : sample_selector(std::move(sample_selector_config)) {}
+    };
 
     // Configuration
     double m_processing_rate_hz{5.0};
     data::sample_selector_config m_sample_selector_config;
 
-    // Active calibration session
-    bool m_goal_reserved{false};
-    bool m_calibrating{false};
-    std::shared_ptr<goal_handle> m_active_goal;
-    data::board_config m_board;
-    std::shared_ptr<const calibration::detector::base> m_detector;
-    calibration::sample::selector m_sample_selector;
+    // Calibration sessions keyed by string representations of action goal UUIDs.
+    std::unordered_set<std::string> m_reserved_goal_ids;
+    std::unordered_map<std::string, session> m_sessions;
 
     // ROS interfaces
     rclcpp_action::Server<calibrate_camera>::SharedPtr m_action_server;
     rclcpp::CallbackGroup::SharedPtr m_session_callback_group;
     rclcpp::Service<finish_calibration>::SharedPtr m_finish_calibration_service;
-    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr m_debug_publisher;
-    rclcpp::Client<set_camera_info>::SharedPtr m_set_camera_info_client;
-    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr
-        m_image_subscription;
-
-    // Image processing timestamp
-    std::chrono::steady_clock::time_point m_last_image_processed_at;
 };
 
 }  // namespace clover2_camera_utils

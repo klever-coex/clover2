@@ -1,4 +1,5 @@
-# Request has no fields. It always applies to the single active session.
+# Action goal UUID identifying the calibration session to finish.
+string goal_id
 
 ---
 # Response

@@ -17,7 +17,7 @@ file(GLOB srv_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "srv/*.srv")
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${action_files}
   ${srv_files}
-  DEPENDENCIES sensor_msgs
+  DEPENDENCIES sensor_msgs unique_identifier_msgs
 )
 
 ament_auto_package()
