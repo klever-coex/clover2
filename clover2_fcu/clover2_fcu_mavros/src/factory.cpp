@@ -9,7 +9,7 @@
 #include <clover2_fcu/capability/setpoint_rates_interface.hpp>
 #include <clover2_fcu/capability/setpoint_velocity_interface.hpp>
 #include <clover2_fcu/capability/system_state_interface.hpp>
-#include <clover2_fcu_fake/factory.hpp>
+#include <clover2_fcu_mavros/factory.hpp>
 
 // third party
 #include <pluginlib/class_list_macros.hpp>
@@ -20,7 +20,8 @@ factory::factory() {}
 
 std::string factory::protocol() const { return "mavros"; }
 
-void factory::do_initialize(std::shared_ptr<capability::base_interface>) {}
+void factory::do_initialize(
+    std::shared_ptr<clover2_fcu::capability::base_interface>) {}
 
 }  // namespace clover2_fcu_mavros
 

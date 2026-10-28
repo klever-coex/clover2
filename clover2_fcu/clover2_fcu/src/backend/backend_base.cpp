@@ -49,8 +49,6 @@ std::shared_ptr<void> backend_base::get(const std::string& capability) const {
                         protocol(), capability);
     }
 
-    // Runs under the recursive lock: the builder may call get() for its
-    // dependencies; concurrent callers block until it finishes.
     auto provider = builder->second();
     m_cache.emplace(capability, provider);
 
@@ -73,8 +71,6 @@ std::shared_ptr<void> backend_base::create_setpoint(const std::string& setpoint,
                         setpoint);
     }
 
-    // Not cached; the builder may call get() for its dependencies
-    // (recursive lock).
     return builder->second(token);
 }
 

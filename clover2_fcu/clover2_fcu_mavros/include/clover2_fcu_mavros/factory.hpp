@@ -19,7 +19,7 @@ public:
     std::string protocol() const override;
 
     void do_initialize(
-        std::shared_ptr<capability::base_interface> base) override;
+        std::shared_ptr<clover2_fcu::capability::base_interface> base) override;
 };
 
 }  // namespace clover2_fcu_mavros

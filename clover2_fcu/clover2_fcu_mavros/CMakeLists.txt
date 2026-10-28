@@ -20,7 +20,7 @@ ament_auto_find_build_dependencies()
 ament_auto_add_library(${PROJECT_NAME} SHARED src/factory.cpp)
 target_link_libraries(${PROJECT_NAME} yaml-cpp Eigen3::Eigen)
 
-pluginlib_export_plugin_description_file(clover2_fcu fake_plugins.xml)
+pluginlib_export_plugin_description_file(clover2_fcu mavros_plugins.xml)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
