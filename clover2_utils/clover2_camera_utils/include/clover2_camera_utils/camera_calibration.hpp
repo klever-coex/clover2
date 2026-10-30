@@ -5,10 +5,8 @@
 
 #pragma once
 #include <clover2_camera_utils/calibration/algorithm/factory.hpp>
-#include <clover2_camera_utils/calibration/detector/base.hpp>
 #include <clover2_camera_utils/calibration/detector/factory.hpp>
-#include <clover2_camera_utils/calibration/sample/selector.hpp>
-#include <clover2_camera_utils/data/board_config.hpp>
+#include <clover2_camera_utils/calibration_session.hpp>
 #include <clover2_camera_utils/data/observation.hpp>
 #include <clover2_camera_utils/data/sample_selector_config.hpp>
 #include <clover2_camera_utils_msgs/action/calibrate_camera.hpp>
@@ -20,7 +18,6 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/srv/set_camera_info.hpp>
 
-#include <chrono>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -140,28 +137,13 @@ private:
     /** @brief Releases resources of the specified calibration session. */
     void cleanup_session(const std::string& goal_id);
 
-    struct session {
-        std::shared_ptr<goal_handle> action_goal_handle;
-        bool calibrating{false};
-        data::board_config board;
-        std::shared_ptr<const calibration::detector::base> detector;
-        calibration::sample::selector sample_selector;
-        rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr debug_publisher;
-        rclcpp::Client<set_camera_info>::SharedPtr set_camera_info_client;
-        rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_subscription;
-        std::chrono::steady_clock::time_point last_image_processed_at;
-
-        explicit session(data::sample_selector_config sample_selector_config)
-            : sample_selector(std::move(sample_selector_config)) {}
-    };
-
     // Configuration
     double m_processing_rate_hz{5.0};
     data::sample_selector_config m_sample_selector_config;
 
     // Calibration sessions keyed by string representations of action goal UUIDs.
     std::unordered_set<std::string> m_reserved_goal_ids;
-    std::unordered_map<std::string, session> m_sessions;
+    std::unordered_map<std::string, calibration_session> m_sessions;
 
     // ROS interfaces
     rclcpp_action::Server<calibrate_camera>::SharedPtr m_action_server;
