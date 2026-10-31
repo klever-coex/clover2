@@ -46,9 +46,7 @@ bridge::bridge(const rclcpp::NodeOptions& options)
                       std::placeholders::_1, std::placeholders::_2));
 }
 
-bridge::~bridge() {
-    m_factory.reset();
-}
+bridge::~bridge() { m_factory.reset(); }
 
 void bridge::handle_get_config(
     const std::shared_ptr<clover2_fcu_msgs::srv::GetConfig::Request>,
@@ -84,12 +82,15 @@ void bridge::handle_register_mode(
         }
     }
 
-    const uint32_t native_mode_id = m_factory->register_mode(request->name);
+    const auto native_mode_id = m_factory->register_mode(request->name);
 
     const uint32_t mode_id = m_next_mode_id++;
     auto mode_bond = std::make_shared<bond::Bond>(
-        "bond", std::to_string(mode_id), shared_from_this(),
-        [this, mode_id]() { handle_mode_bond_broken(mode_id); });
+        "bond",                                                  //
+        std::to_string(mode_id),                                 //
+        shared_from_this(),                                      //
+        [this, mode_id]() { handle_mode_bond_broken(mode_id); }  //
+    );
     mode_bond->setHeartbeatPeriod(0.10);
     mode_bond->start();
 
@@ -99,7 +100,8 @@ void bridge::handle_register_mode(
     response->ok = true;
     response->mode_id = mode_id;
     RCLCPP_INFO(get_logger(), "mode '%s' registered (id=%u, native=%u)",
-                request->name.c_str(), mode_id, native_mode_id);
+                request->name.c_str(), mode_id,
+                native_mode_id.has_value() ? *native_mode_id : 0);
 }
 
 void bridge::handle_activate_mode(

@@ -1,6 +1,7 @@
 #pragma once
 
 // clover2
+#include "clover2_fcu/capability/base_interface.hpp"
 #include <clover2_fcu/capability/setpoint_attitude_interface.hpp>
 #include <clover2_fcu/capability/setpoint_base.hpp>
 #include <clover2_fcu/capability/setpoint_position_interface.hpp>
@@ -13,6 +14,7 @@
 #include <clover2_fcu_msgs/srv/register_mode.hpp>
 
 // ROS2
+#include <rclcpp/logger.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 // third party
@@ -47,6 +49,11 @@ namespace clover2_fcu {
  */
 class mode_base {
 public:
+    using position_setpoint = capability::setpoint_position_interface;
+    using velocity_setpoint = capability::setpoint_velocity_interface;
+    using attitude_setpoint = capability::setpoint_attitude_interface;
+    using rates_setpoint = capability::setpoint_rates_interface;
+
     struct settings {
         /// Mode name, unique among the modes registered with the bridge.
         std::string name;
@@ -80,7 +87,7 @@ public:
      * @brief Construct the mode and register it with the bridge.
      * @throws clover2_fcu::exception when registration fails.
      */
-    mode_base(client& fcu, const settings& s);
+    mode_base(client::shared_ptr fcu, const settings& s);
     mode_base(const mode_base&) = delete;
     mode_base& operator=(const mode_base&) = delete;
     virtual ~mode_base();
@@ -110,29 +117,36 @@ protected:
     virtual void update_setpoint(double dt_s) { (void)dt_s; }
 
     /// @brief The flight stack interface of this mode.
-    client& fcu() { return m_fcu; }
+    client::shared_ptr fcu() { return m_fcu; }
 
     /// @brief Setpoint provider handles (created lazily, owned by the mode;
     ///        streaming is gated by the mode lease).
-    std::shared_ptr<capability::setpoint_position_interface> position();
-    std::shared_ptr<capability::setpoint_velocity_interface> velocity();
-    std::shared_ptr<capability::setpoint_attitude_interface> attitude();
-    std::shared_ptr<capability::setpoint_rates_interface> rates();
+    std::shared_ptr<position_setpoint> position();
+    std::shared_ptr<velocity_setpoint> velocity();
+    std::shared_ptr<attitude_setpoint> attitude();
+    std::shared_ptr<rates_setpoint> rates();
+
+    rclcpp::Logger get_logger() const { return m_logger; }
 
 private:
+    void setup_bond();
+
     void handle_mode_state(clover2_fcu_msgs::msg::ModeState::UniquePtr msg);
     void handle_mode_bond_broken();
     void start_update_timer();
     void stop_update_timer();
     void stop_streaming();
 
-    client& m_fcu;
+    client::shared_ptr m_fcu;
+    rclcpp::Logger m_logger;
     const settings m_settings;
 
+    clover2_fcu::capability::base_interface::shared_ptr m_base_capability;
+
     rclcpp::CallbackGroup::SharedPtr m_callback_group;
-    std::shared_ptr<rclcpp::Client<clover2_fcu_msgs::srv::RegisterMode>>
+    rclcpp::Client<clover2_fcu_msgs::srv::RegisterMode>::SharedPtr
         m_register_mode_client;
-    std::shared_ptr<rclcpp::Client<clover2_fcu_msgs::srv::ActivateMode>>
+    rclcpp::Client<clover2_fcu_msgs::srv::ActivateMode>::SharedPtr
         m_activate_mode_client;
 
     std::shared_ptr<bond::Bond> m_bond;
@@ -144,10 +158,10 @@ private:
     uint32_t m_mode_id{0};
     std::atomic<bool> m_active{false};
 
-    capability::setpoint_position_interface::shared_ptr m_position;
-    capability::setpoint_velocity_interface::shared_ptr m_velocity;
-    capability::setpoint_attitude_interface::shared_ptr m_attitude;
-    capability::setpoint_rates_interface::shared_ptr m_rates;
+    position_setpoint::shared_ptr m_position;
+    velocity_setpoint::shared_ptr m_velocity;
+    attitude_setpoint::shared_ptr m_attitude;
+    rates_setpoint::shared_ptr m_rates;
 };
 
 }  // namespace clover2_fcu

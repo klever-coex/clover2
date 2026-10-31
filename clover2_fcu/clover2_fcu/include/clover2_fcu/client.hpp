@@ -14,6 +14,13 @@
 #include <clover2_fcu_msgs/srv/get_config.hpp>
 
 // ROS2
+#include <rclcpp/node.hpp>
+#include <rclcpp/node_interfaces/node_base_interface.hpp>
+#include <rclcpp/node_interfaces/node_graph_interface.hpp>
+#include <rclcpp/node_interfaces/node_logging_interface.hpp>
+#include <rclcpp/node_interfaces/node_services_interface.hpp>
+#include <rclcpp/node_interfaces/node_timers_interface.hpp>
+#include <rclcpp/node_interfaces/node_topics_interface.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 // third party
@@ -32,35 +39,18 @@ namespace clover2_fcu {
 
 class mode_base;
 
-/**
- * @brief Flight stack interface client.
- *
- * Embeds into any node and fetches the configuration from the @ref bridge
- * — the single configuration point (the constructor blocks until the
- * bridge answers or the wait timeout expires, @ref exception on failure).
- *
- * The client owns the @ref base_interface implementation and one backend
- * factory instance. Capability providers are cached singletons: the
- * factory creates a provider on the first get() and serves the same
- * instance afterwards, so the provider lives as long as the client and
- * telemetry subscriptions are released via the RAII token returned by
- * on_update():
- *
- *   auto odometry = fcu.get<odometry_interface>();  // cached handle
- *
- * Setpoints are the exception: they are bound to a flight mode and can be
- * created only inside mode_base (create_setpoint() is private, mode_base
- * is a friend; setpoint providers are not cached).
- *
- * Accessors throw @ref exception when the capability is not served by the
- * backend; check with @ref has (creates nothing) or declare requirements
- * via client::settings::require (validated at construction).
- */
 class client {
 public:
-    /**
-     * @brief Client construction settings (fluent).
-     */
+    using shared_ptr = std::shared_ptr<client>;
+
+    using required_interfaces = rclcpp::node_interfaces::NodeInterfaces<
+        rclcpp::node_interfaces::NodeBaseInterface,
+        rclcpp::node_interfaces::NodeTopicsInterface,
+        rclcpp::node_interfaces::NodeServicesInterface,
+        rclcpp::node_interfaces::NodeTimersInterface,
+        rclcpp::node_interfaces::NodeGraphInterface,
+        rclcpp::node_interfaces::NodeLoggingInterface>;
+
     class settings {
     public:
         settings() {}
@@ -97,42 +87,16 @@ public:
         std::chrono::nanoseconds m_wait_timeout{std::chrono::seconds(10)};
     };
 
-    /**
-     * @brief Construct the client and connect it to the bridge.
-     * @tparam NodeT Node type (clover2_common::node, lifecycle node, ...).
-     * @param node the hosting node (must be spun while this runs).
-     * @param s client settings.
-     * @throws clover2_fcu::exception on connection or requirement failures.
-     */
-    template <typename NodeT>
-    explicit client(NodeT& node, settings s = {})
-        : m_settings(std::move(s))
-        , m_callback_group(node.create_callback_group(
-              rclcpp::CallbackGroupType::MutuallyExclusive))
-        , m_base(std::make_shared<capability::base_interface_impl>(
-              node, m_settings.bridge_node(), m_callback_group)) {
-        m_config_client =
-            node.template create_client<clover2_fcu_msgs::srv::GetConfig>(
-                m_settings.bridge_node() + "/get_config", rclcpp::ServicesQoS(),
-                m_callback_group);
-
-        connect();
-    }
+    explicit client(required_interfaces node_interfaces, settings s = {});
 
     client(const client&) = delete;
     client& operator=(const client&) = delete;
     ~client() = default;
 
-    /**
-     * @brief The cached provider for the capability contract.
-     *
-     * The same instance is returned on every call; the provider lives as
-     * long as the client.
-     * @throws clover2_fcu::exception when the capability is not served.
-     */
+    /// @brief The cached provider for the capability contract.
     template <capability::contract CapabilityT>
-    CapabilityT::shared_ptr get() {
-        return backend()->template get<CapabilityT>();
+    std::shared_ptr<CapabilityT> get() {
+        return std::static_pointer_cast<CapabilityT>(get(CapabilityT::name));
     }
 
     /// @brief The cached provider for the capability name.
@@ -169,9 +133,6 @@ public:
     /// @brief Whether the capability is served by the backend.
     bool has(const std::string& capability);
 
-    /// @brief The client runtime environment (providers, mode_base).
-    capability::base_interface& base() { return *m_base; }
-
     /// @brief The client callback group (used by mode_base for its own
     ///        clients/subscriptions/timers).
     rclcpp::CallbackGroup::SharedPtr callback_group() const {
@@ -180,9 +141,6 @@ public:
 
 private:
     /// @brief Create a setpoint provider bound to the mode.
-    ///
-    /// Only mode_base may call this: a setpoint provider cannot exist
-    /// outside a mode, so none of the muted-outside-mode cases exist.
     template <capability::setpoint_contract SetpointT>
     SetpointT::shared_ptr create_setpoint(mode_token token) {
         return backend()->template create_setpoint<SetpointT>(token);
@@ -207,12 +165,13 @@ private:
     backend::backend_base::shared_ptr ensure_backend(
         const std::string& plugin_name);
 
+    rclcpp::Logger get_logger() const { return m_logger; }
+
     friend class mode_base;
 
     settings m_settings;
+    rclcpp::Logger m_logger;
     rclcpp::CallbackGroup::SharedPtr m_callback_group;
-    std::shared_ptr<capability::base_interface_impl> m_base;
-
     rclcpp::Client<clover2_fcu_msgs::srv::GetConfig>::SharedPtr m_config_client;
 
     YAML::Node m_params;
@@ -223,8 +182,9 @@ private:
 
     pluginlib::ClassLoader<backend::backend_base> m_loader{
         "clover2_fcu", "clover2_fcu::backend::backend_base"};
-    std::unordered_map<std::string, backend::backend_base::shared_ptr>
-        m_backends;
+
+    backend::backend_base::shared_ptr m_backend;
+    mutable std::unordered_map<std::string, std::shared_ptr<void>> m_cache;
 };
 
 }  // namespace clover2_fcu

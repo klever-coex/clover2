@@ -11,8 +11,8 @@
 
 // STL
 #include <functional>
-#include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -25,32 +25,28 @@ public:
     using shared_ptr = std::shared_ptr<backend_base>;
     using unique_ptr = std::unique_ptr<backend_base>;
 
-    template <typename CapabilityT>
-    using builder_type = std::function<std::shared_ptr<CapabilityT>()>;
+    template <typename T>
+    using builder_type = std::function<std::shared_ptr<T>()>;
+    using builder = std::function<std::shared_ptr<void>()>;
 
-    template <typename SetpointT>
-    using setpoint_builder_type =
-        std::function<std::shared_ptr<SetpointT>(mode_token)>;
+    template <typename T>
+    using setpoint_builder_type = std::function<std::shared_ptr<T>(mode_token)>;
+    using setpoint_builder = std::function<std::shared_ptr<void>(mode_token)>;
 
     virtual ~backend_base() = default;
 
     virtual std::string protocol() const = 0;
 
-    virtual uint32_t register_mode(const std::string& name) {
+    virtual std::optional<uint32_t> register_mode(const std::string& name) {
         (void)name;
-        return 0;
+        return std::nullopt;
     }
 
     virtual void unregister_mode(const std::string& name) { (void)name; }
 
     std::vector<std::string> capabilities() const;
 
-    void initialize(std::shared_ptr<capability::base_interface> base);
-
-    template <capability::contract CapabilityT>
-    std::shared_ptr<CapabilityT> get() const {
-        return std::static_pointer_cast<CapabilityT>(get(CapabilityT::name));
-    }
+    void initialize();
 
     std::shared_ptr<void> get(const std::string& capability) const;
 
@@ -78,21 +74,15 @@ protected:
                 -> std::shared_ptr<void> { return builder(token); });
     }
 
-    virtual void do_initialize(
-        std::shared_ptr<capability::base_interface> base) = 0;
+    virtual void do_initialize() = 0;
 
 private:
     std::shared_ptr<void> create_setpoint(const std::string& setpoint,
                                           mode_token token) const;
 
-    std::unordered_map<std::string, std::function<std::shared_ptr<void>()>>
-        m_builders;
-    std::unordered_map<std::string,
-                       std::function<std::shared_ptr<void>(mode_token)>>
-        m_setpoint_builders;
-    mutable std::unordered_map<std::string, std::shared_ptr<void>> m_cache;
-
-    mutable std::recursive_mutex m_mutex;
+    std::unordered_map<std::string, builder> m_builders;
+    std::unordered_map<std::string, setpoint_builder> m_setpoint_builders;
+    // mutable std::unordered_map<std::string, std::shared_ptr<void>> m_cache;
 
     bool m_loaded{false};
 };

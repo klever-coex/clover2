@@ -18,36 +18,11 @@
 // STL
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 
 namespace clover2_fcu {
 
-/**
- * @brief Single configuration point and mode registry of the FCU interface
- *        layer.
- *
- * The bridge does not touch the FCU data plane: it holds the configuration
- * as node parameters, validates it against the installed backend factories
- * (fail-fast: construction throws @ref exception on invalid configuration)
- * and distributes it to clients via the get_config service. Clients apply
- * the resolution themselves (explicit override per capability, otherwise
- * the default protocol).
- *
- * Flight modes are registered here on the ROS 2 level: each mode owns a
- * bond, the bridge leases activation to a single mode at a time and
- * publishes the current lease on `mode_state` (transient local). When a
- * bond breaks (the mode node died), the mode is unregistered and the
- * lease is revoked. Modes that want their registration duplicated into
- * the FCU itself do it through a backend capability; the bridge lease
- * stays the arbiter regardless.
- *
- * Parameters:
- * - @c protocol (string): default factory (protocol) name, e.g. "mavros".
- * - @c plugin_params (string): YAML map with per-capability plugin
- *   parameters, keyed by capability name.
- *
- * The configuration is static for the node lifetime.
- */
 class bridge : public clover2_common::node {
 public:
     explicit bridge(const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
@@ -71,10 +46,6 @@ private:
         std::shared_ptr<clover2_fcu_msgs::srv::ActivateMode::Response>
             response);
 
-    /// @brief Called from a mode bond when it breaks: revokes the lease and
-    ///        marks the mode for removal. A broken bond object is never
-    ///        destroyed from inside its own callback; cleanup happens on
-    ///        the next registration.
     void handle_mode_bond_broken(uint32_t mode_id);
 
     /// @brief Publish the current lease on mode_state.
@@ -84,7 +55,7 @@ private:
         std::string name;
         std::shared_ptr<bond::Bond> bond;
         bool broken{false};
-        uint32_t native_mode_id{0};  ///< From factory::register_mode, 0 = none
+        std::optional<uint32_t> native_mode_id{0};
     };
 
     rclcpp::Service<clover2_fcu_msgs::srv::GetConfig>::SharedPtr

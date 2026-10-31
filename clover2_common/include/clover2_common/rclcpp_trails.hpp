@@ -20,6 +20,4 @@ typename rclcpp::Client<ServiceT>::SharedPtr create_client(
         service_name, qos.get_rmw_qos_profile(), group);
 }
 
-
-
 }  // namespace rclcpp

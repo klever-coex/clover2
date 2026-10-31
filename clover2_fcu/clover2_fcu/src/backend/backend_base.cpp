@@ -17,30 +17,21 @@ std::vector<std::string> backend_base::capabilities() const {
     return names;
 }
 
-void backend_base::initialize(
-    std::shared_ptr<capability::base_interface> base) {
-    const std::lock_guard<std::recursive_mutex> lock(m_mutex);
+void backend_base::initialize() {
     if (m_loaded) {
         return;
     }
 
-    m_cache.emplace(capability::base_interface::name, base);
-    do_initialize(base);
+    do_initialize();
     m_loaded = true;
 }
 
 std::shared_ptr<void> backend_base::get(const std::string& capability) const {
-    const std::lock_guard<std::recursive_mutex> lock(m_mutex);
     if (!m_loaded) {
         throw exception(
             "backend '{}' is not initialized (initialize() must be called "
             "before get())",
             protocol());
-    }
-
-    const auto cached = m_cache.find(capability);
-    if (cached != m_cache.end()) {
-        return cached->second;
     }
 
     const auto builder = m_builders.find(capability);
@@ -49,15 +40,11 @@ std::shared_ptr<void> backend_base::get(const std::string& capability) const {
                         protocol(), capability);
     }
 
-    auto provider = builder->second();
-    m_cache.emplace(capability, provider);
-
-    return provider;
+    return builder->second();
 }
 
 std::shared_ptr<void> backend_base::create_setpoint(const std::string& setpoint,
                                                     mode_token token) const {
-    const std::lock_guard<std::recursive_mutex> lock(m_mutex);
     if (!m_loaded) {
         throw exception(
             "backend '{}' is not initialized (initialize() must be called "

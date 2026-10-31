@@ -67,21 +67,11 @@ public:
     /// @brief Whether the command reached a terminal state.
     bool done() const { return outcome().has_value(); }
 
-    /**
-     * @brief Subscribe a completion callback (many allowed, no tokens:
-     *        the subscription lives as long as the command).
-     *
-     * A handle already in a terminal state invokes the callback
-     * immediately (on the calling thread).
-     */
     void on_done(done_callback callback) {
         std::optional<clover2_fcu::result> already;
         {
             const std::lock_guard<std::mutex> lock(m_mutex);
             if (!m_result) {
-                // The token is kept for the handle lifetime: there is no
-                // unsubscribe — the subscription lives as long as the
-                // command (shared_callback is token-based by design).
                 m_tokens.emplace_back(
                     m_callbacks.add(shared_from_this(), std::move(callback)));
                 return;
@@ -92,33 +82,15 @@ public:
         callback(*already);
     }
 
-    /**
-     * @brief Wait for the completion (script/test contexts only).
-     *
-     * Blocks the calling thread; the completion is delivered by an
-     * executor thread, so the node must be spun elsewhere. Never call
-     * this from a callback of the fcu group — use on_done() there.
-     *
-     * @returns the terminal result, or result::timeout when the wait
-     *          expired (the command stays pending).
-     */
     template <typename rep_t, typename period_t>
     result wait_for(std::chrono::duration<rep_t, period_t> timeout) {
         std::unique_lock<std::mutex> lock(m_mutex);
-        const bool finished =
-            m_cv.wait_for(lock, timeout, [this] { return m_result.has_value(); });
+        const bool finished = m_cv.wait_for(
+            lock, timeout, [this] { return m_result.has_value(); });
 
         return finished ? *m_result : result{result::value::timeout};
     }
 
-    /**
-     * @brief Abort the command: runs the provider abort hook (if any)
-     *        and resolves the handle with result::interrupted.
-     *
-     * A no-op for an already-terminal handle; providers register the
-     * abort via attach_abort() (e.g. a mode switch for takeoff/land
-     * tasks, nothing for request-flavored commands).
-     */
     void cancel() {
         std::function<void()> abort;
         {
@@ -129,8 +101,6 @@ public:
             abort = m_abort;
         }
 
-        // Outside the lock: the abort is transport work (may itself
-        // complete this handle re-entrantly).
         if (abort) {
             abort();
         }
@@ -138,11 +108,6 @@ public:
         complete(result::value::interrupted);
     }
 
-    /**
-     * @brief Resolve the command (providers only).
-     *
-     * Idempotent and thread-safe; fires the callbacks outside the lock.
-     */
     void complete(result r) {
         {
             const std::lock_guard<std::mutex> lock(m_mutex);
@@ -156,13 +121,6 @@ public:
         m_cv.notify_all();
     }
 
-    /**
-     * @brief Register the abort action (providers only, before the
-     *        handle is handed out).
-     *
-     * The lambda must not own the handle or the provider (weak
-     * references only): it is stored for the whole command lifetime.
-     */
     void attach_abort(std::function<void()> abort) {
         const std::lock_guard<std::mutex> lock(m_mutex);
         if (!m_result) {

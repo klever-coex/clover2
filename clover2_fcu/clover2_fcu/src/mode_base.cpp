@@ -1,4 +1,5 @@
 // clover2
+#include "clover2_fcu/capability/base_interface.hpp"
 #include <clover2_common/util/sync_service.hpp>
 #include <clover2_fcu/common/exception.hpp>
 #include <clover2_fcu/mode_base.hpp>
@@ -10,28 +11,37 @@ namespace clover2_fcu {
 
 using clover2_common::util::call_sync;
 
-mode_base::mode_base(client& fcu, const settings& s)
-    : m_fcu(fcu)
-    , m_settings(s) {
+mode_base::mode_base(client::shared_ptr fcu, const settings& s)
+    : m_fcu(std::move(fcu))
+    , m_logger(fcu->get_logger().get_child(s.name))
+    , m_settings(s)
+    , m_base_capability(fcu->get<capability::base_interface>()) {
     if (m_settings.name.empty()) {
         throw exception("mode name must not be empty");
     }
 
-    m_callback_group = m_fcu.callback_group();
+    m_callback_group = m_fcu->callback_group();
 
-    const std::string& bridge_node = m_fcu.base().bridge_node();
-    auto& node = m_fcu.base().node();
+    const std::string& bridge_node = m_base_capability->bridge_node();
+    auto& node = m_base_capability->node();
 
     m_register_mode_client =
         rclcpp::create_client<clover2_fcu_msgs::srv::RegisterMode>(
-            node.get_node_base_interface(), node.get_node_graph_interface(),
-            node.get_node_services_interface(), bridge_node + "/register_mode",
-            rclcpp::ServicesQoS(), m_callback_group);
+            node.get_node_base_interface(),      //
+            node.get_node_graph_interface(),     //
+            node.get_node_services_interface(),  //
+            bridge_node + "/register_mode",      //
+            rclcpp::ServicesQoS(),               //
+            m_callback_group);
+
     m_activate_mode_client =
         rclcpp::create_client<clover2_fcu_msgs::srv::ActivateMode>(
-            node.get_node_base_interface(), node.get_node_graph_interface(),
-            node.get_node_services_interface(), bridge_node + "/activate_mode",
-            rclcpp::ServicesQoS(), m_callback_group);
+            node.get_node_base_interface(),      //
+            node.get_node_graph_interface(),     //
+            node.get_node_services_interface(),  //
+            bridge_node + "/activate_mode",      //
+            rclcpp::ServicesQoS(),               //
+            m_callback_group);
 
     auto request =
         std::make_shared<clover2_fcu_msgs::srv::RegisterMode::Request>();
@@ -46,32 +56,46 @@ mode_base::mode_base(client& fcu, const settings& s)
         throw exception("mode '{}' registration failed: {}", m_settings.name,
                         e.what());
     }
+
     if (!response->ok) {
         throw exception("mode '{}' registration failed: {}", m_settings.name,
                         response->error);
     }
+
     m_mode_id = response->mode_id;
 
-    m_bond = std::make_shared<bond::Bond>(
-        "bond", std::to_string(m_mode_id), node.get_node_base_interface(),
-        node.get_node_logging_interface(), node.get_node_parameters_interface(),
-        node.get_node_timers_interface(), node.get_node_topics_interface(),
-        [this]() { handle_mode_bond_broken(); });
-    m_bond->setHeartbeatPeriod(0.10);
-    m_bond->start();
+    setup_bond();
 
     rclcpp::SubscriptionOptions options;
     options.callback_group = m_callback_group;
     m_mode_state_sub =
         rclcpp::create_subscription<clover2_fcu_msgs::msg::ModeState>(
-            node, bridge_node + "/mode_state", rclcpp::QoS(1).transient_local(),
+            node,                              //
+            bridge_node + "/mode_state",       //
+            rclcpp::QoS(1).transient_local(),  //
             [this](clover2_fcu_msgs::msg::ModeState::UniquePtr msg) {
                 handle_mode_state(std::move(msg));
             },
             options);
 
-    RCLCPP_INFO(m_fcu.base().logger(), "mode '%s' registered (id=%u)",
+    RCLCPP_INFO(get_logger(), "mode '%s' registered (id=%u)",
                 m_settings.name.c_str(), m_mode_id);
+}
+
+void mode_base::setup_bond() {
+    auto& node = m_base_capability->node();
+
+    m_bond = std::make_shared<bond::Bond>(     //
+        "bond",                                //
+        std::to_string(m_mode_id),             //
+        node.get_node_base_interface(),        //
+        node.get_node_logging_interface(),     //
+        node.get_node_parameters_interface(),  //
+        node.get_node_timers_interface(),      //
+        node.get_node_topics_interface(),      //
+        [this]() { handle_mode_bond_broken(); });
+    m_bond->setHeartbeatPeriod(0.10);
+    m_bond->start();
 }
 
 mode_base::~mode_base() {
@@ -80,7 +104,7 @@ mode_base::~mode_base() {
 }
 
 void mode_base::completed(result r) {
-    RCLCPP_INFO(m_fcu.base().logger(), "mode '%s' completed: %.*s",
+    RCLCPP_INFO(get_logger(), "mode '%s' completed: %.*s",
                 m_settings.name.c_str(), static_cast<int>(r.to_string().size()),
                 r.to_string().data());
 
@@ -100,16 +124,16 @@ void mode_base::handle_mode_state(
 
     if (should_be_active) {
         m_active = true;
-        RCLCPP_INFO(m_fcu.base().logger(), "mode '%s' activated",
+        RCLCPP_INFO(get_logger(), "mode '%s' activated",
                     m_settings.name.c_str());
         on_activate();
 
-        m_last_update = m_fcu.base().clock()->now();
+        m_last_update = m_base_capability->clock()->now();
         update_setpoint(1.0 / m_settings.update_rate_hz);
         start_update_timer();
     } else {
         stop_streaming();
-        RCLCPP_INFO(m_fcu.base().logger(), "mode '%s' deactivated",
+        RCLCPP_INFO(get_logger(), "mode '%s' deactivated",
                     m_settings.name.c_str());
         on_deactivate();
     }
@@ -120,7 +144,7 @@ void mode_base::handle_mode_bond_broken() {
         return;
     }
 
-    RCLCPP_WARN(m_fcu.base().logger(), "mode '%s' bond broken, stopping",
+    RCLCPP_WARN(get_logger(), "mode '%s' bond broken, stopping",
                 m_settings.name.c_str());
 
     stop_streaming();
@@ -128,13 +152,14 @@ void mode_base::handle_mode_bond_broken() {
 }
 
 void mode_base::start_update_timer() {
-    auto& node = m_fcu.base().node();
+    auto& node = m_base_capability->node();
     m_update_timer = rclcpp::create_timer(
-        node.get_node_base_interface(), node.get_node_timers_interface(),
-        m_fcu.base().clock(),
-        rclcpp::Duration::from_seconds(1.0 / m_settings.update_rate_hz),
+        node.get_node_base_interface(),                                   //
+        node.get_node_timers_interface(),                                 //
+        m_base_capability->clock(),                                       //
+        rclcpp::Duration::from_seconds(1.0 / m_settings.update_rate_hz),  //
         [this]() {
-            const rclcpp::Time now = m_fcu.base().clock()->now();
+            const rclcpp::Time now = m_base_capability->clock()->now();
             const double dt = (now - m_last_update).seconds();
             m_last_update = now;
             update_setpoint(dt);
@@ -158,40 +183,36 @@ void mode_base::stop_streaming() {
     stop_update_timer();
 }
 
-std::shared_ptr<capability::setpoint_position_interface> mode_base::position() {
+std::shared_ptr<mode_base::position_setpoint> mode_base::position() {
     if (!m_position) {
         m_position =
-            m_fcu.create_setpoint<capability::setpoint_position_interface>(
-                mode_token{m_mode_id});
+            m_fcu->create_setpoint<position_setpoint>(mode_token{m_mode_id});
     }
 
     return m_position;
 }
 
-std::shared_ptr<capability::setpoint_velocity_interface> mode_base::velocity() {
+std::shared_ptr<mode_base::velocity_setpoint> mode_base::velocity() {
     if (!m_velocity) {
         m_velocity =
-            m_fcu.create_setpoint<capability::setpoint_velocity_interface>(
-                mode_token{m_mode_id});
+            m_fcu->create_setpoint<velocity_setpoint>(mode_token{m_mode_id});
     }
 
     return m_velocity;
 }
 
-std::shared_ptr<capability::setpoint_attitude_interface> mode_base::attitude() {
+std::shared_ptr<mode_base::attitude_setpoint> mode_base::attitude() {
     if (!m_attitude) {
         m_attitude =
-            m_fcu.create_setpoint<capability::setpoint_attitude_interface>(
-                mode_token{m_mode_id});
+            m_fcu->create_setpoint<attitude_setpoint>(mode_token{m_mode_id});
     }
 
     return m_attitude;
 }
 
-std::shared_ptr<capability::setpoint_rates_interface> mode_base::rates() {
+std::shared_ptr<mode_base::rates_setpoint> mode_base::rates() {
     if (!m_rates) {
-        m_rates = m_fcu.create_setpoint<capability::setpoint_rates_interface>(
-            mode_token{m_mode_id});
+        m_rates = m_fcu->create_setpoint<rates_setpoint>(mode_token{m_mode_id});
     }
 
     return m_rates;

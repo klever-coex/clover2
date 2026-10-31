@@ -17,8 +17,8 @@ enum class estimator_source : uint8_t { vision = 0, mocap };
 
 enum class estimator_reset : uint8_t {
     none = 0,
-    height = 1 << 0,  ///< baro / ground-effect disturbances
-    yaw = 1 << 1,     ///< magnetometer loss
+    height = 1 << 0,
+    yaw = 1 << 1,
     position = 1 << 2,
     velocity = 1 << 3,
     full = 0xFF,
