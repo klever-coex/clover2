@@ -1,6 +1,6 @@
-#include <clover2_camera_utils/calibration/detector/factory.hpp>
-
+#include <clover2_camera_utils/calibration/detector/charuco.hpp>
 #include <clover2_camera_utils/calibration/detector/chessboard.hpp>
+#include <clover2_camera_utils/calibration/detector/factory.hpp>
 
 #include <algorithm>
 #include <sstream>
@@ -10,6 +10,7 @@ namespace clover2_camera_utils::calibration::detector {
 
 factory::factory() {
     add<chessboard>();
+    add<charuco>();
 }
 
 factory& factory::instance() {
@@ -21,8 +22,7 @@ bool factory::contains(const std::string& board_type) const {
     return builders_.contains(board_type);
 }
 
-factory::value_type factory::create(
-    const std::string& board_type) const {
+factory::value_type factory::create(const std::string& board_type) const {
     const auto iterator = builders_.find(board_type);
     if (iterator == builders_.end()) {
         std::ostringstream message;

@@ -8,7 +8,7 @@
 namespace clover2_camera_utils::calibration::detector {
 namespace {
 
-bool is_valid(const data::board_config& board) {
+bool is_valid(const data::board::chessboard_config& board) {
     return board.rows >= 2 && board.columns >= 2 && board.square_size_m > 0.0;
 }
 
@@ -30,7 +30,8 @@ std::optional<cv::Mat> to_grayscale(const cv::Mat& image) {
     return std::nullopt;
 }
 
-std::vector<cv::Point3f> make_object_points(const data::board_config& board) {
+std::vector<cv::Point3f> make_object_points(
+    const data::board::chessboard_config& board) {
     std::vector<cv::Point3f> points;
     points.reserve(static_cast<size_t>(board.rows) * board.columns);
 
@@ -46,8 +47,10 @@ std::vector<cv::Point3f> make_object_points(const data::board_config& board) {
 }  // namespace
 
 std::optional<data::observation> chessboard::detect(
-    const cv::Mat& image, const data::board_config& board) const {
-    if (!is_valid(board)) {
+    const cv::Mat& image, const data::board::config& board) const {
+    const auto* chessboard =
+        std::get_if<data::board::chessboard_config>(&board);
+    if (chessboard == nullptr || !is_valid(*chessboard)) {
         return std::nullopt;
     }
 
@@ -56,8 +59,8 @@ std::optional<data::observation> chessboard::detect(
         return std::nullopt;
     }
 
-    const cv::Size pattern_size{static_cast<int>(board.columns),
-                                static_cast<int>(board.rows)};
+    const cv::Size pattern_size{static_cast<int>(chessboard->columns),
+                                static_cast<int>(chessboard->rows)};
     std::vector<cv::Point2f> corners;
     const bool found = cv::findChessboardCorners(
         *grayscale, pattern_size, corners,
@@ -73,7 +76,7 @@ std::optional<data::observation> chessboard::detect(
     return data::observation{
         .image_size = image.size(),
         .image_points = std::move(corners),
-        .object_points = make_object_points(board),
+        .object_points = make_object_points(*chessboard),
     };
 }
 

@@ -117,8 +117,8 @@ private:
      * @param board_detected Whether a board was detected in the last image.
      * @param stage Current calibration stage.
      */
-    void publish_feedback(const std::string& goal_id,
-                          bool board_detected, uint8_t stage) const;
+    void publish_feedback(const std::string& goal_id, bool board_detected,
+                          uint8_t stage) const;
 
     /**
      * @brief Cancels the session for the specified goal.
@@ -141,8 +141,10 @@ private:
     double m_processing_rate_hz{5.0};
     data::sample_selector_config m_sample_selector_config;
 
-    // Calibration sessions keyed by string representations of action goal UUIDs.
+    // Calibration sessions keyed by string representations of action goal
+    // UUIDs.
     std::unordered_set<std::string> m_reserved_goal_ids;
+    std::unordered_map<std::string, data::board::config> m_pending_boards;
     std::unordered_map<std::string, calibration_session> m_sessions;
 
     // ROS interfaces

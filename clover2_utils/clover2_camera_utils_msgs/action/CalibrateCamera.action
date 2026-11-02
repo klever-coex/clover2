@@ -6,15 +6,9 @@ string camera_namespace
 # Canonical lowercase identifier. Supported values: "pinhole", "fisheye".
 string calibration_method
 
-# Canonical lowercase identifier. First version supports only "chessboard".
-string board_type
-
-# Number of internal chessboard corners.
-uint32 board_rows
-uint32 board_columns
-
-# Side length of one checkerboard square, in metres.
-float64 square_size_m
+# Absolute path, on the host running camera_calibration, to a JSON board
+# configuration file. The file specifies the board type and physical geometry.
+string board_config_path
 
 ---
 # Result

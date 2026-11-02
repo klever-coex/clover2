@@ -6,7 +6,7 @@
 #pragma once
 
 #include <clover2_camera_utils/calibration/sample/features.hpp>
-#include <clover2_camera_utils/data/board_config.hpp>
+#include <clover2_camera_utils/data/board/config.hpp>
 #include <clover2_camera_utils/data/coverage_progress.hpp>
 #include <clover2_camera_utils/data/observation.hpp>
 #include <clover2_camera_utils/data/sample_features.hpp>
@@ -34,7 +34,7 @@ public:
      * progress.
      */
     data::sample_selection_result try_add(data::observation observation,
-                                          const data::board_config& board);
+                                          const data::board::config& board);
 
     /**
      * @brief Returns the number of accepted observations.

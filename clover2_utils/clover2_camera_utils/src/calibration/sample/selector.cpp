@@ -20,9 +20,10 @@ selector::selector(data::sample_selector_config config)
     : m_config(std::move(config)) {}
 
 data::sample_selection_result selector::try_add(
-    data::observation observation, const data::board_config& board) {
+    data::observation observation, const data::board::config& board) {
+    static_cast<void>(board);
     const auto candidate = features_calculator{}.compute(
-        observation.image_points, board, observation.image_size);
+        observation.image_points, observation.image_size);
     if (!candidate.has_value()) {
         return data::sample_selection_result{
             .rejection_reason =
@@ -50,13 +51,11 @@ size_t selector::accepted_count() const noexcept {
     return m_observations.size();
 }
 
-const std::vector<data::observation>& selector::observations()
-    const noexcept {
+const std::vector<data::observation>& selector::observations() const noexcept {
     return m_observations;
 }
 
-const std::vector<data::sample_features>& selector::features()
-    const noexcept {
+const std::vector<data::sample_features>& selector::features() const noexcept {
     return m_features;
 }
 
@@ -111,8 +110,7 @@ data::coverage_progress selector::compute_progress() const {
     return result;
 }
 
-bool selector::is_duplicate(
-    const data::sample_features& candidate) const {
+bool selector::is_duplicate(const data::sample_features& candidate) const {
     return std::any_of(m_features.begin(), m_features.end(),
                        [this, &candidate](const auto& existing) {
                            return distance(candidate, existing) <=

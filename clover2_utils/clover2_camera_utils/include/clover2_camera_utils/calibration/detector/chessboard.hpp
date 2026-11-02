@@ -26,7 +26,7 @@ public:
      * chessboard is not detected or parameters are invalid.
      */
     std::optional<data::observation> detect(
-        const cv::Mat& image, const data::board_config& board) const override;
+        const cv::Mat& image, const data::board::config& board) const override;
 };
 
 }  // namespace clover2_camera_utils::calibration::detector

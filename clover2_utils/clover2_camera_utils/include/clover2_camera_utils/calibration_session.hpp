@@ -7,7 +7,7 @@
 
 #include <clover2_camera_utils/calibration/detector/base.hpp>
 #include <clover2_camera_utils/calibration/sample/selector.hpp>
-#include <clover2_camera_utils/data/board_config.hpp>
+#include <clover2_camera_utils/data/board/config.hpp>
 #include <clover2_camera_utils/data/sample_selector_config.hpp>
 #include <clover2_camera_utils_msgs/action/calibrate_camera.hpp>
 
@@ -30,7 +30,7 @@ struct calibration_session {
 
     std::shared_ptr<goal_handle> action_goal_handle;
     bool calibrating{false};
-    data::board_config board;
+    data::board::config board;
     std::shared_ptr<const calibration::detector::base> detector;
     calibration::sample::selector sample_selector;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr debug_publisher;
@@ -38,7 +38,8 @@ struct calibration_session {
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_subscription;
     std::chrono::steady_clock::time_point last_image_processed_at;
 
-    explicit calibration_session(data::sample_selector_config sample_selector_config)
+    explicit calibration_session(
+        data::sample_selector_config sample_selector_config)
         : sample_selector(std::move(sample_selector_config)) {}
 };
 

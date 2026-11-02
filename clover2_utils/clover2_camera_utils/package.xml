@@ -11,6 +11,7 @@
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
 
   <depend>libopencv-dev</depend>
+  <depend>nlohmann-json-dev</depend>
   <depend>clover2_common</depend>
   <depend>clover2_camera_utils_msgs</depend>
   <depend>cv_bridge</depend>

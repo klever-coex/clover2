@@ -11,7 +11,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_auto REQUIRED)
-find_package(OpenCV REQUIRED COMPONENTS calib3d core imgproc)
+find_package(OpenCV REQUIRED COMPONENTS aruco calib3d core imgproc)
 
 ament_auto_find_build_dependencies()
 
@@ -21,6 +21,11 @@ target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 rclcpp_components_register_node(${PROJECT_NAME}
   PLUGIN "clover2_camera_utils::camera_calibration"
   EXECUTABLE camera_calibration
+)
+
+install(
+  DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
