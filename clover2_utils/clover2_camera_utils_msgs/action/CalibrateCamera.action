@@ -6,8 +6,12 @@ string camera_namespace
 # Canonical lowercase identifier. Supported values: "pinhole", "fisheye".
 string calibration_method
 
+# Canonical lowercase calibration target identifier. Supported values:
+# "chessboard", "charuco".
+string board_type
+
 # Absolute path, on the host running camera_calibration, to a JSON board
-# configuration file. The file specifies the board type and physical geometry.
+# configuration file for the selected board type.
 string board_config_path
 
 ---

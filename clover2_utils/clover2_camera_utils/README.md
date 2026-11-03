@@ -10,13 +10,13 @@ ros2 run clover2_camera_utils camera_calibration \
 
 `processing_rate` specifies how often the board detector processes image frames.
 
-Board geometry is stored in a JSON profile on the host running
-`camera_calibration`. Example profiles are installed in
+The action goal selects the board type. Its geometry is stored in a JSON
+profile on the host running `camera_calibration`. Example profiles are installed
+in
 `share/clover2_camera_utils/config/boards`:
 
 ```json
 {
-  "type": "chessboard",
   "rows": 6,
   "columns": 9,
   "square_size_m": 0.0225
@@ -28,7 +28,6 @@ dictionary:
 
 ```json
 {
-  "type": "charuco",
   "squares_rows": 7,
   "squares_columns": 10,
   "square_size_m": 0.03,
@@ -47,6 +46,7 @@ ros2 action send_goal \
   "{
     camera_namespace: '/webcam',
     calibration_method: 'pinhole',
+    board_type: 'chessboard',
     board_config_path: '/absolute/path/to/chessboard_6x9_22_5mm.json'
   }"
 ```

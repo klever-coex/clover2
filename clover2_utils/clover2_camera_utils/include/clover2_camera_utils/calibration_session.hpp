@@ -5,9 +5,8 @@
 
 #pragma once
 
-#include <clover2_camera_utils/calibration/detector/base.hpp>
 #include <clover2_camera_utils/calibration/sample/selector.hpp>
-#include <clover2_camera_utils/data/board/config.hpp>
+#include <clover2_camera_utils/calibration/target/base.hpp>
 #include <clover2_camera_utils/data/sample_selector_config.hpp>
 #include <clover2_camera_utils_msgs/action/calibrate_camera.hpp>
 
@@ -30,8 +29,7 @@ struct calibration_session {
 
     std::shared_ptr<goal_handle> action_goal_handle;
     bool calibrating{false};
-    data::board::config board;
-    std::shared_ptr<const calibration::detector::base> detector;
+    std::shared_ptr<const calibration::target::base> target;
     calibration::sample::selector sample_selector;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr debug_publisher;
     rclcpp::Client<set_camera_info>::SharedPtr set_camera_info_client;

@@ -19,9 +19,7 @@ double distance(const data::sample_features& first,
 selector::selector(data::sample_selector_config config)
     : m_config(std::move(config)) {}
 
-data::sample_selection_result selector::try_add(
-    data::observation observation, const data::board::config& board) {
-    static_cast<void>(board);
+data::sample_selection_result selector::try_add(data::observation observation) {
     const auto candidate = features_calculator{}.compute(
         observation.image_points, observation.image_size);
     if (!candidate.has_value()) {

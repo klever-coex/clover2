@@ -5,7 +5,7 @@
 
 #pragma once
 #include <clover2_camera_utils/calibration/algorithm/factory.hpp>
-#include <clover2_camera_utils/calibration/detector/factory.hpp>
+#include <clover2_camera_utils/calibration/target/factory.hpp>
 #include <clover2_camera_utils/calibration_session.hpp>
 #include <clover2_camera_utils/data/observation.hpp>
 #include <clover2_camera_utils/data/sample_selector_config.hpp>
@@ -144,7 +144,9 @@ private:
     // Calibration sessions keyed by string representations of action goal
     // UUIDs.
     std::unordered_set<std::string> m_reserved_goal_ids;
-    std::unordered_map<std::string, data::board::config> m_pending_boards;
+    std::unordered_map<std::string,
+                       std::shared_ptr<const calibration::target::base>>
+        m_pending_targets;
     std::unordered_map<std::string, calibration_session> m_sessions;
 
     // ROS interfaces

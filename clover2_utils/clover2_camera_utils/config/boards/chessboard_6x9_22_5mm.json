@@ -1,5 +1,4 @@
 {
-  "type": "chessboard",
   "rows": 6,
   "columns": 9,
   "square_size_m": 0.0225
