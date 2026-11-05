@@ -13,7 +13,7 @@ Proper voltage monitoring is essential to prevent battery damage and ensure safe
 
 If you do not have a voltage indicator or cannot perform manual calibration, set the `Voltage divider` value to `21`.
 
-```{figure} ../../assets/common/setup/qgc-voltage-divider.webp
+```{figure} ../../assets/common/setup/qgc/power/qgc-voltage-divider.webp
 :alt: Калибровка делителя напряжения в QGroundControl
 :width: 90%
 :align: center

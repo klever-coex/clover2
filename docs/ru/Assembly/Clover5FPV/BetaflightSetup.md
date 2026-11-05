@@ -16,7 +16,7 @@
 1. Подключите полетный контроллер к компьютеру по USB и откройте **Betaflight Configurator**.
 2. Нажмите `Подключиться` *(Connect)*.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/configurator-connection.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/configurator-connection.webp
     :alt: Подключение полётного контроллера в Betaflight Configurator
     :width: 700px
     :align: center
@@ -24,7 +24,7 @@
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/setup-overview.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/setup-overview.webp
     :alt: Обзор вкладки «Система»
     :width: 700px
     :align: center
@@ -38,7 +38,7 @@
 1. Если появилось предупреждение `Акселерометр не откалиброван`, выполните калибровку. Перейдите во вкладку `Датчики` *(Sensors)*. Нажмите `Калибровать` *(Calibrate)*.
 2. Отключите ненужные датчики, если они не используются.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/accelerometer-calibration.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/accelerometer-calibration.webp
     :alt: Калибровка акселерометра
     :width: 700px
     :align: center
@@ -47,7 +47,7 @@
 
     <br>
 
-     ```{figure} @assets@/ru/assembly/clover5-fpv/setup/basic-configuration.webp
+     ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/basic-configuration.webp
     :alt: Базовая конфигурация квадрокоптера
     :width: 700px
     :align: center
@@ -62,7 +62,7 @@
 
 4. В разделе `Прочий функционал` *(Other features)* включите `AIRMODE`, `DISPLAY`, `LED_STRIP`, `OSD`.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/feature-configuration.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/feature-configuration.webp
     :alt: Включение дополнительных функций Betaflight
     :width: 700px
     :align: center
@@ -85,7 +85,7 @@
 
 3. Нажмите `Сохранить и Перезагрузить` *(Save and Reboot)*.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/port-configuration.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/port-configuration.webp
     :alt: Настройка портов полётного контроллера
     :width: 700px
     :align: center
@@ -108,7 +108,7 @@
 6. При необходимости выполните привязку приемника кнопкой `Привязать приемник` *(Bind Receiver)*.
 7. Нажмите `Сохранить` *(Save)*.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/receiver-configuration.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/receiver-configuration.webp
     :alt: Настройка приёмника CRSF
     :width: 700px
     :align: center
@@ -130,7 +130,7 @@
 
 3. Нажмите `Сохранить` *(Save)*.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/flight-modes.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/flight-modes.webp
     :alt: Режимы ARM, ANGLE и HORIZON
     :width: 700px
     :align: center
@@ -139,7 +139,7 @@
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/failsafe-beeper-modes.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/failsafe-beeper-modes.webp
     :alt: Настройка режимов FAILSAFE и BEEPER
     :width: 700px
     :align: center
@@ -149,7 +149,7 @@
 
     При необходимости назначьте `FLIP OVER AFTER CRASH` на `AUX2` в диапазоне `1700–2100`.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/flip-over-after-crash-mode.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/flip-over-after-crash-mode.webp
     :alt: Режим переворота после падения
     :width: 700px
     :align: center
@@ -167,7 +167,7 @@
 1. Откройте вкладку `Моторы` *(Motors)*.
 2. В поле `Микшер` *(Mixer)* выберите `QUAD X`.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/quad-x-mixer.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/quad-x-mixer.webp
     :alt: Выбор схемы QUAD X
     :width: 700px
     :align: center
@@ -184,7 +184,7 @@
    - `Полюса мотора` *(Motor poles)*: `14`;
    - `Холостой ход (%)` *(Motor Idle (% static))*: `5.5`.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-features.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/motor-features.webp
     :alt: Настройка ESC и моторов
     :width: 700px
     :align: center
@@ -195,7 +195,7 @@
 
 4. Включите `Обратное вращение моторов` *(Motor direction is reversed)*.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/reversed-motor-direction.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/reversed-motor-direction.webp
     :alt: Выбор обратного направления вращения моторов
     :width: 700px
     :align: center
@@ -207,7 +207,7 @@
 5. Для настройки направления вращения нажмите `Направление мотора` *(Motor direction)*.
 6. Подтвердите предупреждение о снятых пропеллерах и выберите `Мастер настройки` *(Wizard)*.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-direction-method.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/motor-direction-method.webp
     :alt: Предупреждение и выбор способа настройки направления моторов
     :width: 700px
     :align: center
@@ -216,7 +216,7 @@
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-direction-wizard.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/motor-direction-wizard.webp
     :alt: Запуск проверки направления моторов
     :width: 700px
     :align: center
@@ -225,7 +225,7 @@
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-direction-adjustment.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/motor-direction-adjustment.webp
     :alt: Настройка направления моторов
     :width: 700px
     :align: center
@@ -236,7 +236,7 @@
 
 7. Для настройки порядка электродвигателей нажмите `Переназначение моторов` *(Reorder motors)*.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-reordering-start.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/motor-reordering-start.webp
     :alt: Запуск настройки порядка моторов
     :width: 700px
     :align: center
@@ -244,7 +244,7 @@
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/motor-reordering.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/motor-reordering.webp
     :alt: Настройка порядка моторов
     :width: 700px
     :align: center
@@ -271,7 +271,7 @@
    - `Высота` *(Altitude)*: `100`;
    - `Качество соединения` *(Link Quality)*: `60`.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/osd-settings.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/osd-settings.webp
     :alt: Настройка параметров OSD
     :width: 700px
     :align: center
@@ -296,7 +296,7 @@
 
 7. После размещения элементов нажмите `Сохранить` *(Save)*.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/osd-layout.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/osd-layout.webp
     :alt: Размещение элементов OSD
     :width: 700px
     :align: center
@@ -315,7 +315,7 @@
 2. Если таблица VTX еще не загружена, нажмите `Загрузить из файла` *(Load from file)*.
 3. Выберите файл VTX-таблицы.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/vtx-settings.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/vtx-settings.webp
     :alt: Настройка видеопередатчика
     :width: 700px
     :align: center
@@ -324,7 +324,7 @@
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/vtx-table.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/vtx-table.webp
     :alt: Таблица частот и мощности видеопередатчика
     :width: 700px
     :align: center
@@ -350,7 +350,7 @@
 3. Разметьте используемые светодиоды на сетке.
 4. Нажмите `Режим назначения цепи` *(Wire Ordering Mode)* и задайте порядок светодиодов.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/led-strip-layout.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/led-strip-layout.webp
     :alt: Разметка светодиодов на сетке
     :width: 700px
     :align: center
@@ -359,7 +359,7 @@
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/led-strip-wire-order-mode.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/led-strip-wire-order-mode.webp
     :alt: Режим назначения цепи
     :width: 700px
     :align: center
@@ -372,7 +372,7 @@
 6. При необходимости в разделе `Изменение цвета` *(Color modifier)* выберите режим, например `Газ` *(Throttle)*.
 7. Назначьте цвета по своему усмотрению и нажмите `Сохранить` *(Save)*.
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/led-strip-wire-order.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/led-strip-wire-order.webp
     :alt: Настройка порядка светодиодов
     :width: 700px
     :align: center
@@ -381,7 +381,7 @@
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/led-strip-color-settings.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/led-strip-color-settings.webp
     :alt: Настройка цвета LED-ленты
     :width: 700px
     :align: center
@@ -390,7 +390,7 @@
 
     <br>
 
-    ```{figure} @assets@/ru/assembly/clover5-fpv/setup/led-strip-preview.webp
+    ```{figure} @assets@/ru/assembly/clover5-fpv/betaflight-setup/led-strip-preview.webp
     :alt: Предварительный просмотр LED-ленты
     :width: 700px
     :align: center

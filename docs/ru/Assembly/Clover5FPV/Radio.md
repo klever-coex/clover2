@@ -8,7 +8,7 @@
 
 ## Обзор аппаратуры
 
-```{figure} @assets@/ru/setup/radio/rc-pocket-front-part.webp
+```{figure} @assets@/ru/setup/qgc/radio/rc-pocket-front-part.webp
 :alt: Аппаратура RadioMaster Pocket, вид спереди
 :width: 90%
 :align: center
@@ -18,7 +18,7 @@
 
 <br>
 
-```{figure} @assets@/ru/setup/radio/rc-pocket-back-part.webp
+```{figure} @assets@/ru/setup/qgc/radio/rc-pocket-back-part.webp
 :alt: Аппаратура RadioMaster Pocket, вид сзади
 :width: 90%
 :align: center
@@ -37,7 +37,7 @@
 5. Если на экране аппаратуры отображается предупреждение `WARNING`, установите стики и тумблеры в нулевое положение. Установите стик газа (`Throttle`) в нижнее положение. Установите тумблеры в положения, соответствующие нулевым значениям.
 
 
-```{figure} @assets@/common/setup/radio/warn.webp
+```{figure} @assets@/common/setup/qgc/radio/warn.webp
 :alt: Предупреждение о положении стиков или тумблеров
 :width: 55%
 :align: center
@@ -49,7 +49,7 @@
 
 6. После устранения предупреждения перейдите в главное меню аппаратуры.
 
-```{figure} @assets@/common/setup/radio/main-menu-no-signal.webp
+```{figure} @assets@/common/setup/qgc/radio/main-menu-no-signal.webp
 :alt: Главное меню аппаратуры без связи с приемником
 :width: 55%
 :align: center
@@ -71,7 +71,7 @@
 1. Нажмите кнопку `MDL`.
 2. Выберите свободную ячейку и нажмите и удерживайте колесо-энкодер.
 
-    ```{figure} @assets@/common/setup/radio/model/create-model-menu.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/radio/model/create-model-menu.webp
     :alt: Выбор свободной ячейки модели
     :width: 450px
     :align: center
@@ -83,7 +83,7 @@
 3. Выберите `CREATE MODEL`.
 4. Нажмите `PAGE`, колесом-энкодером выберите `Model name` и задайте имя модели, например `CLOVER FPV`.
 
-    ```{figure} @assets@/common/setup/radio/model/model-name.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/radio/model/model-name.webp
     :alt: Настройка имени модели квадрокоптера
     :width: 450px
     :align: center
@@ -94,7 +94,7 @@
 
 5. Нажмите `RTN`, прокрутите список вниз. В разделе `Internal RF` установите `Mode` в значение `CRSF`.
 
-    ```{figure} @assets@/common/setup/radio/model/internal-rf-disabled.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/radio/model/internal-rf-disabled.webp
     :alt: Выключенный внутренний радиомодуль
     :width: 450px
     :align: center
@@ -103,7 +103,7 @@
 
     <br>
 
-    ```{figure} @assets@/common/setup/radio/model/internal-rf-crsf.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/radio/model/internal-rf-crsf.webp
     :alt: Внутренний радиомодуль в режиме CRSF
     :width: 450px
     :align: center
@@ -119,7 +119,7 @@
    - `CH7 / AUX3` — `SC`;
    - `CH8 / AUX4` — `SD`.
 
-    ```{figure} @assets@/common/setup/radio/model/mix-channel-settings.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/radio/model/mix-channel-settings.webp
     :alt: Настройка переключателя на дополнительном канале
     :width: 450px
     :align: center
@@ -128,7 +128,7 @@
 
     <br>
 
-    ```{figure} @assets@/common/setup/radio/model/mixes-channels.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/radio/model/mixes-channels.webp
     :alt: Основные и дополнительные каналы модели
     :width: 450px
     :align: center
@@ -137,7 +137,7 @@
 
     <br>
 
-    ```{figure} @assets@/common/setup/radio/model/mixes-switches.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/radio/model/mixes-switches.webp
     :alt: Список настроенных переключателей
     :width: 450px
     :align: center
@@ -156,7 +156,7 @@
 2. Включите аппаратуру, подключите кабель USB-C к верхнему USB-порту и выберите `USB Storage (SD)`.
 3. Откройте накопитель аппаратуры и перейдите в каталог `MODELS`.
 
-    ```{figure} @assets@/common/setup/radio/model/usb-storage-models-folder.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/radio/model/usb-storage-models-folder.webp
     :alt: Каталог MODELS на карте памяти аппаратуры
     :width: 600px
     :align: center
@@ -167,7 +167,7 @@
 
 4. Скопируйте в каталог `MODELS` файл `model05.yml`.
 
-    ```{figure} @assets@/common/setup/radio/model/model-file-copied.webp
+    ```{figure} @assets@/common/assembly/clover5-fpv/radio/model/model-file-copied.webp
     :alt: Файл готовой модели в каталоге MODELS
     :width: 600px
     :align: center
@@ -188,7 +188,7 @@
 1. Включите аппаратуру управления и нажмите `SYS`.
 2. Откройте инструмент `ExpressLRS`.
 
-    ```{figure} @assets@/common/setup/radio/rx/elrs-step-1.webp
+    ```{figure} @assets@/common/setup/qgc/radio/rx/elrs-step-1.webp
     :alt: Инструмент ExpressLRS в системном меню
     :width: 450px
     :align: center
@@ -199,7 +199,7 @@
 
 3. Выберите `WiFi Connectivity`, затем `Enable WiFi` и дождитесь сообщения `WiFi Running`.
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/tx-wifi-connectivity-menu.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/tx-wifi-connectivity-menu.webp
     :alt: Пункт WiFi Connectivity в ExpressLRS
     :width: 450px
     :align: center
@@ -208,7 +208,7 @@
 
     <br>
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/tx-enable-wifi.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/tx-enable-wifi.webp
     :alt: Включение Wi-Fi передатчика ExpressLRS
     :width: 450px
     :align: center
@@ -217,7 +217,7 @@
 
     <br>
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/tx-wifi-running.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/tx-wifi-running.webp
     :alt: Передатчик ExpressLRS в режиме Wi-Fi
     :width: 450px
     :align: center
@@ -228,7 +228,7 @@
 
 4. Подключите компьютер или смартфон к сети `ExpressLRS TX`. Пароль по умолчанию — `expresslrs`.
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/tx-wifi-network.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/tx-wifi-network.webp
     :alt: Подключение к сети ExpressLRS TX
     :width: 450px
     :align: center
@@ -239,7 +239,7 @@
 
 5. Откройте в браузере адрес `http://10.0.0.1`.
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/tx-web-interface.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/tx-web-interface.webp
     :alt: Веб-интерфейс передатчика ExpressLRS
     :width: 450px
     :align: center
@@ -250,7 +250,7 @@
 
 6. В разделе `Binding Phrase` введите выбранную фразу и нажмите `SAVE`.
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/tx-binding-phrase.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/tx-binding-phrase.webp
     :alt: Binding Phrase в настройках передатчика
     :width: 700px
     :align: center
@@ -260,7 +260,7 @@
 
 7. Подтвердите перезагрузку кнопкой `REBOOT`.
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/web-interface-reboot.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/web-interface-reboot.webp
     :alt: Перезагрузка устройства ExpressLRS
     :width: 450px
     :align: center
@@ -279,7 +279,7 @@
 2. Подайте питание на полетный контроллер и подождите не менее 60 секунд. Когда приемник перейдет в режим Wi‑Fi, его светодиод начнет быстро мигать.
 3. Подключите компьютер или смартфон к сети `ExpressLRS RX`. Пароль по умолчанию — `expresslrs`.
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/rx-wifi-network.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/rx-wifi-network.webp
     :alt: Подключение к сети ExpressLRS RX
     :width: 450px
     :align: center
@@ -290,7 +290,7 @@
 
 4. Откройте в браузере адрес `http://10.0.0.1`.
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/rx-web-interface.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/rx-web-interface.webp
     :alt: Веб-интерфейс приемника ExpressLRS
     :width: 450px
     :align: center
@@ -301,7 +301,7 @@
 
 5. Введите фразу в строке `Binding Phrase`, как на передатчике.  Нажмите `SAVE & REBOOT`.
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/rx-binding-phrase.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/rx-binding-phrase.webp
     :alt: Binding Phrase в настройках приемника
     :width: 700px
     :align: center
@@ -312,7 +312,7 @@
 
 6. При появлении окна подтверждения нажмите `REBOOT` и дождитесь перезагрузки приемника.
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/web-interface-reboot.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/web-interface-reboot.webp
     :alt: Подтверждение перезагрузки приемника
     :width: 450px
     :align: center
@@ -323,7 +323,7 @@
 
 7. Включите аппаратуру. После установления связи на главном экране появится индикатор приемника.
 
-    ```{figure} @assets@/common/setup/radio/main-menu.webp
+    ```{figure} @assets@/common/setup/qgc/radio/main-menu.webp
     :alt: Главное меню после сопряжения с приёмником
     :width: 55%
     :align: center
@@ -339,7 +339,7 @@
 
 2. На аппаратуре нажмите `SYS` и откройте инструмент `ExpressLRS`.
 
-    ```{figure} @assets@/common/setup/radio/rx/elrs-step-1.webp
+    ```{figure} @assets@/common/setup/qgc/radio/rx/elrs-step-1.webp
     :alt: Переход в меню ExpressLRS
     :width: 55%
     :align: center
@@ -350,7 +350,7 @@
 
 3. Установите `TX Power` в значение `100 mW`.
 
-    ```{figure} @assets@/common/setup/radio/rx/elrs-step-2.webp
+    ```{figure} @assets@/common/setup/qgc/radio/rx/elrs-step-2.webp
     :alt: Мощность передатчика 100 mW
     :width: 55%
     :align: center
@@ -361,7 +361,7 @@
 
 4. Выберите команду `Bind` и дождитесь завершения сопряжения.
 
-    ```{figure} @assets@/common/setup/radio/rx/elrs-step-3.webp
+    ```{figure} @assets@/common/setup/qgc/radio/rx/elrs-step-3.webp
     :alt: Запуск сопряжения ExpressLRS
     :width: 55%
     :align: center
@@ -370,7 +370,7 @@
 
     <br>
 
-    ```{figure} @assets@/common/setup/radio/rx/elrs-bind.webp
+    ```{figure} @assets@/common/setup/qgc/radio/rx/elrs-bind.webp
     :alt: Процесс сопряжения ExpressLRS
     :width: 55%
     :align: center
@@ -381,7 +381,7 @@
 
 5. Нажмите и удерживайте кнопку `RTN` для возврата в основное меню. Убедитесь, что на основном экране отображается индикатор связи с приемником. 
 
-    ```{figure} @assets@/common/setup/radio/main-menu.webp
+    ```{figure} @assets@/common/setup/qgc/radio/main-menu.webp
     :alt: Главное меню после успешного сопряжения
     :width: 55%
     :align: center

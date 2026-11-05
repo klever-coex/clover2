@@ -51,7 +51,7 @@ Open your terminal and run the following command to open the Terminal User Inter
 clover2-settings
 ```
 
-```{figure} @assets@/common/setup/drone-settings/main-screen.webp
+```{figure} @assets@/common/setup/rpi/drone-settings/main-screen.webp
 :alt: Экран настроек
 :width: 90%
 :align: center
@@ -63,7 +63,7 @@ Main screen
 
 Use the `Up`/`Down` arrows to highlight `localization` and press `Enter`. 
 
-```{figure} @assets@/common/setup/drone-settings/localization-menu.webp
+```{figure} @assets@/common/setup/rpi/drone-settings/localization-menu.webp
 :alt: Экран настроек localization
 :width: 90%
 :align: center
@@ -75,7 +75,7 @@ Localization menu
 
 Select `map_server` to open the map server settings group.
 
-```{figure} @assets@/common/setup/drone-settings/map-server-menu.webp
+```{figure} @assets@/common/setup/rpi/drone-settings/map-server-menu.webp
 :alt: Экран настроек map_server
 :width: 90%
 :align: center
@@ -90,7 +90,7 @@ Use the `Left`/`Right` arrow keys to move the cursor and modify the filename.
 Press `Tab` to move to the action buttons.
 Use the `Up`/`Down` arrows to select `Save` (to apply changes) or `Cancel` (to discard them). 
 
-```{figure} @assets@/common/setup/drone-settings/map-filename-edit.webp
+```{figure} @assets@/common/setup/rpi/drone-settings/map-filename-edit.webp
 :alt: Экран настроек map_server
 :width: 90%
 :align: center
@@ -103,7 +103,7 @@ Map filename editing
 To permanently write these changes to the configuration file, press `Ctrl+S`. 
 A notification will appear confirming the save. 
 
-```{figure} @assets@/common/setup/drone-settings/saved-example.webp
+```{figure} @assets@/common/setup/rpi/drone-settings/saved-example.webp
 :alt: Сохранение настроек
 :width: 90%
 :align: center

@@ -11,7 +11,7 @@ Setup/Modes
 Setup/Power
 ```
 
-```{figure} ../assets/common/setup/qgc.webp
+```{figure} ../assets/common/setup/qgc/qgc.webp
 :alt: QGroundControl
 :width: 90%
 :align: center
@@ -44,7 +44,7 @@ Flashing Steps:
 5. In the QGC menu, select the corresponding serial port for your flight controller.
 6. QGC will prompt you to enter bootloader mode. To do this, disconnect the USB cable and reconnect it.
 
-```{figure} ../assets/common/setup/qgc-port-apply.webp
+```{figure} ../assets/common/setup/qgc/qgc-port-apply.webp
 :alt: Переподключение полётного контроллера для загрузки прошивки
 :width: 90%
 :align: center
@@ -57,7 +57,7 @@ Flight Controller Reboot
 9. Open `Advanced settings`.
 10. From the drop-down menu, select `Custom firmware file...`. Click `OK`.
 
-```{figure} ../assets/common/setup/qgc-firmware.webp
+```{figure} ../assets/common/setup/qgc/qgc-firmware.webp
 :alt: Загрузка прошивки в QGroundControl
 :width: 90%
 :align: center
@@ -76,7 +76,7 @@ Wait for the upload to finish and for the flight controller to reboot automatica
 
 ## Post-Installation Configuration
 
-```{figure} ../assets/common/setup/qgc-requires-setup.webp
+```{figure} ../assets/common/setup/qgc/qgc-requires-setup.webp
 :alt: Обзор настроек QGroundControl
 :width: 90%
 :align: center
@@ -94,7 +94,7 @@ Once the firmware is installed, you must configure the following sections in ord
 
 ### Frame Configuration
 
-```{figure} ../assets/common/setup/qgc-frame-apply.webp
+```{figure} ../assets/common/setup/qgc/qgc-frame-apply.webp
 :alt: Выбор рамы в QGroundControl
 :width: 90%
 :align: center
@@ -122,7 +122,7 @@ Parameters fine-tune how the flight controller behaves.
 3. Enter the required values.
 4. You must click `Save` after changing each parameter to ensure the change is applied.
 
-```{figure} ../assets/common/setup/qgc-parameters.webp
+```{figure} ../assets/common/setup/qgc/qgc-parameters.webp
 :alt: Параметры QGroundControl
 :width: 90%
 :align: center

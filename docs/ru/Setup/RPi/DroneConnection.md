@@ -6,7 +6,7 @@
 
 Сейчас удобнее всего работать с терминалом квадрокоптера через Web IDE. Откройте в браузере страницу `http://192.168.11.1:9880`, затем создайте терминал через меню `Terminal` -> `New Terminal`.
 
-```{figure} @assets@/common/programming/drone-programming/drone-connection/web-ide-home.webp
+```{figure} @assets@/common/setup/rpi/drone-connection/web-ide-home.webp
 :alt: Главная страница Web IDE
 :width: 100%
 :align: center
@@ -16,7 +16,7 @@ Web IDE в браузере
 
 <br>
 
-```{figure} @assets@/common/programming/drone-programming/drone-connection/web-ide-terminal-menu.webp
+```{figure} @assets@/common/setup/rpi/drone-connection/web-ide-terminal-menu.webp
 :alt: Пункт New Terminal в меню Web IDE
 :width: 100%
 :align: center
@@ -26,7 +26,7 @@ Web IDE в браузере
 
 <br>
 
-```{figure} @assets@/common/programming/drone-programming/drone-connection/web-ide-terminal-open.webp
+```{figure} @assets@/common/setup/rpi/drone-connection/web-ide-terminal-open.webp
 :alt: Открытый терминал в Web IDE
 :width: 100%
 :align: center
@@ -45,7 +45,7 @@ Web IDE в браузере
 ssh pi@192.168.11.1
 ```
 
-```{figure} @assets@/common/programming/drone-programming/drone-connection/ssh-connect.webp
+```{figure} @assets@/common/setup/rpi/drone-connection/ssh-connect.webp
 :alt: Подключение к дрону по SSH
 :width: 100%
 :align: center
@@ -55,7 +55,7 @@ ssh pi@192.168.11.1
 
 <br>
 
-```{figure} @assets@/common/programming/drone-programming/drone-connection/ssh-login.webp
+```{figure} @assets@/common/setup/rpi/drone-connection/ssh-login.webp
 :alt: Успешный вход в терминал дрона
 :width: 100%
 :align: center

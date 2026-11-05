@@ -11,7 +11,7 @@ QGC/Modes
 QGC/Power
 ```
 
-```{figure} @assets@/common/setup/qgc.webp
+```{figure} @assets@/common/setup/qgc/qgc.webp
 :alt: QGroundControl
 :width: 90%
 :align: center
@@ -44,7 +44,7 @@ QGroundControl
 6. В меню выберите последовательный порт полетного контроллера.
 7. QGroundControl предложит перевести контроллер в режим загрузчика, отключите USB-кабель и подключите его снова.
 
-```{figure} @assets@/common/setup/qgc-port-apply.webp
+```{figure} @assets@/common/setup/qgc/qgc-port-apply.webp
 :alt: Переподключение полётного контроллера для загрузки прошивки
 :width: 90%
 :align: center
@@ -57,7 +57,7 @@ QGroundControl
 9. Откройте `Advanced settings`.
 10. В выпадающем меню выберите `Custom firmware file...`. Нажмите `OK`.
 
-```{figure} @assets@/common/setup/qgc-firmware.webp
+```{figure} @assets@/common/setup/qgc/qgc-firmware.webp
 :alt: Загрузка прошивки в QGroundControl
 :width: 90%
 :align: center
@@ -76,7 +76,7 @@ QGroundControl
 
 ## Настройка полетного контроллера
 
-```{figure} @assets@/common/setup/qgc-requires-setup.webp
+```{figure} @assets@/common/setup/qgc/qgc-requires-setup.webp
 :alt: Обзор настроек QGroundControl
 :width: 90%
 :align: center
@@ -94,7 +94,7 @@ QGroundControl
 
 ### Настройка конфигурации рамы
 
-```{figure} @assets@/common/setup/qgc-frame-apply.webp
+```{figure} @assets@/common/setup/qgc/qgc-frame-apply.webp
 :alt: Выбор рамы в QGroundControl
 :width: 90%
 :align: center
@@ -117,7 +117,7 @@ QGroundControl
 2. Выберите меню `Parameters`. Для поиска параметров используйте поле `Search`.
 3. Установите требуемые значения параметров. После изменения каждого параметра нажмите `Save`.
 
-```{figure} @assets@/common/setup/qgc-parameters.webp
+```{figure} @assets@/common/setup/qgc/qgc-parameters.webp
 :alt: Параметры QGroundControl
 :width: 90%
 :align: center

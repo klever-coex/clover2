@@ -18,7 +18,7 @@
 
 6. После настройки переключайте режимы с помощью переключателя **SwC** и проверяйте, что QGroundControl корректно отображает выбранный режим.
 
-```{figure} @assets@/common/setup/qgc-modes.webp
+```{figure} @assets@/common/setup/qgc/modes/qgc-modes.webp
 :alt: Настройка полётных режимов в QGroundControl
 :width: 90%
 :align: center

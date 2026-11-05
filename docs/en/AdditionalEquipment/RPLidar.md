@@ -2,7 +2,7 @@
 
 <br>
 
-```{figure} @assets@/common/programming/sensors/rplidar/lidar.webp
+```{figure} @assets@/common/additional-equipment/rplidar/lidar.webp
 :alt: RPLidar C1
 :width: 500px
 :align: center
@@ -35,7 +35,7 @@ Distance: 1.8 m
 If no object is detected in the beam's path or the reflected signal is too weak, the measurement may be invalid. 
 Navigation and mapping algorithms are designed to automatically ignore these null values.
 
-```{figure} @assets@/common/programming/sensors/rplidar/coord-scheme.webp
+```{figure} @assets@/common/additional-equipment/rplidar/coord-scheme.webp
 :alt: Определение системы координат данных сканирования RPLidar C1
 :width: 500px
 :align: center
@@ -86,7 +86,7 @@ distance = ranges[i]
 
 1. Attach the plastic mounting deck using M2.5x6 screws.
 
-   ```{figure} @assets@/en/programming/sensors/rplidar/assemble-lidar-1.webp
+   ```{figure} @assets@/en/additional-equipment/rplidar/assemble-lidar-1.webp
    :alt: Установка RPLidar C1
    :width: 700px
    :align: center
@@ -100,7 +100,7 @@ distance = ranges[i]
 2. Install the M3x40 aluminum standoffs onto the mounting deck using M3x6 screws.
 
 
-   ```{figure} @assets@/en/programming/sensors/rplidar/assemble-lidar-2.webp
+   ```{figure} @assets@/en/additional-equipment/rplidar/assemble-lidar-2.webp
    :alt: Установка алюминиевых стоек
    :width: 700px
    :align: center
@@ -112,7 +112,7 @@ distance = ranges[i]
 
 3. Mount the prepared RPLiDAR C1 onto the aluminum standoffs using M3x6 screws.
 
-   ```{figure} @assets@/en/programming/sensors/rplidar/assemble-lidar-3.webp
+   ```{figure} @assets@/en/additional-equipment/rplidar/assemble-lidar-3.webp
    :alt: Установка RPLidar C1 на алюминиевые стойки
    :width: 700px
    :align: center
@@ -134,7 +134,7 @@ To enable the LiDAR on your quadcopter, follow these steps to update the system 
 1. Launch the configuration utility by running the following command in your terminal: `clover2-settings`.
 2. Navigate to the `additional_sensors` section and enable the `2d_lidar` parameter.
 
-```{figure} @assets@/common/programming/sensors/rplidar/2d-lidar-enable.webp
+```{figure} @assets@/common/additional-equipment/rplidar/2d-lidar-enable.webp
 :alt: Экран настроек 2d_lidar
 :width: 90%
 :align: center

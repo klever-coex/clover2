@@ -54,7 +54,7 @@ clover2-settings
 
 После выполнения команды откроется TUI (Terminal User Interface) — текстовый интерфейс пользователя в терминале.
 
-```{figure} @assets@/common/setup/drone-settings/main-screen.webp
+```{figure} @assets@/common/setup/rpi/drone-settings/main-screen.webp
 :alt: Экран настроек
 :width: 90%
 :align: center
@@ -66,7 +66,7 @@ TUI  в терминале
 
 С помощью стрелок `вверх` и `вниз` выберите `localization` и нажмите `Enter`, чтобы открыть группу настроек.
 
-```{figure} @assets@/common/setup/drone-settings/localization-menu.webp
+```{figure} @assets@/common/setup/rpi/drone-settings/localization-menu.webp
 :alt: Экран настроек localization
 :width: 90%
 :align: center
@@ -78,7 +78,7 @@ TUI  в терминале
 
 Аналогично выберите `map_server`. Эта группа содержит настройки сервера карты. Затем выберите `map_filename`.
 
-```{figure} @assets@/common/setup/drone-settings/map-server-menu.webp
+```{figure} @assets@/common/setup/rpi/drone-settings/map-server-menu.webp
 :alt: Экран настроек map_server
 :width: 90%
 :align: center
@@ -92,7 +92,7 @@ TUI  в терминале
 Для перемещения курсора используйте стрелки `влево` и `вправо`. 
 После завершения редактирования нажмите `Tab`. C помощью стрелок `вверх` и `вниз` выберите кнопку `Save` для сохранения значения или `Cancel` для отмены изменений. 
 
-```{figure} @assets@/common/setup/drone-settings/map-filename-edit.webp
+```{figure} @assets@/common/setup/rpi/drone-settings/map-filename-edit.webp
 :alt: Экран настроек map_server
 :width: 90%
 :align: center
@@ -104,7 +104,7 @@ TUI  в терминале
 
 Чтобы сохранить измененные настройки в файл, нажмите сочетание клавиш `Ctrl+S`. Появится уведомление о сохранении.
 
-```{figure} @assets@/common/setup/drone-settings/saved-example.webp
+```{figure} @assets@/common/setup/rpi/drone-settings/saved-example.webp
 :alt: Сохранение настроек
 :width: 90%
 :align: center

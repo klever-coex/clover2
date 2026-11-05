@@ -11,7 +11,7 @@
 1. Откройте VMware Workstation Pro.
 2. Выберите `File` → `Open`, `Open a Virtual Machine` или нажмите `Ctrl+O`.
 
-   ```{figure} @assets@/common/simulator/vmware/open-virtual-machine.webp
+   ```{figure} @assets@/common/simulator/installation/vmware/open-virtual-machine.webp
    :alt: Открытие образа виртуальной машины
    :width: 90%
    :align: center
@@ -30,7 +30,7 @@
 
 1. Выберите импортированную машину и откройте `Edit virtual machine settings`.
 
-   ```{figure} @assets@/common/simulator/vmware/virtual-machine-settings.webp
+   ```{figure} @assets@/common/simulator/installation/vmware/virtual-machine-settings.webp
    :alt: Настройки импортированной виртуальной машины
    :width: 90%
    :align: center
@@ -41,7 +41,7 @@
 
 2. Откройте раздел `Processors` → `Virtualization Engine` и снимите флажок `Virtualize Intel VT-x/EPT or AMD-V/RVI`.
 
-   ```{figure} @assets@/common/simulator/vmware/processor-virtualization.webp
+   ```{figure} @assets@/common/simulator/installation/vmware/processor-virtualization.webp
    :alt: Выключение вложенной виртуализации в настройках процессора VMware
    :width: 90%
    :align: center
@@ -52,7 +52,7 @@
 
 3. Откройте раздел `Display` и увеличьте объем видеопамяти до 1 ГБ и более.
 
-   ```{figure} @assets@/common/simulator/vmware/display-acceleration.webp
+   ```{figure} @assets@/common/simulator/installation/vmware/display-acceleration.webp
    :alt: Увеличение объема видеопамяти
    :width: 90%
    :align: center
@@ -65,7 +65,7 @@
 
 1. Нажмите `Start up this guest operating system`, чтобы запустить виртуальную машину.
 
-   ```{figure} @assets@/common/simulator/vmware/start-virtual-machine.webp
+   ```{figure} @assets@/common/simulator/installation/vmware/start-virtual-machine.webp
    :alt: Запуск виртуальной машины
    :width: 90%
    :align: center
@@ -76,7 +76,7 @@
 
 2. При первом запуске появится первоначальная настройка. Подтвердите или выберите часовой пояс и укажите язык системы, следуя подсказкам на экране.
 
-   ```{figure} @assets@/common/simulator/vmware/first-run-setup.webp
+   ```{figure} @assets@/common/simulator/installation/vmware/first-run-setup.webp
    :alt: Первоначальная настройка Linux
    :width: 90%
    :align: center

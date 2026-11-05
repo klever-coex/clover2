@@ -8,7 +8,7 @@ Before starting any calibration, ensure the vehicle is placed on a completely st
 
 ## How to Calibrate Gyroscope
 
-```{figure} ../../assets/common/setup/qgc-cal-gyro.webp
+```{figure} ../../assets/common/setup/qgc/calibration/qgc-cal-gyro.webp
 :alt: Калибровка гироскопа в QGroundControl
 :width: 90%
 :align: center
@@ -25,7 +25,7 @@ For more technical details, see:  [PX4 Gyroscope Calibration](https://docs.px4.i
 
 ## How to Calibrate Accelerometer 
 
-```{figure} ../../assets/common/setup/qgc-cal-acc.webp
+```{figure} ../../assets/common/setup/qgc/calibration/qgc-cal-acc.webp
 :alt: Калибровка акселерометра в QGroundControl
 :width: 90%
 :align: center
@@ -45,7 +45,7 @@ For more technical details, see: [PX4 Accelerometer Calibration](https://docs.px
 
 ## How to Calibrate Level Horizon
 
-```{figure} ../../assets/common/setup/qgc-cal-level.webp
+```{figure} ../../assets/common/setup/qgc/calibration/qgc-cal-level.webp
 :alt: Калибровка горизонта в QGroundControl
 :width: 90%
 :align: center

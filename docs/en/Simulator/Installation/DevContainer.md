@@ -31,7 +31,7 @@ Follow the [Docker installation instructions](../../UsefulInformation/Docker) to
 
 Download Visual Studio Code from the [official website](https://code.visualstudio.com/download/) and install the version appropriate for your operating system.
 
-```{figure} @assets@/common/simulator/gazebo-dev-container/vscode-downloads.webp
+```{figure} @assets@/common/simulator/installation/dev-container/vscode-downloads.webp
 :alt: VS Code downloads
 :width: 90%
 :align: center
@@ -54,7 +54,7 @@ sudo apt install -f ./path-to-file/code_*.deb
 3. Search for `Dev Containers`.
 4. Locate the extension published by Microsoft and click `Install`.
 
-```{figure} @assets@/common/simulator/gazebo-dev-container/dev-container-extension.webp
+```{figure} @assets@/common/simulator/installation/dev-container/dev-container-extension.webp
 :alt: Dev Containers extension
 :width: 90%
 :align: center
@@ -129,7 +129,7 @@ During the initial launch, VS Code will download all necessary dependencies. Thi
 
 Once the connection is established, you will see a remote development indicator in the lower-left corner of the VS Code window. This confirms you are now working inside the Dev Container.
 
-```{figure} @assets@/common/simulator/gazebo-dev-container/runned-dev-container.webp
+```{figure} @assets@/common/simulator/installation/dev-container/runned-dev-container.webp
 :alt: Dev Container
 :width: 90%
 :align: center
@@ -170,7 +170,7 @@ colcon build --symlink-install
 * The second command complies the project packages and stores the build artifacts in the `install` directory.
 
 
-```{figure} @assets@/common/simulator/gazebo-dev-container/build-success.webp
+```{figure} @assets@/common/simulator/installation/dev-container/build-success.webp
 :alt: workspace build success
 :width: 90%
 :align: center
@@ -192,7 +192,7 @@ ros2 pkg list | grep clover
 
 If the setup was successful, you should see a list of Clover2 packages in the output.  
 
-```{figure} @assets@/common/simulator/gazebo-dev-container/list-builded-packages.webp
+```{figure} @assets@/common/simulator/installation/dev-container/list-builded-packages.webp
 :alt: Clover2 packages in the workspace
 :width: 90%
 :align: center

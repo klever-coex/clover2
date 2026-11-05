@@ -18,7 +18,7 @@ Open a terminal within your guest Linux system or Dev Container. Run the followi
 ros2 launch clover2_sim gz_simple.launch.py
 ```
 
-```{figure} @assets@/common/simulator/vmware/launch-simulator.webp
+```{figure} @assets@/common/simulator/usage/launch-simulator.webp
 :alt: Simulator launch
 :width: 90%
 :align: center
@@ -33,7 +33,7 @@ Once the command is executed, a **Gazebo** graphical window will open displaying
 For optimal performance, restart the simulator if it has been inactive for an extended period.
 :::
 
-```{figure} @assets@/common/simulator/vmware/gazebo-running.webp
+```{figure} @assets@/common/simulator/usage/gazebo-running.webp
 :alt: Gazebo
 :width: 90%
 :align: center

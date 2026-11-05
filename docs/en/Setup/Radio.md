@@ -8,7 +8,7 @@ Remove all propellers before starting this setup. This prevents accidental motor
 
 ## Hardware Preparation
 
-```{figure} @assets@/en/setup/radio/rc-pocket-front-part.webp
+```{figure} @assets@/en/setup/qgc/radio/rc-pocket-front-part.webp
 :alt: RadioMaster Pocket, front view
 :width: 90%
 :align: center
@@ -18,7 +18,7 @@ Transmitter front view
 
 <br>
 
-```{figure} @assets@/en/setup/radio/rc-pocket-back-part.webp
+```{figure} @assets@/en/setup/qgc/radio/rc-pocket-back-part.webp
 :alt: RadioMaster Pocket, rear view
 :width: 90%
 :align: center
@@ -37,7 +37,7 @@ Transmitter rear view
 If the screen displays a WARNING message, immediately move the Throttle stick to the lowest position.
 ```
 
-```{figure} @assets@/common/setup/radio/warn.webp
+```{figure} @assets@/common/setup/qgc/radio/warn.webp
 :alt: Предупреждение при неверном положении стиков или тумблеров
 :width: 55%
 :align: center
@@ -49,7 +49,7 @@ Warning
 
 5. Once the warning is cleared, proceed to the main menu.
 
-```{figure} @assets@/common/setup/radio/main-menu-no-signal.webp
+```{figure} @assets@/common/setup/qgc/radio/main-menu-no-signal.webp
 :alt: Главное меню аппаратуры без связи с приёмником
 :width: 55%
 :align: center
@@ -66,7 +66,7 @@ Main menu
 1. Press the `SYS` button
 2. Navigate to the `ExpressLRS` menu.
 
-    ```{figure} @assets@/common/setup/radio/rx/elrs-step-1.webp
+    ```{figure} @assets@/common/setup/qgc/radio/rx/elrs-step-1.webp
     :alt: Инструмент ExpressLRS в системном меню
     :width: 55%
     :align: center
@@ -78,7 +78,7 @@ Main menu
 
 3. Select `WiFi Connectivity`.
   
-    ```{figure} @assets@/common/setup/radio/bind-phrase/tx-wifi-connectivity-menu.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/tx-wifi-connectivity-menu.webp
     :alt: Пункт WiFi Connectivity в ExpressLRS
     :width: 450px
     :align: center
@@ -89,7 +89,7 @@ Main menu
 
 4. Select `Enable WiFi`.
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/tx-enable-wifi.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/tx-enable-wifi.webp
     :alt: Включение Wi-Fi передатчика ExpressLRS
     :width: 450px
     :align: center
@@ -99,7 +99,7 @@ Main menu
     <br>
 
 5. Wait for the `WiFi Running` message.
-    ```{figure} @assets@/common/setup/radio/bind-phrase/tx-wifi-running.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/tx-wifi-running.webp
     :alt: Передатчик ExpressLRS в режиме Wi-Fi
     :width: 450px
     :align: center
@@ -110,7 +110,7 @@ Main menu
 
 6. On your computer or smartphone, connect to the `ExpressLRS TX` network (Default password: `expresslrs`).
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/tx-wifi-network.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/tx-wifi-network.webp
     :alt: Подключение к сети ExpressLRS TX
     :width: 450px
     :align: center
@@ -121,7 +121,7 @@ Main menu
 
 7. Open a web browser and go to http://10.0.0.1 (http://10.0.0.1/).
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/tx-web-interface.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/tx-web-interface.webp
     :alt: Веб-интерфейс передатчика ExpressLRS
     :width: 450px
     :align: center
@@ -132,7 +132,7 @@ Main menu
 
 8. Enter your chosen phrase in the `Binding Phrase` field and click `SAVE`.
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/tx-binding-phrase.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/tx-binding-phrase.webp
     :alt: Binding Phrase в настройках передатчика
     :width: 700px
     :align: center
@@ -143,7 +143,7 @@ Main menu
 
 9. Click `REBOOT` to apply changes.
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/web-interface-reboot.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/web-interface-reboot.webp
     :alt: Перезагрузка устройства ExpressLRS
     :width: 450px
     :align: center
@@ -162,7 +162,7 @@ If your Video Transmitter (VTX) powers on with the flight controller, ensure an 
 2. Power on the flight controller and wait ~60 seconds. The receiver's LED will blink rapidly when it enters Wi-Fi mode.
 3. Connect your computer/smartphone to the `ExpressLRS RX network` (Default password: `expresslrs`).
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/rx-wifi-network.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/rx-wifi-network.webp
     :alt: Подключение к сети ExpressLRS RX
     :width: 450px
     :align: center
@@ -173,7 +173,7 @@ If your Video Transmitter (VTX) powers on with the flight controller, ensure an 
 
 4. Open http://10.0.0.1 (http://10.0.0.1/) in your browser.
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/rx-web-interface.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/rx-web-interface.webp
     :alt: Веб-интерфейс приёмника ExpressLRS
     :width: 450px
     :align: center
@@ -184,7 +184,7 @@ If your Video Transmitter (VTX) powers on with the flight controller, ensure an 
 
 5. Enter the exact same phrase used on the transmitter. 
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/rx-binding-phrase.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/rx-binding-phrase.webp
     :alt: Binding Phrase в настройках приёмника
     :width: 700px
     :align: center
@@ -195,7 +195,7 @@ If your Video Transmitter (VTX) powers on with the flight controller, ensure an 
 
 6. Click `SAVE & REBOOT`, then confirm by clicking `REBOOT`.
 
-    ```{figure} @assets@/common/setup/radio/bind-phrase/web-interface-reboot.webp
+    ```{figure} @assets@/common/setup/qgc/radio/bind-phrase/web-interface-reboot.webp
     :alt: Подтверждение перезагрузки приёмника
     :width: 450px
     :align: center
@@ -206,7 +206,7 @@ If your Video Transmitter (VTX) powers on with the flight controller, ensure an 
 
 7. Turn on your transmitter. A connection indicator should now appear on the transmitter's main screen.
 
-    ```{figure} @assets@/common/setup/radio/main-menu.webp
+    ```{figure} @assets@/common/setup/qgc/radio/main-menu.webp
     :alt: Главное меню после сопряжения с приёмником
     :width: 55%
     :align: center
@@ -222,7 +222,7 @@ Use this method if you are unable to configure a Binding Phrase.
 1. Enter Receiver Bind Mode: Power the flight controller on and off three times in quick succession. The receiver LED should blink in a specific pattern (two blinks followed by a pause).
 2. On the transmitter, press `SYS` and open the `ExpressLRS` menu.
 
-    ```{figure} @assets@/common/setup/radio/rx/elrs-step-1.webp
+    ```{figure} @assets@/common/setup/qgc/radio/rx/elrs-step-1.webp
     :alt: Переход в меню ExpressLRS
     :width: 55%
     :align: center
@@ -233,7 +233,7 @@ Use this method if you are unable to configure a Binding Phrase.
 
 3. Set `TX Power` to `100 mW`.
 
-    ```{figure} @assets@/common/setup/radio/rx/elrs-step-2.webp
+    ```{figure} @assets@/common/setup/qgc/radio/rx/elrs-step-2.webp
     :alt: Мощность передатчика 100 mW
     :width: 55%
     :align: center
@@ -244,7 +244,7 @@ Use this method if you are unable to configure a Binding Phrase.
 
 4. Select the `Bind` command and wait for the process to complete.
 
-    ```{figure} @assets@/common/setup/radio/rx/elrs-step-3.webp
+    ```{figure} @assets@/common/setup/qgc/radio/rx/elrs-step-3.webp
     :alt: Запуск сопряжения ExpressLRS
     :width: 55%
     :align: center
@@ -255,7 +255,7 @@ Use this method if you are unable to configure a Binding Phrase.
 
 5. Once the connection status is displayed, press and hold `RTN` to return to the main menu.
   
-    ```{figure} @assets@/common/setup/radio/rx/elrs-bind.webp
+    ```{figure} @assets@/common/setup/qgc/radio/rx/elrs-bind.webp
     :alt: Процесс сопряжения ExpressLRS
     :width: 55%
     :align: center
@@ -266,7 +266,7 @@ Use this method if you are unable to configure a Binding Phrase.
 
 6. Verify that the connection indicator is visible on the main screen.
 
-    ```{figure} @assets@/common/setup/radio/main-menu.webp
+    ```{figure} @assets@/common/setup/qgc/radio/main-menu.webp
     :alt: Главное меню после успешного сопряжения
     :width: 55%
     :align: center

@@ -17,7 +17,7 @@
 ros2 launch clover2_sim gz_simple.launch.py
 ```
 
-```{figure} @assets@/common/simulator/vmware/launch-simulator.webp
+```{figure} @assets@/common/simulator/usage/launch-simulator.webp
 :alt: Запуск симулятора
 :width: 90%
 :align: center
@@ -34,7 +34,7 @@ ros2 launch clover2_sim gz_simple.launch.py
 Рекомендуется перезапускать симулятор после долгого простоя.
 :::
 
-```{figure} @assets@/common/simulator/vmware/gazebo-running.webp
+```{figure} @assets@/common/simulator/usage/gazebo-running.webp
 :alt: Симулятор Gazebo
 :width: 90%
 :align: center
