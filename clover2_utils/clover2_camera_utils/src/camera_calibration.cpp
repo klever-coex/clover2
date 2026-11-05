@@ -27,6 +27,25 @@ constexpr const char* k_set_camera_info_service_name = "set_camera_info";
 
 camera_calibration::camera_calibration(const rclcpp::NodeOptions& options)
     : clover2_common::node("camera_calibration", options) {
+    const auto declare_progress_parameter = [this](const char* name,
+                                                   size_t index) {
+        declare_and_watch_parameter<double>(
+            name, m_sample_selector_config.minimum_progress[index],
+            [this, index, name](const rclcpp::Parameter& parameter) {
+                const auto minimum_progress = parameter.as_double();
+                if (minimum_progress < 0.0 || minimum_progress > 1.0) {
+                    throw std::invalid_argument(std::string(name) +
+                                                " must be in [0.0, 1.0]");
+                }
+                m_sample_selector_config.minimum_progress[index] =
+                    minimum_progress;
+            });
+    };
+    declare_progress_parameter("minimum_progress_x", 0);
+    declare_progress_parameter("minimum_progress_y", 1);
+    declare_progress_parameter("minimum_progress_size", 2);
+    declare_progress_parameter("minimum_progress_skew", 3);
+
     declare_and_watch_parameter<int>(
         "minimum_samples_for_completion",
         static_cast<int>(
@@ -40,6 +59,19 @@ camera_calibration::camera_calibration(const rclcpp::NodeOptions& options)
             m_sample_selector_config.minimum_samples_for_completion =
                 static_cast<size_t>(minimum_samples);
         });
+
+    for (const auto [name, index] :
+         {std::pair{"minimum_progress_x", size_t{0}},
+          std::pair{"minimum_progress_y", size_t{1}},
+          std::pair{"minimum_progress_size", size_t{2}},
+          std::pair{"minimum_progress_skew", size_t{3}}}) {
+        const auto minimum_progress = get_parameter(name).as_double();
+        if (minimum_progress < 0.0 || minimum_progress > 1.0) {
+            throw std::invalid_argument(std::string(name) +
+                                        " must be in [0.0, 1.0]");
+        }
+        m_sample_selector_config.minimum_progress[index] = minimum_progress;
+    }
 
     const auto minimum_samples =
         get_parameter("minimum_samples_for_completion").as_int();
@@ -87,9 +119,9 @@ rclcpp_action::GoalResponse camera_calibration::handle_goal(
 
     const auto goal_id = rclcpp_action::to_string(uuid);
     try {
-        m_pending_targets.emplace(goal_id,
-                                  calibration::target::factory::instance().create(
-                                      goal->target_config_path));
+        m_pending_targets.emplace(
+            goal_id, calibration::target::factory::instance().create(
+                         goal->target_config_path));
     } catch (const std::exception& error) {
         RCLCPP_WARN(get_logger(), "Rejecting calibration goal: %s",
                     error.what());
@@ -216,8 +248,8 @@ void camera_calibration::image_callback(
                         ? calibrate_camera::Feedback::BOARD_DETECTED
                         : calibrate_camera::Feedback::WAITING_FOR_BOARD;
     if (sample) {
-        const auto selection = calibration_session.sample_selector.try_add(
-            std::move(*sample));
+        const auto selection =
+            calibration_session.sample_selector.try_add(std::move(*sample));
         if (selection.progress.data_sufficient) {
             stage = calibrate_camera::Feedback::DATA_SUFFICIENT;
         } else if (selection.accepted) {

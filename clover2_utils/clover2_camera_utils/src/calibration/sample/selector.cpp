@@ -7,11 +7,17 @@
 namespace clover2_camera_utils::calibration::sample {
 namespace {
 
+constexpr double k_progress_comparison_epsilon = 1e-6;
+
 double distance(const data::sample_features& first,
                 const data::sample_features& second) {
     return std::abs(first.x - second.x) + std::abs(first.y - second.y) +
            std::abs(first.size - second.size) +
            std::abs(first.skew - second.skew);
+}
+
+bool meets_minimum_progress(double progress, double minimum_progress) {
+    return progress + k_progress_comparison_epsilon >= minimum_progress;
 }
 
 }  // namespace
@@ -94,8 +100,10 @@ data::coverage_progress selector::compute_progress() const {
     };
     result.data_sufficient =
         m_features.size() >= m_config.minimum_samples_for_completion &&
-        result.x == 1.0 && result.y == 1.0 && result.size == 1.0 &&
-        result.skew == 1.0;
+        meets_minimum_progress(result.x, m_config.minimum_progress[0]) &&
+        meets_minimum_progress(result.y, m_config.minimum_progress[1]) &&
+        meets_minimum_progress(result.size, m_config.minimum_progress[2]) &&
+        meets_minimum_progress(result.skew, m_config.minimum_progress[3]);
     return result;
 }
 
