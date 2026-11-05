@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <clover2_camera_utils/calibration/sample/features.hpp>
 #include <clover2_camera_utils/data/coverage_progress.hpp>
+#include <clover2_camera_utils/data/target_detection.hpp>
 #include <clover2_camera_utils/data/observation.hpp>
 #include <clover2_camera_utils/data/sample_features.hpp>
 #include <clover2_camera_utils/data/sample_selection_result.hpp>
@@ -26,12 +26,12 @@ public:
     explicit selector(data::sample_selector_config config = {});
 
     /**
-     * @brief Attempts to add an observation to the calibration dataset.
-     * @param observation Calibration board observation.
+     * @brief Attempts to add a detected sample to the calibration dataset.
+     * @param sample Calibration observation and target-specific features.
      * @return Sample selection result, including rejection reason and coverage
      * progress.
      */
-    data::sample_selection_result try_add(data::observation observation);
+    data::sample_selection_result try_add(data::target_detection detection);
 
     /**
      * @brief Returns the number of accepted observations.

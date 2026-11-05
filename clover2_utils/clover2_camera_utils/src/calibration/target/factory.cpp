@@ -2,40 +2,75 @@
 #include <clover2_camera_utils/calibration/target/chessboard.hpp>
 #include <clover2_camera_utils/calibration/target/factory.hpp>
 
-#include <array>
-#include <memory>
+#include <nlohmann/json.hpp>
+
+#include <algorithm>
+#include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 
 namespace clover2_camera_utils::calibration::target {
-namespace {
+factory::factory() {
+    add<chessboard>();
+    add<charuco>();
+}
 
-using builder = std::shared_ptr<const base> (*)(const std::filesystem::path&);
+factory& factory::instance() {
+    static factory instance;
+    return instance;
+}
 
-const std::array<std::pair<std::string_view, builder>, 2> k_builders{
-    std::pair{chessboard::name, &chessboard::from_file},
-    std::pair{charuco::name, &charuco::from_file},
-};
+bool factory::contains(const std::string_view type) const {
+    return builders_.contains(std::string(type));
+}
 
-}  // namespace
+factory::value_type factory::create(const std::filesystem::path& path) const {
+    if (path.empty() || !path.is_absolute()) {
+        throw std::invalid_argument(
+            "calibration target configuration path must be absolute");
+    }
 
-std::shared_ptr<const base> factory::create(
-    const std::string_view type, const std::filesystem::path& path) {
-    for (const auto& [name, build] : k_builders) {
-        if (type == name) {
-            return build(path);
+    std::ifstream input(path);
+    if (!input) {
+        throw std::runtime_error(
+            "could not open calibration target configuration '" +
+            path.string() + "'");
+    }
+
+    nlohmann::json profile;
+    try {
+        profile = nlohmann::json::parse(input);
+    } catch (const nlohmann::json::parse_error& error) {
+        throw std::runtime_error(
+            "could not parse calibration target configuration '" + path.string() +
+            "': " + error.what());
+    }
+
+    const auto type = profile.at("type").get<std::string>();
+    const auto iterator = builders_.find(type);
+    if (iterator == builders_.end()) {
+        std::ostringstream message;
+        message << "unsupported calibration target type '" << type
+                << "'; supported:";
+        for (const auto& name : list_types()) {
+            message << " " << name;
         }
+        throw std::invalid_argument(message.str());
     }
+    return iterator->second(profile);
+}
 
-    std::ostringstream message;
-    message << "unsupported board_type '" << type << "'; supported:";
-    for (const auto& [name, build] : k_builders) {
+std::vector<std::string> factory::list_types() const {
+    std::vector<std::string> types;
+    types.reserve(builders_.size());
+    for (const auto& [type, build] : builders_) {
         static_cast<void>(build);
-        message << " " << name;
+        types.push_back(type);
     }
-    throw std::invalid_argument(message.str());
+    std::sort(types.begin(), types.end());
+    return types;
 }
 
 }  // namespace clover2_camera_utils::calibration::target

@@ -15,7 +15,6 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/srv/set_camera_info.hpp>
 
-#include <chrono>
 #include <memory>
 #include <utility>
 
@@ -34,7 +33,6 @@ struct calibration_session {
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr debug_publisher;
     rclcpp::Client<set_camera_info>::SharedPtr set_camera_info_client;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_subscription;
-    std::chrono::steady_clock::time_point last_image_processed_at;
 
     explicit calibration_session(
         data::sample_selector_config sample_selector_config)

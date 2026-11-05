@@ -10,8 +10,8 @@
 #include <opencv2/core/types.hpp>
 
 #include <cstdint>
-#include <filesystem>
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 #include <string_view>
 #include <vector>
 
@@ -23,12 +23,12 @@ public:
     static constexpr std::string_view name{"chessboard"};
 
     /**
-     * @brief Loads a chessboard profile and creates its prepared target.
-     * @param path Absolute path to a JSON chessboard profile.
+     * @brief Creates a prepared chessboard target from its JSON profile.
+     * @param profile Parsed chessboard target profile.
      * @return Immutable calibration target.
      */
-    static std::shared_ptr<const base> from_file(
-        const std::filesystem::path& path);
+    static std::shared_ptr<const base> from_json(
+        const nlohmann::json& profile);
 
     /**
      * @brief Creates a prepared chessboard target.
@@ -38,12 +38,12 @@ public:
      */
     chessboard(uint32_t rows, uint32_t columns, double square_size_m);
 
-    std::optional<data::observation> detect(
+    std::optional<data::target_detection> detect(
         const cv::Mat& image) const override;
 
     void draw_debug(
         cv::Mat& image,
-        const std::optional<data::observation>& observation) const override;
+        const std::optional<data::target_detection>& sample) const override;
 
 private:
     cv::Size m_pattern_size;

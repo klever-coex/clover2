@@ -21,7 +21,6 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 
 namespace clover2_camera_utils {
 
@@ -138,12 +137,10 @@ private:
     void cleanup_session(const std::string& goal_id);
 
     // Configuration
-    double m_processing_rate_hz{5.0};
     data::sample_selector_config m_sample_selector_config;
 
     // Calibration sessions keyed by string representations of action goal
     // UUIDs.
-    std::unordered_set<std::string> m_reserved_goal_ids;
     std::unordered_map<std::string,
                        std::shared_ptr<const calibration::target::base>>
         m_pending_targets;

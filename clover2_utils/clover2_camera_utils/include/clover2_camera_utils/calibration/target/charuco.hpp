@@ -11,8 +11,8 @@
 #include <opencv2/aruco/charuco.hpp>
 
 #include <cstdint>
-#include <filesystem>
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 #include <string>
 #include <string_view>
 
@@ -24,12 +24,12 @@ public:
     static constexpr std::string_view name{"charuco"};
 
     /**
-     * @brief Loads a ChArUco profile and creates its prepared target.
-     * @param path Absolute path to a JSON ChArUco profile.
+     * @brief Creates a prepared ChArUco target from its JSON profile.
+     * @param profile Parsed ChArUco target profile.
      * @return Immutable calibration target.
      */
-    static std::shared_ptr<const base> from_file(
-        const std::filesystem::path& path);
+    static std::shared_ptr<const base> from_json(
+        const nlohmann::json& profile);
 
     /**
      * @brief Creates a prepared ChArUco target.
@@ -43,12 +43,12 @@ public:
     charuco(uint32_t squares_rows, uint32_t squares_columns,
             double square_size_m, double marker_size_m, std::string dictionary);
 
-    std::optional<data::observation> detect(
+    std::optional<data::target_detection> detect(
         const cv::Mat& image) const override;
 
     void draw_debug(
         cv::Mat& image,
-        const std::optional<data::observation>& observation) const override;
+        const std::optional<data::target_detection>& sample) const override;
 
 private:
     cv::Ptr<cv::aruco::Dictionary> m_dictionary;

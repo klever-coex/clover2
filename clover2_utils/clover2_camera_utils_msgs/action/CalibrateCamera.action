@@ -6,13 +6,10 @@ string camera_namespace
 # Canonical lowercase identifier. Supported values: "pinhole", "fisheye".
 string calibration_method
 
-# Canonical lowercase calibration target identifier. Supported values:
-# "chessboard", "charuco".
-string board_type
-
-# Absolute path, on the host running camera_calibration, to a JSON board
-# configuration file for the selected board type.
-string board_config_path
+# Absolute path, on the host running camera_calibration, to a self-describing
+# JSON calibration target profile. The profile specifies its canonical lowercase
+# `type`.
+string target_config_path
 
 ---
 # Result

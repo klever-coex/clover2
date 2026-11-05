@@ -19,26 +19,17 @@ double distance(const data::sample_features& first,
 selector::selector(data::sample_selector_config config)
     : m_config(std::move(config)) {}
 
-data::sample_selection_result selector::try_add(data::observation observation) {
-    const auto candidate = features_calculator{}.compute(
-        observation.image_points, observation.image_size);
-    if (!candidate.has_value()) {
-        return data::sample_selection_result{
-            .rejection_reason =
-                data::sample_rejection_reason::invalid_observation,
-            .progress = compute_progress(),
-        };
-    }
-
-    if (is_duplicate(*candidate)) {
+data::sample_selection_result selector::try_add(
+    data::target_detection detection) {
+    if (is_duplicate(detection.selection)) {
         return data::sample_selection_result{
             .rejection_reason = data::sample_rejection_reason::duplicate,
             .progress = compute_progress(),
         };
     }
 
-    m_features.push_back(*candidate);
-    m_observations.push_back(std::move(observation));
+    m_features.push_back(detection.selection);
+    m_observations.push_back(std::move(detection.calibration));
     return data::sample_selection_result{
         .accepted = true,
         .progress = compute_progress(),
@@ -102,9 +93,9 @@ data::coverage_progress selector::compute_progress() const {
                                    m_config.required_ranges[3]),
     };
     result.data_sufficient =
-        m_features.size() >= m_config.minimum_samples_for_completion ||
-        (result.x == 1.0 && result.y == 1.0 && result.size == 1.0 &&
-         result.skew == 1.0);
+        m_features.size() >= m_config.minimum_samples_for_completion &&
+        result.x == 1.0 && result.y == 1.0 && result.size == 1.0 &&
+        result.skew == 1.0;
     return result;
 }
 
