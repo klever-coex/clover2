@@ -11,7 +11,7 @@
 
 Если индикатора напряжения нет или ручная калибровка невозможна, укажите в поле `Voltage Divider` усредненное значение `21`.
 
-```{figure} ../../assets/common/setup/qgc-voltage-divider.webp
+```{figure} @assets@/common/setup/qgc-voltage-divider.webp
 :alt: Калибровка делителя напряжения в QGroundControl
 :width: 90%
 :align: center
