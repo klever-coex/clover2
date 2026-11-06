@@ -11,7 +11,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_auto REQUIRED)
-find_package(OpenCV REQUIRED COMPONENTS aruco calib3d core imgproc)
+find_package(OpenCV REQUIRED COMPONENTS aruco calib3d core imgcodecs imgproc)
 
 ament_auto_find_build_dependencies()
 

@@ -2,6 +2,7 @@
 
 #include <cv_bridge/cv_bridge.hpp>
 #include <opencv2/calib3d.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 #include <sensor_msgs/image_encodings.hpp>
@@ -10,6 +11,7 @@
 
 #include <algorithm>
 #include <exception>
+#include <filesystem>
 #include <functional>
 #include <iomanip>
 #include <optional>
@@ -22,6 +24,8 @@ namespace {
 
 constexpr const char* k_image_topic_name = "image_raw";
 constexpr const char* k_set_camera_info_service_name = "set_camera_info";
+const std::filesystem::path k_detected_frames_directory =
+    "/tmp/clover2_camera_calibration_detections";
 
 }  // namespace
 
@@ -219,18 +223,61 @@ void camera_calibration::image_callback(
         return;
     }
     bool board_detected = false;
+    uint8_t stage = calibrate_camera::Feedback::WAITING_FOR_BOARD;
     std::optional<data::target_detection> sample;
     try {
         const auto input =
             cv_bridge::toCvShare(message, sensor_msgs::image_encodings::MONO8);
         sample = calibration_session.target->detect(input->image);
         board_detected = sample.has_value();
+        stage = board_detected ? calibrate_camera::Feedback::BOARD_DETECTED
+                               : calibrate_camera::Feedback::WAITING_FOR_BOARD;
 
-        if (calibration_session.debug_publisher &&
-            calibration_session.debug_publisher->get_subscription_count() > 0) {
-            cv::Mat debug_image;
+        cv::Mat debug_image;
+        const bool publish_debug =
+            calibration_session.debug_publisher &&
+            calibration_session.debug_publisher->get_subscription_count() > 0;
+        const bool prepare_debug_image = publish_debug || sample.has_value();
+        if (prepare_debug_image) {
             cv::cvtColor(input->image, debug_image, cv::COLOR_GRAY2BGR);
             calibration_session.target->draw_debug(debug_image, sample);
+        }
+
+        if (sample) {
+            const auto selection =
+                calibration_session.sample_selector.try_add(std::move(*sample));
+            if (selection.progress.data_sufficient) {
+                stage = calibrate_camera::Feedback::DATA_SUFFICIENT;
+            } else if (selection.accepted) {
+                stage = calibrate_camera::Feedback::SAMPLE_ACCEPTED;
+            }
+
+            if (selection.accepted) {
+                const auto accepted_frames =
+                    calibration_session.sample_selector.accepted_count();
+                const auto session_directory =
+                    k_detected_frames_directory / goal_id;
+                std::filesystem::create_directories(session_directory);
+                std::ostringstream filename;
+                filename << "accepted_" << std::setw(6) << std::setfill('0')
+                         << accepted_frames << ".png";
+                const auto output_path = session_directory / filename.str();
+                if (!cv::imwrite(output_path.string(), debug_image)) {
+                    RCLCPP_WARN(get_logger(),
+                                "Failed to save accepted calibration frame to '%s'",
+                                output_path.c_str());
+                }
+            }
+        }
+
+        if (publish_debug) {
+            cv::putText(
+                debug_image,
+                "Accepted frames: " + std::to_string(
+                                         calibration_session.sample_selector
+                                             .accepted_count()),
+                cv::Point{10, 30}, cv::FONT_HERSHEY_SIMPLEX, 0.8,
+                cv::Scalar{0, 255, 0}, 2, cv::LINE_AA);
 
             cv_bridge::CvImage output;
             output.header = message->header;
@@ -244,20 +291,6 @@ void camera_calibration::image_callback(
                              error.what());
     }
 
-    uint8_t stage = board_detected
-                        ? calibrate_camera::Feedback::BOARD_DETECTED
-                        : calibrate_camera::Feedback::WAITING_FOR_BOARD;
-    if (sample) {
-        const auto selection =
-            calibration_session.sample_selector.try_add(std::move(*sample));
-        if (selection.progress.data_sufficient) {
-            stage = calibrate_camera::Feedback::DATA_SUFFICIENT;
-        } else if (selection.accepted) {
-            stage = calibrate_camera::Feedback::SAMPLE_ACCEPTED;
-        } else {
-            stage = calibrate_camera::Feedback::BOARD_DETECTED;
-        }
-    }
     publish_feedback(goal_id, board_detected, stage);
 }
 
