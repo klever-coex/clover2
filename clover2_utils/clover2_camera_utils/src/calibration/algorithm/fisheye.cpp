@@ -11,8 +11,7 @@ constexpr size_t k_minimum_observations = 3;
 
 }  // namespace
 
-std::optional<sensor_msgs::msg::CameraInfo>
-fisheye::calibrate(
+std::optional<result> fisheye::calibrate(
     const std::vector<data::observation>& observations) const {
     if (observations.size() < k_minimum_observations) {
         return std::nullopt;
@@ -42,13 +41,14 @@ fisheye::calibrate(
     std::vector<cv::Mat> translation_vectors;
 
     try {
-        cv::fisheye::calibrate(
+        const double rms_reprojection_error = cv::fisheye::calibrate(
             object_points, image_points, image_size, camera_matrix,
             distortion_coefficients, rotation_vectors, translation_vectors,
             cv::fisheye::CALIB_RECOMPUTE_EXTRINSIC);
 
-        return make_camera_info(image_size, camera_matrix,
-                                distortion_coefficients, "equidistant");
+        return result{make_camera_info(image_size, camera_matrix,
+                                       distortion_coefficients, "equidistant"),
+                      rms_reprojection_error};
     } catch (const cv::Exception&) {
         return std::nullopt;
     }

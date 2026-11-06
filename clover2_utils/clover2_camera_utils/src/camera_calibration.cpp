@@ -303,23 +303,26 @@ void camera_calibration::run_calibration(
     std::vector<data::observation> observations) {
     const auto algorithm = calibration::algorithm::factory::instance().create(
         goal_handle->get_goal()->calibration_method);
-    const auto camera_info = algorithm->calibrate(observations);
+    const auto calibration_result = algorithm->calibrate(observations);
 
-    if (!camera_info) {
+    if (!calibration_result) {
         abort_session(goal_id, "Camera calibration failed");
         return;
     }
 
     auto result = std::make_shared<calibrate_camera::Result>();
     result->success = true;
-    result->camera_info = *camera_info;
+    result->camera_info = calibration_result->camera_info;
+    result->rms_reprojection_error = calibration_result->rms_reprojection_error;
     result->used_observations = static_cast<uint32_t>(observations.size());
 
     std::ostringstream calibration_description;
     calibration_description
         << std::setprecision(17) << "Calibration calculated from "
         << result->used_observations
-        << " observations: image=" << result->camera_info.width << "x"
+        << " observations: rms_reprojection_error="
+        << result->rms_reprojection_error << " px, image="
+        << result->camera_info.width << "x"
         << result->camera_info.height << ", distortion_model='"
         << result->camera_info.distortion_model << "', K=[";
     for (size_t row = 0; row < 3; ++row) {

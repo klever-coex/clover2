@@ -17,6 +17,10 @@ string target_config_path
 bool success
 
 sensor_msgs/CameraInfo camera_info
+
+# Root mean square reprojection error in pixels.
+float64 rms_reprojection_error
+
 uint32 used_observations
 
 # Empty on success; explains failure otherwise.

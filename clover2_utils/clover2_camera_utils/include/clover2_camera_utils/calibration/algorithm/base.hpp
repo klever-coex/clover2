@@ -16,6 +16,12 @@
 
 namespace clover2_camera_utils::calibration::algorithm {
 
+/** @brief Stores the output of a camera calibration algorithm. */
+struct result {
+    sensor_msgs::msg::CameraInfo camera_info;
+    double rms_reprojection_error{};
+};
+
 /** @brief Defines the algorithm interface for camera calibration. */
 class base {
 public:
@@ -24,10 +30,10 @@ public:
     /**
      * @brief Performs calibration using observations.
      * @param observations Calibration board observations.
-     * @return Camera information or `std::nullopt` if calculation is not
-     * possible.
+     * @return Camera information and RMS reprojection error in pixels, or
+     * `std::nullopt` if calculation is not possible.
      */
-    virtual std::optional<sensor_msgs::msg::CameraInfo> calibrate(
+    virtual std::optional<result> calibrate(
         const std::vector<data::observation>& observations) const = 0;
 
 protected:

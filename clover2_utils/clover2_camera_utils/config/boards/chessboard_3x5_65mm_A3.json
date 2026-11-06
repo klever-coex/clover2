@@ -1,0 +1,6 @@
+{
+  "type": "chessboard",
+  "rows": 3,
+  "columns": 5,
+  "square_size_m": 0.065
+}
