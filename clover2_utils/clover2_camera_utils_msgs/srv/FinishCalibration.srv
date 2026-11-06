@@ -1,0 +1,11 @@
+# Action goal UUID identifying the calibration session to finish.
+string goal_id
+
+---
+# Response
+
+# True only when the session has sufficient data and final calibration started.
+bool accepted
+
+# Human-readable success or rejection reason.
+string message
