@@ -19,7 +19,7 @@ Recommended Mode Mapping:
 6. Once configured, use your physical remote control to toggle the SwC switch.
 7. Confirm that the mode name displayed in QGroundControl matches the position of your switch.
     
-```{figure} ../../assets/common/setup/qgc/modes/qgc-modes.webp
+```{figure} @assets@/common/setup/qgc/modes/qgc-modes.webp
 :alt: Настройка полётных режимов в QGroundControl
 :width: 90%
 :align: center

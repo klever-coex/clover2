@@ -6,7 +6,7 @@
 
 You can describe a map using the YAML format. This format helps you store map settings in a user-friendly way and add new settings without changing the file structure.
 
-> New to YAML? Check out our [quick guide to YAML](../UsefulInformation/YAML).
+> New to YAML? Check out our [quick guide to YAML](../../UsefulInformation/YAML).
 
 ```yaml
 name: simulation          # Map name (by default, the file name)
