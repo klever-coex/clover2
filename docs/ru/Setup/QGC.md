@@ -1,4 +1,4 @@
-# QGroundControl
+# Полетный контроллер
 
 ```{toctree}
 :titlesonly:
