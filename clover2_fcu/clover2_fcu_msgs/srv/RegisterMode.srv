@@ -1,6 +1,11 @@
-# Register a flight mode with the bridge. The mode then owns a bond: when
-# the bond breaks (mode node died), the bridge removes the registration and
-# deactivates it if it was active.
+# Register a flight mode with the bridge lease registry. Duplicate names
+# are rejected. The mode then owns a bond: when the bond breaks (mode node
+# died), the bridge removes the registration and revokes its lease if it
+# was active.
+#
+# mode_id is the bridge registry id; FCU-native registration (where the
+# transport supports it) happens inside the bridge and is not part of this
+# contract.
 string name
 ---
 bool ok

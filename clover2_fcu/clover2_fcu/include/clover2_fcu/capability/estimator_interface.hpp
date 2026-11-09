@@ -5,6 +5,8 @@
 #include <clover2_fcu/data/estimator_status.hpp>
 #include <clover2_fcu/data/geo_point.hpp>
 #include <clover2_fcu/data/odometry.hpp>
+#include <clover2_fcu/data/optical_flow.hpp>
+#include <clover2_fcu/utils/sensor_publisher.hpp>
 #include <clover2_fcu/utils/telemetry_interface.hpp>
 
 // STL
@@ -13,8 +15,10 @@
 
 namespace clover2_fcu::capability {
 
+/// Source of external odometry fed into the FCU estimator.
 enum class estimator_source : uint8_t { vision = 0, mocap };
 
+/// Estimator states to reset; combinable with operator|.
 enum class estimator_reset : uint8_t {
     none = 0,
     height = 1 << 0,
@@ -42,16 +46,23 @@ public:
 
     static constexpr const char* name = "estimator";
 
-    explicit estimator_interface(capability::base_interface::shared_ptr base)
-        : telemetry_interface<data::estimator_status>(base) {}
+    explicit estimator_interface(rclcpp::Clock::SharedPtr clock)
+        : telemetry_interface<data::estimator_status>(std::move(clock)) {}
 
+    /// @brief Reset the estimator states selected by scope.
     virtual result reset(estimator_reset scope = estimator_reset::full) = 0;
 
+    /// @brief Set the FCU global origin (the EKF GPS origin).
     virtual result set_origin(const data::geo_point& origin) = 0;
 
-    virtual void publish_odometry(
-        const data::odometry& odometry,
+    /// @brief Odometry input handle; the source is baked into the closure.
+    virtual utils::sensor_publisher<data::odometry> odometry_publisher(
         estimator_source source = estimator_source::vision) = 0;
+
+    /// @brief Optical flow input handle; the sensor slot id is resolved by
+    ///        the backend at creation (empty handle when no slot is left).
+    virtual utils::sensor_publisher<data::optical_flow>
+    optical_flow_publisher() = 0;
 };
 
 }  // namespace clover2_fcu::capability

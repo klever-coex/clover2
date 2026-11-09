@@ -3,24 +3,16 @@
 // clover2
 #include <clover2_fcu/backend/backend_base.hpp>
 #include <clover2_fcu/capability/all.hpp>
-#include <clover2_fcu/capability/base_interface.hpp>
 #include <clover2_fcu/capability/battery_interface.hpp>
 #include <clover2_fcu/capability/commands_interface.hpp>
 #include <clover2_fcu/capability/odometry_interface.hpp>
 #include <clover2_fcu/capability/parameters_interface.hpp>
-#include <clover2_fcu/capability/setpoint_base.hpp>
 #include <clover2_fcu/capability/system_state_interface.hpp>
+#include <clover2_fcu/context.hpp>
 #include <clover2_fcu_msgs/msg/fcu_config.hpp>
 #include <clover2_fcu_msgs/srv/get_config.hpp>
 
 // ROS2
-#include <rclcpp/node.hpp>
-#include <rclcpp/node_interfaces/node_base_interface.hpp>
-#include <rclcpp/node_interfaces/node_graph_interface.hpp>
-#include <rclcpp/node_interfaces/node_logging_interface.hpp>
-#include <rclcpp/node_interfaces/node_services_interface.hpp>
-#include <rclcpp/node_interfaces/node_timers_interface.hpp>
-#include <rclcpp/node_interfaces/node_topics_interface.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 // third party
@@ -39,17 +31,17 @@ namespace clover2_fcu {
 
 class mode_base;
 
+/**
+ * @brief Transport-agnostic access to the flight controller: connects to
+ *        the bridge, loads the protocol backend via pluginlib and hands
+ *        out cached capability providers. Embeddable in any node; the
+ *        provider cache is thread-safe.
+ */
 class client {
 public:
     using shared_ptr = std::shared_ptr<client>;
 
-    using required_interfaces = rclcpp::node_interfaces::NodeInterfaces<
-        rclcpp::node_interfaces::NodeBaseInterface,
-        rclcpp::node_interfaces::NodeTopicsInterface,
-        rclcpp::node_interfaces::NodeServicesInterface,
-        rclcpp::node_interfaces::NodeTimersInterface,
-        rclcpp::node_interfaces::NodeGraphInterface,
-        rclcpp::node_interfaces::NodeLoggingInterface>;
+    using required_interfaces = context::node_interfaces;
 
     class settings {
     public:
@@ -102,6 +94,7 @@ public:
     /// @brief The cached provider for the capability name.
     std::shared_ptr<void> get(const std::string& capability);
 
+    /// @brief Typed shortcuts to get<T>().
     capability::system_state_interface::shared_ptr state() {
         return get<capability::system_state_interface>();
     }
@@ -133,19 +126,7 @@ public:
     /// @brief Whether the capability is served by the backend.
     bool has(const std::string& capability);
 
-    /// @brief The client callback group (used by mode_base for its own
-    ///        clients/subscriptions/timers).
-    rclcpp::CallbackGroup::SharedPtr callback_group() const {
-        return m_callback_group;
-    }
-
 private:
-    /// @brief Create a setpoint provider bound to the mode.
-    template <capability::setpoint_contract SetpointT>
-    SetpointT::shared_ptr create_setpoint(mode_token token) {
-        return backend()->template create_setpoint<SetpointT>(token);
-    }
-
     /// @brief Blocking bridge connection.
     /// @throws clover2_fcu::exception on failure.
     void connect();
@@ -165,17 +146,18 @@ private:
     backend::backend_base::shared_ptr ensure_backend(
         const std::string& plugin_name);
 
-    rclcpp::Logger get_logger() const { return m_logger; }
+    rclcpp::Logger get_logger() const { return m_context.logger; }
+
+    /// @brief The environment the client assembled for its providers.
+    const context& fcu_context() const { return m_context; }
 
     friend class mode_base;
 
     settings m_settings;
-    rclcpp::Logger m_logger;
-    rclcpp::CallbackGroup::SharedPtr m_callback_group;
-    rclcpp::Client<clover2_fcu_msgs::srv::GetConfig>::SharedPtr m_config_client;
-
-    YAML::Node m_params;
     clover2_fcu_msgs::msg::FcuConfig m_config;
+    context m_context;
+
+    rclcpp::Client<clover2_fcu_msgs::srv::GetConfig>::SharedPtr m_config_client;
 
     /// @brief Guards the lazy backend creation (thread-safe client).
     std::mutex m_backend_mutex;
@@ -184,7 +166,9 @@ private:
         "clover2_fcu", "clover2_fcu::backend::backend_base"};
 
     backend::backend_base::shared_ptr m_backend;
-    mutable std::unordered_map<std::string, std::shared_ptr<void>> m_cache;
+
+    mutable std::mutex m_cache_mutex;
+    std::unordered_map<std::string, std::shared_ptr<void>> m_cache;
 };
 
 }  // namespace clover2_fcu

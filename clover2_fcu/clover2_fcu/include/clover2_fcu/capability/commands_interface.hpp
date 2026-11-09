@@ -1,12 +1,12 @@
 #pragma once
 
 // clover2
-#include <clover2_fcu/common/command_handle.hpp>
 #include <clover2_fcu/data/flight_mode.hpp>
 
 // STL
 #include <functional>
 #include <memory>
+#include <optional>
 
 namespace clover2_fcu::capability {
 
@@ -19,23 +19,28 @@ public:
 
     virtual ~commands_interface() = default;
 
-    /// @brief Arm the vehicle (request).
-    virtual command_handle::shared_ptr arm(result_callback&& cb) = 0;
+    /// @brief Arm the vehicle.
+    virtual void arm(result_callback cb, bool run_preflight_checks = false) = 0;
 
-    /// @brief Disarm the vehicle (request).
-    virtual command_handle::shared_ptr disarm(result_callback&& cb) = 0;
+    /// @brief Disarm the vehicle.
+    virtual void disarm(result_callback cb) = 0;
 
-    /// @brief Switch the flight mode (request).
-    virtual command_handle::shared_ptr set_mode(data::flight_mode mode, result_callback&& cb) = 0;
+    /// @brief Switch the flight mode.
+    virtual void set_mode(result_callback cb, data::flight_mode mode) = 0;
 
-    /// @brief Trigger an automatic takeoff (task).
-    virtual command_handle::shared_ptr takeoff(result_callback&& cb) = 0;
+    /// @brief Trigger an automatic takeoff (ack; the maneuver itself is
+    ///        the navigation stack's action).
+    virtual void takeoff(result_callback cb,
+                         std::optional<double> altitude = std::nullopt,
+                         std::optional<double> heading = std::nullopt) = 0;
 
-    /// @brief Trigger an automatic landing (task).
-    virtual command_handle::shared_ptr land(result_callback&& cb) = 0;
+    /// @brief Trigger an automatic landing (ack; the maneuver itself is
+    ///        the navigation stack's action).
+    virtual void land(result_callback cb) = 0;
 
-    /// @brief Trigger a return-to-launch (task).
-    virtual command_handle::shared_ptr rtl(result_callback&& cb) = 0;
+    /// @brief Trigger a return-to-launch (ack; the maneuver itself is
+    ///        the navigation stack's action).
+    virtual void rtl(result_callback cb) = 0;
 };
 
 }  // namespace clover2_fcu::capability

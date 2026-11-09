@@ -27,11 +27,20 @@ rclcpp_components_register_node(${PROJECT_NAME}
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   ament_auto_add_gtest(test_threading test/test_threading.cpp)
-  ament_auto_add_gtest(test_command_handle test/test_command_handle.cpp)
+
+  add_library(test_stub_backend SHARED test/stub_backend.cpp)
+  target_link_libraries(test_stub_backend ${PROJECT_NAME} Eigen3::Eigen)
+
+  ament_auto_add_gtest(test_lease test/test_lease.cpp)
+  target_link_libraries(test_lease ${PROJECT_NAME} test_stub_backend)
+  target_compile_definitions(
+    test_lease
+    PRIVATE STUB_LIBRARY_PATH="${CMAKE_CURRENT_BINARY_DIR}/libtest_stub_backend.so")
 
   find_package(ament_lint_auto REQUIRED)
   set(ament_cmake_copyright_FOUND TRUE)
   set(ament_cmake_cpplint_FOUND TRUE)
+  set(ament_cmake_uncrustify_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
 

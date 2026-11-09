@@ -3,23 +3,20 @@
 // clover2
 #include <clover2_fcu/backend/backend_base.hpp>
 
-// third party
-#include <Eigen/Geometry>
-
 // STL
-#include <memory>
 #include <string>
 
 namespace clover2_fcu_mavros {
 
+/// mavros backend factory: telemetry, commands, parameters, setpoints and
+/// the partial estimator providers.
 class factory : public clover2_fcu::backend::backend_base {
 public:
     factory();
 
     std::string protocol() const override;
 
-    void do_initialize(
-        std::shared_ptr<clover2_fcu::capability::base_interface> base) override;
+    void do_initialize() override;
 };
 
 }  // namespace clover2_fcu_mavros

@@ -3,6 +3,8 @@
 // clover2
 #include <clover2_common/node.hpp>
 #include <clover2_fcu/backend/backend_base.hpp>
+#include <clover2_fcu/capability/system_state_interface.hpp>
+#include <clover2_fcu/context.hpp>
 #include <clover2_fcu_msgs/msg/mode_state.hpp>
 #include <clover2_fcu_msgs/srv/activate_mode.hpp>
 #include <clover2_fcu_msgs/srv/get_config.hpp>
@@ -18,7 +20,6 @@
 // STL
 #include <map>
 #include <memory>
-#include <optional>
 #include <string>
 
 namespace clover2_fcu {
@@ -48,14 +49,18 @@ private:
 
     void handle_mode_bond_broken(uint32_t mode_id);
 
-    /// @brief Publish the current lease on mode_state.
+    void setup_state_mirror();
+    void handle_state_mirror(const data::system_state& state);
+    void revoke_lease(const std::string& reason);
+
+    /// @brief Publish the current lease on mode_state (transient local).
     void publish_mode_state();
 
     struct mode_record {
         std::string name;
         std::shared_ptr<bond::Bond> bond;
+
         bool broken{false};
-        std::optional<uint32_t> native_mode_id{0};
     };
 
     rclcpp::Service<clover2_fcu_msgs::srv::GetConfig>::SharedPtr
@@ -72,11 +77,17 @@ private:
     pluginlib::ClassLoader<backend::backend_base> m_loader{
         "clover2_fcu", "clover2_fcu::backend::backend_base"};
 
+    capability::system_state_interface::shared_ptr m_state_mirror;
+    capability::system_state_interface::token m_state_mirror_token;
+
     clover2_fcu_msgs::msg::FcuConfig m_config;
 
     std::map<uint32_t, mode_record> m_modes;
     uint32_t m_next_mode_id{1};
+
     uint32_t m_active_mode_id{0};
+
+    bool m_lease_confirmed{false};
 };
 
 }  // namespace clover2_fcu

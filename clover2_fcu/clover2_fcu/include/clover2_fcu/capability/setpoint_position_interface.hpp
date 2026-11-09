@@ -1,8 +1,5 @@
 #pragma once
 
-// clover2
-#include <clover2_fcu/capability/setpoint_base.hpp>
-
 // third party
 #include <Eigen/Geometry>
 
@@ -12,15 +9,18 @@
 
 namespace clover2_fcu::capability {
 
-class setpoint_position_interface : public setpoint_base {
+/// Pure data-sink capability: an ordinary cached capability without a
+/// per-mode gate. Streaming discipline is a convention — setpoints flow
+/// only from update_setpoint of the active mode, one mode_base per node.
+class setpoint_position_interface {
 public:
     using shared_ptr = std::shared_ptr<setpoint_position_interface>;
 
     static constexpr const char* name = "setpoint_position";
 
-    explicit setpoint_position_interface(base_interface::shared_ptr base, mode_token token)
-        : setpoint_base(base, token) {}
+    virtual ~setpoint_position_interface() = default;
 
+    /// @brief Stream the next position setpoint; heading in radians.
     virtual void update(const Eigen::Vector3d& position,
                         std::optional<double> heading = {}) = 0;
 };

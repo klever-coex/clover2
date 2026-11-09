@@ -2,17 +2,25 @@
 
 // clover2
 #include <clover2_common/util/shared_callback.hpp>
-#include <clover2_fcu/capability/base_interface.hpp>
 #include <clover2_fcu/common/exception.hpp>
+
+// ROS2
+#include <rclcpp/rclcpp.hpp>
 
 // STL
 #include <chrono>
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <utility>
 
 namespace clover2_fcu {
 
+/**
+ * @brief Snapshot stream of a telemetry capability: the provider publishes
+ *        update_data() from the transport, consumers read last() (a copy,
+ *        any thread) or subscribe on_update()
+ */
 template <typename T>
 class telemetry_interface
     : public std::enable_shared_from_this<telemetry_interface<T>> {
@@ -21,8 +29,8 @@ public:
     using callbacks = clover2_common::util::shared_callback<void(const T&)>;
     using token = typename callbacks::token;
 
-    explicit telemetry_interface(capability::base_interface::shared_ptr base)
-        : m_clock(base->clock()) {}
+    explicit telemetry_interface(rclcpp::Clock::SharedPtr clock)
+        : m_clock(std::move(clock)) {}
 
     virtual ~telemetry_interface() = default;
 
@@ -32,6 +40,7 @@ public:
     }
 
     /// @brief Get a copy of the latest snapshot.
+    /// @throws clover2_fcu::exception when no data has been received yet.
     T last() const {
         const std::lock_guard<std::mutex> lock(m_data_mutex);
         if (!m_has_data) {

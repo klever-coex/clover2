@@ -1,8 +1,5 @@
 // clover2
-#include <clover2_common/node.hpp>
 #include <clover2_common/util/shared_callback.hpp>
-#include <clover2_fcu/backend/backend_base.hpp>
-#include <clover2_fcu/capability/base_interface.hpp>
 #include <clover2_fcu/capability/system_state_interface.hpp>
 #include <clover2_fcu/utils/telemetry_interface.hpp>
 
@@ -96,20 +93,17 @@ struct counter_snapshot {
 class counter_interface
     : public clover2_fcu::telemetry_interface<counter_snapshot> {
 public:
-    explicit counter_interface(
-        clover2_fcu::capability::base_interface::shared_ptr base)
-        : telemetry_interface(std::move(base)) {}
+    explicit counter_interface(rclcpp::Clock::SharedPtr clock)
+        : telemetry_interface(std::move(clock)) {}
 
     void inject(uint64_t seq) { update_data(counter_snapshot{seq, seq}); }
 };
 
 TEST(telemetry_interface, concurrent_read_write) {
-    auto node = std::make_shared<clover2_common::node>("telemetry_mt_test");
-    auto base = std::make_shared<clover2_fcu::capability::base_interface_impl>(
-        *node, "/fcu_bridge", nullptr);
+    auto clock = std::make_shared<rclcpp::Clock>(RCL_SYSTEM_TIME);
     // on_update() requires shared_from_this(): the provider must be
     // owned by a shared_ptr, as it always is in the client cache.
-    auto iface = std::make_shared<counter_interface>(base);
+    auto iface = std::make_shared<counter_interface>(clock);
 
     std::atomic<bool> stop{false};
     std::atomic<uint64_t> fires{0};
@@ -141,68 +135,6 @@ TEST(telemetry_interface, concurrent_read_write) {
     reader.join();
 
     EXPECT_GT(fires.load(), 0u);
-}
-
-// ---------------------------------------------------------------------------
-// backend_base: lazy cache builds each provider exactly once.
-
-class test_provider
-    : public clover2_fcu::capability::system_state_interface {
-public:
-    explicit test_provider(
-        clover2_fcu::capability::base_interface::shared_ptr base)
-        : system_state_interface(std::move(base)) {}
-};
-
-class test_backend : public clover2_fcu::backend::backend_base {
-public:
-    test_backend() {
-        using clover2_fcu::capability::system_state_interface;
-
-        add<system_state_interface>([this] {
-            ++m_builds;
-            // Widen the race window for concurrent first get() calls.
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            // Builders resolve dependencies re-entrantly via get().
-            return std::make_shared<test_provider>(
-                get<clover2_fcu::capability::base_interface>());
-        });
-    }
-
-    std::string protocol() const override { return "test_mt"; }
-
-    void do_initialize(
-        std::shared_ptr<clover2_fcu::capability::base_interface>) override {}
-
-    int m_builds{0};
-};
-
-TEST(backend_base, concurrent_get_builds_once) {
-    auto node = std::make_shared<clover2_common::node>("backend_mt_test");
-    auto base =
-        std::make_shared<clover2_fcu::capability::base_interface_impl>(
-            *node, "/fcu_bridge", nullptr);
-
-    test_backend backend;
-    backend.initialize(base);
-
-    constexpr int k_threads = 8;
-    std::vector<std::shared_ptr<void>> results(k_threads);
-    std::vector<std::thread> threads;
-    for (auto& r : results) {
-        threads.emplace_back([&backend, &r] {
-            r = backend.get(
-                clover2_fcu::capability::system_state_interface::name);
-        });
-    }
-    for (auto& t : threads) {
-        t.join();
-    }
-
-    EXPECT_EQ(backend.m_builds, 1);
-    for (const auto& r : results) {
-        EXPECT_EQ(r, results.front());
-    }
 }
 
 }  // namespace

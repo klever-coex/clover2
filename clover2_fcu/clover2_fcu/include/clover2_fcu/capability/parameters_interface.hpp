@@ -3,14 +3,14 @@
 // clover2
 #include <clover2_fcu/common/result.hpp>
 
+#include <rclcpp/parameter_value.hpp>
+
 // STL
 #include <memory>
 #include <string>
-#include <variant>
+#include <vector>
 
 namespace clover2_fcu::capability {
-
-using parameter_value = std::variant<double, int64_t, bool, std::string>;
 
 class parameters_interface {
 public:
@@ -20,10 +20,16 @@ public:
 
     virtual ~parameters_interface() = default;
 
-    virtual result get(const std::string& name, parameter_value& out) = 0;
+    /// @brief Read a parameter from the provider's cache.
+    virtual result get(const std::string& name,
+                       rclcpp::ParameterValue& out) = 0;
 
+    /// @brief Write a parameter (blocking round-trip); must not be called
+    ///        from inside an fcu-group callback.
     virtual result set(const std::string& name,
-                       const parameter_value& value) = 0;
+                       const rclcpp::ParameterValue& value) = 0;
+
+    virtual std::vector<std::string> list() const = 0;
 };
 
 }  // namespace clover2_fcu::capability

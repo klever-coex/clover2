@@ -11,6 +11,9 @@
 
 namespace clover2_fcu::data {
 
+/// Vehicle pose/velocity: both the external-odometry input to the FCU
+/// estimator (via estimator::odometry_publisher) and the FCU odometry
+/// telemetry.
 struct odometry {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 

@@ -2,9 +2,11 @@
 #include <clover2_fcu/bridge.hpp>
 #include <clover2_fcu/common/exception.hpp>
 
+// third party
+#include <yaml-cpp/yaml.h>
+
 // STL
 #include <algorithm>
-#include <functional>
 #include <utility>
 
 namespace clover2_fcu {
@@ -15,6 +17,8 @@ bridge::bridge(const rclcpp::NodeOptions& options)
     declare_parameter<std::string>("plugin_params", "");
 
     m_config.protocol = get_parameter("protocol").as_string();
+    m_config.plugin_params = get_parameter("plugin_params").as_string();
+
     try {
         m_factory = m_loader.createSharedInstance(m_config.protocol);
     } catch (const pluginlib::PluginlibException& e) {
@@ -24,29 +28,63 @@ bridge::bridge(const rclcpp::NodeOptions& options)
             m_config.protocol, e.what());
     }
 
-    m_config.plugin_params = get_parameter("plugin_params").as_string();
+    if (m_factory->protocol() != m_config.protocol) {
+        throw exception(
+            "factory lookup name '{}' does not match its protocol() '{}' "
+            "(check the backend plugins.xml)",
+            m_config.protocol, m_factory->protocol());
+    }
+
+    context ctx;
+    ctx.logger = get_logger();
+    ctx.clock = get_clock();
+    ctx.node = context::node_interfaces(*this);
+    ctx.bridge_node = get_name();
+    if (!m_config.plugin_params.empty()) {
+        try {
+            ctx.plugin_params = YAML::Load(m_config.plugin_params);
+        } catch (const YAML::Exception& e) {
+            RCLCPP_WARN(get_logger(), "invalid plugin params yaml: %s",
+                        e.what());
+        }
+    }
+
+    m_factory->initialize(ctx);
 
     m_get_config_service = create_service<clover2_fcu_msgs::srv::GetConfig>(
-        "get_config", std::bind(&bridge::handle_get_config, this,
-                                std::placeholders::_1, std::placeholders::_2));
+        "~/get_config",
+        std::bind(&bridge::handle_get_config, this, std::placeholders::_1,
+                  std::placeholders::_2));
 
     m_mode_state_pub = create_publisher<clover2_fcu_msgs::msg::ModeState>(
-        "mode_state", rclcpp::QoS(1).transient_local());
+        "~/mode_state", rclcpp::QoS(1).transient_local());
     publish_mode_state();
 
     m_register_mode_service =
         create_service<clover2_fcu_msgs::srv::RegisterMode>(
-            "register_mode",
+            "~/register_mode",
             std::bind(&bridge::handle_register_mode, this,
                       std::placeholders::_1, std::placeholders::_2));
     m_activate_mode_service =
         create_service<clover2_fcu_msgs::srv::ActivateMode>(
-            "activate_mode",
+            "~/activate_mode",
             std::bind(&bridge::handle_activate_mode, this,
                       std::placeholders::_1, std::placeholders::_2));
+
+    setup_state_mirror();
 }
 
-bridge::~bridge() { m_factory.reset(); }
+bridge::~bridge() {
+    m_state_mirror_token.release();
+    m_state_mirror.reset();
+
+    for (auto& [mode_id, record] : m_modes) {
+        record.bond.reset();
+    }
+
+    m_modes.clear();
+    m_factory.reset();
+}
 
 void bridge::handle_get_config(
     const std::shared_ptr<clover2_fcu_msgs::srv::GetConfig::Request>,
@@ -86,7 +124,7 @@ void bridge::handle_register_mode(
 
     const uint32_t mode_id = m_next_mode_id++;
     auto mode_bond = std::make_shared<bond::Bond>(
-        "bond",                                                  //
+        get_fully_qualified_name() + std::string("/bond"),       //
         std::to_string(mode_id),                                 //
         shared_from_this(),                                      //
         [this, mode_id]() { handle_mode_bond_broken(mode_id); }  //
@@ -94,14 +132,14 @@ void bridge::handle_register_mode(
     mode_bond->setHeartbeatPeriod(0.10);
     mode_bond->start();
 
-    m_modes.emplace(mode_id, mode_record{request->name, std::move(mode_bond),
-                                         false, native_mode_id});
+    m_modes.emplace(mode_id,
+                    mode_record{request->name, std::move(mode_bond), false});
 
     response->ok = true;
     response->mode_id = mode_id;
-    RCLCPP_INFO(get_logger(), "mode '%s' registered (id=%u, native=%u)",
+    RCLCPP_INFO(get_logger(), "mode '%s' registered (id=%u)%s",
                 request->name.c_str(), mode_id,
-                native_mode_id.has_value() ? *native_mode_id : 0);
+                native_mode_id.has_value() ? " (native)" : "");
 }
 
 void bridge::handle_activate_mode(
@@ -125,6 +163,7 @@ void bridge::handle_activate_mode(
 
     if (target_mode_id != m_active_mode_id) {
         m_active_mode_id = target_mode_id;
+        m_lease_confirmed = false;
         publish_mode_state();
     }
 
@@ -144,8 +183,61 @@ void bridge::handle_mode_bond_broken(uint32_t mode_id) {
 
     if (m_active_mode_id == mode_id) {
         m_active_mode_id = 0;
+        m_lease_confirmed = false;
         publish_mode_state();
     }
+}
+
+void bridge::setup_state_mirror() {
+    try {
+        m_state_mirror =
+            std::static_pointer_cast<capability::system_state_interface>(
+                m_factory->get(capability::system_state_interface::name));
+        m_state_mirror_token = m_state_mirror->on_update(
+            [this](const data::system_state& snapshot) {
+                handle_state_mirror(snapshot);
+            });
+    } catch (const exception& e) {
+        RCLCPP_WARN(get_logger(),
+                    "system_state mirror unavailable, the lease is revoked "
+                    "only by bonds and explicit surrender: %s",
+                    e.what());
+    }
+}
+
+void bridge::handle_state_mirror(const data::system_state& state) {
+    if (m_active_mode_id == 0) {
+        return;
+    }
+
+    if (!m_lease_confirmed) {
+        if (state.failsafe) {
+            revoke_lease("failsafe");
+        } else if (state.mode == data::flight_mode::offboard() && state.armed) {
+            m_lease_confirmed = true;
+        }
+
+        return;
+    }
+
+    if (state.failsafe) {
+        revoke_lease("failsafe");
+    } else if (state.mode != data::flight_mode::offboard()) {
+        revoke_lease("mode is not OFFBOARD");
+    } else if (!state.armed) {
+        revoke_lease("disarmed");
+    }
+}
+
+void bridge::revoke_lease(const std::string& reason) {
+    const auto it = m_modes.find(m_active_mode_id);
+    RCLCPP_WARN(get_logger(), "mode '%s' (id=%u) lease revoked: %s",
+                it != m_modes.end() ? it->second.name.c_str() : "?",
+                m_active_mode_id, reason.c_str());
+
+    m_active_mode_id = 0;
+    m_lease_confirmed = false;
+    publish_mode_state();
 }
 
 void bridge::publish_mode_state() {
