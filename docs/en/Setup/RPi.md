@@ -37,20 +37,23 @@ Writing the image will erase all data on the selected drive. Ensure you have bac
     <br>
 
 2. Select your downloaded image file. Once selected, the file name and size will appear in the window.
+   
 
 ```{tip}
 If the image is in a supported archive format, you do not need to extract it manually.
 ```
 
-  ```{figure} @assets@/common/setup/rpi/etcher-image-selected.webp
+ <br>
+
+```{figure} @assets@/common/setup/rpi/etcher-image-selected.webp
     :alt:  Selected image
     :width: 90%
     :align: center
 
-   Selected image
-   ```
+    Selected image
+```
 
-    <br>
+<br>
 
 4. Click `Select target`. From the list of available drives, choose your microSD card and click `Select 1`. Verify that the drive name and capacity match your memory card.
 
@@ -59,7 +62,8 @@ If the image is in a supported archive format, you do not need to extract it man
     :width: 90%
     :align: center
 
-   Selecting target drive
+    Selecting target drive
+    
     ```
 
     <br>
