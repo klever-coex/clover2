@@ -644,8 +644,12 @@ Clover5FPV/Radio
 
 ## Прошивка
 
-Перед настройкой замените прошивку PX4 на Betaflight по инструкции {doc}`Прошивка <Clover5FPV/Firmware>`.
+Перед настройкой замените прошивку PX4 на Betaflight по инструкции {doc}`Clover5FPV/Firmware/FirmwareBetaflight`.
 
 ## Настройка
 
-После завершения сборки выполните настройку в {doc}` Betaflight <Clover5FPV/BetaflightSetup>`.
+После завершения прошивки выполните настройку в {doc}` Betaflight <Clover5FPV/BetaflightSetup>`.
+
+## Возврат на PX4
+
+Чтобы вернуться с Betaflight на PX4, следуйте инструкции {doc}`Clover5FPV/Firmware/FirmwarePX4`.

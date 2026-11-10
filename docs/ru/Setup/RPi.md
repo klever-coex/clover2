@@ -8,6 +8,7 @@
 RPi/DroneConnection
 RPi/ArucoMap
 RPi/DroneSettings
+RPi/WifiNetworkManager
 ```
 
 Для записи образа на карту памяти Raspberry Pi используйте программу **balenaEtcher**.
