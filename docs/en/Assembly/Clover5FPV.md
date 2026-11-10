@@ -644,7 +644,7 @@ Clover5FPV/Radio
 
 ## Flashing Firmware
 
-Before proceeding to software configuration, replace the PX4 firmware with Betaflight. Follow the procedure outlined in the {doc}`Firmware Guide <Clover5FPV/Firmware>`.
+Before proceeding to software configuration, replace the PX4 firmware with Betaflight. Follow the procedure outlined in the {doc}`Flashing Betaflight <Clover5FPV/Firmware/FirmwareBetaflight>`.
 
 ## Software Setup
 

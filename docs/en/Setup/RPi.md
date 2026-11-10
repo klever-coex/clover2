@@ -8,6 +8,7 @@
 RPi/DroneConnection
 RPi/ArucoMap
 RPi/DroneSettings
+RPi/WifiNetworkManager
 ```
 
 To write the system image to your Raspberry Pi memory card, use the **balenaEtcher** program.
