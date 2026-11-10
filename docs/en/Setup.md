@@ -19,7 +19,7 @@ To set up the {doc}`flight controller <Setup/QGC>`>, use the QGroundControl appl
 * Configure control peripherals and flight modes.
 * Define power parameters.
 
-## Configuring the Flight Controller
+## Configuring the Raspberry Pi
 
 * First, flash the system image onto a memory card for the {doc}`Raspberry Pi <Setup/RPi>`. 
 * Once powered, connect to the Raspberry Pi via Web IDE or SSH.

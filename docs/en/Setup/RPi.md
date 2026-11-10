@@ -37,25 +37,22 @@ Writing the image will erase all data on the selected drive. Ensure you have bac
     <br>
 
 2. Select your downloaded image file. Once selected, the file name and size will appear in the window.
-   
 
-```{tip}
-If the image is in a supported archive format, you do not need to extract it manually.
-```
+    ```{tip}
+    If the image is in a supported archive format, you do not need to extract it manually.
+    ```
 
- <br>
-
-```{figure} @assets@/common/setup/rpi/etcher-image-selected.webp
-    :alt:  Selected image
+    ```{figure} @assets@/common/setup/rpi/etcher-image-selected.webp
+    :alt: Selected image
     :width: 90%
     :align: center
 
     Selected image
-```
+    ```
 
-<br>
+    <br>
 
-4. Click `Select target`. From the list of available drives, choose your microSD card and click `Select 1`. Verify that the drive name and capacity match your memory card.
+3. Click `Select target`. From the list of available drives, choose your microSD card and click `Select 1`. Verify that the drive name and capacity match your memory card.
 
     ```{figure} @assets@/common/setup/rpi/etcher-select-target.webp
     :alt: Selecting target drive
@@ -68,7 +65,7 @@ If the image is in a supported archive format, you do not need to extract it man
 
     <br>
 
-5. Review your selection one last time, then click `Flash!`. If prompted by your system, confirm the request for administrator privileges.
+4. Review your selection one last time, then click `Flash!`. If prompted by your system, confirm the request for administrator privileges.
 
     ```{figure} @assets@/common/setup/rpi/etcher-ready-to-flash.webp
     :alt: Ready to flash
@@ -80,7 +77,7 @@ If the image is in a supported archive format, you do not need to extract it man
 
     <br>
 
-6. Wait for the flashing and data verification processes to finish. Do not remove the memory card or disconnect the reader until both steps are fully complete.
+5. Wait for the flashing and data verification processes to finish. Do not remove the memory card or disconnect the reader until both steps are fully complete.
 
     ```{figure} @assets@/common/setup/rpi/etcher-flashing.webp
     :alt: Flashing the card
@@ -92,7 +89,7 @@ If the image is in a supported archive format, you do not need to extract it man
 
     <br>
 
-7. Once finished, a `Flash Completed!` message will appear on the screen.
+6. Once finished, a `Flash Completed!` message will appear on the screen.
 
     ```{figure} @assets@/common/setup/rpi/etcher-flash-completed.webp
     :alt: Flash completed message
@@ -104,4 +101,4 @@ If the image is in a supported archive format, you do not need to extract it man
 
     <br>
 
-8. Safely eject the memory card from your computer. Ensure your Raspberry Pi is powered off, then insert the memory card into its slot.
+7. Safely eject the memory card from your computer. Ensure your Raspberry Pi is powered off, then insert the memory card into its slot.
