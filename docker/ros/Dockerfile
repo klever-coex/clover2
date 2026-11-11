@@ -21,6 +21,10 @@ ARG ROS_DISTRO
 ARG TARGETPLATFORM
 COPY tooling/docker/* /clover2/
 
+RUN sed -i 's|http://archive.ubuntu.com/ubuntu/|http://azure.archive.ubuntu.com/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources && \
+    sed -i 's|http://security.ubuntu.com/ubuntu/|http://azure.archive.ubuntu.com/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get update
+
 WORKDIR /clover2
 COPY --from=rosdep-depend /clover2/apt-depends.txt /tmp/apt-depends.txt
 
