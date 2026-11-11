@@ -11,7 +11,7 @@ Firmware/FirmwarePX4
 
 ## Прошивка на Betaflight
 
-Чтобы настроить квадрокоптер для полетов в режиме ФПВ, замените PX4 на Betaflight по инструкции {doc}`Firmware/FirmwareBetaflight`.
+Чтобы настроить квадрокоптер для полетов в режиме FPV, замените PX4 на Betaflight по инструкции {doc}`Firmware/FirmwareBetaflight`.
 
 ## Возврат на PX4
 
