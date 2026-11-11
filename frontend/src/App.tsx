@@ -16,6 +16,7 @@ import { TopicsPage } from './pages/ros2/TopicsPage.tsx';
 import { VideoPage } from './pages/video/VideoPage.tsx';
 
 const MapPage = lazy(() => import('./pages/map/MapPage.tsx'));
+const DiagnosticsPage = lazy(() => import('./pages/diagnostics/DiagnosticsPage.tsx'));
 
 export default function App() {
   useRosoutCollector();
@@ -46,6 +47,14 @@ export default function App() {
           <Route path="/ros2/topics" element={<TopicsPage />} />
           <Route path="/ros2/topics/detail" element={<TopicDetailPage />} />
           <Route path="/ros2/logs" element={<LogsPage />} />
+          <Route
+            path="/diagnostics"
+            element={
+              <Suspense fallback={<LoadingState variant="centered" />}>
+                <DiagnosticsPage />
+              </Suspense>
+            }
+          />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </SidebarShell>
