@@ -21,6 +21,9 @@ ARG ROS_DISTRO
 ARG TARGETPLATFORM
 COPY tooling/docker/* /clover2/
 
+RUN echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4 && \
+    apt-get update
+
 WORKDIR /clover2
 COPY --from=rosdep-depend /clover2/apt-depends.txt /tmp/apt-depends.txt
 
