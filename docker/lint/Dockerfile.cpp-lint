@@ -1,5 +1,7 @@
 FROM ubuntu:noble AS cpp-lint
 
+RUN echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+
 RUN apt-get update -y && \
     apt-get install -y \
     clang-format \
