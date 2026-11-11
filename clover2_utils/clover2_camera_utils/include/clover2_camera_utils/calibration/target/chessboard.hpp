@@ -38,12 +38,11 @@ public:
      */
     chessboard(uint32_t rows, uint32_t columns, double square_size_m);
 
-    std::optional<data::target_detection> detect(
+    data::target_detection_result detect(
         const cv::Mat& image) const override;
 
     void draw_debug(
-        cv::Mat& image,
-        const std::optional<data::target_detection>& sample) const override;
+        cv::Mat& image, const data::target_debug& debug) const override;
 
 private:
     cv::Size m_pattern_size;

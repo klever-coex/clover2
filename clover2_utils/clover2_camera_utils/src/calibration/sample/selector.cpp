@@ -13,7 +13,8 @@ double distance(const data::sample_features& first,
                 const data::sample_features& second) {
     return std::abs(first.x - second.x) + std::abs(first.y - second.y) +
            std::abs(first.size - second.size) +
-           std::abs(first.skew - second.skew);
+           std::abs(first.tilt_x - second.tilt_x) +
+           std::abs(first.tilt_y - second.tilt_y);
 }
 
 bool meets_minimum_progress(double progress, double minimum_progress) {
@@ -69,16 +70,17 @@ data::coverage_progress selector::compute_progress() const {
         minimum.x = std::min(minimum.x, feature.x);
         minimum.y = std::min(minimum.y, feature.y);
         minimum.size = std::min(minimum.size, feature.size);
-        minimum.skew = std::min(minimum.skew, feature.skew);
+        minimum.tilt_x = std::min(minimum.tilt_x, feature.tilt_x);
+        minimum.tilt_y = std::min(minimum.tilt_y, feature.tilt_y);
 
         maximum.x = std::max(maximum.x, feature.x);
         maximum.y = std::max(maximum.y, feature.y);
         maximum.size = std::max(maximum.size, feature.size);
-        maximum.skew = std::max(maximum.skew, feature.skew);
+        maximum.tilt_x = std::max(maximum.tilt_x, feature.tilt_x);
+        maximum.tilt_y = std::max(maximum.tilt_y, feature.tilt_y);
     }
 
     minimum.size = 0.0;
-    minimum.skew = 0.0;
 
     const auto calculate_progress = [](double minimum, double maximum,
                                        double required_range) {
@@ -95,15 +97,18 @@ data::coverage_progress selector::compute_progress() const {
                                 m_config.required_ranges[1]),
         .size = calculate_progress(minimum.size, maximum.size,
                                    m_config.required_ranges[2]),
-        .skew = calculate_progress(minimum.skew, maximum.skew,
-                                   m_config.required_ranges[3]),
+        .tilt_x = calculate_progress(minimum.tilt_x, maximum.tilt_x,
+                                     m_config.required_ranges[3]),
+        .tilt_y = calculate_progress(minimum.tilt_y, maximum.tilt_y,
+                                     m_config.required_ranges[4]),
     };
     result.data_sufficient =
         m_features.size() >= m_config.minimum_samples_for_completion &&
         meets_minimum_progress(result.x, m_config.minimum_progress[0]) &&
         meets_minimum_progress(result.y, m_config.minimum_progress[1]) &&
         meets_minimum_progress(result.size, m_config.minimum_progress[2]) &&
-        meets_minimum_progress(result.skew, m_config.minimum_progress[3]);
+        meets_minimum_progress(result.tilt_x, m_config.minimum_progress[3]) &&
+        meets_minimum_progress(result.tilt_y, m_config.minimum_progress[4]);
     return result;
 }
 

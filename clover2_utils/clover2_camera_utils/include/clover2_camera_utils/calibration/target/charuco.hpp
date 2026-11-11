@@ -43,12 +43,11 @@ public:
     charuco(uint32_t squares_rows, uint32_t squares_columns,
             double square_size_m, double marker_size_m, std::string dictionary);
 
-    std::optional<data::target_detection> detect(
+    data::target_detection_result detect(
         const cv::Mat& image) const override;
 
     void draw_debug(
-        cv::Mat& image,
-        const std::optional<data::target_detection>& sample) const override;
+        cv::Mat& image, const data::target_debug& debug) const override;
 
 private:
     cv::Ptr<cv::aruco::Dictionary> m_dictionary;

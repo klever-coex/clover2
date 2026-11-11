@@ -12,7 +12,8 @@ struct coverage_progress {
     double x{0.0};               ///< Coverage by horizontal sample position.
     double y{0.0};               ///< Coverage by vertical sample position.
     double size{0.0};            ///< Coverage by sample size.
-    double skew{0.0};            ///< Coverage by sample skew.
+    double tilt_x{0.0};          ///< Coverage by board tilt along board X.
+    double tilt_y{0.0};          ///< Coverage by board tilt along board Y.
     bool data_sufficient{false}; ///< Whether data is sufficient for calibration.
 };
 

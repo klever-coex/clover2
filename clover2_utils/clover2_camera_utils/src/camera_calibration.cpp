@@ -48,7 +48,8 @@ camera_calibration::camera_calibration(const rclcpp::NodeOptions& options)
     declare_progress_parameter("minimum_progress_x", 0);
     declare_progress_parameter("minimum_progress_y", 1);
     declare_progress_parameter("minimum_progress_size", 2);
-    declare_progress_parameter("minimum_progress_skew", 3);
+    declare_progress_parameter("minimum_progress_tilt_x", 3);
+    declare_progress_parameter("minimum_progress_tilt_y", 4);
 
     declare_and_watch_parameter<int>(
         "minimum_samples_for_completion",
@@ -64,11 +65,12 @@ camera_calibration::camera_calibration(const rclcpp::NodeOptions& options)
                 static_cast<size_t>(minimum_samples);
         });
 
-    for (const auto [name, index] :
+    for (const auto& [name, index] :
          {std::pair{"minimum_progress_x", size_t{0}},
           std::pair{"minimum_progress_y", size_t{1}},
           std::pair{"minimum_progress_size", size_t{2}},
-          std::pair{"minimum_progress_skew", size_t{3}}}) {
+          std::pair{"minimum_progress_tilt_x", size_t{3}},
+          std::pair{"minimum_progress_tilt_y", size_t{4}}}) {
         const auto minimum_progress = get_parameter(name).as_double();
         if (minimum_progress < 0.0 || minimum_progress > 1.0) {
             throw std::invalid_argument(std::string(name) +
@@ -224,11 +226,11 @@ void camera_calibration::image_callback(
     }
     bool board_detected = false;
     uint8_t stage = calibrate_camera::Feedback::WAITING_FOR_BOARD;
-    std::optional<data::target_detection> sample;
     try {
         const auto input =
             cv_bridge::toCvShare(message, sensor_msgs::image_encodings::MONO8);
-        sample = calibration_session.target->detect(input->image);
+        auto detection = calibration_session.target->detect(input->image);
+        auto sample = std::move(detection.sample);
         board_detected = sample.has_value();
         stage = board_detected ? calibrate_camera::Feedback::BOARD_DETECTED
                                : calibrate_camera::Feedback::WAITING_FOR_BOARD;
@@ -240,7 +242,18 @@ void camera_calibration::image_callback(
         const bool prepare_debug_image = publish_debug || sample.has_value();
         if (prepare_debug_image) {
             cv::cvtColor(input->image, debug_image, cv::COLOR_GRAY2BGR);
-            calibration_session.target->draw_debug(debug_image, sample);
+            calibration_session.target->draw_debug(debug_image, detection.debug);
+            if (detection.debug.orientation.has_value()) {
+                const auto& orientation = *detection.debug.orientation;
+                cv::putText(
+                    debug_image,
+                    cv::format("tilt_x=%.3f tilt_y=%.3f inliers=%zu err=%.2fpx",
+                               orientation.tilt_x, orientation.tilt_y,
+                               orientation.inlier_count,
+                               orientation.mean_reprojection_error),
+                    cv::Point{16, 58}, cv::FONT_HERSHEY_SIMPLEX, 0.55,
+                    cv::Scalar{0, 165, 255}, 2, cv::LINE_AA);
+            }
         }
 
         if (sample) {
@@ -276,7 +289,7 @@ void camera_calibration::image_callback(
                 "Accepted frames: " + std::to_string(
                                          calibration_session.sample_selector
                                              .accepted_count()),
-                cv::Point{10, 30}, cv::FONT_HERSHEY_SIMPLEX, 0.8,
+                cv::Point{16, 86}, cv::FONT_HERSHEY_SIMPLEX, 0.65,
                 cv::Scalar{0, 255, 0}, 2, cv::LINE_AA);
 
             cv_bridge::CvImage output;
@@ -478,7 +491,8 @@ void camera_calibration::publish_feedback(const std::string& goal_id,
     feedback->progress_x = static_cast<float>(progress.x);
     feedback->progress_y = static_cast<float>(progress.y);
     feedback->progress_size = static_cast<float>(progress.size);
-    feedback->progress_skew = static_cast<float>(progress.skew);
+    feedback->progress_tilt_x = static_cast<float>(progress.tilt_x);
+    feedback->progress_tilt_y = static_cast<float>(progress.tilt_y);
     feedback->data_sufficient = progress.data_sufficient;
     feedback->stage = stage;
     if (stage == calibrate_camera::Feedback::SAMPLE_ACCEPTED) {

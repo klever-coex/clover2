@@ -1,6 +1,7 @@
 #include <clover2_camera_utils/calibration/target/chessboard.hpp>
 
 #include <clover2_camera_utils/calibration/sample/features.hpp>
+#include <clover2_camera_utils/calibration/sample/orientation.hpp>
 
 #include <nlohmann/json.hpp>
 
@@ -38,10 +39,11 @@ chessboard::chessboard(uint32_t rows, uint32_t columns, double square_size_m)
     }
 }
 
-std::optional<data::target_detection> chessboard::detect(
+data::target_detection_result chessboard::detect(
     const cv::Mat& image) const {
+    data::target_detection_result result;
     if (image.type() != CV_8UC1) {
-        return std::nullopt;
+        return result;
     }
 
     std::vector<cv::Point2f> corners;
@@ -49,12 +51,13 @@ std::optional<data::target_detection> chessboard::detect(
         image, m_pattern_size, corners,
         cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_NORMALIZE_IMAGE);
     if (!found) {
-        return std::nullopt;
+        return result;
     }
 
     cv::cornerSubPix(
         image, corners, {11, 11}, {-1, -1},
         {cv::TermCriteria::EPS | cv::TermCriteria::COUNT, 30, 0.1});
+    result.debug.corners = corners;
     const std::vector<cv::Point2f> outer_corners{
         corners.front(),
         corners[static_cast<size_t>(m_pattern_size.width - 1)],
@@ -64,26 +67,33 @@ std::optional<data::target_detection> chessboard::detect(
     const auto features =
         sample::features_calculator{}.compute(outer_corners, image.size());
     if (!features.has_value()) {
-        return std::nullopt;
+        return result;
     }
-    return data::target_detection{
-        .calibration =
-            {
-                .image_size = image.size(),
-                .image_points = std::move(corners),
-                .object_points = m_object_points,
-            },
-        .selection = *features,
+    result.debug.feature_geometry = *features;
+    data::observation observation{
+        .image_size = image.size(),
+        .image_points = std::move(corners),
+        .object_points = m_object_points,
     };
+    result.debug.orientation = sample::orientation_calculator{}.compute(
+        observation.object_points, observation.image_points, m_object_points);
+    if (!result.debug.orientation.has_value()) {
+        return result;
+    }
+    auto selection = features->features;
+    selection.tilt_x = result.debug.orientation->tilt_x;
+    selection.tilt_y = result.debug.orientation->tilt_y;
+    result.sample = data::target_detection{
+        .calibration = std::move(observation),
+        .selection = selection,
+    };
+    return result;
 }
 
 void chessboard::draw_debug(
-    cv::Mat& image, const std::optional<data::target_detection>& sample) const {
-    cv::drawChessboardCorners(
-        image, m_pattern_size,
-        sample ? sample->calibration.image_points
-               : std::vector<cv::Point2f>{},
-        sample.has_value());
+    cv::Mat& image, const data::target_debug& debug) const {
+    cv::drawChessboardCorners(image, m_pattern_size, debug.corners,
+                              !debug.corners.empty());
 }
 
 }  // namespace clover2_camera_utils::calibration::target

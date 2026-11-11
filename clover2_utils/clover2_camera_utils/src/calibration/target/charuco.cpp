@@ -1,6 +1,7 @@
 #include <clover2_camera_utils/calibration/target/charuco.hpp>
 
 #include <clover2_camera_utils/calibration/sample/features.hpp>
+#include <clover2_camera_utils/calibration/sample/orientation.hpp>
 
 #include <nlohmann/json.hpp>
 
@@ -9,6 +10,7 @@
 #include <cmath>
 #include <optional>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 #include <unordered_map>
 #include <utility>
@@ -83,30 +85,42 @@ charuco::charuco(uint32_t squares_rows, uint32_t squares_columns,
         m_dictionary);
 }
 
-std::optional<data::target_detection> charuco::detect(
+data::target_detection_result charuco::detect(
     const cv::Mat& image) const {
+    data::target_detection_result result;
     if (image.type() != CV_8UC1) {
-        return std::nullopt;
+        return result;
     }
 
-    std::vector<std::vector<cv::Point2f>> marker_corners;
-    std::vector<int> marker_ids;
-    cv::aruco::detectMarkers(image, m_dictionary, marker_corners,
-                             marker_ids);
-    if (marker_ids.empty()) {
-        return std::nullopt;
+    cv::aruco::detectMarkers(image, m_dictionary, result.debug.marker_corners,
+                             result.debug.marker_ids);
+    if (result.debug.marker_ids.empty()) {
+        return result;
     }
 
     cv::Mat charuco_corners;
     cv::Mat charuco_ids;
     const auto corner_count = cv::aruco::interpolateCornersCharuco(
-        marker_corners, marker_ids, image, m_board, charuco_corners,
-        charuco_ids);
+        result.debug.marker_corners, result.debug.marker_ids, image, m_board,
+        charuco_corners, charuco_ids);
+    result.debug.corners.reserve(static_cast<size_t>(corner_count));
+    result.debug.corner_ids.reserve(static_cast<size_t>(corner_count));
+    for (int index = 0; index < corner_count; ++index) {
+        result.debug.corners.push_back(
+            charuco_corners.at<cv::Point2f>(index));
+        result.debug.corner_ids.push_back(charuco_ids.at<int>(index));
+    }
+
+    if (corner_count >= static_cast<int>(k_minimum_corners)) {
+        result.debug.feature_geometry = sample::features_calculator{}.compute(
+            result.debug.corners, image.size());
+    }
+
     const auto minimum_corner_count = static_cast<int>(std::ceil(
         k_minimum_corner_ratio * m_board->chessboardCorners.size()));
     if (corner_count < static_cast<int>(k_minimum_corners) ||
         corner_count < minimum_corner_count) {
-        return std::nullopt;
+        return result;
     }
 
     data::observation observation;
@@ -117,34 +131,68 @@ std::optional<data::target_detection> charuco::detect(
         const auto corner_id = charuco_ids.at<int>(index);
         if (corner_id < 0 || static_cast<size_t>(corner_id) >=
                                  m_board->chessboardCorners.size()) {
-            return std::nullopt;
+            return result;
         }
         observation.image_points.push_back(
             charuco_corners.at<cv::Point2f>(index));
         observation.object_points.push_back(
             m_board->chessboardCorners[static_cast<size_t>(corner_id)]);
     }
-    const auto features = sample::features_calculator{}.compute(
-        observation.image_points, observation.image_size);
-    if (!features.has_value()) {
-        return std::nullopt;
+    if (!result.debug.feature_geometry.has_value()) {
+        return result;
     }
-    return data::target_detection{
+    result.debug.orientation = sample::orientation_calculator{}.compute(
+        observation.object_points, observation.image_points,
+        m_board->chessboardCorners);
+    if (!result.debug.orientation.has_value()) {
+        return result;
+    }
+    auto selection = result.debug.feature_geometry->features;
+    selection.tilt_x = result.debug.orientation->tilt_x;
+    selection.tilt_y = result.debug.orientation->tilt_y;
+    result.sample = data::target_detection{
         .calibration = std::move(observation),
-        .selection = *features,
+        .selection = selection,
     };
+    return result;
 }
 
 void charuco::draw_debug(
-    cv::Mat& image, const std::optional<data::target_detection>& sample) const {
-    if (!sample) {
-        return;
+    cv::Mat& image, const data::target_debug& debug) const {
+    if (!debug.marker_ids.empty()) {
+        cv::aruco::drawDetectedMarkers(image, debug.marker_corners,
+                                       debug.marker_ids);
     }
-    for (const auto& point : sample->calibration.image_points) {
+    for (size_t index = 0; index < debug.corners.size(); ++index) {
+        const auto& point = debug.corners[index];
         cv::circle(image, point, 6, cv::Scalar{0, 0, 0}, 2, cv::LINE_AA);
         cv::circle(image, point, 3, cv::Scalar{0, 255, 0}, cv::FILLED,
                    cv::LINE_AA);
+        if (index < debug.corner_ids.size()) {
+            cv::putText(image, std::to_string(debug.corner_ids[index]),
+                        point + cv::Point2f{7.0F, -7.0F},
+                        cv::FONT_HERSHEY_SIMPLEX, 0.45, cv::Scalar{0, 255, 0},
+                        1, cv::LINE_AA);
+        }
     }
+    if (!debug.feature_geometry.has_value()) {
+        return;
+    }
+
+    const auto& geometry = *debug.feature_geometry;
+    for (size_t index = 0; index < geometry.convex_hull.size(); ++index) {
+        cv::line(image, geometry.convex_hull[index],
+                 geometry.convex_hull[(index + 1) % geometry.convex_hull.size()],
+                 cv::Scalar{0, 255, 255}, 2, cv::LINE_AA);
+    }
+    cv::drawMarker(image, geometry.mean, cv::Scalar{0, 0, 255},
+                   cv::MARKER_CROSS, 16, 2, cv::LINE_AA);
+
+    const auto& features = geometry.features;
+    const std::string text = cv::format(
+        "x=%.3f y=%.3f size=%.3f", features.x, features.y, features.size);
+    cv::putText(image, text, {16, 30}, cv::FONT_HERSHEY_SIMPLEX, 0.65,
+                cv::Scalar{0, 165, 255}, 2, cv::LINE_AA);
 }
 
 }  // namespace clover2_camera_utils::calibration::target

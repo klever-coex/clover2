@@ -12,10 +12,10 @@ namespace clover2_camera_utils::data {
 
 /** @brief Defines sample selection criteria for the calibration dataset. */
 struct sample_selector_config {
-    std::array<double, 4> required_ranges{
-        0.7, 0.7, 0.4, 0.5};  ///< Required ranges for x, y, size, and skew.
-    std::array<double, 4> minimum_progress{
-        0.75, 0.75, 0.8, 0.8};  ///< Minimum progress required for calibration.
+    std::array<double, 5> required_ranges{
+        0.7, 0.7, 0.4, 0.6, 0.6};  ///< Required ranges for x, y, size, tilt_x, and tilt_y.
+    std::array<double, 5> minimum_progress{
+        0.75, 0.75, 0.8, 0.8, 0.8};  ///< Minimum progress required for calibration.
     double duplicate_distance_threshold{
         0.2};  ///< Maximum distance at which samples are considered duplicates.
     size_t minimum_samples_for_completion{

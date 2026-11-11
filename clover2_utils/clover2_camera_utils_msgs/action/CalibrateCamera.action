@@ -39,7 +39,8 @@ uint32 accepted_samples
 float32 progress_x
 float32 progress_y
 float32 progress_size
-float32 progress_skew
+float32 progress_tilt_x
+float32 progress_tilt_y
 
 bool data_sufficient
 
