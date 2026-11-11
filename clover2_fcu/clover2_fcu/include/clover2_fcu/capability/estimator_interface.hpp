@@ -15,10 +15,8 @@
 
 namespace clover2_fcu::capability {
 
-/// Source of external odometry fed into the FCU estimator.
 enum class estimator_source : uint8_t { vision = 0, mocap };
 
-/// Estimator states to reset; combinable with operator|.
 enum class estimator_reset : uint8_t {
     none = 0,
     height = 1 << 0,

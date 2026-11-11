@@ -16,8 +16,6 @@
 
 namespace clover2_fcu_mavros::capability {
 
-/// Shared publishing machinery for setpoint_raw/local (PositionTarget,
-/// FRAME_LOCAL_NED — mavros converts ENU input to the FCU NED frame).
 class setpoint_base {
 public:
     explicit setpoint_base(const clover2_fcu::context& ctx, std::string prefix);
@@ -29,7 +27,6 @@ protected:
     rclcpp::Clock::SharedPtr m_clock;
 };
 
-/// Position setpoint; heading is optional (yaw ignored when absent).
 class position_setpoint
     : public clover2_fcu::capability::setpoint_position_interface,
       private setpoint_base {
@@ -42,7 +39,6 @@ public:
                 std::optional<double> heading) override;
 };
 
-/// Velocity setpoint; yaw_rate is optional.
 class velocity_setpoint
     : public clover2_fcu::capability::setpoint_velocity_interface,
       private setpoint_base {

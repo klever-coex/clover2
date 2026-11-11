@@ -1,6 +1,5 @@
 #pragma once
 
-// clover2
 // STL
 #include <optional>
 #include <string>
@@ -8,10 +7,6 @@
 
 namespace clover2_fcu::data {
 
-/// Open flight mode model: any mode name (custom or FCU-native) is
-/// representable — the activation lease mirror has to distinguish arbitrary
-/// modes, so a closed enum is not enough. Well-known names get named
-/// accessors; everything else is carried as its native string.
 class flight_mode {
 public:
     /// Well-known FCU modes.

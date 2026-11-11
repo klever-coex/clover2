@@ -1,24 +1,21 @@
 // clover2
 #include <clover2_fcu_mavros/capability/odometry.hpp>
 
+// ROS2
+#include <tf2_eigen/tf2_eigen.hpp>
+
 namespace clover2_fcu_mavros::capability {
 
 namespace {
 
 clover2_fcu::data::odometry convert(const nav_msgs::msg::Odometry& msg) {
     clover2_fcu::data::odometry odom;
-    odom.position =
-        Eigen::Vector3d(msg.pose.pose.position.x, msg.pose.pose.position.y,
-                        msg.pose.pose.position.z);
-    odom.velocity =
-        Eigen::Vector3d(msg.twist.twist.linear.x, msg.twist.twist.linear.y,
-                        msg.twist.twist.linear.z);
-    odom.attitude = Eigen::Quaterniond(
-        msg.pose.pose.orientation.w, msg.pose.pose.orientation.x,
-        msg.pose.pose.orientation.y, msg.pose.pose.orientation.z);
-    odom.angular_velocity =
-        Eigen::Vector3d(msg.twist.twist.angular.x, msg.twist.twist.angular.y,
-                        msg.twist.twist.angular.z);
+
+    tf2::fromMsg(msg.pose.pose.position, odom.position);
+    tf2::fromMsg(msg.twist.twist.linear, odom.velocity);
+    tf2::fromMsg(msg.pose.pose.orientation, odom.attitude);
+    tf2::fromMsg(msg.twist.twist.angular, odom.angular_velocity);
+
     odom.stamp = msg.header.stamp;
     return odom;
 }

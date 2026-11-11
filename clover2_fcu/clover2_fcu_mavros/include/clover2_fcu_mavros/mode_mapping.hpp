@@ -12,9 +12,6 @@
 
 namespace clover2_fcu_mavros {
 
-/// PX4/mavros custom mode string -> fcu-layer mode name (the open
-/// flight_mode model). Unknown native names pass through lowercased —
-/// the mirror still has to distinguish them from the lease names.
 inline std::string mavros_mode_to_fcu(const std::string& mavros_mode) {
     static constexpr std::array<std::pair<std::string_view, std::string_view>,
                                 12>
@@ -46,8 +43,6 @@ inline std::string mavros_mode_to_fcu(const std::string& mavros_mode) {
     return out;
 }
 
-/// fcu-layer mode name -> PX4/mavros custom mode string; nullopt when the
-/// name is a companion-side lease name with no native mavros equivalent.
 inline std::optional<std::string> fcu_mode_to_mavros(
     const clover2_fcu::data::flight_mode& mode) {
     static constexpr std::array<std::pair<std::string_view, std::string_view>,

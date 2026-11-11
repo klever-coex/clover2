@@ -7,8 +7,6 @@ namespace {
 
 constexpr uint8_t k_primary_id = 0;
 
-/// Exposes the protected update_data of the telemetry base to the battery
-/// provider.
 class battery_source_impl : public battery_source {
 public:
     using battery_source::battery_source;
@@ -39,7 +37,6 @@ battery::battery(const clover2_fcu::context& ctx, std::string prefix)
 }
 
 std::vector<uint8_t> battery::ids() const {
-    // Only the primary exists on this transport; visible as data arrives.
     return has_data() ? std::vector<uint8_t>{k_primary_id}
                       : std::vector<uint8_t>{};
 }
@@ -66,8 +63,6 @@ void battery::handle_battery(const sensor_msgs::msg::BatteryState& msg) {
 
     const auto sample = convert(msg);
 
-    // update_data fires subscriber callbacks — never under the provider
-    // mutex (threading rule 3).
     if (primary_source) {
         std::static_pointer_cast<battery_source_impl>(primary_source)
             ->inject(sample);

@@ -17,7 +17,6 @@ bool landed_state_in_air(uint8_t landed_state) {
 
 system_state::system_state(const clover2_fcu::context& ctx, std::string prefix)
     : clover2_fcu::capability::system_state_interface(ctx.clock) {
-    // The mavros sys plugin publishes the state transient-local.
     const auto qos = rclcpp::QoS(10).transient_local();
 
     m_state_sub = ctx.subscribe<mavros_msgs::msg::State>(
@@ -44,7 +43,7 @@ void system_state::publish_snapshot() {
         .connected = m_connected,
         .armed = m_armed,
         .in_air = landed_state_in_air(m_landed_state),
-        .failsafe = false,  // no mavros ROS2 source (MVP: not fed)
+        .failsafe = false,
         .mode = clover2_fcu::data::flight_mode{m_mode},
     });
 }

@@ -9,9 +9,6 @@
 
 namespace clover2_fcu::capability {
 
-/// Pure data-sink capability: an ordinary cached capability without a
-/// per-mode gate. Streaming discipline is a convention — setpoints flow
-/// only from update_setpoint of the active mode, one mode_base per node.
 class setpoint_position_interface {
 public:
     using shared_ptr = std::shared_ptr<setpoint_position_interface>;

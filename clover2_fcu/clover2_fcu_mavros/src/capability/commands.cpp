@@ -20,8 +20,6 @@ commands::commands(const clover2_fcu::context& ctx, std::string prefix)
 }
 
 void commands::arm(result_callback cb, bool run_preflight_checks) {
-    // mavros cmd/arming carries no preflight-checks flag; PX4 runs the
-    // preflight checks on arm anyway.
     (void)run_preflight_checks;
 
     auto request = std::make_shared<mavros_msgs::srv::CommandBool::Request>();
@@ -68,8 +66,6 @@ void commands::takeoff(result_callback cb, std::optional<double> altitude,
         return;
     }
 
-    // PX4 treats a NaN yaw in NAV_TAKEOFF/LAND as "keep the current
-    // heading"; a plain 0 would turn the vehicle north.
     auto request = std::make_shared<mavros_msgs::srv::CommandTOL::Request>();
     request->min_pitch = 0.f;
     request->yaw = heading ? static_cast<float>(*heading)
@@ -95,7 +91,6 @@ void commands::land(result_callback cb) {
 }
 
 void commands::rtl(result_callback cb) {
-    // RTL is not a mavros command service — switch into the native RTL mode.
     set_mode(std::move(cb), clover2_fcu::data::flight_mode::rtl());
 }
 

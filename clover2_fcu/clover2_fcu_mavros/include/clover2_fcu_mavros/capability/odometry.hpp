@@ -12,7 +12,6 @@
 
 namespace clover2_fcu_mavros::capability {
 
-/// /mavros/local_position/odom telemetry.
 class odometry : public clover2_fcu::capability::odometry_interface {
 public:
     explicit odometry(const clover2_fcu::context& ctx, std::string prefix);

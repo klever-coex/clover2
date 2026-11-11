@@ -22,6 +22,9 @@
   <depend>clover2_description</depend>
   <depend>clover2_display</depend>
   <depend>clover2_fcu_bridge</depend>
+  <depend>clover2_fcu_mavros</depend>
+  <depend>clover2_fcu_msgs</depend>
+  <depend>clover2_fcu</depend>
   <depend>clover2_http_plugins</depend>
   <depend>clover2_http</depend>
   <depend>clover2_led</depend>

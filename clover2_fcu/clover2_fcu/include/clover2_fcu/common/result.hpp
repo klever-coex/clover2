@@ -8,19 +8,13 @@
 
 namespace clover2_fcu {
 
-/// Outcome of a query-type capability call (estimator reset/set_origin,
-/// parameters get/set). Transport gradations are the provider's to log
 class result {
 public:
     enum class value : uint8_t {
         success = 0,
-        /// The FCU declined the request.
         rejected,
-        /// No answer within the transport timeout.
         timeout,
-        /// The channel was interrupted before an answer.
         interrupted,
-        /// The transport does not serve this call.
         unsupported,
     };
 

@@ -9,9 +9,7 @@
 
 namespace clover2_fcu::data {
 
-/// One optical flow sample (MAVLink OPTICAL_FLOW_RAD semantics).
 struct optical_flow {
-    /// Image-pair quality, 0..255.
     uint8_t quality;
     /// Sampling period of the flow sensor [us].
     uint32_t integration_time_us;

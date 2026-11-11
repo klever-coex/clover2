@@ -23,16 +23,6 @@
 
 namespace clover2_fcu {
 
-/// Provider execution environment (a plain struct, no inheritance).
-/// Assembled by the client from its own parts and passed to the backend
-/// factory via initialize(context); the factory stores a copy and hands
-/// it to the builders `function<shared_ptr<T>(const context&)>`; providers
-/// keep it by value. Backend environment extensions go through
-/// composition (extra fields never belong here — plugin_params does).
-///
-/// All plumbing created through the helpers below is bound to the single
-/// MutuallyExclusive fcu group: with any executor the layer callbacks
-/// never overlap, so the layer ordering is total.
 struct context {
     using node_interfaces = rclcpp::node_interfaces::NodeInterfaces<
         rclcpp::node_interfaces::NodeBaseInterface,
@@ -50,12 +40,8 @@ struct context {
     rclcpp::CallbackGroup::SharedPtr group;
     std::string bridge_node;
 
-    /// Per-capability plugin parameters: a YAML map keyed by capability
-    /// name, distributed by the bridge. Keys outside capability names are
-    /// reserved for the backend. Addressed to backend providers only.
     YAML::Node plugin_params{YAML::Load("{}")};
 
-    /// Plugin parameters of one capability (an invalid node when absent).
     YAML::Node params(const std::string& capability) const {
         return plugin_params[capability];
     }
@@ -66,8 +52,8 @@ struct context {
         const std::string& topic, const rclcpp::QoS& qos, CallbackT&& callback,
         rclcpp::SubscriptionOptions options = {}) const {
         options.callback_group = group;
-        node_interfaces node_copy =
-            node;  // const getters return shared_ptr<const T>
+        node_interfaces node_copy = node;
+
         return rclcpp::create_subscription<MessageT>(
             node_copy, topic, qos, std::forward<CallbackT>(callback), options);
     }
@@ -83,7 +69,7 @@ struct context {
 
     /// @brief Create a service client on the fcu group (or on an explicit
     ///        callback group for channels that must not contend with the
-    ///        data-plane ordering — e.g. the blocking parameters channel).
+    ///        data-plane ordering - e.g. the blocking parameters channel).
     template <typename ServiceT>
     typename rclcpp::Client<ServiceT>::SharedPtr client(
         const std::string& service_name,

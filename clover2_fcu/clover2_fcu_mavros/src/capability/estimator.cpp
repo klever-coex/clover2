@@ -15,8 +15,6 @@ using clover2_fcu::data::optical_flow;
 nav_msgs::msg::Odometry convert(const odometry& sample,
                                 const rclcpp::Time& now) {
     nav_msgs::msg::Odometry msg;
-    // The mavros odometry plugin resolves these against its tf tree
-    // (defaults: fcu.odom_parent_id_des / fcu.odom_child_id_des).
     msg.header.frame_id = "odom";
     msg.header.stamp = sample.stamp.nanoseconds() == 0 ? now : sample.stamp;
     msg.child_frame_id = "base_link";
@@ -35,6 +33,7 @@ nav_msgs::msg::Odometry convert(const odometry& sample,
     msg.twist.twist.angular.x = sample.angular_velocity.x();
     msg.twist.twist.angular.y = sample.angular_velocity.y();
     msg.twist.twist.angular.z = sample.angular_velocity.z();
+
     return msg;
 }
 
@@ -42,8 +41,6 @@ mavros_msgs::msg::OpticalFlow convert(const optical_flow& sample,
                                       const rclcpp::Time& now) {
     mavros_msgs::msg::OpticalFlow msg;
     msg.header.stamp = sample.stamp.nanoseconds() == 0 ? now : sample.stamp;
-    // integrated_x/y is the accumulated flow; mavros rotates it
-    // baselink -> aircraft before sending FLOW.
     msg.flow.x = sample.integrated_x.value_or(0.0);
     msg.flow.y = sample.integrated_y.value_or(0.0);
     msg.flow_rate.x = sample.integrated_xgyro.value_or(0.0);
@@ -51,6 +48,7 @@ mavros_msgs::msg::OpticalFlow convert(const optical_flow& sample,
     msg.flow_rate.z = sample.integrated_zgyro.value_or(0.0);
     msg.quality = sample.quality;
     msg.ground_distance = static_cast<float>(sample.distance.value_or(0.0));
+
     return msg;
 }
 
@@ -68,11 +66,10 @@ estimator::estimator(const clover2_fcu::context& ctx, std::string prefix)
 
 result estimator::reset(clover2_fcu::capability::estimator_reset scope) {
     (void)scope;
-    return result::value::unsupported;  // no mavros source (MVP)
+    return result::value::unsupported;
 }
 
 result estimator::set_origin(const clover2_fcu::data::geo_point& origin) {
-    // geo_point carries radians; mavros expects degrees.
     geographic_msgs::msg::GeoPointStamped msg;
     msg.header.stamp = m_clock->now();
     msg.position.latitude = origin.lat * 180.0 / M_PI;
@@ -86,8 +83,6 @@ result estimator::set_origin(const clover2_fcu::data::geo_point& origin) {
 clover2_fcu::utils::sensor_publisher<clover2_fcu::data::odometry>
 estimator::odometry_publisher(
     clover2_fcu::capability::estimator_source source) {
-    // Both sources share /mavros/odometry/out: the mavros odometry plugin
-    // always marks the input MAV_ESTIMATOR_TYPE::VISION.
     (void)source;
     return make_sensor<clover2_fcu::data::odometry>(
         [](estimator& self, const clover2_fcu::data::odometry& sample) {
@@ -100,12 +95,9 @@ estimator::optical_flow_publisher() {
     const std::scoped_lock lock(m_mutex);
     if (m_flow_pub) {
         return clover2_fcu::utils::sensor_publisher<
-            clover2_fcu::data::optical_flow>{};  // no free slot
+            clover2_fcu::data::optical_flow>{};
     }
 
-    // OpticalFlowRad is not wired into this mavros (the flow plugin
-    // publishes FLOW only); the input path is a single OpticalFlow topic
-    // without a sensor id.
     m_flow_pub = m_context.publisher<mavros_msgs::msg::OpticalFlow>(
         m_flow_topic, rclcpp::QoS(1));
 
