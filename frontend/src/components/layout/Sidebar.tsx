@@ -13,6 +13,7 @@ import {
   ScrollText,
   Settings,
   SquarePen,
+  Stethoscope,
   Video,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -90,6 +91,7 @@ const MENU: NavSection[] = [
       { key: 'nodes', labelKey: route('/ros2/nodes').labelKey, icon: Network, to: '/ros2/nodes' },
       { key: 'topics', labelKey: route('/ros2/topics').labelKey, icon: EthernetPort, to: '/ros2/topics' },
       { key: 'logs', labelKey: route('/ros2/logs').labelKey, icon: ScrollText, to: '/ros2/logs' },
+      { key: 'diagnostics', labelKey: route('/diagnostics').labelKey, icon: Stethoscope, to: '/diagnostics' },
     ],
   },
   {
