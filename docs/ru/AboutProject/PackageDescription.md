@@ -7,5 +7,6 @@
 
 PackageDescription/Clover2Bringup
 PackageDescription/Clover2Common
+PackageDescription/Clover2FCU
 PackageDescription/Clover2HTTP
 ```
