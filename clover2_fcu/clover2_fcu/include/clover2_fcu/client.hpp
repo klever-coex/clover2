@@ -47,6 +47,12 @@ public:
     public:
         settings() {}
 
+        /// @brief Control client side diagnostics
+        settings& use_diagnostics(bool val) {
+            m_use_diagnostics = val;
+            return *this;
+        }
+
         /// @brief Bridge node name (absolute), default "/fcu_bridge".
         settings& bridge_node(std::string node_name) {
             m_bridge_node = std::move(node_name);
@@ -65,15 +71,31 @@ public:
         ///        backend does not serve it.
         template <capability::contract T>
         settings& require() {
-            m_required.push_back(T::name);
-            return *this;
+            return require(T::name);
         }
 
+        /// @brief Require a capability by name (the bindings-facing
+        ///        variant of require<T>()).
+        /// @throws clover2_fcu::exception when the name is not a known
+        ///         capability.
+        settings& require(const std::string& name) {
+            for (const auto& known : capability::all_names()) {
+                if (known == name) {
+                    m_required.push_back(name);
+                    return *this;
+                }
+            }
+
+            throw exception("unknown capability '{}'", name);
+        }
+
+        bool use_diagnostics() const { return m_use_diagnostics; }
         const std::string& bridge_node() const { return m_bridge_node; }
         std::chrono::nanoseconds wait_timeout() const { return m_wait_timeout; }
         const std::vector<std::string>& required() const { return m_required; }
 
     private:
+        bool m_use_diagnostics{true};
         std::string m_bridge_node{"/fcu_bridge"};
         std::vector<std::string> m_required{};
         std::chrono::nanoseconds m_wait_timeout{std::chrono::seconds(10)};

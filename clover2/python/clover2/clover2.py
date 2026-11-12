@@ -23,6 +23,8 @@ from .clients import (
 T = TypeVar("T")
 NAN = float("nan")
 
+_ACK_TIMEOUT = 10.0
+
 
 class Clover2(Node):
     """Main drone node."""
@@ -32,7 +34,9 @@ class Clover2(Node):
         if not node_name or len(node_name) == 0:
             node_name = "client_" + utils.generate_random_string(4)
 
-        rclpy.init()
+        if not rclpy.ok():
+            rclpy.init()
+
         Node.__init__(self, node_name)
 
         self._ros_thread: threading.Thread = threading.Thread(
@@ -44,7 +48,22 @@ class Clover2(Node):
 
         self._cached_clients: dict[str, object] = {}
         self._offboard = OffboardClient(self)
-        self._fcu = FCUClient(self)
+        self._fcu = FCUClient()
+
+    def _wait_ack(self, invoke: Callable[[], None]) -> bool:
+        """Run one async fcu command and wait out its ack ( Clover2-level
+        synchronization: the callback contract stays inside the class).
+        """
+        done = threading.Event()
+        result: list[bool] = []
+
+        def on_ack(ok: bool) -> None:
+            result.append(ok)
+            done.set()
+
+        invoke(on_ack)
+        done.wait(_ACK_TIMEOUT)
+        return result[0] if result else False
 
     def _cached_client(self, name: str, factory: Callable[[], T]) -> T | None:
         if name not in self._cached_clients:
@@ -93,26 +112,34 @@ class Clover2(Node):
         return self.offboard.navigate_wait(frame_id, x, y, z, yaw, speed)
 
     def land(self) -> bool:
-        return self.offboard.land()
+        return self._wait_ack(self.fcu.land)
 
     @property
     def fcu(self) -> FCUClient:
+        """New fcu client: commands and system state."""
         return self._fcu
 
     def arm(self) -> bool:
-        return self.fcu.arm()
+        return self._wait_ack(
+            lambda cb: self.fcu.arm(cb, run_preflight_checks=False)
+        )
 
     def disarm(self) -> bool:
-        return self.fcu.disarm()
+        return self._wait_ack(self.fcu.disarm)
 
     def is_armed(self) -> bool:
+        """Whether the vehicle is armed; raises until state data arrives."""
         return self.fcu.is_armed()
 
     def flight_mode(self) -> str:
+        """Current flight mode name; raises until state data arrives."""
         return self.fcu.flight_mode()
 
     def get_position(self, from_frame: str = "map") -> DronePosition:
-        return self.fcu.get_position(from_frame)
+        """Raise: odometry is not exposed in the python fcu binding yet."""
+        raise RuntimeError(
+            "get_position: odometry ещё не экспортирован в python-биндинге clover2_fcu"
+        )
 
     def camera(self, name: str = "main_camera") -> CameraClient | None:
         name_map = {

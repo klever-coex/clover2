@@ -36,7 +36,6 @@ class FCUBridgeAction(Action):
         fcu_conn: SomeSubstitutionsType | None = None,
         protocol: SomeSubstitutionsType | None = None,
         mavros_params_file: SomeSubstitutionsType | None = None,
-        backend: SomeSubstitutionsType | None = None,
         namespace: SomeSubstitutionsType = "",
         log_level: SomeSubstitutionsType = "info",
         use_sim_time: SomeSubstitutionsType = "false",
@@ -56,7 +55,6 @@ class FCUBridgeAction(Action):
                 / "mavros_default.yaml"
             )
         )
-        self.__backend = backend or TextSubstitution(text="mavros")
         self.__namespace = namespace
         self.__log_level = log_level
         self.__use_sim_time = use_sim_time
@@ -77,7 +75,6 @@ class FCUBridgeAction(Action):
             "fcu_conn",
             "protocol",
             "mavros_params_file",
-            "backend",
             "namespace",
             "log_level",
         ):
@@ -113,7 +110,6 @@ class FCUBridgeAction(Action):
 
         fcu_conn = perform_typed_substitution(context, self.__fcu_conn, str)
         protocol = perform_typed_substitution(context, self.__protocol, str)
-        backend = perform_typed_substitution(context, self.__backend, str)
         namespace = perform_typed_substitution(context, self.__namespace, str)
 
         if protocol == "mavros":
@@ -149,14 +145,14 @@ class FCUBridgeAction(Action):
             )
 
         fcu_bridge_params: list = list(self.__params_files)
+        fcu_bridge_params.append({"protocol": protocol})
         fcu_bridge_params.append({"use_sim_time": self.__use_sim_time})
-        fcu_bridge_params.append({"backend": backend})
         fcu_bridge_params.extend(self.__extra_parameters)
 
         actions.append(
             Node(
-                package="clover2_fcu_bridge",
-                executable="fcu_bridge",
+                package="clover2_fcu",
+                executable="bridge",
                 name="fcu_bridge",
                 namespace=namespace,
                 parameters=fcu_bridge_params,

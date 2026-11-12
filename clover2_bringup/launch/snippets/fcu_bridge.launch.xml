@@ -10,7 +10,6 @@
         fcu_conn="$(var fcu_conn)"
         mavros_params_file="$(find-pkg-share clover2_bringup)/params/mavros_default.yaml"
         protocol="$(var protocol)"
-        backend="$(var protocol)"
         namespace="$(var ns)">
 
         <!-- TODO: check if needed -->
