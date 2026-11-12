@@ -9,7 +9,7 @@ Before you proceed, make sure you have selected the correct controller and firmw
 ```
 
 ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/micoair743v2.webp
-:alt: Полетный контроллер MicoAir743v2
+:alt: MicoAir743v2 flight controller
 :width: 350px
 :align: center
 
@@ -36,7 +36,7 @@ Ensure **STM32CubeProgrammer** and **QGroundControl** are fully installed before
 2. Open **STM32CubeProgrammer** and select the connection interface.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/select-connection-interface.webp
-    :alt: Выбор интерфейса подключения в STM32CubeProgrammer
+    :alt: Selecting connection interface
     :width: 700px
     :align: center
 
@@ -48,7 +48,7 @@ Ensure **STM32CubeProgrammer** and **QGroundControl** are fully installed before
 3. Select the `USB` interface.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/select-usb-interface.webp
-    :alt: Выбор интерфейса USB
+    :alt: USB interface selected
     :width: 700px
     :align: center
 
@@ -60,11 +60,11 @@ Ensure **STM32CubeProgrammer** and **QGroundControl** are fully installed before
 4. Click the Refresh button located to the right of the `Port` list. **STM32CubeProgrammer** should detect the controller in DFU mode. If the port is not detected, reconnect the controller while continuing to hold the `BOOT` button.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/refresh-dfu-port.webp
-    :alt: Поиск DFU-устройства
+    :alt: Refreshing DFU device
     :width: 700px
     :align: center
 
-   Refreshing DFU device
+    Refreshing DFU device
     ```
 
     <br>
@@ -72,7 +72,7 @@ Ensure **STM32CubeProgrammer** and **QGroundControl** are fully installed before
 5. Click `Connect` to establish a link with the controller.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/connect-dfu-device.webp
-    :alt: Подключение к контроллеру в режиме DFU
+    :alt: Connecting DFU device
     :width: 700px
     :align: center
 
@@ -83,9 +83,8 @@ Ensure **STM32CubeProgrammer** and **QGroundControl** are fully installed before
 
 6. Perform a full memory erase: click the `Eraser` icon in the lower-left corner of the window, confirm the action in the pop-up, and wait for the process to finish.
 
-
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/erase-flash.webp
-    :alt: Полная очистка памяти контроллера
+    :alt: Full erase
     :width: 700px
     :align: center
 
@@ -94,10 +93,10 @@ Ensure **STM32CubeProgrammer** and **QGroundControl** are fully installed before
 
     <br>
 
-6. Click `Open file` and select the downloaded `micoair_h743-v2_bootloader.bin` file.
+7. Click `Open file` and select the downloaded `micoair_h743-v2_bootloader.bin` file.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/open-bootloader-file.webp
-    :alt: Выбор файла загрузчика PX4
+    :alt: Opening bootloader file
     :width: 700px
     :align: center
 
@@ -106,10 +105,10 @@ Ensure **STM32CubeProgrammer** and **QGroundControl** are fully installed before
 
     <br>
 
-7. Click `Download` and wait for the writing process to complete.
+8. Click `Download` and wait for the writing process to complete.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/write-bootloader.webp
-    :alt: Запись загрузчика PX4
+    :alt: Writing PX4 bootloader
     :width: 700px
     :align: center
 
@@ -118,10 +117,10 @@ Ensure **STM32CubeProgrammer** and **QGroundControl** are fully installed before
 
     <br>
 
-8. Once the writing is successful, click `Disconnect`.
+9. Once the writing is successful, click `Disconnect`.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/disconnect-programmer.webp
-    :alt: Отключение контроллера от STM32CubeProgrammer
+    :alt: Controller disconnected
     :width: 700px
     :align: center
 
@@ -130,7 +129,7 @@ Ensure **STM32CubeProgrammer** and **QGroundControl** are fully installed before
 
     <br>
 
-9.  Close **STM32CubeProgrammer** and disconnect the controller from your computer.
+10. Close **STM32CubeProgrammer** and disconnect the controller from your computer.
 
 ## How to Install the PX4 Firmware
 
@@ -139,7 +138,7 @@ Ensure **STM32CubeProgrammer** and **QGroundControl** are fully installed before
 3. Click the **QGroundControl** logo located in the upper-left corner.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/open-qgc-menu.webp
-    :alt: Главное меню QGroundControl
+    :alt: QGroundControl main menu
     :width: 700px
     :align: center
 
@@ -151,7 +150,7 @@ Ensure **STM32CubeProgrammer** and **QGroundControl** are fully installed before
 4. Select `Configure` from the drop-down menu to open the `Vehicle Configuration` panel.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/open-vehicle-configuration.webp
-    :alt: Пункт Configure в выпадающем меню QGroundControl
+    :alt: Configure in QGroundControl
     :width: 700px
     :align: center
 
@@ -163,7 +162,7 @@ Ensure **STM32CubeProgrammer** and **QGroundControl** are fully installed before
 5. Select the `Firmware` section.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/open-firmware-menu.webp
-    :alt: Переход в меню Firmware
+    :alt: Opening Firmware menu
     :width: 700px
     :align: center
 
@@ -175,7 +174,7 @@ Ensure **STM32CubeProgrammer** and **QGroundControl** are fully installed before
 6. Select your controller from the port list and click `Flash`.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/start-firmware-update.webp
-    :alt: Выбор контроллера и запуск прошивки
+    :alt: Selecting controller
     :width: 700px
     :align: center
 
@@ -187,7 +186,7 @@ Ensure **STM32CubeProgrammer** and **QGroundControl** are fully installed before
 7. If QGroundControl prompts you to reconnect the controller, follow the on-screen instructions (remember: do not press the `BOOT` button).
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/reconnect-controller.webp
-    :alt: Запрос на переподключение контроллера
+    :alt: Reconnecting controller
     :width: 700px
     :align: center
 
@@ -196,14 +195,14 @@ Ensure **STM32CubeProgrammer** and **QGroundControl** are fully installed before
 
     <br>
 
-8. In the `Firmware Setup` window, enable `Advanced settings`, select `Custom firmware file...` and click `OK`. Locate and seelect the `micoair_h743-v2_default.px4` file.
+8. In the `Firmware Setup` window, enable `Advanced settings`, select `Custom firmware file...` and click `OK`. Locate and select the `micoair_h743-v2_default.px4` file.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/select-custom-firmware.webp
-    :alt: Выбор прошивки из файла
+    :alt: Selecting firmware from file
     :width: 700px
     :align: center
 
-   Selecting firmware from file
+    Selecting firmware from file
     ```
 
     <br>
@@ -211,19 +210,19 @@ Ensure **STM32CubeProgrammer** and **QGroundControl** are fully installed before
 9. Wait for the firmware writing process to complete.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/wait-for-firmware-upload.webp
-    :alt: Запись прошивки PX4
+    :alt: Uploading PX4
     :width: 700px
     :align: center
 
-   Uploading PX4
+    Uploading PX4
     ```
 
     <br>
 
-10. Next Steps: proceed to  {doc}`configuring the flight controller <../../../Setup/QGC>`.
+10. Next Steps: proceed to {doc}`configuring the flight controller <../../../Setup/QGC>`.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/configure-flight-controller.webp
-    :alt: Полетный контроллер после установки PX4
+    :alt: Flight controller with PX4 installed
     :width: 700px
     :align: center
 

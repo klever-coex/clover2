@@ -132,7 +132,7 @@
 
 1. Откройте **QGroundControl**.
 2. Подключите полетный контроллер к компьютеру по USB, не нажимая кнопку `BOOT`.
-3. Нажмите на логотип *QGroundControl в левом верхнем углу.
+3. Нажмите на логотип **QGroundControl** в левом верхнем углу.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/open-qgc-menu.webp
     :alt: Главное меню QGroundControl

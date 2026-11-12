@@ -1,6 +1,6 @@
 # Wi-Fi Configuration Guide
 
-To manage the Raspberry Pi's network settings, use the `nmtui` text-based interface. 
+To manage the Raspberry Pi's network settings, use the `nmtui` text-based interface.
 
 You can configure the device in two ways:
 * Client Mode: The Raspberry Pi connects to an existing Wi-Fi network (like your home router).
@@ -19,7 +19,7 @@ Use these steps to change the name (SSID) and password of the Wi-Fi network crea
 1. Select `Edit a connection`.
 
     ```{figure} @assets@/ru/setup/rpi/wifi-network-manager/main-menu.webp
-    :alt: Главное меню nmtui
+    :alt: nmtui main menu
     :width: 600px
     :align: center
 
@@ -30,22 +30,22 @@ Use these steps to change the name (SSID) and password of the Wi-Fi network crea
 
 2. Select the access point profile and select `Edit`.
 
-By default, this profile is named `clover2`. If you do not see it, select  `Add` → `Wi-Fi`. In the `Mode` field, select `Access Point`, and in the `IPv4 CONFIGURATION` section, select `Shared`.
+    By default, this profile is named `clover2`. If you do not see it, select `Add` → `Wi-Fi`. In the `Mode` field, select `Access Point`, and in the `IPv4 CONFIGURATION` section, select `Shared`.
 
-  ```{figure} @assets@/ru/setup/rpi/wifi-network-manager/select-access-point.webp
-    :alt: Выбор профиля точки доступа
+    ```{figure} @assets@/ru/setup/rpi/wifi-network-manager/select-access-point.webp
+    :alt: Selecting AP
     :width: 600px
     :align: center
 
     Selecting AP
-   ```
+    ```
 
-   <br>
+    <br>
 
-5. Enter your desired network name in the `SSID` field and a password (minimum eight characters) in the  `Password` field.
+3. Enter your desired network name in the `SSID` field and a password (minimum eight characters) in the `Password` field.
 
     ```{figure} @assets@/ru/setup/rpi/wifi-network-manager/edit-access-point.webp
-    :alt: Изменение имени сети и пароля точки доступа
+    :alt: Editing AP
     :width: 600px
     :align: center
 
@@ -54,8 +54,8 @@ By default, this profile is named `clover2`. If you do not see it, select  `Add`
 
     <br>
 
-6. Select `OK`, then `Back` and `Quit`.
-7. Restart the NetworkManager to apply changes:
+4. Select `OK`, then `Back` and `Quit`.
+5. Restart the NetworkManager to apply changes:
 
     ```bash
     sudo systemctl restart NetworkManager
@@ -76,7 +76,7 @@ Follow these steps to connect the Raspberry Pi to an external Wi-Fi network.
 2. Select `Add`.
 
     ```{figure} @assets@/ru/setup/rpi/wifi-network-manager/add-connection.webp
-    :alt: Добавление профиля подключения
+    :alt: Adding connection
     :width: 600px
     :align: center
 
@@ -88,11 +88,11 @@ Follow these steps to connect the Raspberry Pi to an external Wi-Fi network.
 3. In the `New Connection` window, choose `Wi-Fi`.
 
     ```{figure} @assets@/ru/setup/rpi/wifi-network-manager/select-wifi.webp
-    :alt: Выбор типа подключения
+    :alt: Selecting Wi-Fi
     :width: 600px
     :align: center
 
-   Selecting Wi-Fi
+    Selecting Wi-Fi
     ```
 
     <br>
@@ -100,7 +100,7 @@ Follow these steps to connect the Raspberry Pi to an external Wi-Fi network.
 4. Navigate to the `Security` field and select your network's security type (e.g. `WPA & WPA2 Personal`).
 
     ```{figure} @assets@/ru/setup/rpi/wifi-network-manager/select-security.webp
-    :alt: Выбор типа защиты
+    :alt: Selecting security type
     :width: 600px
     :align: center
 
@@ -112,7 +112,7 @@ Follow these steps to connect the Raspberry Pi to an external Wi-Fi network.
 5. Enter your network name in the `SSID` field and your password in the `Password` field. Select `OK`, then `Back`.
 
     ```{figure} @assets@/ru/setup/rpi/wifi-network-manager/enter-network-credentials.webp
-    :alt: Ввод имени сети и пароля
+    :alt: Entering credentials
     :width: 600px
     :align: center
 
@@ -123,25 +123,27 @@ Follow these steps to connect the Raspberry Pi to an external Wi-Fi network.
 
 6. Select `Activate a connection`. Locate your new profile in the list and select `Activate`.
 
-   ```{note}
+    ```{note}
     The screenshot shows the profile Wi-Fi connection 1 as an example.
-   ```
+    ```
 
-   If your new profile does not appear in the list, exit `nmtui` and restart the Network Manager:
+    If your new profile does not appear in the list, exit `nmtui` and restart the Network Manager:
 
     ```bash
     sudo systemctl restart NetworkManager
     ```
 
-   Then, relaunch `sudo nmtui`, go to `Activate a connection`, and activate the profile.
+    Then, relaunch `sudo nmtui`, go to `Activate a connection`, and activate the profile.
 
     ```{figure} @assets@/ru/setup/rpi/wifi-network-manager/activate-client.webp
-    :alt: Активация профиля клиента
+    :alt: Activating client
     :width: 600px
     :align: center
 
     Activating client
     ```
+
+    <br>
 
 ```{note}
 Once connected to a Wi-Fi network, the Raspberry Pi's IP address may change.
@@ -157,7 +159,7 @@ To stop acting as a client and return to AP mode:
 1. Run `sudo nmtui` and select `Activate a connection`.
 
     ```{figure} @assets@/ru/setup/rpi/wifi-network-manager/open-connection-list.webp
-    :alt: Переход к списку подключений
+    :alt: Opening connection list
     :width: 600px
     :align: center
 
@@ -169,7 +171,7 @@ To stop acting as a client and return to AP mode:
 2. Select your active client profile and click `Deactivate`.
 
     ```{figure} @assets@/ru/setup/rpi/wifi-network-manager/deactivate-client.webp
-    :alt: Отключение профиля клиента
+    :alt: Deactivating client
     :width: 600px
     :align: center
 
