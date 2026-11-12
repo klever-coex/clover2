@@ -4,7 +4,7 @@
 
 
 ```{caution}
-Инструкция подходит только для полетного контроллера **MicoAir743v2**. Полная очистка памяти удалит Betaflight и его настройки.
+Инструкция подходит только для полетного контроллера **MicoAir743v2**. Полная очистка памяти удалит Betaflight и все ее настройки.
 ```
 
 ```{figure} @assets@/ru/assembly/clover5-fpv/firmware/micoair743v2.webp
@@ -24,7 +24,7 @@
 - [прошивка PX4 для MicoAir743v2](@assets@/downloads/micoair_h743-v2_default.px4) в формате `.px4` — установите через QGroundControl;
 - [загрузчик PX4 для MicoAir743v2](@assets@/downloads/micoair_h743-v2_bootloader.bin) в формате `.bin` — запишите через STM32CubeProgrammer перед установкой прошивки.
 
-До начала прошивки скачайте необходимые файлы и установите **STM32CubeProgrammer** и **QGroundControl**.
+До начала прошивки скачайте необходимые файлы и установите программы **STM32CubeProgrammer** и **QGroundControl**.
 
 ## Запись загрузчика PX4
 
@@ -54,7 +54,7 @@
 
     <br>
 
-4. Нажмите кнопку обновления справа от списка `Port`. Если порт не появился, снова подключите контроллер с зажатой кнопкой `BOOT`.
+4. Нажмите кнопку обновления справа от списка `Port`. Если программа не обнаружила порт, повторно подключите контроллер к компьютеру, удерживая кнопку `BOOT`.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/refresh-dfu-port.webp
     :alt: Поиск DFU-устройства
@@ -78,7 +78,7 @@
 
     <br>
 
-6. Выполните полную очистку памяти: нажмите кнопку с изображением ластика в левом нижнем углу окна, подтвердите действие во всплывающем окне и дождитесь завершения операции.
+6. Выполните полную очистку памяти контроллера. Для этого нажмите кнопку с изображением ластика в левом нижнем углу окна, подтвердите действие во всплывающем окне и дождитесь завершения операции.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/erase-flash.webp
     :alt: Полная очистка памяти контроллера
@@ -102,7 +102,7 @@
 
     <br>
 
-8. Нажмите `Download` и дождитесь завершения записи прошивки.
+8. Нажмите `Download` и дождитесь завершения записи загрузчика.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/write-bootloader.webp
     :alt: Запись загрузчика PX4
@@ -126,11 +126,13 @@
 
     <br>
 
-10. Закройте **STM32CubeProgrammer**.
+10. Закройте **STM32CubeProgrammer** и отключите контроллер от компьютера.
 
 ## Установка прошивки PX4
 
-1. Откройте **QGroundControl** и нажмите на логотип в левом верхнем углу.
+1. Откройте **QGroundControl**.
+2. Подключите полетный контроллер к компьютеру по USB, не нажимая кнопку `BOOT`.
+3. Нажмите на логотип *QGroundControl в левом верхнем углу.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/open-qgc-menu.webp
     :alt: Главное меню QGroundControl
@@ -142,7 +144,7 @@
 
     <br>
 
-2. В выпадающем меню выберите `Configure`. Откроется панель `Vehicle Configuration`.
+4. В выпадающем меню выберите `Configure`. Откроется панель `Vehicle Configuration`.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/open-vehicle-configuration.webp
     :alt: Пункт Configure в выпадающем меню QGroundControl
@@ -154,7 +156,7 @@
 
     <br>
 
-3. Выберите `Firmware`.
+5. Выберите раздел `Firmware`.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/open-firmware-menu.webp
     :alt: Переход в меню Firmware
@@ -166,7 +168,7 @@
 
     <br>
 
-4. Выберите контроллер в списке портов и нажмите `Flash`.
+6. Выберите контроллер в списке портов и нажмите `Flash`.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/start-firmware-update.webp
     :alt: Выбор контроллера и запуск прошивки
@@ -178,7 +180,7 @@
 
     <br>
 
-5. По запросу QGroundControl переподключите контроллер по USB без нажатия кнопки `BOOT`.
+7. Если QGroundControl предложит переподключить контроллер, выполните запрос без нажатия кнопки `BOOT`.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/reconnect-controller.webp
     :alt: Запрос на переподключение контроллера
@@ -190,7 +192,7 @@
 
     <br>
 
-6. В окне `Firmware Setup` включите `Advanced settings`, выберите `Custom firmware file...` и нажмите `OK`. Укажите скачанный файл `micoair_h743-v2_default.px4`.
+8. В окне `Firmware Setup` включите `Advanced settings`, выберите `Custom firmware file...` и нажмите `OK`. Укажите скачанный файл прошивки `micoair_h743-v2_default.px4`.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/select-custom-firmware.webp
     :alt: Выбор прошивки из файла
@@ -202,7 +204,7 @@
 
     <br>
 
-7. Дождитесь завершения записи прошивки.
+9. Дождитесь завершения записи прошивки.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/wait-for-firmware-upload.webp
     :alt: Запись прошивки PX4
@@ -214,7 +216,7 @@
 
     <br>
 
-8. Перейдите к {doc}`настройке полетного контроллера <../../../Setup/QGC>`.
+10. Перейдите к {doc}`настройке полетного контроллера <../../../Setup/QGC>`.
 
     ```{figure} @assets@/ru/assembly/clover5-fpv/firmware-px4/configure-flight-controller.webp
     :alt: Полетный контроллер после установки PX4
