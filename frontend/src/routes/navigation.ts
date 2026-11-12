@@ -13,6 +13,7 @@ export const NAV_ROUTES: NavRoute[] = [
   { path: '/ros2/nodes', labelKey: 'sidebar.nodes' },
   { path: '/ros2/topics', labelKey: 'sidebar.topics' },
   { path: '/ros2/logs', labelKey: 'sidebar.logs' },
+  { path: '/diagnostics', labelKey: 'sidebar.diagnostics' },
 ];
 
 export function route(path: string): NavRoute {
