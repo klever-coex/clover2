@@ -4,6 +4,7 @@
 #include <tf2/LinearMath/Vector3.hpp>
 
 #include <cmath>
+#include <cinttypes>
 #include <stdexcept>
 
 namespace {
@@ -12,6 +13,7 @@ constexpr int64_t k_stream_before_offboard_ns = 250'000'000;
 constexpr int64_t k_waiting_offboard_ns = 8'000'000'000;
 constexpr int64_t k_waiting_arm_ns = 8'000'000'000;
 constexpr int64_t k_stale_pose_ns = 500'000'000;
+constexpr int64_t k_future_pose_tolerance_ns = 20'000'000;
 
 const char* state_name(clover2_fcu_bridge::offboard_fsm::state s) {
     using clover2_fcu_bridge::offboard_fsm;
@@ -178,6 +180,15 @@ bool offboard_fsm::telemetry_ok(const geometry_msgs::msg::PoseStamped& pose,
     if (stamp.nanoseconds() != 0) {
         const auto age = (now - stamp).nanoseconds();
         if (age < 0) {
+            RCLCPP_WARN_THROTTLE(
+                m_logger, *m_clock, 1000,
+                "Pose timestamp is ahead of ROS clock: pose_stamp_ns=%" PRId64
+                ", now_ns=%" PRId64 ", ahead_ms=%.6f, tolerance_ms=%.3f",
+                stamp.nanoseconds(), now.nanoseconds(),
+                -static_cast<double>(age) / 1e6,
+                static_cast<double>(k_future_pose_tolerance_ns) / 1e6);
+        }
+        if (age < -k_future_pose_tolerance_ns) {
             detail = "pose stamp in future";
             return false;
         }
