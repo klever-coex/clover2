@@ -1,6 +1,6 @@
 # Docker
 
-```{figure} @assets@/common/programming/docker/docker-logo.webp
+```{figure} @assets@/common/useful-information/docker/docker-logo.webp
 :alt: Docker
 :width: 90%
 :align: center
@@ -101,7 +101,7 @@ newgrp docker
 1. Если `WSL 2` еще не установлен, откройте `PowerShell` от имени администратора и выполните `wsl --install`. Следуйте инструкциям системы и перезагрузите компьютер, если Windows предложит это сделать.
 Затем откройте приложение `Microsoft Store` и найдите приложение `Ubuntu 24.04`.
 
-```{figure} @assets@/common/programming/docker/ms-ubuntu-install.webp
+```{figure} @assets@/common/useful-information/docker/ms-ubuntu-install.webp
 :alt: ms-ubuntu-install
 :width: 90%
 :align: center
@@ -113,7 +113,7 @@ newgrp docker
 2. Нажмите `Получить`, чтобы начать установку. Дождитесь ее завершения: кнопка `Получить` сменится на `Открыть`. 
 Перезагрузите компьютер, чтобы применить установку новой программы.
 
-```{figure} @assets@/common/programming/docker/ms-ubuntu-open.webp
+```{figure} @assets@/common/useful-information/docker/ms-ubuntu-open.webp
 :alt: ms-ubuntu-open
 :width: 90%
 :align: center
@@ -124,7 +124,7 @@ newgrp docker
 
 3. Откройте `Ubuntu 24.04` через меню `Пуск`. При первом запуске система предложит создать учетную запись Linux. Укажите имя пользователя и надежный пароль. Запомните пароль: он понадобится для выполнения команд с `sudo`. После настройки вы увидите приглашение командной строки с именем пользователя и компьютера. Теперь вы можете выполнять команды Linux в Ubuntu.
 
-```{figure} @assets@/common/programming/docker/wsl-setup-user.webp
+```{figure} @assets@/common/useful-information/docker/wsl-setup-user.webp
 :alt: wsl-setup-user
 :width: 90%
 :align: center
@@ -135,7 +135,7 @@ newgrp docker
 
 4. Скачайте Docker Desktop с [официальной страницы](https://docs.docker.com/desktop/release-notes/).
 
-```{figure} @assets@/common/programming/docker/docker-windows-download.webp
+```{figure} @assets@/common/useful-information/docker/docker-windows-download.webp
 :alt: docker-windows-download
 :width: 90%
 :align: center
@@ -147,7 +147,7 @@ newgrp docker
 5. Запустите скачанный установщик, дважды нажав на файл в папке загрузки.
 Если установщик предлагает выбрать параметры установки, следуйте настройкам, указанным на рисунке ниже.
 
-```{figure} @assets@/common/programming/docker/win-docker-1-step.webp
+```{figure} @assets@/common/useful-information/docker/win-docker-1-step.webp
 :alt: win-docker-1-step
 :width: 90%
 :align: center
@@ -157,7 +157,7 @@ newgrp docker
 
 6. Дождитесь завершения установки. Если установщик предложит перезагрузить компьютер, сохраните открытые файлы и перезагрузите систему. При первом запуске ознакомьтесь с условиями использования и подтвердите согласие.
 
-```{figure} @assets@/common/programming/docker/docker-first-run.webp
+```{figure} @assets@/common/useful-information/docker/docker-first-run.webp
 :alt: docker-first-run
 :width: 90%
 :align: center
@@ -234,7 +234,7 @@ htop
 
 Откроется интерфейс со списком процессов, доступных внутри контейнера.
 
-```{figure} @assets@/common/programming/docker/htop.webp
+```{figure} @assets@/common/useful-information/docker/htop.webp
 :alt: htop
 :width: 90%
 :align: center

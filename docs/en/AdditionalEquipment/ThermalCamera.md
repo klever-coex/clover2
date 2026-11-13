@@ -32,7 +32,7 @@ The thermal imaging camera can be mounted on the quadcopter using one of two met
 ### Method 1: Front-facing Mount
 1. Install the thermal imaging camera into the provided mount.
 
-   ```{figure} @assets@/common/programming/sensors/thermal-camera/thermal-mount-front.webp
+   ```{figure} @assets@/common/additional-equipment/thermal-camera/thermal-mount-front.webp
    :alt: Установка тепловизионной камеры в маунт для установки на защиту
    :width: 700px
    :align: center
@@ -44,7 +44,7 @@ The thermal imaging camera can be mounted on the quadcopter using one of two met
 
 2. Secure the mount (with the camera installed) onto the guard arcs, as shown in the figure below.
 
-   ```{figure} @assets@/common/programming/sensors/thermal-camera/thermal-mount-1.webp
+   ```{figure} @assets@/common/additional-equipment/thermal-camera/thermal-mount-1.webp
    :alt: Установка тепловизионной камеры на карбоновые лучи защиты
    :width: 700px
    :align: center
@@ -62,7 +62,7 @@ The thermal imaging camera can be mounted on the quadcopter using one of two met
 
 1. Install the thermal imaging camera into the provided mount.
 
-   ```{figure} @assets@/common/programming/sensors/thermal-camera/thermal-mount-down.webp
+   ```{figure} @assets@/common/additional-equipment/thermal-camera/thermal-mount-down.webp
    :alt: Установка тепловизионной камеры в маунт для установки в горизонтальное положение
    :width: 700px
    :align: center
@@ -75,7 +75,7 @@ The thermal imaging camera can be mounted on the quadcopter using one of two met
 2. Secure the mount to the bottom deck using M3x8 screws, as shown in the figure.
 
 
-   ```{figure} @assets@/en/programming/sensors/thermal-camera/thermal-mount-2.webp
+   ```{figure} @assets@/en/additional-equipment/thermal-camera/thermal-mount-2.webp
    :alt: Установка камеры на нижнюю деку
    :width: 700px
    :align: center
@@ -103,7 +103,7 @@ clover2-settings
 
 2. Select the `additional_sensors` group.
 
-```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings.webp
+```{figure} @assets@/common/additional-equipment/thermal-camera/clover2-settings.webp
 :alt: Selecting the additional_sensors group in clover2-settings
 :width: 700px
 :align: center
@@ -115,7 +115,7 @@ Navigating to sensors
 
 3. In the `additional_sensors` group, select the `thermal_camera` setting  and change its value to `true`.
 
-```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings-thermal-camera.webp
+```{figure} @assets@/common/additional-equipment/thermal-camera/clover2-settings-thermal-camera.webp
 :alt: Selecting the thermal_camera setting
 :width: 700px
 :align: center
@@ -127,7 +127,7 @@ Enabling the camera
 
 4. Press `Ctrl+S` to save the changes (a notifiaction will confirm the save).
 
-```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings-save.webp
+```{figure} @assets@/common/additional-equipment/thermal-camera/clover2-settings-save.webp
 :alt: Saving the thermal imaging camera setting
 :width: 700px
 :align: center

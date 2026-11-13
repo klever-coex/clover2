@@ -21,7 +21,7 @@ For details regarding usage rights, see the [Broadcom documentation on downloadi
 1. Launch VMware Workstation Pro.
 2. Navigate to `File` → `Open`, select `Open a Virtual Machine` or use the shortcut `Ctrl+O`.
 
-   ```{figure} @assets@/common/simulator/vmware/open-virtual-machine.webp
+   ```{figure} @assets@/common/simulator/installation/vmware/open-virtual-machine.webp
    :alt: Opening the virtual machine
    :width: 90%
    :align: center
@@ -40,7 +40,7 @@ If an error occurs regarding incompatible OVA specifications or virtual hardware
 
 1. Select the imported virtual machine from the library and click `Edit virtual machine settings`.
 
-   ```{figure} @assets@/common/simulator/vmware/virtual-machine-settings.webp
+   ```{figure} @assets@/common/simulator/installation/vmware/virtual-machine-settings.webp
    :alt: Virtual machine settings
    :width: 90%
    :align: center
@@ -51,7 +51,7 @@ If an error occurs regarding incompatible OVA specifications or virtual hardware
 
 2. Navigate to `Processors` → `Virtualization Engine` and uncheck the box for `Virtualize Intel VT-x/EPT or AMD-V/RVI`.
 
-   ```{figure} @assets@/common/simulator/vmware/processor-virtualization.webp
+   ```{figure} @assets@/common/simulator/installation/vmware/processor-virtualization.webp
    :alt: Unchecking Virtualize Intel VT-x/EPT or AMD-V/RVI
    :width: 90%
    :align: center
@@ -62,7 +62,7 @@ If an error occurs regarding incompatible OVA specifications or virtual hardware
 
 3. Navigate to `Display` section and increase the graphics memory to 1 GB or more.
 
-   ```{figure} @assets@/common/simulator/vmware/display-acceleration.webp
+   ```{figure} @assets@/common/simulator/installation/vmware/display-acceleration.webp
    :alt: Increasing memory
    :width: 90%
    :align: center
@@ -75,7 +75,7 @@ If an error occurs regarding incompatible OVA specifications or virtual hardware
 
 1. Click `Start up this guest operating system` to initiate the virtual machine.
 
-   ```{figure} @assets@/common/simulator/vmware/start-virtual-machine.webp
+   ```{figure} @assets@/common/simulator/installation/vmware/start-virtual-machine.webp
    :alt: Virtual machine start
    :width: 90%
    :align: center

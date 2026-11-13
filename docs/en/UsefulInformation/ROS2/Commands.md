@@ -1,6 +1,6 @@
 # ROS 2 Commands
 
-```{figure} @assets@/common/programming/ros2/terminal-linux-commands.webp
+```{figure} @assets@/common/useful-information/ros2/commands/terminal-linux-commands.webp
 :alt: Рисунок 1 — Пример команд Linux в терминале
 :width: 90%
 :align: center
@@ -83,7 +83,7 @@ To exit `less` viewer, press `q`.
 
 The `ros2` command is organized into subcommands. For example, `ros2 topic list` is used for interacting with topics, while `ros2 node` is used for managing nodes.
 
-```{figure} @assets@/common/programming/ros2/terminal-ros2-topic.webp
+```{figure} @assets@/common/useful-information/ros2/commands/terminal-ros2-topic.webp
 :alt: Рисунок 2 — Пример команд ros2 node и ros2 topic
 :width: 90%
 :align: center

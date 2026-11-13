@@ -1,6 +1,6 @@
 # Команды ROS 2
 
-```{figure} @assets@/common/programming/ros2/terminal-linux-commands.webp
+```{figure} @assets@/common/useful-information/ros2/commands/terminal-linux-commands.webp
 :alt: Рисунок 1 — Пример команд Linux в терминале
 :width: 90%
 :align: center
@@ -83,7 +83,7 @@ Linux-команды нужны для навигации по папкам, р�
 
 Команда `ros2` состоит из подкоманд. Например, `ros2 topic list` работает с топиками, а `ros2 node list` — с нодами.
 
-```{figure} @assets@/common/programming/ros2/terminal-ros2-topic.webp
+```{figure} @assets@/common/useful-information/ros2/commands/terminal-ros2-topic.webp
 :alt: Рисунок 2 — Пример команд ros2 node и ros2 topic
 :width: 90%
 :align: center

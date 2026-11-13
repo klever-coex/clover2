@@ -22,7 +22,7 @@ The primary frames in the `clover2` package follow the [REP 105](https://reps.op
 
 * `base_link` — Coordinate system attached to the quadcopter body
 * `odom` — Coordinate system relative to the flight controller's initialization point
-* `map` – Coordinate system relative to the [marker map](./ArucoMap) (this name can be customized in the configuration, though we recommend using the standard name for compatibility)
+* `map` – Coordinate system relative to the [marker map](../Setup/RPi/ArucoMap) (this name can be customized in the configuration, though we recommend using the standard name for compatibility)
 
 In this hierarchy, `base_link` moves and rotates alongside the quadcopter, while `odom` and `map` serve as fixed reference systems to determine the vehicle's position in space.
 

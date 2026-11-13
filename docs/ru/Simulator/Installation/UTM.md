@@ -31,7 +31,7 @@ UTM основана на технологии QEMU и работает на к�
    - Ядра процессора. Рекомендуется выделить не менее 2 ядер. Если компьютер позволяет, выберите 4 ядра или больше.
    - Установите флажок `Enable hardware OpenGL acceleration`, чтобы ускорить обработку графики в симуляторе.
 
-   ```{image} @assets@/common/simulator/utm/hardware.webp
+   ```{image} @assets@/common/simulator/installation/utm/hardware.webp
    :alt: Симулятор Gazebo
    :width: 100%
    ```

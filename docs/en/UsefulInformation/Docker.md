@@ -1,6 +1,6 @@
 # Docker
 
-```{figure} @assets@/common/programming/docker/docker-logo.webp
+```{figure} @assets@/common/useful-information/docker/docker-logo.webp
 :alt: Docker
 :width: 90%
 :align: center
@@ -98,7 +98,7 @@ To run Linux containers on Windows, Docker Desktop requires `WSL 2` (Windows Sub
 1. Open PowerShell as an Administrator and run: `wsl --install`. Follow the on-screen prompts and restart your computer if requested.
 Open the `Microsoft Store`  and search for `Ubuntu 24.04`.
 
-```{figure} @assets@/common/programming/docker/ms-ubuntu-install.webp
+```{figure} @assets@/common/useful-information/docker/ms-ubuntu-install.webp
 :alt: ms-ubuntu-install
 :width: 90%
 :align: center
@@ -110,7 +110,7 @@ Installing Ubuntu 24.04
 2. Click `Get` and wait for the installation to finish (the button will change to `Open`). 
 Restart your computer to finalize the installation.
 
-```{figure} @assets@/common/programming/docker/ms-ubuntu-open.webp
+```{figure} @assets@/common/useful-information/docker/ms-ubuntu-open.webp
 :alt: ms-ubuntu-open
 :width: 90%
 :align: center
@@ -121,7 +121,7 @@ Opening Ubuntu 24.04
 
 3. Launch `Ubuntu 24.04` from the `Start` menu. On the first launch, you will be prompted to create a Linux username and a strong password. Remember this password; you will need it to execute  `sudo` (administrative) commands. Once setup is complete, you will see a command prompt ready for Linux commands.
 
-```{figure} @assets@/common/programming/docker/wsl-setup-user.webp
+```{figure} @assets@/common/useful-information/docker/wsl-setup-user.webp
 :alt: wsl-setup-user
 :width: 90%
 :align: center
@@ -132,7 +132,7 @@ Creating user in Ubuntu
 
 4. Get the Docker Desktop installer from [Official Docker website](https://docs.docker.com/desktop/release-notes/).
 
-```{figure} @assets@/common/programming/docker/docker-windows-download.webp
+```{figure} @assets@/common/useful-information/docker/docker-windows-download.webp
 :alt: docker-windows-download
 :width: 90%
 :align: center
@@ -144,7 +144,7 @@ Downloading Docker Desktop for Windows
 5. Run the downloaded `.exe` file.
 If the installer presents configuration options, follow the recommended settings (see figure below).
 
-```{figure} @assets@/common/programming/docker/win-docker-1-step.webp
+```{figure} @assets@/common/useful-information/docker/win-docker-1-step.webp
 :alt: win-docker-1-step
 :width: 90%
 :align: center
@@ -154,7 +154,7 @@ Configuring Docker Desktop
 
 6.  Once the installation is complete, save your work and restart your computer if prompted. Upon the first launch, review and accept the Docker Service Agreement.
 
-```{figure} @assets@/common/programming/docker/docker-first-run.webp
+```{figure} @assets@/common/useful-information/docker/docker-first-run.webp
 :alt: docker-first-run
 :width: 90%
 :align: center
@@ -229,7 +229,7 @@ htop
 
 An interactive interface will open.
 
-```{figure} @assets@/common/programming/docker/htop.webp
+```{figure} @assets@/common/useful-information/docker/htop.webp
 :alt: htop
 :width: 90%
 :align: center

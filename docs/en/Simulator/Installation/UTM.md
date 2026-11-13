@@ -31,7 +31,7 @@ For Apple Silicon, ensure you are using a Linux image specifically built for the
    - CPU cores. We recommend allocating at least 2 cores. If your system permits, select 4 cores or more.
    - Graphics. Check `Enable hardware OpenGL acceleration` to improve graphical performance within the simulator.
 
-   ```{image} @assets@/common/simulator/utm/hardware.webp
+   ```{image} @assets@/common/simulator/installation/utm/hardware.webp
    :alt: Gazebo
    :width: 100%
    ```

@@ -32,7 +32,7 @@
 ### Способ №1 (фронтальный):
 1. Установите тепловизионную камеру в предусмотренное крепление для модуля камеры.
 
-   ```{figure} @assets@/common/programming/sensors/thermal-camera/thermal-mount-front.webp
+   ```{figure} @assets@/common/additional-equipment/thermal-camera/thermal-mount-front.webp
    :alt: Установка тепловизионной камеры в маунт для установки на защиту
    :width: 700px
    :align: center
@@ -44,7 +44,7 @@
 
 2. Закрепите крепление с установленной камерой на дугах защиты, как показано на рисунке.
 
-   ```{figure} @assets@/common/programming/sensors/thermal-camera/thermal-mount-1.webp
+   ```{figure} @assets@/common/additional-equipment/thermal-camera/thermal-mount-1.webp
    :alt: Установка тепловизионной камеры на карбоновые лучи защиты
    :width: 700px
    :align: center
@@ -62,7 +62,7 @@
 
 1. Установите тепловизионную камеру в предусмотренное крепление для модуля камеры.
 
-   ```{figure} @assets@/common/programming/sensors/thermal-camera/thermal-mount-down.webp
+   ```{figure} @assets@/common/additional-equipment/thermal-camera/thermal-mount-down.webp
    :alt: Установка тепловизионной камеры в маунт для установки в горизонтальное положение
    :width: 700px
    :align: center
@@ -75,7 +75,7 @@
 2. С помощью винтов М3х8 закрепите крепление на нижней деке, как показано на рисунке.
 
 
-   ```{figure} @assets@/ru/programming/sensors/thermal-camera/thermal-mount-2.webp
+   ```{figure} @assets@/ru/additional-equipment/thermal-camera/thermal-mount-2.webp
    :alt: Установка камеры на нижнюю деку
    :width: 700px
    :align: center
@@ -103,7 +103,7 @@ clover2-settings
 
 2. Выберите группу `additional_sensors`.
 
-```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings.webp
+```{figure} @assets@/common/additional-equipment/thermal-camera/clover2-settings.webp
 :alt: Выбор группы additional_sensors в clover2-settings
 :width: 700px
 :align: center
@@ -115,7 +115,7 @@ clover2-settings
 
 3. В группе `additional_sensors` выберите настройку `thermal_camera`  и включите ее, установив значение `true`.
 
-```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings-thermal-camera.webp
+```{figure} @assets@/common/additional-equipment/thermal-camera/clover2-settings-thermal-camera.webp
 :alt: Выбор настройки thermal_camera
 :width: 700px
 :align: center
@@ -127,7 +127,7 @@ clover2-settings
 
 4. Для сохранения изменений нажмите `ctrl+S`. Появится уведомление о сохранении.
 
-```{figure} @assets@/common/programming/sensors/thermal-camera/clover2-settings-save.webp
+```{figure} @assets@/common/additional-equipment/thermal-camera/clover2-settings-save.webp
 :alt: Сохранение настройки тепловизионной камеры
 :width: 700px
 :align: center

@@ -25,7 +25,7 @@ Dev Container — готовая среда разработки, которая
 
 Скачайте Visual Studio Code с [официального сайта](https://code.visualstudio.com/download/) и установите версию для вашей операционной системы.
 
-```{figure} @assets@/common/simulator/gazebo-dev-container/vscode-downloads.webp
+```{figure} @assets@/common/simulator/installation/dev-container/vscode-downloads.webp
 :alt: VS Code загрузки
 :width: 90%
 :align: center
@@ -48,7 +48,7 @@ sudo apt install -f ./путь-до-файла/code_*.deb
 3. Введите в поиске `Dev Containers`.
 4. Найдите расширение от Microsoft и нажмите `Install`.
 
-```{figure} @assets@/common/simulator/gazebo-dev-container/dev-container-extension.webp
+```{figure} @assets@/common/simulator/installation/dev-container/dev-container-extension.webp
 :alt: Dev Containers расширение
 :width: 90%
 :align: center
@@ -122,7 +122,7 @@ code .
 
 Когда VS Code подключится к контейнеру, в левом нижнем углу окна появится индикатор удаленной среды разработки. Это означает, что вы работаете внутри Dev Container.
 
-```{figure} @assets@/common/simulator/gazebo-dev-container/runned-dev-container.webp
+```{figure} @assets@/common/simulator/installation/dev-container/runned-dev-container.webp
 :alt: Запущенный Dev Container
 :width: 90%
 :align: center
@@ -162,7 +162,7 @@ colcon build --symlink-install
 
 При успешном завершении вывод будет выглядеть примерно так:
 
-```{figure} @assets@/common/simulator/gazebo-dev-container/build-success.webp
+```{figure} @assets@/common/simulator/installation/dev-container/build-success.webp
 :alt: Успешная сборка workspace
 :width: 90%
 :align: center
@@ -185,7 +185,7 @@ ros2 pkg list | grep clover
 Если команда вывела список пакетов Clover2, значит ROS 2 обнаруживает их в текущем терминале.
 Вы должны увидеть список пакетов Clover2, например:
 
-```{figure} @assets@/common/simulator/gazebo-dev-container/list-builded-packages.webp
+```{figure} @assets@/common/simulator/installation/dev-container/list-builded-packages.webp
 :alt: Пакеты Clover2 в собранном workspace
 :width: 90%
 :align: center

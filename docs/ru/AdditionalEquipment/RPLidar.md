@@ -2,7 +2,7 @@
 
 <br>
 
-```{figure} @assets@/common/programming/sensors/rplidar/lidar.webp
+```{figure} @assets@/common/additional-equipment/rplidar/lidar.webp
 :alt: RPLidar C1
 :width: 500px
 :align: center
@@ -29,7 +29,7 @@ RPLidar C1
 
 Если в направлении луча нет объекта или отраженный сигнал слишком слабый, лидар может не получить корректное измерение. Такие значения обычно игнорируются алгоритмами навигации и построения карты.
 
-```{figure} @assets@/common/programming/sensors/rplidar/coord-scheme.webp
+```{figure} @assets@/common/additional-equipment/rplidar/coord-scheme.webp
 :alt: Определение системы координат данных сканирования RPLidar C1
 :width: 500px
 :align: center
@@ -76,7 +76,7 @@ distance = ranges[i]
 
 1. Установите лидар на пластиковую монтажную деку с помощью винтов M2.5x6.
 
-   ```{figure} @assets@/ru/programming/sensors/rplidar/assemble-lidar-1.webp
+   ```{figure} @assets@/ru/additional-equipment/rplidar/assemble-lidar-1.webp
    :alt: Установка RPLidar C1
    :width: 700px
    :align: center
@@ -88,7 +88,7 @@ distance = ranges[i]
 
 2. Установите алюминиевые стойки М3х40 на монтажную деку с помощью винтов M3х6.
 
-   ```{figure} @assets@/ru/programming/sensors/rplidar/assemble-lidar-2.webp
+   ```{figure} @assets@/ru/additional-equipment/rplidar/assemble-lidar-2.webp
    :alt: Установка алюминиевых стоек
    :width: 700px
    :align: center
@@ -100,7 +100,7 @@ distance = ranges[i]
 
 3. Установите подготовленный лидар на алюминиевые стойки с помощью винтов M3х6.
 
-   ```{figure} @assets@/ru/programming/sensors/rplidar/assemble-lidar-3.webp
+   ```{figure} @assets@/ru/additional-equipment/rplidar/assemble-lidar-3.webp
    :alt: Установка RPLidar C1 на алюминиевые стойки
    :width: 700px
    :align: center
@@ -123,7 +123,7 @@ distance = ranges[i]
 1. Запустите приложение командой `clover2-settings`.
 2. Перейдите в раздел `additional_sensors` и включите параметр `2d_lidar`.
 
-```{figure} @assets@/common/programming/sensors/rplidar/2d-lidar-enable.webp
+```{figure} @assets@/common/additional-equipment/rplidar/2d-lidar-enable.webp
 :alt: Экран настроек 2d_lidar
 :width: 90%
 :align: center

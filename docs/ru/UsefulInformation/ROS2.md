@@ -9,7 +9,7 @@ ROS2/Nodes
 ROS2/Commands
 ```
 
-```{figure} @assets@/common/programming/ros2/ros2-logo.webp
+```{figure} @assets@/common/useful-information/ros2/ros2-logo.webp
 :alt: Docker
 :width: 20%
 ```
