@@ -31,7 +31,7 @@
 
 ```bash
 make clover2-bake-ros        # собрать clover2-ros
-make clover2-bake-frontend   # фронтенд
+make clover2-bake-frontend   # собрать clover2-frontend
 make clover2-bake-push-ros   # собрать и отправить образ в GHCR
 ```
 
@@ -50,7 +50,7 @@ make clover2-bake-push-ros   # собрать и отправить образ �
 Для запуска сервисов укажите нужный профиль с помощью параметра `--profile`.
 
 ```bash
-# отладка веб-интерфейса:
+# Отладка веб-интерфейса:
 docker compose -f docker/compose.yaml --profile web-test up
 
 # Запуск определенной версии образов:
@@ -74,16 +74,18 @@ docker compose -f docker/compose.yaml --profile robot up
 
 Образ `clover2-ros` использует стандартную схему запуска контейнера ROS 2 с помощью `ENTRYPOINT` и `CMD`.
 
-- entrypoint полностью настраивает окружение:
+**ENTRYPOINT** полностью настраивает окружение ROS 2:
 
 ```bash
 docker run -it ghcr.io/klever-coex/clover2/clover2-ros:latest bash
 docker run ghcr.io/klever-coex/clover2/clover2-ros:latest ros2 topic list
 ```
 
-- CMD по умолчанию запускает полный стек: `ros2 launch clover2_bringup klever5.launch.xml`;
+**CMD** по умолчанию запускает полный стек: `ros2 launch clover2_bringup klever5.launch.xml`
 
-- запуск от непривилегированного пользователя (чтобы можно было редактировать файлы в host системе):
+## Запуск от непривилегированного пользователя
+
+Чтобы файлы, созданные внутри контейнера в подключенных каталогах, принадлежали пользователю хост-системы, передайте его идентификаторы при запуске контейнера:
 
 ```bash
 docker run -it \
@@ -91,3 +93,11 @@ docker run -it \
     -e LOCAL_GID=$(id -g) -e LOCAL_GROUP=$(id -gn) \
     ghcr.io/klever-coex/clover2/clover2-ros:latest bash
 ```
+
+Значения переменных:
+* `LOCAL_UID` — идентификатор пользователя;
+* `LOCAL_USER` — имя пользователя;
+* `LOCAL_GID` — идентификатор группы;
+* `LOCAL_GROUP` — имя группы.
+
+Механизм применения этих переменных зависит от настройки `entrypoint` образа.
