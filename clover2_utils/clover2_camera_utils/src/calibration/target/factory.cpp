@@ -44,8 +44,8 @@ factory::value_type factory::create(const std::filesystem::path& path) const {
         profile = nlohmann::json::parse(input);
     } catch (const nlohmann::json::parse_error& error) {
         throw std::runtime_error(
-            "could not parse calibration target configuration '" + path.string() +
-            "': " + error.what());
+            "could not parse calibration target configuration '" +
+            path.string() + "': " + error.what());
     }
 
     const auto type = profile.at("type").get<std::string>();

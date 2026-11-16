@@ -97,19 +97,17 @@ private:
      * @param goal_handle Handle of the calibration goal.
      * @param observations Calibration dataset observations.
      */
-    void run_calibration(const std::string& goal_id,
-                         std::shared_ptr<goal_handle> goal_handle,
-                         std::vector<data::observation> observations,
-                         std::optional<sensor_msgs::msg::CameraInfo>
-                             initial_estimate);
+    void run_calibration(
+        const std::string& goal_id, std::shared_ptr<goal_handle> goal_handle,
+        std::vector<data::observation> observations,
+        std::optional<sensor_msgs::msg::CameraInfo> initial_estimate);
 
     /**
      * @brief Calculates model-corrected tilt and adds a detected sample.
      * @return Selection result, or `std::nullopt` if correction fails.
      */
     std::optional<data::sample_selection_result> add_corrected_sample(
-        calibration_session& session, data::target_detection& detection,
-        data::target_debug* debug = nullptr) const;
+        calibration_session& session, data::target_detection& detection) const;
 
     /**
      * @brief Validates calibration goal parameters.

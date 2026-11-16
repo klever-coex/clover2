@@ -59,9 +59,9 @@ std::optional<data::board_orientation> orientation_calculator::compute(
     cv::Mat inlier_mask;
     cv::Mat homography;
     try {
-        homography = cv::findHomography(
-            board_points, image_points, cv::RANSAC,
-            k_ransac_reprojection_threshold_px, inlier_mask);
+        homography =
+            cv::findHomography(board_points, image_points, cv::RANSAC,
+                               k_ransac_reprojection_threshold_px, inlier_mask);
     } catch (const cv::Exception&) {
         return std::nullopt;
     }
@@ -91,7 +91,8 @@ std::optional<data::board_orientation> orientation_calculator::compute(
         if (inlier_mask.at<uchar>(static_cast<int>(index)) == 0) {
             continue;
         }
-        const auto error = cv::norm(projected_points[index] - image_points[index]);
+        const auto error =
+            cv::norm(projected_points[index] - image_points[index]);
         if (!std::isfinite(error)) {
             return std::nullopt;
         }
@@ -104,7 +105,8 @@ std::optional<data::board_orientation> orientation_calculator::compute(
 
     const double center_x = (minimum_x + maximum_x) * 0.5;
     const double center_y = (minimum_y + maximum_y) * 0.5;
-    const double center_depth = h(2, 0) * center_x + h(2, 1) * center_y + h(2, 2);
+    const double center_depth =
+        h(2, 0) * center_x + h(2, 1) * center_y + h(2, 2);
     if (!std::isfinite(center_depth) ||
         std::abs(center_depth) <= k_minimum_projective_depth) {
         return std::nullopt;
@@ -120,7 +122,8 @@ std::optional<data::board_orientation> orientation_calculator::compute(
         .tilt_x = tilt_x,
         .tilt_y = tilt_y,
         .inlier_count = inlier_count,
-        .mean_reprojection_error = total_error / static_cast<double>(inlier_count),
+        .mean_reprojection_error =
+            total_error / static_cast<double>(inlier_count),
     };
 }
 

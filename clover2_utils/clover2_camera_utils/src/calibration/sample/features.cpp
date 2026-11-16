@@ -40,8 +40,8 @@ std::optional<data::sample_feature_geometry> features_calculator::compute(
                 .size = std::sqrt(area / image_area),
             },
         .convex_hull = std::move(hull),
-        .mean = cv::Point2f{static_cast<float>(mean.x),
-                             static_cast<float>(mean.y)},
+        .mean =
+            cv::Point2f{static_cast<float>(mean.x), static_cast<float>(mean.y)},
     };
     return result;
 }

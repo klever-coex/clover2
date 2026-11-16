@@ -7,12 +7,12 @@
 
 #include <clover2_camera_utils/calibration/target/base.hpp>
 
+#include <nlohmann/json_fwd.hpp>
 #include <opencv2/aruco.hpp>
 #include <opencv2/aruco/charuco.hpp>
 
 #include <cstdint>
 #include <memory>
-#include <nlohmann/json_fwd.hpp>
 #include <string>
 #include <string_view>
 
@@ -28,8 +28,7 @@ public:
      * @param profile Parsed ChArUco target profile.
      * @return Immutable calibration target.
      */
-    static std::shared_ptr<const base> from_json(
-        const nlohmann::json& profile);
+    static std::shared_ptr<const base> from_json(const nlohmann::json& profile);
 
     /**
      * @brief Creates a prepared ChArUco target.
@@ -43,13 +42,13 @@ public:
     charuco(uint32_t squares_rows, uint32_t squares_columns,
             double square_size_m, double marker_size_m, std::string dictionary);
 
-    data::target_detection_result detect(
-        const cv::Mat& image) const override;
+    data::target_detection_result detect(const cv::Mat& image) const override;
 
-    void draw_debug(
-        cv::Mat& image, const data::target_debug& debug) const override;
+    void draw_debug(cv::Mat& image,
+                    const data::target_debug& debug) const override;
 
-    const std::vector<cv::Point3f>& full_object_points() const noexcept override;
+    const std::vector<cv::Point3f>& full_object_points()
+        const noexcept override;
 
 private:
     cv::Ptr<cv::aruco::Dictionary> m_dictionary;

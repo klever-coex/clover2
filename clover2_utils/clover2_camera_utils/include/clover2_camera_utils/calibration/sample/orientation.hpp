@@ -14,7 +14,8 @@
 
 namespace clover2_camera_utils::calibration::sample {
 
-/** @brief Estimates diagnostic orientation proxies from planar correspondences. */
+/** @brief Estimates diagnostic orientation proxies from planar correspondences.
+ */
 class orientation_calculator {
 public:
     /**

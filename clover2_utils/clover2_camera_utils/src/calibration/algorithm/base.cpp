@@ -9,7 +9,8 @@ bool base::is_valid_observation(const data::observation& observation,
                                 const cv::Size& image_size) {
     constexpr size_t k_minimum_points_per_observation = 4;
     return observation.image_size == image_size &&
-           observation.image_points.size() == observation.object_points.size() &&
+           observation.image_points.size() ==
+               observation.object_points.size() &&
            observation.image_points.size() >= k_minimum_points_per_observation;
 }
 

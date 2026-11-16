@@ -3,7 +3,6 @@
 
 #include <cv_bridge/cv_bridge.hpp>
 #include <opencv2/calib3d.hpp>
-#include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 #include <sensor_msgs/image_encodings.hpp>
@@ -12,11 +11,8 @@
 
 #include <algorithm>
 #include <exception>
-#include <filesystem>
 #include <functional>
-#include <iomanip>
 #include <optional>
-#include <sstream>
 #include <utility>
 #include <vector>
 
@@ -26,8 +22,6 @@ namespace {
 constexpr const char* k_image_topic_name = "image_raw";
 constexpr const char* k_set_camera_info_service_name = "set_camera_info";
 constexpr size_t k_initial_estimate_sample_count = 15;
-const std::filesystem::path k_detected_frames_directory =
-    "/tmp/clover2_camera_calibration_detections";
 
 }  // namespace
 
@@ -332,20 +326,7 @@ void camera_calibration::image_callback(
                     }
                 }
             } else {
-                selection = add_corrected_sample(calibration_session, *sample,
-                                                 &detection.debug);
-            }
-
-            if (detection.debug.orientation && !debug_image.empty()) {
-                const auto& orientation = *detection.debug.orientation;
-                cv::putText(
-                    debug_image,
-                    cv::format("tilt_x=%.3f tilt_y=%.3f inliers=%zu err=%.2fpx",
-                               orientation.tilt_x, orientation.tilt_y,
-                               orientation.inlier_count,
-                               orientation.mean_reprojection_error),
-                    cv::Point{16, 58}, cv::FONT_HERSHEY_SIMPLEX, 0.55,
-                    cv::Scalar{0, 165, 255}, 2, cv::LINE_AA);
+                selection = add_corrected_sample(calibration_session, *sample);
             }
 
             const bool data_sufficient =
@@ -356,35 +337,9 @@ void camera_calibration::image_callback(
             } else if (selection && selection->accepted) {
                 stage = calibrate_camera::Feedback::SAMPLE_ACCEPTED;
             }
-
-            if (selection && selection->accepted) {
-                const auto accepted_frames =
-                    calibration_session.sample_selector.accepted_count();
-                const auto session_directory =
-                    k_detected_frames_directory / goal_id;
-                std::filesystem::create_directories(session_directory);
-                std::ostringstream filename;
-                filename << "accepted_" << std::setw(6) << std::setfill('0')
-                         << accepted_frames << ".png";
-                const auto output_path = session_directory / filename.str();
-                if (!cv::imwrite(output_path.string(), debug_image)) {
-                    RCLCPP_WARN(
-                        get_logger(),
-                        "Failed to save accepted calibration frame to '%s'",
-                        output_path.c_str());
-                }
-            }
         }
 
         if (publish_debug) {
-            cv::putText(
-                debug_image,
-                "Accepted frames: " +
-                    std::to_string(
-                        calibration_session.sample_selector.accepted_count()),
-                cv::Point{16, 86}, cv::FONT_HERSHEY_SIMPLEX, 0.65,
-                cv::Scalar{0, 255, 0}, 2, cv::LINE_AA);
-
             cv_bridge::CvImage output;
             output.header = message->header;
             output.encoding = sensor_msgs::image_encodings::BGR8;
@@ -401,9 +356,8 @@ void camera_calibration::image_callback(
 }
 
 std::optional<data::sample_selection_result>
-camera_calibration::add_corrected_sample(calibration_session& session,
-                                         data::target_detection& detection,
-                                         data::target_debug* debug) const {
+camera_calibration::add_corrected_sample(
+    calibration_session& session, data::target_detection& detection) const {
     if (!session.camera_estimate || !session.algorithm || !session.target) {
         return std::nullopt;
     }
@@ -422,9 +376,6 @@ camera_calibration::add_corrected_sample(calibration_session& session,
     }
     detection.selection.tilt_x = orientation->tilt_x;
     detection.selection.tilt_y = orientation->tilt_y;
-    if (debug) {
-        debug->orientation = orientation;
-    }
     return session.sample_selector.try_add(std::move(detection));
 }
 

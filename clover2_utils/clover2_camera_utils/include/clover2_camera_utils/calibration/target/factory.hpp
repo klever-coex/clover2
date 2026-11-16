@@ -7,10 +7,11 @@
 
 #include <clover2_camera_utils/calibration/target/base.hpp>
 
+#include <nlohmann/json_fwd.hpp>
+
 #include <filesystem>
 #include <functional>
 #include <memory>
-#include <nlohmann/json_fwd.hpp>
 #include <string>
 #include <string_view>
 #include <type_traits>

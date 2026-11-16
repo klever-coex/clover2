@@ -1,9 +1,7 @@
+#include <clover2_camera_utils/calibration/sample/features.hpp>
 #include <clover2_camera_utils/calibration/target/chessboard.hpp>
 
-#include <clover2_camera_utils/calibration/sample/features.hpp>
-
 #include <nlohmann/json.hpp>
-
 #include <opencv2/calib3d.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -38,8 +36,7 @@ chessboard::chessboard(uint32_t rows, uint32_t columns, double square_size_m)
     }
 }
 
-data::target_detection_result chessboard::detect(
-    const cv::Mat& image) const {
+data::target_detection_result chessboard::detect(const cv::Mat& image) const {
     data::target_detection_result result;
     if (image.type() != CV_8UC1) {
         return result;
@@ -82,12 +79,13 @@ data::target_detection_result chessboard::detect(
     return result;
 }
 
-const std::vector<cv::Point3f>& chessboard::full_object_points() const noexcept {
+const std::vector<cv::Point3f>& chessboard::full_object_points()
+    const noexcept {
     return m_object_points;
 }
 
-void chessboard::draw_debug(
-    cv::Mat& image, const data::target_debug& debug) const {
+void chessboard::draw_debug(cv::Mat& image,
+                            const data::target_debug& debug) const {
     cv::drawChessboardCorners(image, m_pattern_size, debug.corners,
                               !debug.corners.empty());
 }

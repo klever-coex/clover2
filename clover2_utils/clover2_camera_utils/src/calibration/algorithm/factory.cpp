@@ -1,5 +1,4 @@
 #include <clover2_camera_utils/calibration/algorithm/factory.hpp>
-
 #include <clover2_camera_utils/calibration/algorithm/fisheye.hpp>
 #include <clover2_camera_utils/calibration/algorithm/pinhole.hpp>
 

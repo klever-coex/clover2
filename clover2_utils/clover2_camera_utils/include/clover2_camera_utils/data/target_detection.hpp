@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <clover2_camera_utils/data/board_orientation.hpp>
 #include <clover2_camera_utils/data/observation.hpp>
 #include <clover2_camera_utils/data/sample_features.hpp>
 
@@ -21,8 +20,8 @@ namespace clover2_camera_utils::data {
  * features.
  */
 struct target_detection {
-    observation calibration;       ///< Corresponding image and object points.
-    sample_features selection;     ///< Descriptor used by the sample selector.
+    observation calibration;    ///< Corresponding image and object points.
+    sample_features selection;  ///< Descriptor used by the sample selector.
 };
 
 /** @brief Raw target features retained for debug visualization. */
@@ -37,8 +36,6 @@ struct target_debug {
     std::vector<int> corner_ids;
     /** Geometry and features of the detected corners when they are valid. */
     std::optional<sample_feature_geometry> feature_geometry;
-    /** Homography-based board orientation diagnostics, when available. */
-    std::optional<board_orientation> orientation;
 };
 
 /**
