@@ -1,7 +1,6 @@
 #include <clover2_camera_utils/calibration/target/chessboard.hpp>
 
 #include <clover2_camera_utils/calibration/sample/features.hpp>
-#include <clover2_camera_utils/calibration/sample/orientation.hpp>
 
 #include <nlohmann/json.hpp>
 
@@ -75,19 +74,16 @@ data::target_detection_result chessboard::detect(
         .image_points = std::move(corners),
         .object_points = m_object_points,
     };
-    result.debug.orientation = sample::orientation_calculator{}.compute(
-        observation.object_points, observation.image_points, m_object_points);
-    if (!result.debug.orientation.has_value()) {
-        return result;
-    }
     auto selection = features->features;
-    selection.tilt_x = result.debug.orientation->tilt_x;
-    selection.tilt_y = result.debug.orientation->tilt_y;
     result.sample = data::target_detection{
         .calibration = std::move(observation),
         .selection = selection,
     };
     return result;
+}
+
+const std::vector<cv::Point3f>& chessboard::full_object_points() const noexcept {
+    return m_object_points;
 }
 
 void chessboard::draw_debug(

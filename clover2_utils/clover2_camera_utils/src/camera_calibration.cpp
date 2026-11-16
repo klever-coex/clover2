@@ -1,3 +1,4 @@
+#include <clover2_camera_utils/calibration/sample/orientation.hpp>
 #include <clover2_camera_utils/camera_calibration.hpp>
 
 #include <cv_bridge/cv_bridge.hpp>
@@ -24,6 +25,7 @@ namespace {
 
 constexpr const char* k_image_topic_name = "image_raw";
 constexpr const char* k_set_camera_info_service_name = "set_camera_info";
+constexpr size_t k_initial_estimate_sample_count = 15;
 const std::filesystem::path k_detected_frames_directory =
     "/tmp/clover2_camera_calibration_detections";
 
@@ -184,6 +186,10 @@ void camera_calibration::handle_accepted(
     auto& calibration_session = session_it->second;
     calibration_session.action_goal_handle = goal_handle;
     calibration_session.target = std::move(target);
+    calibration_session.algorithm =
+        calibration::algorithm::factory::instance().create(
+            goal->calibration_method);
+    calibration_session.sample_selector.set_tilt_selection_enabled(false);
 
     const auto image_qos = rclcpp::SensorDataQoS().keep_last(1);
     calibration_session.debug_publisher =
@@ -242,8 +248,95 @@ void camera_calibration::image_callback(
         const bool prepare_debug_image = publish_debug || sample.has_value();
         if (prepare_debug_image) {
             cv::cvtColor(input->image, debug_image, cv::COLOR_GRAY2BGR);
-            calibration_session.target->draw_debug(debug_image, detection.debug);
-            if (detection.debug.orientation.has_value()) {
+            calibration_session.target->draw_debug(debug_image,
+                                                   detection.debug);
+        }
+
+        if (sample) {
+            std::optional<data::sample_selection_result> selection;
+            if (!calibration_session.camera_estimate) {
+                selection = calibration_session.sample_selector.try_add(
+                    std::move(*sample));
+                if (selection->accepted &&
+                    calibration_session.sample_selector.accepted_count() >=
+                        k_initial_estimate_sample_count) {
+                    calibration_session.camera_estimate =
+                        calibration_session.algorithm->calibrate(
+                            calibration_session.sample_selector.observations());
+                    if (!calibration_session.camera_estimate) {
+                        RCLCPP_WARN(
+                            get_logger(),
+                            "Could not estimate camera parameters from %zu "
+                            "selected samples; collecting more diverse board "
+                            "poses",
+                            calibration_session.sample_selector
+                                .accepted_count());
+                    } else {
+                        auto corrected_features =
+                            calibration_session.sample_selector.features();
+                        const auto& observations =
+                            calibration_session.sample_selector.observations();
+                        bool tilt_ready =
+                            corrected_features.size() == observations.size();
+                        for (size_t index = 0; index < observations.size();
+                             ++index) {
+                            const auto undistorted_points =
+                                calibration_session.algorithm->undistort_points(
+                                    observations[index].image_points,
+                                    calibration_session.camera_estimate
+                                        ->camera_info);
+                            if (!undistorted_points) {
+                                tilt_ready = false;
+                                break;
+                            }
+
+                            const auto orientation =
+                                calibration::sample::orientation_calculator{}
+                                    .compute(observations[index].object_points,
+                                             *undistorted_points,
+                                             calibration_session.target
+                                                 ->full_object_points());
+                            if (!orientation) {
+                                tilt_ready = false;
+                                break;
+                            }
+                            corrected_features[index].tilt_x =
+                                orientation->tilt_x;
+                            corrected_features[index].tilt_y =
+                                orientation->tilt_y;
+                        }
+                        if (!tilt_ready || !calibration_session.sample_selector
+                                                .replace_features(std::move(
+                                                    corrected_features))) {
+                            calibration_session.camera_estimate.reset();
+                            RCLCPP_WARN(
+                                get_logger(),
+                                "Could not calculate undistorted board tilt; "
+                                "collecting more diverse board poses");
+                        } else {
+                            calibration_session.sample_selector
+                                .set_tilt_selection_enabled(true);
+                            selection->progress =
+                                calibration_session.sample_selector.progress();
+                            if (selection->progress.data_sufficient) {
+                                stage =
+                                    calibrate_camera::Feedback::DATA_SUFFICIENT;
+                            }
+                            RCLCPP_INFO(
+                                get_logger(),
+                                "Initial camera estimate succeeded after %zu "
+                                "selected samples; enabling tilt selection",
+                                calibration_session.sample_selector
+                                    .accepted_count());
+                        }
+                    }
+                }
+            } else {
+                selection = add_corrected_sample(calibration_session, *sample,
+                                                 &detection.debug);
+            }
+
+            if (detection.debug.orientation && !debug_image.empty()) {
                 const auto& orientation = *detection.debug.orientation;
                 cv::putText(
                     debug_image,
@@ -254,18 +347,17 @@ void camera_calibration::image_callback(
                     cv::Point{16, 58}, cv::FONT_HERSHEY_SIMPLEX, 0.55,
                     cv::Scalar{0, 165, 255}, 2, cv::LINE_AA);
             }
-        }
 
-        if (sample) {
-            const auto selection =
-                calibration_session.sample_selector.try_add(std::move(*sample));
-            if (selection.progress.data_sufficient) {
+            const bool data_sufficient =
+                selection && selection->progress.data_sufficient &&
+                calibration_session.camera_estimate.has_value();
+            if (data_sufficient) {
                 stage = calibrate_camera::Feedback::DATA_SUFFICIENT;
-            } else if (selection.accepted) {
+            } else if (selection && selection->accepted) {
                 stage = calibrate_camera::Feedback::SAMPLE_ACCEPTED;
             }
 
-            if (selection.accepted) {
+            if (selection && selection->accepted) {
                 const auto accepted_frames =
                     calibration_session.sample_selector.accepted_count();
                 const auto session_directory =
@@ -276,9 +368,10 @@ void camera_calibration::image_callback(
                          << accepted_frames << ".png";
                 const auto output_path = session_directory / filename.str();
                 if (!cv::imwrite(output_path.string(), debug_image)) {
-                    RCLCPP_WARN(get_logger(),
-                                "Failed to save accepted calibration frame to '%s'",
-                                output_path.c_str());
+                    RCLCPP_WARN(
+                        get_logger(),
+                        "Failed to save accepted calibration frame to '%s'",
+                        output_path.c_str());
                 }
             }
         }
@@ -286,9 +379,9 @@ void camera_calibration::image_callback(
         if (publish_debug) {
             cv::putText(
                 debug_image,
-                "Accepted frames: " + std::to_string(
-                                         calibration_session.sample_selector
-                                             .accepted_count()),
+                "Accepted frames: " +
+                    std::to_string(
+                        calibration_session.sample_selector.accepted_count()),
                 cv::Point{16, 86}, cv::FONT_HERSHEY_SIMPLEX, 0.65,
                 cv::Scalar{0, 255, 0}, 2, cv::LINE_AA);
 
@@ -307,12 +400,41 @@ void camera_calibration::image_callback(
     publish_feedback(goal_id, board_detected, stage);
 }
 
+std::optional<data::sample_selection_result>
+camera_calibration::add_corrected_sample(calibration_session& session,
+                                         data::target_detection& detection,
+                                         data::target_debug* debug) const {
+    if (!session.camera_estimate || !session.algorithm || !session.target) {
+        return std::nullopt;
+    }
+    const auto undistorted_points = session.algorithm->undistort_points(
+        detection.calibration.image_points,
+        session.camera_estimate->camera_info);
+    if (!undistorted_points) {
+        return std::nullopt;
+    }
+    const auto orientation =
+        calibration::sample::orientation_calculator{}.compute(
+            detection.calibration.object_points, *undistorted_points,
+            session.target->full_object_points());
+    if (!orientation) {
+        return std::nullopt;
+    }
+    detection.selection.tilt_x = orientation->tilt_x;
+    detection.selection.tilt_y = orientation->tilt_y;
+    if (debug) {
+        debug->orientation = orientation;
+    }
+    return session.sample_selector.try_add(std::move(detection));
+}
+
 void camera_calibration::handle_finish_calibration(
     const finish_calibration::Request::SharedPtr request,
     const finish_calibration::Response::SharedPtr response) {
     const auto& goal_id = request->goal_id;
     std::shared_ptr<goal_handle> goal_handle;
     std::vector<data::observation> observations;
+    std::optional<sensor_msgs::msg::CameraInfo> initial_estimate;
     const auto session_it = m_sessions.find(goal_id);
     if (session_it == m_sessions.end()) {
         response->accepted = false;
@@ -326,6 +448,11 @@ void camera_calibration::handle_finish_calibration(
         response->message = "Calibration is already running";
         return;
     }
+    if (!calibration_session.camera_estimate) {
+        response->accepted = false;
+        response->message = "Initial camera estimate is not ready";
+        return;
+    }
     if (!calibration_session.sample_selector.progress().data_sufficient) {
         response->accepted = false;
         response->message = "Calibration dataset is not sufficient";
@@ -334,6 +461,7 @@ void camera_calibration::handle_finish_calibration(
 
     goal_handle = calibration_session.action_goal_handle;
     observations = calibration_session.sample_selector.observations();
+    initial_estimate = calibration_session.camera_estimate->camera_info;
     calibration_session.calibrating = true;
     calibration_session.image_subscription.reset();
     calibration_session.debug_publisher.reset();
@@ -341,15 +469,18 @@ void camera_calibration::handle_finish_calibration(
     response->accepted = true;
     response->message = "Calibration started";
     publish_feedback(goal_id, false, calibrate_camera::Feedback::CALIBRATING);
-    run_calibration(goal_id, goal_handle, std::move(observations));
+    run_calibration(goal_id, goal_handle, std::move(observations),
+                    std::move(initial_estimate));
 }
 
 void camera_calibration::run_calibration(
     const std::string& goal_id, std::shared_ptr<goal_handle> goal_handle,
-    std::vector<data::observation> observations) {
+    std::vector<data::observation> observations,
+    std::optional<sensor_msgs::msg::CameraInfo> initial_estimate) {
     const auto algorithm = calibration::algorithm::factory::instance().create(
         goal_handle->get_goal()->calibration_method);
-    const auto calibration_result = algorithm->calibrate(observations);
+    const auto calibration_result =
+        algorithm->calibrate(observations, initial_estimate);
 
     if (!calibration_result) {
         abort_session(goal_id, "Camera calibration failed");
@@ -365,10 +496,9 @@ void camera_calibration::run_calibration(
     std::ostringstream calibration_description;
     calibration_description
         << std::setprecision(17) << "Calibration calculated from "
-        << result->used_observations
-        << " observations: rms_reprojection_error="
-        << result->rms_reprojection_error << " px, image="
-        << result->camera_info.width << "x"
+        << result->used_observations << " observations: rms_reprojection_error="
+        << result->rms_reprojection_error
+        << " px, image=" << result->camera_info.width << "x"
         << result->camera_info.height << ", distortion_model='"
         << result->camera_info.distortion_model << "', K=[";
     for (size_t row = 0; row < 3; ++row) {
@@ -493,7 +623,8 @@ void camera_calibration::publish_feedback(const std::string& goal_id,
     feedback->progress_size = static_cast<float>(progress.size);
     feedback->progress_tilt_x = static_cast<float>(progress.tilt_x);
     feedback->progress_tilt_y = static_cast<float>(progress.tilt_y);
-    feedback->data_sufficient = progress.data_sufficient;
+    feedback->data_sufficient = progress.data_sufficient &&
+                                calibration_session.camera_estimate.has_value();
     feedback->stage = stage;
     if (stage == calibrate_camera::Feedback::SAMPLE_ACCEPTED) {
         feedback->hint = "Calibration sample accepted.";

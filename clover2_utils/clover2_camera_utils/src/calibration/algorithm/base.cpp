@@ -1,5 +1,6 @@
 #include <clover2_camera_utils/calibration/algorithm/base.hpp>
 
+#include <cmath>
 #include <utility>
 
 namespace clover2_camera_utils::calibration::algorithm {
@@ -41,6 +42,45 @@ sensor_msgs::msg::CameraInfo base::make_camera_info(
         }
     }
     return camera_info;
+}
+
+std::optional<cv::Mat> base::camera_matrix_from(
+    const sensor_msgs::msg::CameraInfo& camera_info) {
+    cv::Mat camera_matrix(3, 3, CV_64F);
+    for (size_t row = 0; row < 3; ++row) {
+        for (size_t column = 0; column < 3; ++column) {
+            const auto value = camera_info.k[row * 3 + column];
+            if (!std::isfinite(value)) {
+                return std::nullopt;
+            }
+            camera_matrix.at<double>(static_cast<int>(row),
+                                     static_cast<int>(column)) = value;
+        }
+    }
+    if (camera_matrix.at<double>(0, 0) <= 0.0 ||
+        camera_matrix.at<double>(1, 1) <= 0.0 ||
+        camera_matrix.at<double>(2, 2) == 0.0) {
+        return std::nullopt;
+    }
+    return camera_matrix;
+}
+
+std::optional<cv::Mat> base::distortion_coefficients_from(
+    const sensor_msgs::msg::CameraInfo& camera_info,
+    const size_t expected_count) {
+    if (camera_info.d.size() != expected_count) {
+        return std::nullopt;
+    }
+    cv::Mat distortion_coefficients(static_cast<int>(expected_count), 1,
+                                    CV_64F);
+    for (size_t index = 0; index < expected_count; ++index) {
+        if (!std::isfinite(camera_info.d[index])) {
+            return std::nullopt;
+        }
+        distortion_coefficients.at<double>(static_cast<int>(index), 0) =
+            camera_info.d[index];
+    }
+    return distortion_coefficients;
 }
 
 }  // namespace clover2_camera_utils::calibration::algorithm

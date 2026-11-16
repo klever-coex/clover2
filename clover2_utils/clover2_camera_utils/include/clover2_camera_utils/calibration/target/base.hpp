@@ -10,6 +10,7 @@
 #include <opencv2/core/mat.hpp>
 
 #include <optional>
+#include <vector>
 
 namespace clover2_camera_utils::calibration::target {
 
@@ -35,6 +36,10 @@ public:
      */
     virtual void draw_debug(
         cv::Mat& image, const data::target_debug& debug) const = 0;
+
+    /** @brief Returns all board-frame points used to normalize orientation. */
+    virtual const std::vector<cv::Point3f>& full_object_points() const noexcept =
+        0;
 };
 
 }  // namespace clover2_camera_utils::calibration::target

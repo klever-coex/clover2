@@ -34,7 +34,20 @@ public:
      * `std::nullopt` if calculation is not possible.
      */
     virtual std::optional<result> calibrate(
-        const std::vector<data::observation>& observations) const = 0;
+        const std::vector<data::observation>& observations,
+        const std::optional<sensor_msgs::msg::CameraInfo>& initial_estimate =
+            std::nullopt) const = 0;
+
+    /**
+     * @brief Removes distortion from image points for this camera model.
+     * @param image_points Distorted image coordinates in pixels.
+     * @param camera_info Camera parameters describing the distortion.
+     * @return Undistorted image coordinates in pixels, or `std::nullopt` if
+     * the parameters or points are invalid.
+     */
+    virtual std::optional<std::vector<cv::Point2f>> undistort_points(
+        const std::vector<cv::Point2f>& image_points,
+        const sensor_msgs::msg::CameraInfo& camera_info) const = 0;
 
 protected:
     /**
@@ -58,6 +71,14 @@ protected:
     static sensor_msgs::msg::CameraInfo make_camera_info(
         const cv::Size& image_size, const cv::Mat& camera_matrix,
         const cv::Mat& distortion_coefficients, std::string distortion_model);
+
+    /** @brief Converts validated ROS camera intrinsics to an OpenCV matrix. */
+    static std::optional<cv::Mat> camera_matrix_from(
+        const sensor_msgs::msg::CameraInfo& camera_info);
+
+    /** @brief Converts validated ROS distortion coefficients to OpenCV form. */
+    static std::optional<cv::Mat> distortion_coefficients_from(
+        const sensor_msgs::msg::CameraInfo& camera_info, size_t expected_count);
 };
 
 }  // namespace clover2_camera_utils::calibration::algorithm

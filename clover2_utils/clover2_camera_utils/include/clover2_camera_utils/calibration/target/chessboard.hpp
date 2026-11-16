@@ -44,6 +44,8 @@ public:
     void draw_debug(
         cv::Mat& image, const data::target_debug& debug) const override;
 
+    const std::vector<cv::Point3f>& full_object_points() const noexcept override;
+
 private:
     cv::Size m_pattern_size;
     std::vector<cv::Point3f> m_object_points;

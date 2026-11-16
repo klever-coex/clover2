@@ -21,7 +21,13 @@ public:
      * `std::nullopt` if observations are invalid or calculation fails.
      */
     std::optional<result> calibrate(
-        const std::vector<data::observation>& observations) const override;
+        const std::vector<data::observation>& observations,
+        const std::optional<sensor_msgs::msg::CameraInfo>& initial_estimate =
+            std::nullopt) const override;
+
+    std::optional<std::vector<cv::Point2f>> undistort_points(
+        const std::vector<cv::Point2f>& image_points,
+        const sensor_msgs::msg::CameraInfo& camera_info) const override;
 };
 
 }  // namespace clover2_camera_utils::calibration::algorithm

@@ -1,7 +1,6 @@
 #include <clover2_camera_utils/calibration/target/charuco.hpp>
 
 #include <clover2_camera_utils/calibration/sample/features.hpp>
-#include <clover2_camera_utils/calibration/sample/orientation.hpp>
 
 #include <nlohmann/json.hpp>
 
@@ -141,20 +140,16 @@ data::target_detection_result charuco::detect(
     if (!result.debug.feature_geometry.has_value()) {
         return result;
     }
-    result.debug.orientation = sample::orientation_calculator{}.compute(
-        observation.object_points, observation.image_points,
-        m_board->chessboardCorners);
-    if (!result.debug.orientation.has_value()) {
-        return result;
-    }
     auto selection = result.debug.feature_geometry->features;
-    selection.tilt_x = result.debug.orientation->tilt_x;
-    selection.tilt_y = result.debug.orientation->tilt_y;
     result.sample = data::target_detection{
         .calibration = std::move(observation),
         .selection = selection,
     };
     return result;
+}
+
+const std::vector<cv::Point3f>& charuco::full_object_points() const noexcept {
+    return m_board->chessboardCorners;
 }
 
 void charuco::draw_debug(
