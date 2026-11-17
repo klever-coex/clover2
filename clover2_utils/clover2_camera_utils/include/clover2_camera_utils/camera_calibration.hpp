@@ -92,22 +92,34 @@ private:
         finish_calibration::Response::SharedPtr response);
 
     /**
-     * @brief Performs calibration using selected observations.
+     * @brief Transitions a session from sample collection to calibration.
      * @param goal_id String representation of the action goal UUID.
-     * @param goal_handle Handle of the calibration goal.
-     * @param observations Calibration dataset observations.
+     * @param calibration_session Session to start calibrating.
+     * @param response Response of the `finish` service.
+     * @return `true` when calibration was started, otherwise `false`.
      */
-    void run_calibration(
-        const std::string& goal_id, std::shared_ptr<goal_handle> goal_handle,
-        std::vector<data::observation> observations,
-        std::optional<sensor_msgs::msg::CameraInfo> initial_estimate);
+    bool start_calibration(const std::string& goal_id,
+                           calibration_session& calibration_session,
+                           finish_calibration::Response& response);
 
     /**
-     * @brief Calculates model-corrected tilt and adds a detected sample.
-     * @return Selection result, or `std::nullopt` if correction fails.
+     * @brief Runs and completes calibration for a started session.
+     * @param goal_id String representation of the action goal UUID.
+     * @param goal_handle Handle of the calibration action goal.
+     * @param calibration_session Started calibration session.
      */
-    std::optional<data::sample_selection_result> add_corrected_sample(
-        calibration_session& session, data::target_detection& detection) const;
+    void complete_calibration(const std::string& goal_id,
+                              const std::shared_ptr<goal_handle>& goal_handle,
+                              calibration_session& calibration_session);
+
+    /**
+     * @brief Sends calculated camera information to the camera driver.
+     * @param client Client for the camera's `set_camera_info` service.
+     * @param camera_info Calculated camera information.
+     */
+    void send_camera_info(
+        const rclcpp::Client<set_camera_info>::SharedPtr& client,
+        const sensor_msgs::msg::CameraInfo& camera_info) const;
 
     /**
      * @brief Validates calibration goal parameters.
