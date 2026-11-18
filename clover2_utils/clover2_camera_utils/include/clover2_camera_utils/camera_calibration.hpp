@@ -109,7 +109,7 @@ private:
      * @param calibration_session Started calibration session.
      */
     void complete_calibration(const std::string& goal_id,
-                              const std::shared_ptr<goal_handle>& goal_handle,
+                              std::shared_ptr<goal_handle> goal_handle,
                               calibration_session& calibration_session);
 
     /**
@@ -144,7 +144,7 @@ private:
      * @param goal_handle Handle of the goal to cancel.
      */
     void cancel_session(const std::string& goal_id,
-                        const std::shared_ptr<goal_handle>& goal_handle);
+                        std::shared_ptr<goal_handle> goal_handle);
 
     /**
      * @brief Aborts the specified session with the specified reason.

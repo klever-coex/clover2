@@ -5,6 +5,7 @@
 #include <clover2_camera_utils_msgs/srv/finish_calibration.hpp>
 
 // ROS2
+#include <rclcpp/create_client.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/create_client.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
@@ -35,7 +36,9 @@ public:
         rclcpp::CallbackGroup::SharedPtr callback_group = nullptr)
         : m_action_client(rclcpp_action::create_client<calibrate_camera>(
               node, make_name(base_path, "calibrate"), callback_group))
-        , m_finish_client(node->template create_client<finish_calibration>(
+        , m_finish_client(rclcpp::create_client<finish_calibration>(
+              node->get_node_base_interface(), node->get_node_graph_interface(),
+              node->get_node_services_interface(),
               make_name(base_path, "finish"), rclcpp::ServicesQoS(),
               callback_group)) {}
 

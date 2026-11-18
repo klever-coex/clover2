@@ -8,6 +8,7 @@
 #include <clover2_camera_utils/calibration/algorithm/base.hpp>
 #include <clover2_camera_utils/calibration/sample/selector.hpp>
 #include <clover2_camera_utils/calibration/target/base.hpp>
+#include <clover2_camera_utils/data/board_orientation.hpp>
 #include <clover2_camera_utils/data/sample_selector_config.hpp>
 #include <clover2_camera_utils_msgs/action/calibrate_camera.hpp>
 
@@ -47,7 +48,9 @@ public:
     };
 
     explicit calibration_session(
-        data::sample_selector_config sample_selector_config);
+        data::sample_selector_config sample_selector_config,
+        std::shared_ptr<const calibration::target::base> target,
+        std::unique_ptr<calibration::algorithm::base> algorithm);
 
     /**
      * @brief Detects, selects, and evaluates a calibration sample.
@@ -59,6 +62,9 @@ public:
     image_processing_result process_image(const cv::Mat& image,
                                           bool create_debug_image);
 
+    /** @brief Checks whether the algorithm, estimate, and dataset are ready. */
+    bool ready_to_calibrate() const;
+
     /**
      * @brief Calculates final camera parameters from selected observations.
      * @return Calibration result, or `std::nullopt` if the session is not
@@ -66,17 +72,22 @@ public:
      */
     std::optional<calibration::algorithm::result> run_calibration() const;
 
-    std::shared_ptr<goal_handle> action_goal_handle;
-    bool calibrating{false};
-    std::shared_ptr<const calibration::target::base> target;
-    std::unique_ptr<calibration::algorithm::base> algorithm;
-    calibration::sample::selector sample_selector;
-    std::optional<calibration::algorithm::result> camera_estimate;
-    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr debug_publisher;
-    rclcpp::Client<set_camera_info>::SharedPtr set_camera_info_client;
-    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_subscription;
+    std::shared_ptr<goal_handle> m_action_goal_handle;
+    bool m_calibrating{false};
+    std::shared_ptr<const calibration::target::base> m_target;
+    std::unique_ptr<calibration::algorithm::base> m_algorithm;
+    calibration::sample::selector m_sample_selector;
+    std::optional<calibration::algorithm::result> m_camera_estimate;
+    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr m_debug_publisher;
+    rclcpp::Client<set_camera_info>::SharedPtr m_set_camera_info_client;
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr m_image_subscription;
 
 private:
+    calibration_initialization_event initialize_camera_estimate();
+    bool correct_collected_sample_tilts();
+    std::optional<data::board_orientation> calculate_corrected_orientation(
+        const data::observation& observation) const;
+
     std::optional<data::sample_selection_result> add_corrected_sample(
         data::target_detection& detection);
 };
