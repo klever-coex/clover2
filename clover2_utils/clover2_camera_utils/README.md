@@ -42,9 +42,9 @@ ros2 action send_goal \
   /camera_calibration/calibrate \
   clover2_camera_utils_msgs/action/CalibrateCamera \
   "{
-    camera_namespace: '/webcam',
-    calibration_method: 'pinhole',
-    target_config_path: '/absolute/path/to/chessboard_6x9_22_5mm.json'
+    camera_namespace: '/main_camera/camera',
+    calibration_method: 'fisheye',
+    target_config_path: '/absolute/path/to/clover2/clover2_utils/clover2_camera_utils/config/boards/charuco_4x6_65mm_47_667mm_A3.json'
   }"
 ```
 
@@ -66,3 +66,27 @@ ros2 service call \
 The goal ID is included in the action feedback. Copy it into the `finish`
 service request to complete the corresponding calibration session. Multiple
 sessions can run concurrently.
+
+## C++ client
+
+`calibration_client` wraps the calibration action and finish service. It saves
+the session UUID from action feedback; completion remains explicit:
+
+```cpp
+#include <clover2_camera_utils/calibration_client.hpp>
+
+clover2_camera_utils::calibration_client client(node);
+
+clover2_camera_utils::calibration_client::calibrate_camera::Goal goal;
+goal.camera_namespace = "/main_camera/camera";
+goal.calibration_method = "fisheye";
+goal.target_config_path = "/absolute/path/to/target.json";
+
+client.start(goal, [](auto /* goal_handle */, const auto& feedback) {
+    // Show feedback->hint and feedback->progress_* to the operator.
+});
+
+// Invoke explicitly, for example from a UI button, after sufficient data is
+// collected. finish() throws until the first action feedback provides goal_id.
+client.finish();
+```
