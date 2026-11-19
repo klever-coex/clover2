@@ -37,7 +37,7 @@
 * `NodeDiagnosticsInterface` — для работы с диагностическими задачами;
 * `NodeParametersWatcherInterface` — для отслеживания изменений параметров.
 
-Класс `node_context` выполняет функцию, аналогичную  `rclcpp::node_interfaces::NodeInterfaces`.
+Класс `node_context` выполняет функцию, аналогичную `rclcpp::node_interfaces::NodeInterfaces`.
 
 ```{eval-rst}
 .. doxygenclass:: clover2_common::node_context
@@ -60,8 +60,6 @@
 ## Собственные интерфейсы ноды
 
 Пакет `clover2_common` предоставляет собственные интерфейсы для работы с диагностикой и отслеживания изменений параметров ноды.
-
-<br>
 
 ### NodeDiagnosticsInterface / NodeDiagnostics
 
@@ -99,3 +97,7 @@ get_node_diagnostics_interface()
 .. doxygeninterface:: clover2_common::node_interfaces::NodeParametersWatcherInterface
     :members:
 ```
+
+<br>
+
+Интерфейсы `NodeDiagnosticsInterface` и `NodeParametersWatcherInterface` уже реализованы в пакете `clover2_common` и доступны через объект ноды. 
