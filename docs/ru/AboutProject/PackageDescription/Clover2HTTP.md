@@ -10,11 +10,14 @@ Clover2HTTP/MapServer
 Clover2HTTP/SettingsServer
 ```
 
-Данный пакет содержит библиотеку асинхронного веб сервера на базе [boost.Beast](https://www.boost.org/doc/libs/latest/libs/beast/doc/html/index.html) и ROS2 ноду запускающую http сервер. В проекте `clover2` используется для работы web интерфейса
+Пакет `clover2_http` содержит библиотеку асинхронного HTTP-сервера на базе [boost.Beast](https://www.boost.org/doc/libs/latest/libs/beast/doc/html/index.html) и ROS 2 ноду для его запуска. В проекте `clover2` пакет используется для организации взаимодействия веб-интерфейса с ROS 2. 
 
 ## http-server-lib
 
-Основной класс библиотеки - `clover2_http::http::server`. Через него происходит регистрация путей для http и WebSocket запросов и `middleware`.
+Основной класс библиотеки — `clover2_http::http::server`. С помощью этого класса можно:
+* регистрировать обработчики HTTP-запросов;
+* регистрировать обработчики WebSocket-соединений;
+* подключать` middleware` для дополнительной обработки запросов.
 
 ```{eval-rst}
 .. doxygenclass:: clover2_http::http::server
@@ -38,32 +41,48 @@ srv.listen("0.0.0.0", 3000);
 io.run();
 ```
 
-В данном примере регистрируется путь `/hello` для `GET` запросов. Ответом всегда будет строчка "hello". Сервер запускается на 3000 порту.
+В этом примере:
+1. Регистрируется обработчик `GET`-запросов по адресу `/hello`.
+2. При получении запроса сервер отправляет строку `hello` с HTTP-кодом ответа `200`.
+3. Метод `listen()` запускает прослушивание входящих подключений на порту `3000`. Адрес `0.0.0.0` позволяет принимать подключения через все сетевые интерфейсы.
+4. Метод `io.run()` запускает обработку асинхронных операций.
 
 ## Плагины
 
-Функциональность сервера расширяется плагинами `pluginlib` с базовым классом `clover2_http::base_plugin` (обёртка `clover2_http::plugin<T>`). Все объявленные классы загружаются автоматически при старте ноды — отдельная регистрация в конфигурации не требуется.
+Функциональность HTTP-сервера можно расширять с помощью плагинов `pluginlib` с базовым классом `clover2_http::base_plugin`. Для создания плагинов используется шаблонная обертка `clover2_http::plugin<T>`. 
 
-Каждый плагин объявляет список `capabilities` — он попадает в `GET /api/manifest` и используется фронтендом для определения функционала.
+Плагины загружаются автоматически при запуске ROS 2 ноды — отдельная регистрация в конфигурации не требуется.
+
+Каждый плагин объявляет список `capabilities` — идентификаторов доступных возможностей. Этот список передается в ответе на запрос `GET /api/manifest` и используется фронтендом для определения
+какие функции поддерживает сервер.
 
 Все плагины репозитория:
 
 | Плагин | Пакет | Capabilities | Назначение |
 | --- | --- | --- | --- |
-| {doc}`ros_support <Clover2HTTP/RosSupport>` | `clover2_http` | `nodes`, `topics`, `services` | REST API графа ROS 2 и WebSocket-стриминг топиков в JSON |
-| {doc}`map_server <Clover2HTTP/MapServer>` | `clover2_ui/clover2_http_plugins` | `map` | REST CRUD маркеров ArUco-карты |
+| {doc}`ros_support <Clover2HTTP/RosSupport>` | `clover2_http` | `nodes`, `topics`, `services` | REST API для работы с графом ROS 2 и WebSocket-стриминг топиков в формате JSON |
+| {doc}`map_server <Clover2HTTP/MapServer>` | `clover2_ui/clover2_http_plugins` | `map` | REST CRUD для создания, чтения, изменения и удаления маркеров ArUco-карты |
 | {doc}`settings_server <Clover2HTTP/SettingsServer>` | `clover2_ui/clover2_http_plugins` | `settings` | Веб-редактор настроек запуска |
 
 Плагины делятся на два типа:
 
-- **Универсальные** — работают в любом ROS2 окружении и не зависят от пакетов проекта. Живут в самом `clover2_http` (`src/plugins`).
-- **Проектные** — зависят от пакетов clover2 (`clover2_map`, `clover2_ui` и тд) и оборачивают их логику в REST. Живут в пакете `clover2_ui/clover2_http_plugins`.
+- **Универсальные** — работают в любом окружении ROS 2 и не зависят от пакетов проекта `clover2`. Размещаются в пакете  `clover2_http` в каталоге `src/plugins`.
+- **Проектные** — зависят от пакетов проекта `clover2` (например, `clover2_map`, `clover2_ui`) и предоставляют доступ к их функциональности через REST. Размещаются в пакете `clover2_ui/clover2_http_plugins`.
 
-Новый плагин добавляется так: класс наследуется от `clover2_http::plugin<T>`, определяется `k_name`/`k_version`, переопределяются `on_initialize()` (регистрация маршрутов через `m_server->get/post/put/del`) и `capabilities()`; класс экспортируется макросом `PLUGINLIB_EXPORT_CLASS` и описывается в `plugins.xml` пакета.
+### Создание нового плагина
+
+Чтобы добавить новый плагин:
+
+1.	Создайте класс, унаследованный от `clover2_http::plugin<T>`, где `<T>` — создаваемый класс плагина.
+2.	Определите статические параметры `k_name` и `k_version`.
+3.	Переопределите метод `on_initialize()`. В нем зарегистрируйте обработчики HTTP- и WebSocket-запросов с помощью методов `m_server->get()`, `m_server->post()`, `m_server->put()` и `m_server->del()`.
+4.	Переопределите метод `capabilities()`, чтобы объявить возможности плагина.
+5.	Экспортируйте класс с помощью макроса `PLUGINLIB_EXPORT_CLASS`.
+6.	Добавьте описание плагина в файл `plugins.xml`.
 
 ### Минимальный пример плагина
 
-Плагин, отвечающий на `GET /api/ping` и объявляющий capability `ping`:
+Рассмотрим пример плагина, отвечающего на `GET /api/ping` и объявляющего capability `ping`:
 
 ```c++
 // src/plugins/ping_plugin.cpp
@@ -102,8 +121,7 @@ protected:
             });
     }
 
-    // Попадает в GET /api/manifest: фронтенд считает функциональность
-    // доступной, только если список не пуст.
+    // Попадает в GET /api/manifest.
     std::vector<std::string> capabilities() const override {
         return {"ping"};
     }
@@ -117,7 +135,17 @@ PLUGINLIB_EXPORT_CLASS(clover2_http::plugins::ping_plugin,
                        clover2_http::base_plugin)
 ```
 
-Классу нужен Export-файл `plugins.xml` в корне пакета (`library path` — имя cmake-таргета библиотеки):
+В этом примере:
+* `k_name` задает имя плагина.
+* `k_version` задает версию плагина.
+* `on_initialize()` регистрирует обработчик `GET`-запросов по адресу `/api/ping`.
+* `reply(pong{}, 200)` отправляет JSON-ответ с HTTP-кодом `200`.
+* `capabilities()` объявляет возможность `ping`, которая передается веб-интерфейсу через `api/manifest`.
+
+
+### Описание и сборка плагина
+
+Для обнаружения плагина `pluginlib` необходимо создать файл `plugins.xml` в корне пакета:
 
 ```xml
 <class_libraries>
@@ -131,9 +159,14 @@ PLUGINLIB_EXPORT_CLASS(clover2_http::plugins::ping_plugin,
 </class_libraries>
 ```
 
+В атрибуте `path` указывается имя CMake-цели библиотеки, а в атрибуте `type` — полное имя класса плагина с пространством имен.
+
+Добавьте в CMakeLists.txt создание библиотеки и экспорт описания плагина:
+
+
 ```cmake
 ament_auto_add_library(ping_plugin SHARED DIRECTORY "src")
 pluginlib_export_plugin_description_file(clover2_http plugins.xml)
 ```
 
-После сборки плагин подхватится автоматически и появится в `/api/manifest`.
+После сборки и установки пакета плагин станет доступен для автоматической загрузки при запуске ноды. Его возможности появятся в `/api/manifest`.
