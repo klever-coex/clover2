@@ -69,24 +69,39 @@ sessions can run concurrently.
 
 ## C++ client
 
-`calibration_client` wraps the calibration action and finish service. It saves
-the session UUID from action feedback; completion remains explicit:
+`calibration_client` wraps the calibration action and finish service. Each
+`start()` returns a handle for its own session. The goal UUID is learned from
+the first feedback message, so call `finish()` after feedback has arrived.
 
 ```cpp
 #include <clover2_camera_utils/calibration_client.hpp>
+#include <string>
 
 clover2_camera_utils::calibration_client client(node);
 
-clover2_camera_utils::calibration_client::calibrate_camera::Goal goal;
-goal.camera_namespace = "/main_camera/camera";
-goal.calibration_method = "fisheye";
-goal.target_config_path = "/absolute/path/to/target.json";
+auto make_goal = [](const std::string& camera_namespace) {
+    clover2_camera_utils::calibration_client::calibrate_camera::Goal goal;
+    goal.camera_namespace = camera_namespace;
+    goal.calibration_method = "fisheye";
+    goal.target_config_path = "/absolute/path/to/target.json";
+    return goal;
+};
 
-client.start(goal, [](auto /* goal_handle */, const auto& feedback) {
+auto front = client.start(make_goal("/front_camera/camera"),
+    [](auto /* goal_handle */, const auto& feedback) {
     // Show feedback->hint and feedback->progress_* to the operator.
 });
+auto rear = client.start(make_goal("/rear_camera/camera"));
 
-// Invoke explicitly, for example from a UI button, after sufficient data is
-// collected. finish() throws until the first action feedback provides goal_id.
-client.finish();
+// Each handle finishes only its corresponding camera session.
+front.finish();
+rear.finish();
+
+// Or retrieve all sessions that have reported feedback and finish one by index:
+auto sessions = client.active_sessions();
+client.finish(sessions.front());
 ```
+
+All client methods that access its session list should be called from the same
+application thread. ROS callbacks use the client's callback group and update
+individual session state without a mutex.
