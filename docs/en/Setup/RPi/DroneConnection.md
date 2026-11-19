@@ -1,5 +1,8 @@
 # How to Connect to Your Quadcopter
 
+1. Connect the battery to the quadcopter and wait a couple of minutes for the Raspberry Pi to boot.
+2. Find `clover2-xxxxxx` in the list of available Wi-Fi networks and connect using the password `cloverwifi`.
+
 <br>
 
 There are two primary ways to access the quadcopter’s terminal.
@@ -8,7 +11,7 @@ There are two primary ways to access the quadcopter’s terminal.
 
 The Web IDE is the quickest way to start working without installing any extra software.
 
-1. Open your web browser and go to `http://192.168.11.1:9880`.
+1. Once connected to Wi-Fi, open your web browser and go to `http://192.168.11.1:9880`.
 2. In the top menu, navigate to `Terminal` -> `New Terminal`.
 3. Your terminal session will open directly in your browser.
 

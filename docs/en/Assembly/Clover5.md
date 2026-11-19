@@ -760,7 +760,7 @@ Ensure the screws do not protrude into the motor winding area. Too long screws c
 
     <br>
 
-8. Stick the LED strip to the plastic LED ring. Snap the ring into the designated hooks on the landing gears and secure the wires with a nylon cable tie. Connect the LED strip power to the second free UBEC connector. Connect the signal wire to pin 21 (GPIO 9) (see [wiring diagram](#clover5-layout)).
+8. Stick the LED strip to the plastic LED ring. Snap the ring into the designated hooks on the landing gears and secure the wires with a nylon cable tie. Connect the LED strip power to the second free UBEC connector. Connect the signal wire to pin 19 (GPIO 10) (see [wiring diagram](#clover5-layout)).
 
     ```{figure} @assets@/en/assembly/clover5/other_step_8.webp
     :alt: Installing Guards, Legs, and LED Strip
