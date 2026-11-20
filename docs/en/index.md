@@ -11,6 +11,7 @@ Programming
 Simulator
 AdditionalEquipment
 UsefulInformation
+AboutProject
 ```
 
 ```{figure} @assets@/common/klever5-dev.webp
