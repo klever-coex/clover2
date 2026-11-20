@@ -1,0 +1,33 @@
+/**
+ * @file fisheye.hpp
+ * @brief Provides a calibration algorithm for the fisheye model.
+ */
+
+#pragma once
+
+#include <clover2_camera_utils/calibration/algorithm/base.hpp>
+
+namespace clover2_camera_utils::calibration::algorithm {
+
+/** @brief Performs camera calibration for the fisheye model. */
+class fisheye final : public base {
+public:
+    static constexpr const char* name = "fisheye";
+
+    /**
+     * @brief Performs calibration using observations.
+     * @param observations Calibration board observations.
+     * @return Camera information and RMS reprojection error in pixels, or
+     * `std::nullopt` if observations are invalid or calculation fails.
+     */
+    std::optional<result> calibrate(
+        const std::vector<data::observation>& observations,
+        const std::optional<sensor_msgs::msg::CameraInfo>& initial_estimate =
+            std::nullopt) const override;
+
+    std::optional<std::vector<cv::Point2f>> undistort_points(
+        const std::vector<cv::Point2f>& image_points,
+        const sensor_msgs::msg::CameraInfo& camera_info) const override;
+};
+
+}  // namespace clover2_camera_utils::calibration::algorithm
