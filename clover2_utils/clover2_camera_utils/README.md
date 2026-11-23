@@ -70,8 +70,8 @@ sessions can run concurrently.
 ## C++ client
 
 `calibration_client` wraps the calibration action and finish service. Each
-`start()` returns a handle for its own session. The goal UUID is learned from
-the first feedback message, so call `finish()` after feedback has arrived.
+`start()` returns a shared handle for its own session. The goal UUID is assigned
+when the action server accepts the goal, so call `finish()` after acceptance.
 
 ```cpp
 #include <clover2_camera_utils/calibration_client.hpp>
@@ -88,20 +88,20 @@ auto make_goal = [](const std::string& camera_namespace) {
 };
 
 auto front = client.start(make_goal("/front_camera/camera"),
+    [](auto /* goal_handle */) {
+        // Goal was accepted; the session now has its ROS goal ID.
+    },
     [](auto /* goal_handle */, const auto& feedback) {
-    // Show feedback->hint and feedback->progress_* to the operator.
+        // Show feedback->hint and feedback->progress_* to the operator.
 });
 auto rear = client.start(make_goal("/rear_camera/camera"));
 
-// Each handle finishes only its corresponding camera session.
-front.finish();
-rear.finish();
+// Each handle finishes only its corresponding camera session. The goal must
+// have been accepted before finish() is called.
+front->finish();
+rear->finish();
 
-// Or retrieve all sessions that have reported feedback and finish one by index:
+// Or retrieve active sessions and finish one by index:
 auto sessions = client.active_sessions();
-client.finish(sessions.front());
+sessions.front()->finish();
 ```
-
-All client methods that access its session list should be called from the same
-application thread. ROS callbacks use the client's callback group and update
-individual session state without a mutex.
