@@ -70,7 +70,7 @@
     "deleteConfirmMany": "Удалить маркеров: {{count}}?",
     "editingMany": "Редактируется маркеров: {{count}}",
     "multiExprHint": "Выражения используют id = markerId",
-    "label": "Название",
+    "label": "frame_id",
     "sizeMm": "Размер (мм)",
     "positionExpr": "Позиция (мм) — выражение f(id)",
     "rotationExpr": "Поворот (°) — Euler YXZ — выражение f(id)",
