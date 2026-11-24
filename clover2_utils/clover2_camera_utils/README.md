@@ -105,3 +105,17 @@ rear->finish();
 auto sessions = client.active_sessions();
 sessions.front()->finish();
 ```
+
+```cpp
+auto session = client.start(
+    make_goal("/front_camera/camera"),
+    nullptr,  // Goal response callback.
+    nullptr,  // Feedback callback.
+    [](const auto& result) {
+        // Inspect result.code and result.result->success/message.
+        // Display result.result->camera_info and calibration quality on success.
+    });
+
+// Later, after goal acceptance:
+auto pending = session->finish();
+```

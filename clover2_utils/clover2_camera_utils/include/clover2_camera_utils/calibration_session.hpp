@@ -80,7 +80,8 @@ public:
     std::optional<calibration::algorithm::result> m_camera_estimate;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr m_debug_publisher;
     rclcpp::Client<set_camera_info>::SharedPtr m_set_camera_info_client;
-    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr m_image_subscription;
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr
+        m_image_subscription;
 
 private:
     calibration_initialization_event initialize_camera_estimate();

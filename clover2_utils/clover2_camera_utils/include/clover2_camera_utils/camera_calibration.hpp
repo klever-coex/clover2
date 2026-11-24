@@ -51,7 +51,7 @@ public:
 
 private:
     /**
-     * @brief Validates and accepts a new action goal.
+     * @brief Accepts a goal for processing; preparation errors use the result.
      * @param uuid Unique goal identifier.
      * @param goal Requested calibration parameters.
      * @return Decision to accept or reject the goal.
@@ -103,7 +103,7 @@ private:
                            finish_calibration::Response& response);
 
     /**
-     * @brief Runs and completes calibration for a started session.
+     * @brief Runs calibration synchronously and releases the session.
      * @param goal_id String representation of the action goal UUID.
      * @param goal_handle Handle of the calibration action goal.
      * @param calibration_session Started calibration session.
@@ -161,9 +161,6 @@ private:
 
     // Calibration sessions keyed by string representations of action goal
     // UUIDs.
-    std::unordered_map<std::string,
-                       std::shared_ptr<const calibration::target::base>>
-        m_pending_targets;
     std::unordered_map<std::string, calibration_session> m_sessions;
 
     // ROS interfaces

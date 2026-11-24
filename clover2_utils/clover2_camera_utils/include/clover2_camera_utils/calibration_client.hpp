@@ -48,7 +48,8 @@ public:
             std::lock_guard<std::mutex> lock(m_mutex);
             if (m_goal_id.empty()) {
                 throw std::runtime_error(
-                    "Calibration goal ID is not available before goal acceptance");
+                    "Calibration goal ID is not available before goal "
+                    "acceptance");
             }
             return m_goal_id;
         }
@@ -61,6 +62,7 @@ public:
 
     private:
         friend class calibration_client;
+
         explicit session(
             rclcpp::Client<finish_calibration>::SharedPtr finish_client)
             : m_finish_client(std::move(finish_client)) {}
@@ -98,8 +100,8 @@ public:
         goal_response_callback goal_response_callback = nullptr,
         feedback_callback feedback_callback = nullptr,
         result_callback result_callback = nullptr) {
-        auto calibration_session = std::shared_ptr<session>(
-            new session(m_finish_client));
+        auto calibration_session =
+            std::shared_ptr<session>(new session(m_finish_client));
         {
             std::lock_guard<std::mutex> lock(m_sessions_mutex);
             m_sessions.push_back(calibration_session);

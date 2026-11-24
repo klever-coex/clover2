@@ -76,31 +76,13 @@ camera_calibration::camera_calibration(const rclcpp::NodeOptions& options)
 
 camera_calibration::~camera_calibration() {
     m_sessions.clear();
-    m_pending_targets.clear();
     m_action_server.reset();
 }
 
 rclcpp_action::GoalResponse camera_calibration::handle_goal(
-    const rclcpp_action::GoalUUID& uuid,
-    const std::shared_ptr<const calibrate_camera::Goal> goal) {
-    std::string rejection_reason;
-    if (!is_valid_goal(*goal, rejection_reason)) {
-        RCLCPP_WARN(get_logger(), "Rejecting calibration goal: %s",
-                    rejection_reason.c_str());
-        return rclcpp_action::GoalResponse::REJECT;
-    }
-
-    const auto goal_id = rclcpp_action::to_string(uuid);
-    try {
-        m_pending_targets.emplace(
-            goal_id, calibration::target::factory::instance().create(
-                         goal->target_config_path));
-    } catch (const std::exception& error) {
-        RCLCPP_WARN(get_logger(), "Rejecting calibration goal: %s",
-                    error.what());
-        return rclcpp_action::GoalResponse::REJECT;
-    }
-
+    const rclcpp_action::GoalUUID&,
+    const std::shared_ptr<const calibrate_camera::Goal>) {
+    // Application errors are returned in the result of the accepted goal.
     return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 }
 
@@ -109,9 +91,11 @@ rclcpp_action::CancelResponse camera_calibration::handle_cancel(
     const auto goal_id = rclcpp_action::to_string(goal_handle->get_goal_id());
     const auto session_it = m_sessions.find(goal_id);
     if (session_it == m_sessions.end() ||
-        session_it->second.m_action_goal_handle != goal_handle) {
+        session_it->second.m_action_goal_handle != goal_handle ||
+        session_it->second.m_calibrating) {
         return rclcpp_action::CancelResponse::REJECT;
     }
+    // Cancellation is finalized when the next image is processed.
     return rclcpp_action::CancelResponse::ACCEPT;
 }
 
@@ -123,23 +107,23 @@ void camera_calibration::handle_accepted(
     const auto set_camera_info_service =
         goal->camera_namespace + "/" + k_set_camera_info_service_name;
 
-    const auto pending_target_it = m_pending_targets.find(goal_id);
-    if (pending_target_it == m_pending_targets.end()) {
+    std::string rejection_reason;
+    if (!is_valid_goal(*goal, rejection_reason)) {
         auto result = std::make_shared<calibrate_camera::Result>();
         result->success = false;
-        result->message = "Missing prepared calibration target";
+        result->message = rejection_reason;
         goal_handle->abort(result);
         return;
     }
-    auto target = std::move(pending_target_it->second);
-    m_pending_targets.erase(pending_target_it);
 
     try {
+        auto target = calibration::target::factory::instance().create(
+            goal->target_config_path);
         auto algorithm = calibration::algorithm::factory::instance().create(
             goal->calibration_method);
-        auto [session_it, unused] = m_sessions.try_emplace(
-            goal_id, m_sample_selector_config, std::move(target),
-            std::move(algorithm));
+        auto [session_it, unused] =
+            m_sessions.try_emplace(goal_id, m_sample_selector_config,
+                                   std::move(target), std::move(algorithm));
         auto& calibration_session = session_it->second;
         calibration_session.m_action_goal_handle = goal_handle;
         calibration_session.m_debug_publisher =
@@ -166,7 +150,8 @@ void camera_calibration::handle_accepted(
         auto result = std::make_shared<calibrate_camera::Result>();
         result->success = false;
         result->message =
-            std::string("Failed to prepare calibration session: ") + error.what();
+            std::string("Failed to prepare calibration session: ") +
+            error.what();
         RCLCPP_WARN(get_logger(), "%s", result->message.c_str());
         goal_handle->abort(result);
         return;
@@ -209,7 +194,8 @@ void camera_calibration::image_callback(
             output.header = message->header;
             output.encoding = sensor_msgs::image_encodings::BGR8;
             output.image = std::move(*processing_result.debug_image);
-            calibration_session.m_debug_publisher->publish(*output.toImageMsg());
+            calibration_session.m_debug_publisher->publish(
+                *output.toImageMsg());
         }
         if (processing_result.initialization_event) {
             switch (*processing_result.initialization_event) {
@@ -265,13 +251,25 @@ void camera_calibration::handle_finish_calibration(
         return;
     }
 
-    complete_calibration(goal_id, calibration_session.m_action_goal_handle,
-                         calibration_session);
+    try {
+        complete_calibration(goal_id, calibration_session.m_action_goal_handle,
+                             calibration_session);
+    } catch (const std::exception& error) {
+        abort_session(goal_id,
+                      std::string("Calibration failed: ") + error.what());
+    } catch (...) {
+        abort_session(goal_id, "Calibration failed with an unknown exception");
+    }
 }
 
 bool camera_calibration::start_calibration(
     const std::string& goal_id, calibration_session& calibration_session,
     finish_calibration::Response& response) {
+    if (calibration_session.m_action_goal_handle->is_canceling()) {
+        response.accepted = false;
+        response.message = "Calibration session is being canceled";
+        return false;
+    }
     if (calibration_session.m_calibrating) {
         response.accepted = false;
         response.message = "Calibration is already running";
@@ -302,7 +300,6 @@ void camera_calibration::complete_calibration(
     const std::string& goal_id, std::shared_ptr<goal_handle> goal_handle,
     calibration_session& calibration_session) {
     const auto calibration_result = calibration_session.run_calibration();
-
     if (!calibration_result) {
         abort_session(goal_id, "Camera calibration failed");
         return;
@@ -442,8 +439,7 @@ void camera_calibration::publish_feedback(const std::string& goal_id,
 }
 
 void camera_calibration::cancel_session(
-    const std::string& goal_id,
-    std::shared_ptr<goal_handle> goal_handle) {
+    const std::string& goal_id, std::shared_ptr<goal_handle> goal_handle) {
     const auto session_it = m_sessions.find(goal_id);
     if (session_it == m_sessions.end() ||
         session_it->second.m_action_goal_handle != goal_handle) {
