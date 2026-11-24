@@ -70,7 +70,7 @@
     "deleteConfirmMany": "Delete {{count}} markers?",
     "editingMany": "Editing {{count}} markers",
     "multiExprHint": "Expressions use id = markerId",
-    "label": "Label",
+    "label": "frame_id",
     "sizeMm": "Size (mm)",
     "positionExpr": "Position (mm) — expression f(id)",
     "rotationExpr": "Rotation (°) — Euler YXZ — expression f(id)",

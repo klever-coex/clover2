@@ -90,7 +90,7 @@ export function AddMarkerButton() {
             onKeyDown={(e) => {
               if (e.key === 'Enter' && canAdd) {
                 confirm();
-                setOpen(false);
+                handleOpenChange(false);
               }
             }}
             className={cn(inputSm, 'w-full')}
