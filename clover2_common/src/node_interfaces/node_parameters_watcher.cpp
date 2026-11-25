@@ -47,6 +47,22 @@ public:
         m_watch_parameters.clear();
     }
 
+    void undeclare_watcher_parameter(const std::string& name) {
+        const auto it = m_watch_parameters.find(name);
+        if (it == m_watch_parameters.end()) {
+            return;
+        }
+
+        if (m_param_interface->has_parameter(name)) {
+            try {
+                m_param_interface->undeclare_parameter(name);
+            } catch (...) {
+            }
+        }
+
+        m_watch_parameters.erase(it);
+    }
+
 private:
     rcl_interfaces::msg::SetParametersResult on_set_parameters_cb(
         const std::vector<rclcpp::Parameter>& parameters) {
@@ -95,6 +111,11 @@ void NodeParametersWatcher::declare_and_watch_parameter(
 
 void NodeParametersWatcher::undeclare_watcher_parameters() {
     m_impl->undeclare_watcher_parameters();
+}
+
+void NodeParametersWatcher::undeclare_watcher_parameter(
+    const std::string& name) {
+    m_impl->undeclare_watcher_parameter(name);
 }
 
 }  // namespace clover2_common::node_interfaces
