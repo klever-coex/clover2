@@ -7,7 +7,7 @@
 
 namespace clover2_camera_utils::calibration::sample {
 
-std::optional<data::sample_feature_geometry> features_calculator::compute(
+std::optional<data::feature_values> features_calculator::compute(
     const std::vector<cv::Point2f>& corners, const cv::Size image_size) const {
     if (image_size.width <= 0 || image_size.height <= 0 || corners.size() < 4) {
         return std::nullopt;
@@ -32,18 +32,11 @@ std::optional<data::sample_feature_geometry> features_calculator::compute(
 
     const double image_area =
         static_cast<double>(image_size.width) * image_size.height;
-    data::sample_feature_geometry result{
-        .features =
-            {
-                .x = std::clamp(mean.x / image_size.width, 0.0, 1.0),
-                .y = std::clamp(mean.y / image_size.height, 0.0, 1.0),
-                .size = std::sqrt(area / image_area),
-            },
-        .convex_hull = std::move(hull),
-        .mean =
-            cv::Point2f{static_cast<float>(mean.x), static_cast<float>(mean.y)},
+    return data::feature_values{
+        .x = std::clamp(mean.x / image_size.width, 0.0, 1.0),
+        .y = std::clamp(mean.y / image_size.height, 0.0, 1.0),
+        .size = std::sqrt(area / image_area),
     };
-    return result;
 }
 
 }  // namespace clover2_camera_utils::calibration::sample

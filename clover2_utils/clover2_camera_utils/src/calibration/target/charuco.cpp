@@ -104,9 +104,10 @@ data::target_detection_result charuco::detect(const cv::Mat& image) const {
         result.debug.corner_ids.push_back(charuco_ids.at<int>(index));
     }
 
+    std::optional<data::feature_values> features;
     if (corner_count >= static_cast<int>(k_minimum_corners)) {
-        result.debug.feature_geometry = sample::features_calculator{}.compute(
-            result.debug.corners, image.size());
+        features = sample::features_calculator{}.compute(result.debug.corners,
+                                                         image.size());
     }
 
     const auto minimum_corner_count = static_cast<int>(
@@ -131,13 +132,12 @@ data::target_detection_result charuco::detect(const cv::Mat& image) const {
         observation.object_points.push_back(
             m_board->chessboardCorners[static_cast<size_t>(corner_id)]);
     }
-    if (!result.debug.feature_geometry.has_value()) {
+    if (!features.has_value()) {
         return result;
     }
-    auto selection = result.debug.feature_geometry->features;
     result.sample = data::target_detection{
         .calibration = std::move(observation),
-        .selection = selection,
+        .selection = *features,
     };
     return result;
 }

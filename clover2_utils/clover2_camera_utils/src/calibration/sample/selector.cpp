@@ -9,8 +9,8 @@ namespace {
 
 constexpr double k_progress_comparison_epsilon = 1e-6;
 
-double distance(const data::sample_features& first,
-                const data::sample_features& second,
+double distance(const data::feature_values& first,
+                const data::feature_values& second,
                 bool tilt_selection_enabled) {
     return std::abs(first.x - second.x) + std::abs(first.y - second.y) +
            std::abs(first.size - second.size) +
@@ -53,7 +53,7 @@ const std::vector<data::observation>& selector::observations() const noexcept {
     return m_observations;
 }
 
-const std::vector<data::sample_features>& selector::features() const noexcept {
+const std::vector<data::feature_values>& selector::features() const noexcept {
     return m_features;
 }
 
@@ -65,7 +65,7 @@ void selector::set_tilt_selection_enabled(const bool enabled) noexcept {
     m_tilt_selection_enabled = enabled;
 }
 
-bool selector::replace_features(std::vector<data::sample_features> features) {
+bool selector::replace_features(std::vector<data::feature_values> features) {
     if (features.size() != m_observations.size()) {
         return false;
     }
@@ -78,8 +78,8 @@ data::coverage_progress selector::compute_progress() const {
         return {};
     }
 
-    data::sample_features minimum = m_features.front();
-    data::sample_features maximum = m_features.front();
+    data::feature_values minimum = m_features.front();
+    data::feature_values maximum = m_features.front();
     for (const auto& feature : m_features) {
         minimum.x = std::min(minimum.x, feature.x);
         minimum.y = std::min(minimum.y, feature.y);
@@ -105,33 +105,43 @@ data::coverage_progress selector::compute_progress() const {
     };
 
     data::coverage_progress result{
-        .x = calculate_progress(minimum.x, maximum.x,
-                                m_config.required_ranges[0]),
-        .y = calculate_progress(minimum.y, maximum.y,
-                                m_config.required_ranges[1]),
-        .size = calculate_progress(minimum.size, maximum.size,
-                                   m_config.required_ranges[2]),
-        .tilt_x = m_tilt_selection_enabled
-                      ? calculate_progress(minimum.tilt_x, maximum.tilt_x,
-                                           m_config.required_ranges[3])
-                      : 1.0,
-        .tilt_y = m_tilt_selection_enabled
-                      ? calculate_progress(minimum.tilt_y, maximum.tilt_y,
-                                           m_config.required_ranges[4])
-                      : 1.0,
+        .features =
+            {
+                .x = calculate_progress(minimum.x, maximum.x,
+                                        m_config.required_ranges.x),
+                .y = calculate_progress(minimum.y, maximum.y,
+                                        m_config.required_ranges.y),
+                .size = calculate_progress(minimum.size, maximum.size,
+                                           m_config.required_ranges.size),
+                .tilt_x =
+                    m_tilt_selection_enabled
+                        ? calculate_progress(minimum.tilt_x, maximum.tilt_x,
+                                             m_config.required_ranges.tilt_x)
+                        : 1.0,
+                .tilt_y =
+                    m_tilt_selection_enabled
+                        ? calculate_progress(minimum.tilt_y, maximum.tilt_y,
+                                             m_config.required_ranges.tilt_y)
+                        : 1.0,
+            },
     };
     result.data_sufficient =
         m_features.size() >= m_config.minimum_samples_for_completion &&
-        meets_minimum_progress(result.x, m_config.minimum_progress[0]) &&
-        meets_minimum_progress(result.y, m_config.minimum_progress[1]) &&
-        meets_minimum_progress(result.size, m_config.minimum_progress[2]) &&
+        meets_minimum_progress(result.features.x,
+                               m_config.minimum_progress.x) &&
+        meets_minimum_progress(result.features.y,
+                               m_config.minimum_progress.y) &&
+        meets_minimum_progress(result.features.size,
+                               m_config.minimum_progress.size) &&
         (!m_tilt_selection_enabled ||
-         (meets_minimum_progress(result.tilt_x, m_config.minimum_progress[3]) &&
-          meets_minimum_progress(result.tilt_y, m_config.minimum_progress[4])));
+         (meets_minimum_progress(result.features.tilt_x,
+                                 m_config.minimum_progress.tilt_x) &&
+          meets_minimum_progress(result.features.tilt_y,
+                                 m_config.minimum_progress.tilt_y)));
     return result;
 }
 
-bool selector::is_duplicate(const data::sample_features& candidate) const {
+bool selector::is_duplicate(const data::feature_values& candidate) const {
     return std::any_of(m_features.begin(), m_features.end(),
                        [this, &candidate](const auto& existing) {
                            return distance(candidate, existing,

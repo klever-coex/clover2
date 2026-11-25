@@ -5,8 +5,8 @@
 
 #pragma once
 
+#include <clover2_camera_utils/data/feature_values.hpp>
 #include <clover2_camera_utils/data/observation.hpp>
-#include <clover2_camera_utils/data/sample_features.hpp>
 
 #include <opencv2/core/types.hpp>
 
@@ -20,8 +20,8 @@ namespace clover2_camera_utils::data {
  * features.
  */
 struct target_detection {
-    observation calibration;    ///< Corresponding image and object points.
-    sample_features selection;  ///< Descriptor used by the sample selector.
+    observation calibration;   ///< Corresponding image and object points.
+    feature_values selection;  ///< Descriptor used by the sample selector.
 };
 
 /** @brief Raw target features retained for debug visualization. */
@@ -34,8 +34,6 @@ struct target_debug {
     std::vector<cv::Point2f> corners;
     /** IDs corresponding to @ref corners when the target provides them. */
     std::vector<int> corner_ids;
-    /** Geometry and features of the detected corners when they are valid. */
-    std::optional<sample_feature_geometry> feature_geometry;
 };
 
 /**

@@ -65,16 +65,14 @@ data::target_detection_result chessboard::detect(const cv::Mat& image) const {
     if (!features.has_value()) {
         return result;
     }
-    result.debug.feature_geometry = *features;
     data::observation observation{
         .image_size = image.size(),
         .image_points = std::move(corners),
         .object_points = m_object_points,
     };
-    auto selection = features->features;
     result.sample = data::target_detection{
         .calibration = std::move(observation),
-        .selection = selection,
+        .selection = *features,
     };
     return result;
 }

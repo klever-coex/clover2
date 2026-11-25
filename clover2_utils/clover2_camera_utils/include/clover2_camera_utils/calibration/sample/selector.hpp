@@ -6,8 +6,8 @@
 #pragma once
 
 #include <clover2_camera_utils/data/coverage_progress.hpp>
+#include <clover2_camera_utils/data/feature_values.hpp>
 #include <clover2_camera_utils/data/observation.hpp>
-#include <clover2_camera_utils/data/sample_features.hpp>
 #include <clover2_camera_utils/data/sample_selection_result.hpp>
 #include <clover2_camera_utils/data/sample_selector_config.hpp>
 #include <clover2_camera_utils/data/target_detection.hpp>
@@ -49,7 +49,7 @@ public:
      * @brief Returns features of accepted samples.
      * @return Features of calibration dataset samples.
      */
-    const std::vector<data::sample_features>& features() const noexcept;
+    const std::vector<data::feature_values>& features() const noexcept;
 
     /**
      * @brief Returns the current coverage progress.
@@ -72,15 +72,15 @@ public:
      * @param features Replacement features in observation order.
      * @return `true` when the feature count matches accepted observations.
      */
-    bool replace_features(std::vector<data::sample_features> features);
+    bool replace_features(std::vector<data::feature_values> features);
 
 private:
     data::coverage_progress compute_progress() const;
-    bool is_duplicate(const data::sample_features& candidate) const;
+    bool is_duplicate(const data::feature_values& candidate) const;
 
     data::sample_selector_config m_config;
     std::vector<data::observation> m_observations;
-    std::vector<data::sample_features> m_features;
+    std::vector<data::feature_values> m_features;
     bool m_tilt_selection_enabled{true};
 };
 

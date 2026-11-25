@@ -96,7 +96,8 @@ calibration_session::add_corrected_sample(data::target_detection& detection) {
 
 calibration_session::calibration_initialization_event
 calibration_session::initialize_camera_estimate() {
-    m_camera_estimate = m_algorithm->calibrate(m_sample_selector.observations());
+    m_camera_estimate =
+        m_algorithm->calibrate(m_sample_selector.observations());
     if (!m_camera_estimate) {
         return calibration_initialization_event::initial_estimate_failed;
     }

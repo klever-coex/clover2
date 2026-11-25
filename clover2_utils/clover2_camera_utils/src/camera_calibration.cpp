@@ -53,8 +53,9 @@ std::string format_calibration_description(
 }  // namespace
 
 camera_calibration::camera_calibration(const rclcpp::NodeOptions& options)
-    : clover2_common::node("camera_calibration", options)
-    , m_sample_selector_config(*get_node_parameters_watcher_interface()) {
+    : clover2_common::node("camera_calibration", options) {
+    data::sample_selector_config::declare_parameters(
+        m_sample_selector_config, *get_node_parameters_watcher_interface());
     m_session_callback_group =
         create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
@@ -77,6 +78,8 @@ camera_calibration::camera_calibration(const rclcpp::NodeOptions& options)
 camera_calibration::~camera_calibration() {
     m_sessions.clear();
     m_action_server.reset();
+    data::sample_selector_config::undeclare_parameters(
+        *get_node_parameters_watcher_interface());
 }
 
 rclcpp_action::GoalResponse camera_calibration::handle_goal(
@@ -411,11 +414,11 @@ void camera_calibration::publish_feedback(const std::string& goal_id,
     auto feedback = std::make_shared<calibrate_camera::Feedback>();
     feedback->goal_id = goal_id;
     feedback->accepted_samples = static_cast<uint32_t>(accepted_samples);
-    feedback->progress_x = static_cast<float>(progress.x);
-    feedback->progress_y = static_cast<float>(progress.y);
-    feedback->progress_size = static_cast<float>(progress.size);
-    feedback->progress_tilt_x = static_cast<float>(progress.tilt_x);
-    feedback->progress_tilt_y = static_cast<float>(progress.tilt_y);
+    feedback->progress_x = static_cast<float>(progress.features.x);
+    feedback->progress_y = static_cast<float>(progress.features.y);
+    feedback->progress_size = static_cast<float>(progress.features.size);
+    feedback->progress_tilt_x = static_cast<float>(progress.features.tilt_x);
+    feedback->progress_tilt_y = static_cast<float>(progress.features.tilt_y);
     feedback->data_sufficient = calibration_session.ready_to_calibrate();
     feedback->stage = stage;
     if (stage == calibrate_camera::Feedback::SAMPLE_ACCEPTED) {
