@@ -49,6 +49,9 @@ public:
     /** @brief Undeclare all watched parameters. */
     RCLCPP_PUBLIC
     virtual void undeclare_watcher_parameters() = 0;
+
+    /** @brief Undeclare a watched parameter by name. */
+    virtual void undeclare_watcher_parameter(const std::string& name) = 0;
 };
 
 }  // namespace clover2_common::node_interfaces

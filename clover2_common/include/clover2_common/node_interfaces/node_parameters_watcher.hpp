@@ -58,6 +58,10 @@ public:
     RCLCPP_PUBLIC
     void undeclare_watcher_parameters() override final;
 
+    /** @brief Undeclare a watched parameter by name. */
+    RCLCPP_PUBLIC
+    void undeclare_watcher_parameter(const std::string& name) override final;
+
 private:
     RCLCPP_DISABLE_COPY(NodeParametersWatcher)
 
