@@ -1,22 +1,22 @@
 # clover2_bringup
 
-Пакет содержит все launch-файлы, необходимые для запуска проекта, а также кастомные actions для автоматизации конфигурации.
+Пакет содержит launch-файлы для запуска компонентов проекта, а также пользовательские actions для автоматизации настройки и запуска системы.
 
 ## Структура
 
 ```text
 launch/
-├── klever5.launch.xml       # главный launch-файл для полного запуска Клевер 5
-├── description.launch.xml   # публикация TF (URDF)
-├── sensing/                 # драйверы устройств
+├── klever5.launch.xml       # главный launch-файл для полного запуска **Клевер 5**
+├── description.launch.xml   # публикация TF на основе URDF-описания
+├── sensing/                 # запуск драйверов устройств
 │   ├── camera.launch.xml
 │   ├── 2d_lidar.launch.xml
 │   └── thermal_camera.launch.xml
-├── vision/                  # обработка изображения
+├── vision/                  # обработка изображений
 │   ├── camera_pipeline.launch.xml
 │   ├── feature_detector.launch.xml
 │   └── optical_flow.launch.xml
-└── snippets/                # переиспользуемые фрагменты
+└── snippets/                # переиспользуемые фрагменты launch-файлов
     ├── component_container.launch.xml
     ├── fcu_bridge.launch.xml
     ├── localization.launch.xml
@@ -26,29 +26,30 @@ launch/
 
 ## Главный launch-файл `klever5.launch.xml`
 
-Собирает всё вместе: описание (TF), камеры с пайплайном обработки, мост к полётному контроллеру, локализацию, индикацию и диагностику.
+Главный launch-файл объединяет запуск основных компонентов `Клевер 5`: публикацию TF, камер и конвейеров обработки изображений, моста к полетному контроллеру, системы локализации, средств индикации и диагностики.
 
-Основные конфигурационные аргументы:
+Основные аргументы конфигурации:
 
 | Аргумент                                | По умолчанию | Описание                                            |
 | --------------------------------------- | ------------ | --------------------------------------------------- |
-| `main_camera.enable`                    | `true`       | Запуск основной камеры и её пайплайна               |
-| `main_camera.feature_detector`          | `true`       | Запуск детектора признаков                          |
+| `main_camera.enable`                    | `true`       | Запуск основной камеры и конвейера обработки ее изображений  |
+| `main_camera.feature_detector`          | `true`       | Запуск детектора признаков для основной камеры  |
 | `front_camera.enable`                   | `false`      | Запуск фронтальной камеры                           |
 | `optical_flow.enable`                   | `true`       | Запуск оптического потока                           |
-| `fcu_bridge.fcu_conn`                   | `uart`       | Тип соединения с FCU                                |
+| `fcu_bridge.fcu_conn`                   | `uart`       | Тип соединения с полетным контроллером (FCU)      |
 | `localization.aruco_tracker.enable`     | `true`       | Запуск трекера ArUco-маркеров                       |
 | `localization.map_server.enable`        | `true`       | Запуск сервера карты                                |
-| `localization.map_server.map_filename`  | `example-1.yaml` | Файл карты                                      |
+| `localization.map_server.map_filename`  | `example-1.yaml` | Имя файла карты                                 |
 | `indication.led_strip`                  | `false`      | Запуск LED-ленты                                    |
 | `indication.display`                    | `false`      | Запуск дисплея                                      |
 | `additional_sensors.2d_lidar`           | `false`      | Запуск 2D-лидара                                    |
-| `additional_sensors.thermal_camera`     | `false`      | Запуск тепловой камеры                              |
-| `sensing_pkg`                           | `clover2_bringup` | Пакет, из которого загружаются sensing launch-файлы |
-| `root_ns`                               | —            | Корневой namespace (пустой или начинается с `/`)    |
-| `params_file`                           | `params/klever5.yaml` | Файл дополнительных параметров              |
+| `additional_sensors.thermal_camera`     | `false`      | Запуск тепловизора                              |
+| `sensing_pkg`                           | `clover2_bringup` | Пакет, из которого загружаются launch-файлы драйверов сенсоров |
+| `root_ns`                               | —            | Корневое пространство имен (namespace). Может быть пустым или начинаться с `/`    |
+| `params_file`                           | `params/klever5.yaml` | Путь к файлу дополнительных параметров              |
 
-Пример:
+Чтобы изменить параметры запуска, укажите нужные аргументы после имени launch-файла.
+Например, следующая команда запускает 2D-лидар и дисплей:
 
 ```
 ros2 launch clover2_bringup klever5.launch.xml additional_sensors.2d_lidar:=true indication.display:=true
@@ -56,19 +57,19 @@ ros2 launch clover2_bringup klever5.launch.xml additional_sensors.2d_lidar:=true
 
 ## Группа запуска сенсоров (sensing)
 
-Для стандартизации способа запуска драйверы устройств вынесены в отдельные файлы в папку `launch/sensing`. Launch-файлы имеют набор стандартных аргументов.
+Чтобы унифицировать запуск драйверов устройств, для каждого типа сенсора предусмотрен отдельный launch-файл в папке `launch/sensing`. Все launch-файлы этой группы используют стандартный набор аргументов.
 
 ### Шаблон аргументов запуска драйвера камеры
 
 | Аргумент        | Обязательный | По умолчанию          | Описание                                                                                       |
 | --------------- | ------------ | --------------------- | ---------------------------------------------------------------------------------------------- |
-| `camera_id`     | Да           |                       | Идентификатор камеры (числовой для libcamera или путь dts)                                      |
-| `camera_name`   | Нет          | `camera`              | Имя ноды камеры. Также выбирает файл `params/libcamera/$(camera_name).yaml`                     |
-| `container_name`| Нет          | `camera_container`    | Имя ROS 2 контейнера для загрузки драйвера камеры как компонента                                 |
-| `frame_id`      | Нет          | `$(camera_name)_link` | Идентификатор TF2 vision frame                                                                  |
-| `ns`            | Нет          | —                     | ROS 2 namespace камеры                                                                          |
+| `camera_id`     | Да           |                       | Идентификатор камеры (числовой индекс для libcamera или путь к устройству)                                      |
+| `camera_name`   | Нет          | `camera`              | Имя ноды камеры. Также используется для выбора файла параметров `params/libcamera/$(camera_name).yaml`                     |
+| `container_name`| Нет          | `camera_container`    | Имя ROS 2 контейнера, в который загружается драйвер камеры как компонент                                 |
+| `frame_id`      | Нет          | `$(camera_name)_link` | Идентификатор системы координат (frame) в TF2                 |
+| `ns`            | Нет          | —                     | Пространство имен (namespace) камеры                                                                          |
 | `params_file`   | Нет          | `params/klever5.yaml` | Путь к файлу дополнительных параметров                                                           |
-| `use_composition`| Нет         | `false`               | Если `true` — драйвер камеры загружается как компонент в контейнер `$(container_name)`. Иначе как отдельная нода |
+| `use_composition`| Нет         | `false`               | Определяет способ запуска драйвера. Если `true`, драйвер загружается как компонент в контейнер `$(container_name)`. Если `false`, драйвер запускается как отдельная нода  |
 
 ### Шаблон аргументов запуска 2D-лидара
 
@@ -76,25 +77,30 @@ ros2 launch clover2_bringup klever5.launch.xml additional_sensors.2d_lidar:=true
 | ------------- | ------------ | ---------------------- | ------------------------------------------ |
 | `lidar_id`    | Нет          | `/dev/rplidar`         | Путь к последовательному устройству лидара |
 | `lidar_name`  | Нет          | `lidar`                | Имя ноды лидара                            |
-| `ns`          | Нет          | —                      | ROS 2 namespace лидара                     |
+| `ns`          | Нет          | —                      | Пространство имен (namespace) лидара                     |
 | `params_file` | Нет          | `params/klever5.yaml`  | Путь к файлу дополнительных параметров     |
 
-### Шаблон аргументов запуска тепловой камеры
+### Шаблон аргументов запуска тепловизора
 
 | Аргумент                | Обязательный | По умолчанию         | Описание                           |
 | ----------------------- | ------------ | -------------------- | ---------------------------------- |
-| `thermal_camera_device` | Нет          | `/dev/thermal_camera`| Путь к устройству тепловой камеры  |
-| `thermal_camera_name`   | Нет          | `thermal_camera`     | Имя ноды тепловой камеры           |
-| `ns`                    | Нет          | —                    | ROS 2 namespace тепловой камеры    |
+| `thermal_camera_device` | Нет          | `/dev/thermal_camera`| Путь к устройству тепловизора  |
+| `thermal_camera_name`   | Нет          | `thermal_camera`     | Имя ноды тепловизора           |
+| `ns`                    | Нет          | —                    | Пространство имен (namespace) тепловизора    |
 
 ### Подмена пакета сенсоров
 
-Главный launch-файл `klever5.launch.xml` принимает аргумент `sensing_pkg`, который определяет пакет, из которого загружаются launch-файлы сенсоров. Это позволяет подменить стандартные драйверы камеры, 2D-лидара и тепловой камеры на пользовательские без изменения оригинального пакета.
+Главный launch-файл `klever5.launch.xml` принимает аргумент `sensing_pkg`, который определяет пакет, из которого загружаются launch-файлы драйверов сенсоров. Это позволяет заменить стандартные драйверы камеры, 2D-лидара и тепловизора на пользовательские без изменения исходного пакета `clover2_bringup`.
 
-Пример использования — запуск klever5 с пользовательским пакетом сенсоров:
+Например, чтобы запустить Клевер 5 с пользовательским пакетом сенсоров, выполните команду:
 
 ```
 ros2 launch clover2_bringup klever5.launch.xml sensing_pkg:=my_custom_sensing
 ```
 
-Подставляемый пакет должен предоставлять те же пути к launch-файлам (например, `launch/sensing/2d_lidar.launch.xml`, `launch/sensing/camera.launch.xml`, `launch/sensing/thermal_camera.launch.xml`).
+Подставляемый пакет должен предоставлять те же пути к launch-файлам, что и стандартный пакет:
+* `launch/sensing/2d_lidar.launch.xml`;
+*  `launch/sensing/camera.launch.xml`;
+*  `launch/sensing/thermal_camera.launch.xml`.
+
+Имена и пути к launch-файлам должны совпадать, поскольку главный launch-файл обращается к ним по заданным путям.
