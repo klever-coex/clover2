@@ -12,9 +12,16 @@
     <visual name="led_${index}">
       <pose>${radius * cos(angle)} 0.000 ${-radius * sin(angle)} 0 ${angle + pi / 2} 0</pose>
       <geometry><box><size>${segment_size} 0.002 0.001</size></box></geometry>
-    <material>
-        <ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse><emissive>0 0 0 1</emissive>
-    </material>
+      <material>
+          <ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse><emissive>0 0 0 1</emissive>
+      </material>
+      <xacro:if value="${index == 0}">
+        <plugin filename="libclover2_gz_sim_led_strip_system.so"
+          name="clover2_gz_sim::LedStripSystem">
+          <led_count>${led_count}</led_count>
+          <visual_prefix>led_</visual_prefix>
+        </plugin>
+      </xacro:if>
     </visual>
     <xacro:if value="${index + 1 &lt; led_count}">
       <xacro:sdf_led_strip_visuals index="${index + 1}" led_count="${led_count}"
@@ -39,9 +46,5 @@
     <joint name="led_strip_link_mount_joint" type="fixed">
       <parent>${parent}</parent><child>led_strip_link</child>
     </joint>
-    <plugin filename="libclover2_gz_sim_led_strip_system.so" name="clover2_gz_sim::LedStripSystem">
-      <led_count>${led_count}</led_count>
-      <visual_prefix>led_</visual_prefix>
-    </plugin>
   </xacro:macro>
 </sdf>
