@@ -43,7 +43,7 @@ launch/
 | `indication.led_strip`                  | `false`      | Запуск LED-ленты                                    |
 | `indication.display`                    | `false`      | Запуск дисплея                                      |
 | `additional_sensors.2d_lidar`           | `false`      | Запуск 2D-лидара                                    |
-| `additional_sensors.thermal_camera`     | `false`      | Запуск тепловизора                              |
+| `additional_sensors.thermal_camera`     | `false`      | Запуск тепловизионной камеры                            |
 | `sensing_pkg`                           | `clover2_bringup` | Пакет, из которого загружаются launch-файлы драйверов сенсоров |
 | `root_ns`                               | —            | Корневое пространство имен (namespace). Может быть пустым или начинаться с `/`    |
 | `params_file`                           | `params/klever5.yaml` | Путь к файлу дополнительных параметров              |
@@ -80,13 +80,13 @@ ros2 launch clover2_bringup klever5.launch.xml additional_sensors.2d_lidar:=true
 | `ns`          | Нет          | —                      | Пространство имен (namespace) лидара                     |
 | `params_file` | Нет          | `params/klever5.yaml`  | Путь к файлу дополнительных параметров     |
 
-### Шаблон аргументов запуска тепловизора
+### Шаблон аргументов запуска тепловизионной камеры
 
 | Аргумент                | Обязательный | По умолчанию         | Описание                           |
 | ----------------------- | ------------ | -------------------- | ---------------------------------- |
-| `thermal_camera_device` | Нет          | `/dev/thermal_camera`| Путь к устройству тепловизора  |
-| `thermal_camera_name`   | Нет          | `thermal_camera`     | Имя ноды тепловизора           |
-| `ns`                    | Нет          | —                    | Пространство имен (namespace) тепловизора    |
+| `thermal_camera_device` | Нет          | `/dev/thermal_camera`| Путь к устройству тепловизионной камеры |
+| `thermal_camera_name`   | Нет          | `thermal_camera`     | Имя ноды тепловизионной камеры         |
+| `ns`                    | Нет          | —                    | Пространство имен (namespace) тепловизионной камеры    |
 
 ### Подмена пакета сенсоров
 
