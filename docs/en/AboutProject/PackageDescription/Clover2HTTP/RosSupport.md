@@ -13,7 +13,7 @@ The plugin exposes the following HTTP endpoints and WebSocket routes for interac
 | GET | `/api/topics` | Returns a list of all active topics in the graph `{name, type}` |
 | GET | `/api/nodes` | Returns a list of all active node names. |
 | GET | `/api/node/info/-/{node...}` | Retrieves detailed node information: name, namespace, lifecycle capability, and current state |
-| GET | `/api/node/publishers/-/{node...}` | ПLists the node's publishers, including the associated topics and QoS profiles |
+| GET | `/api/node/publishers/-/{node...}` | Lists the node's publishers, including the associated topics and QoS profiles |
 | GET | `/api/node/subscribes/-/{node...}` | Lists the node's subscribers, including the associated topics and QoS profiles |
 | GET | `/api/node/servers/-/{node...}` | Returns a list of services provided by the node |
 | GET | `/api/node/clients/-/{node...}` | Returns a list of service clients owned by the node |
@@ -83,7 +83,7 @@ Possible HTTP response codes:
 
 * JSON field names match the field names defined in the original ROS 2 `.msg` file.
 * Nested messages are converted into nested JSON objects.
-* : ROS 2 arrays are converted into standard JSON arrays.
+* ROS 2 arrays are converted into standard JSON arrays.
   
 Example: A message published on the `/rosout type rcl_interfaces/msg/Log` will be serialized as follows:
 
